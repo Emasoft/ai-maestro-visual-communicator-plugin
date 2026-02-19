@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.1.2] - 2026-02-19
+
+- Added sequence diagram syntax guidance to "Writing Valid Mermaid" — curly braces, brackets, and ampersands in message labels silently break rendering
+
 ## [0.1.1] - 2026-02-19
 
 - Prompts no longer require the `pi-prompt-template-model` extension — each prompt now explicitly loads the skill itself

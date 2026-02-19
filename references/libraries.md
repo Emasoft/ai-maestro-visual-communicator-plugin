@@ -237,6 +237,20 @@ Auth --> API
 
 **Escape pipes in labels.** If a label contains a literal `|`, use `#124;` (HTML entity) or rephrase to avoid it — pipes delimit edge labels in flowcharts.
 
+**Sequence diagram messages must be plain text.** Unlike flowchart labels, sequence diagram messages (the text after `:`) cannot be quoted or escaped. Curly braces `{}`, square brackets `[]`, angle brackets `<>`, and `&` will silently break the parser and the entire diagram renders as raw text. Write human-readable descriptions, not code:
+
+```
+%% WRONG — parser chokes on braces, brackets, ampersand
+A->>B: web_search({ queries: [...] })
+B->>B: User removes query 2, keeps 1 & 3
+B->>S: POST /submit { selected: [0, 2] }
+
+%% RIGHT — plain English, no special characters
+A->>B: Call web_search with queries
+B->>B: User removes query 2, keeps 1 and 3
+B->>S: POST /submit with selected indices
+```
+
 **Don't mix diagram syntax.** Each diagram type has its own syntax. `-->` works in flowcharts but not in sequence diagrams (`->>` instead). `:::className` works in flowcharts but not in ER diagrams. When in doubt, check the examples below for correct syntax per type.
 
 ### Diagram Type Examples
