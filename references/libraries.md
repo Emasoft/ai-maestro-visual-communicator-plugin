@@ -69,39 +69,6 @@ Always use `theme: 'base'` — it's the only theme where all `themeVariables` ar
 </script>
 ```
 
-### Hand-Drawn Mode
-
-Add `look: 'handDrawn'` for a sketchy, whiteboard-style aesthetic. Combines well with the `elk` layout engine for better positioning (requires the ELK import — see CDN section above):
-
-```html
-<script type="module">
-  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
-  import elkLayouts from 'https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk/dist/mermaid-layout-elk.esm.min.mjs';
-
-  mermaid.registerLayoutLoaders(elkLayouts);
-  mermaid.initialize({
-    startOnLoad: true,
-    theme: 'base',
-    look: 'handDrawn',
-    layout: 'elk',
-    themeVariables: { /* same as above */ }
-  });
-</script>
-```
-
-Or set it per-diagram via frontmatter:
-```
----
-config:
-  look: handDrawn
-  layout: elk
----
-graph TD
-  A[User Request] --> B{Auth Check}
-  B -->|Valid| C[Process]
-  B -->|Invalid| D[Reject]
-```
-
 ### CSS Overrides on Mermaid SVG
 
 Mermaid renders SVG. Override its classes for pixel-perfect control that `themeVariables` can't reach:

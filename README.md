@@ -28,26 +28,18 @@ Tables are worse. Ask the agent to compare 15 requirements against a plan and yo
 
 ## Install
 
-The skill follows the [Agent Skills specification](https://agentskills.io/specification). Clone it into your agent's skills directory:
+```bash
+# Pi — installs the skill and all slash commands in one step
+pi install https://github.com/nicobailon/visual-explainer
+```
+
+For Claude Code or other agents, clone into your skills directory:
 
 ```bash
-# Pi
-git clone https://github.com/nicobailon/visual-explainer.git ~/.pi/agent/skills/visual-explainer
-
-# Claude Code
 git clone https://github.com/nicobailon/visual-explainer.git ~/.claude/skills/visual-explainer
-
-# Other agents — point at the directory containing SKILL.md,
-# or paste its contents into your system prompt
 ```
 
-For Pi, restart after cloning. To get the slash commands (`/diff-review`, `/plan-review`, etc.), copy the prompt templates:
-
-```bash
-cp ~/.pi/agent/skills/visual-explainer/prompts/*.md ~/.pi/agent/prompts/
-```
-
-If you have [surf-cli](https://github.com/nicobailon/surf-cli) installed, the skill can also generate illustrations via Gemini Nano Banana Pro and embed them in pages. The agent detects surf automatically and skips image generation if it's not there.
+If you have [surf-cli](https://github.com/nicobailon/surf-cli) installed, the skill can also generate illustrations via Gemini and embed them in pages. The agent detects surf automatically and skips image generation if it's not there.
 
 ## Usage
 
@@ -94,7 +86,7 @@ references/           ← agent reads before each generation
     ↓
 templates/            ← agent reads the matching reference template
 ├── architecture.html (CSS Grid cards — terracotta/sage palette)
-├── mermaid-flowchart.html (Mermaid + ELK + handDrawn — teal/cyan palette)
+├── mermaid-flowchart.html (Mermaid + ELK — teal/cyan palette)
 └── data-table.html   (tables with KPIs and badges — rose/cranberry palette)
     ↓
 ~/.agent/diagrams/filename.html → opens in browser
