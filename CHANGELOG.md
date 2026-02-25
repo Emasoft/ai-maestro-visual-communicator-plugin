@@ -1,5 +1,9 @@
 # Changelog
 
+## [Unreleased]
+
+- Extended `classDef` color warning to also cover per-node `style` directives — both hardcode text color that breaks in the opposite color scheme
+
 ## [0.1.2] - 2026-02-19
 
 - Added sequence diagram syntax guidance to "Writing Valid Mermaid" — curly braces, brackets, and ampersands in message labels silently break rendering
