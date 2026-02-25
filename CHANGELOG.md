@@ -1,8 +1,9 @@
 # Changelog
 
-## [Unreleased]
+## [0.1.3] - 2026-02-24
 
 - Extended `classDef` color warning to also cover per-node `style` directives — both hardcode text color that breaks in the opposite color scheme
+- Renamed `.node` card classes to `.ve-card` to fix CSS collision with Mermaid's internal `.node` class that broke diagram layout (PR #7)
 
 ## [0.1.2] - 2026-02-19
 
