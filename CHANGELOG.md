@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.3.0] - 2026-02-26
+
+### Anti-Slop Guardrails
+- Added explicit "Anti-Patterns (AI Slop)" section to SKILL.md with forbidden patterns
+- Removed "Neon dashboard" and "Gradient mesh" from allowed aesthetics — they always produce generic output
+- Categorized aesthetics as "Constrained" (safer) vs "Flexible" (use with caution)
+- Explicit forbidden fonts: Inter, Roboto, Arial, Helvetica, system-ui as primary
+- Explicit forbidden colors: indigo/violet range (`#8b5cf6`, `#7c3aed`, `#a78bfa`), cyan-magenta-pink combination
+- Explicit forbidden effects: gradient text on headings, animated glowing box-shadows, emoji section headers
+- Added "The Slop Test" — 7-point checklist to catch AI-generated patterns before delivery
+- Strengthened typography guidance with 5 explicit good pairings to use
+- Strengthened color guidance with 5 explicit good palettes to use
+- Referenced `websocket-implementation-plan.html` as positive example of Blueprint aesthetic
+
+### Template Fixes
+- Replaced violet secondary colors in `mermaid-flowchart.html` with sky blue to match anti-slop guidelines
+- Updated Mermaid themeVariables example in `libraries.md` to use teal/slate palette instead of violet
+
 ## [0.2.0] - 2026-02-25
 
 ### Slide Deck Mode
