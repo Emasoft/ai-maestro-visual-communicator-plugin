@@ -45,15 +45,23 @@ If you have [surf-cli](https://github.com/nicobailon/surf-cli) installed, the sk
 
 The agent loads the skill when you mention diagrams, architecture, flowcharts, schemas, or visualizations. It also kicks in automatically when it's about to dump a complex table in the terminal (4+ rows or 3+ columns) — it renders HTML instead and opens it in the browser. Output goes to `~/.agent/diagrams/`.
 
-The skill ships with five prompt templates:
+The skill ships with six prompt templates:
 
 | Command | What it does |
 |---------|-------------|
 | `/generate-web-diagram` | Generate an HTML diagram for any topic |
+| `/generate-slides` | Generate a magazine-quality slide deck for any topic |
 | `/diff-review` | Visual diff review with architecture comparison, code review, decision log |
 | `/plan-review` | Compare a plan against the codebase with risk assessment |
 | `/project-recap` | Mental model snapshot for context-switching back to a project |
 | `/fact-check` | Verify accuracy of a review page or plan doc against actual code |
+
+Any prompt that produces a scrollable page also supports a `--slides` flag to generate a slide deck instead:
+
+```
+/diff-review --slides         # slide deck version of a diff review
+/project-recap --slides 2w    # slide deck recap of last 2 weeks
+```
 
 `/diff-review` is probably the most useful. Run it with no arguments to diff against `main`, or pass any git ref:
 
@@ -82,17 +90,19 @@ SKILL.md (workflow + design principles)
 references/           ← agent reads before each generation
 ├── css-patterns.md   (layouts, animations, theming, depth tiers)
 ├── libraries.md      (Mermaid theming, Chart.js, anime.js, font pairings)
-└── responsive-nav.md (sticky sidebar TOC for multi-section pages)
+├── responsive-nav.md (sticky sidebar TOC for multi-section pages)
+└── slide-patterns.md (slide engine, 10 slide types, transitions, presets)
     ↓
 templates/            ← agent reads the matching reference template
 ├── architecture.html (CSS Grid cards — terracotta/sage palette)
 ├── mermaid-flowchart.html (Mermaid + ELK — teal/cyan palette)
-└── data-table.html   (tables with KPIs and badges — rose/cranberry palette)
+├── data-table.html   (tables with KPIs and badges — rose/cranberry palette)
+└── slide-deck.html   (viewport-fit slides — midnight editorial palette)
     ↓
 ~/.agent/diagrams/filename.html → opens in browser
 ```
 
-The agent picks an aesthetic direction, reads the right reference template, generates a self-contained HTML file with both light and dark themes, and opens it. The three templates use deliberately different palettes so the agent learns variety rather than defaulting to one look. The skill handles 11 diagram types — Mermaid for anything with connections (flowcharts, sequences, ER, state machines, mind maps), CSS Grid for text-heavy architecture overviews, HTML tables for data, Chart.js for dashboards — and routes to the right approach automatically.
+The agent picks an aesthetic direction, reads the right reference template, generates a self-contained HTML file with both light and dark themes, and opens it. The four templates use deliberately different palettes so the agent learns variety rather than defaulting to one look. The skill handles 11 diagram types — Mermaid for anything with connections (flowcharts, sequences, ER, state machines, mind maps), CSS Grid for text-heavy architecture overviews, HTML tables for data, Chart.js for dashboards — and routes to the right approach automatically.
 
 To customize the output directory, browser command, or add your own diagram types and CSS patterns, edit the files directly. The agent reads them fresh each time.
 

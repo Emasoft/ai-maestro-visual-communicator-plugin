@@ -233,6 +233,10 @@ li::before {
 
 Mermaid diagrams are often too small to read comfortably, especially complex flowcharts and sequence diagrams. Add zoom controls to every `.mermaid-wrap` container.
 
+**Centering fix.** Mermaid SVGs render at a fixed size and default to the top-left of their container, leaving dead space in larger containers. Always add `display: flex; align-items: center; justify-content: center;` to `.mermaid-wrap` so the SVG centers regardless of container size. Use `transform-origin: center center` so zoom radiates from the middle.
+
+**Small diagrams in slides.** If a diagram has fewer than ~7 nodes with no branching, it will render tiny in a full-viewport slide container. For simple linear flows (A → B → C → D), use CSS pipeline cards instead of Mermaid — see `slide-patterns.md` "CSS Pipeline Slide." Reserve Mermaid for complex graphs where automatic edge routing is actually needed.
+
 ### CSS
 
 ```css
@@ -243,6 +247,9 @@ Mermaid diagrams are often too small to read comfortably, especially complex flo
   border-radius: 12px;
   padding: 32px 24px;
   overflow: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   scrollbar-width: thin;
   scrollbar-color: var(--border) transparent;
 }
@@ -253,7 +260,7 @@ Mermaid diagrams are often too small to read comfortably, especially complex flo
 
 .mermaid-wrap .mermaid {
   transition: transform 0.2s ease;
-  transform-origin: top center;
+  transform-origin: center center;
 }
 
 .zoom-controls {

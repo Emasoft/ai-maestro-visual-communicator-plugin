@@ -1,5 +1,30 @@
 # Changelog
 
+## [0.2.0] - 2026-02-25
+
+### Slide Deck Mode
+- New output format: magazine-quality slide deck presentations as self-contained HTML files
+- 10 slide types: Title, Section Divider, Content, Split, Diagram, Dashboard, Table, Code, Quote, Full-Bleed
+- SlideEngine JS: keyboard/touch/wheel navigation, progress bar, nav dots, slide counter, keyboard hints with auto-fade
+- Cinematic transitions: fade + translateY + scale on slide entrance, staggered child reveals via IntersectionObserver
+- 4 curated presets: Midnight Editorial, Warm Signal, Terminal Mono, Swiss Clean (each with full light/dark palette)
+- Event delegation: Mermaid zoom, scrollable code/tables don't trigger slide navigation
+- Responsive height breakpoints (700px, 600px, 500px) for projection and small viewports
+- Typography scale 2–3× larger than scrollable pages (80–120px display, 28–48px headings, 16–24px body)
+- Per-slide background variation, SVG decorative accents, compositional variety rules
+- Proactive imagery: surf-cli integration for title/full-bleed backgrounds, inline sparklines, mini-charts
+- New `/generate-slides` prompt template; existing prompts support `--slides` flag via SKILL.md workflow
+- Unified `autoFit()` post-render function: auto-scales Mermaid SVGs, KPI values, and long blockquotes to fit their containers
+- Fix Mermaid diagrams rendering tiny in slide containers (flex shrink-wrap + inline max-width)
+- Fix KPI card overflow for text values (white-space + transform scale)
+- Fix quote slides with long text (proportional font-size reduction)
+
+### Files
+- `references/slide-patterns.md` — slide engine CSS, all 10 type layouts, transitions, nav chrome, content density limits, presets
+- `templates/slide-deck.html` — reference template demonstrating all 10 types in Midnight Editorial preset
+- `prompts/generate-slides.md` — slash command for generating slide decks
+- `SKILL.md` — new "Slide Deck Mode" section with slide routing, `--slides` flag detection, visual richness guidance
+
 ## [0.1.4] - 2026-02-24
 
 - Removed Mermaid `handDrawn` mode — Rough.js hachure fills are hardcoded and render unreadable diagonal scribbles inside nodes with no user-facing override. All diagrams now use `look: 'classic'` with custom `themeVariables` for visual distinction.
