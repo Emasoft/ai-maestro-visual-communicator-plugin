@@ -56,6 +56,8 @@ The skill ships with six prompt templates:
 | `/project-recap` | Mental model snapshot for context-switching back to a project |
 | `/fact-check` | Verify accuracy of a review page or plan doc against actual code |
 
+https://github.com/user-attachments/assets/342d3558-5fcf-4fb2-bc03-f0dd5b9e35dc
+
 Any prompt that produces a scrollable page also supports a `--slides` flag to generate a slide deck instead:
 
 ```
