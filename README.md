@@ -28,15 +28,29 @@ Tables are worse. Ask the agent to compare 15 requirements against a plan and yo
 
 ## Install
 
+### Pi
+
 ```bash
-# Pi — installs the skill and all slash commands in one step
+# Installs the skill and all slash commands in one step
 pi install https://github.com/nicobailon/visual-explainer
 ```
 
-For Claude Code or other agents, clone into your skills directory:
+If you prefer a manual install, clone the repo and copy the prompts:
+
+```bash
+git clone https://github.com/nicobailon/visual-explainer.git ~/.pi/agent/skills/visual-explainer
+mkdir -p ~/.pi/agent/prompts
+cp ~/.pi/agent/skills/visual-explainer/prompts/*.md ~/.pi/agent/prompts/
+```
+
+### Claude Code
+
+Clone the skill, then copy the prompt templates so they register as slash commands:
 
 ```bash
 git clone https://github.com/nicobailon/visual-explainer.git ~/.claude/skills/visual-explainer
+mkdir -p ~/.claude/commands
+cp ~/.claude/skills/visual-explainer/prompts/*.md ~/.claude/commands/
 ```
 
 If you have [surf-cli](https://github.com/nicobailon/surf-cli) installed, the skill can also generate illustrations via Gemini and embed them in pages. The agent detects surf automatically and skips image generation if it's not there.
