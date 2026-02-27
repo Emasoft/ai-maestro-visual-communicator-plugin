@@ -39,6 +39,7 @@ If you prefer a manual install, clone the repo and copy the prompts:
 
 ```bash
 git clone https://github.com/nicobailon/visual-explainer.git ~/.pi/agent/skills/visual-explainer
+mkdir -p ~/.pi/agent/prompts
 cp ~/.pi/agent/skills/visual-explainer/prompts/*.md ~/.pi/agent/prompts/
 ```
 
@@ -48,6 +49,7 @@ Clone the skill, then copy the prompt templates so they register as slash comman
 
 ```bash
 git clone https://github.com/nicobailon/visual-explainer.git ~/.claude/skills/visual-explainer
+mkdir -p ~/.claude/commands
 cp ~/.claude/skills/visual-explainer/prompts/*.md ~/.claude/commands/
 ```
 
