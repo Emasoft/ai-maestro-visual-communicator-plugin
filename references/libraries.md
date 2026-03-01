@@ -256,6 +256,31 @@ B->>S: POST /submit with selected indices
 
 **Don't mix diagram syntax.** Each diagram type has its own syntax. `-->` works in flowcharts but not in sequence diagrams (`->>` instead). `:::className` works in flowcharts but not in ER diagrams. When in doubt, check the examples below for correct syntax per type.
 
+### Layout Direction: TD vs LR
+
+`flowchart LR` (left-to-right) spreads horizontally. With many nodes, Mermaid scales everything down to fit the width, making text unreadable. `flowchart TD` (top-down) is almost always better.
+
+**When to use each:**
+
+| Direction | Use when | Avoid when |
+|-----------|----------|------------|
+| `TD` (top-down) | Complex diagrams, 5+ nodes, hierarchies, architecture | Simple A→B→C linear flows |
+| `LR` (left-to-right) | Simple linear flows, 3-4 nodes, pipelines | Complex graphs, many branches |
+
+**Rule of thumb:** If the diagram has more than one row of nodes or any branching, use `TD`. The extra vertical space makes labels readable.
+
+```
+%% WRONG — LR with many nodes produces wide, short, unreadable diagram
+flowchart LR
+  A --> B --> C --> D --> E
+  A --> F --> G --> H
+  
+%% RIGHT — TD uses vertical space, labels stay readable
+flowchart TD
+  A --> B --> C --> D --> E
+  A --> F --> G --> H
+```
+
 ### Diagram Type Examples
 
 **Flowchart with decisions:**

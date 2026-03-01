@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.4.1] - 2026-03-01
+
+### Mermaid Layout Direction
+- New "Layout Direction: TD vs LR" section in `libraries.md`
+- Prefer `flowchart TD` (top-down) over `flowchart LR` (left-to-right) for complex diagrams
+- LR spreads horizontally and makes labels unreadable with many nodes
+- Rule: use TD for 5+ nodes or any branching; LR only for simple 3-4 node linear flows
+
+### Documentation
+- Simplified README: trimmed Usage section, consolidated Install, added Slide Deck Mode section
+- Added `/generate-visual-plan` to command table
+
 ## [0.4.0] - 2026-02-28
 
 ### New Prompt Template

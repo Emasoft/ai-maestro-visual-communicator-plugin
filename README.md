@@ -8,7 +8,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
 
-Ask your agent to explain a system architecture, review a diff, or compare requirements against a plan. Instead of ASCII art and box-drawing tables, it generates a self-contained HTML page and opens it in your browser:
+Ask your agent to explain a system architecture, review a diff, or compare requirements against a plan. Instead of ASCII art and box-drawing tables, it generates a self-contained HTML page and opens it in your browser.
 
 ```
 > draw a diagram of our authentication flow
@@ -16,122 +16,86 @@ Ask your agent to explain a system architecture, review a diff, or compare requi
 > /plan-review ~/docs/refactor-plan.md
 ```
 
-Each one produces a single `.html` file with real typography, dark/light theme support, and interactive Mermaid diagrams with zoom and pan. No build step, no dependencies beyond a browser.
-
 https://github.com/user-attachments/assets/55ebc81b-8732-40f6-a4b1-7c3781aa96ec
 
 ## Why
 
-Every coding agent defaults to ASCII art when you ask for a diagram. Box-drawing characters, monospace alignment hacks, text arrows. It works for trivial cases, but anything beyond a 3-box flowchart turns into an unreadable mess that nobody would put in a presentation or share with a team.
+Every coding agent defaults to ASCII art when you ask for a diagram. Box-drawing characters, monospace alignment hacks, text arrows. It works for trivial cases, but anything beyond a 3-box flowchart turns into an unreadable mess.
 
 Tables are worse. Ask the agent to compare 15 requirements against a plan and you get a wall of pipes and dashes that wraps and breaks in the terminal. The data is there but it's painful to read.
 
+This skill fixes that. Real typography, dark/light themes, interactive Mermaid diagrams with zoom and pan. No build step, no dependencies beyond a browser.
+
 ## Install
 
-### Pi
-
+**Pi:**
 ```bash
-# Installs the skill and all slash commands in one step
 pi install https://github.com/nicobailon/visual-explainer
 ```
 
-If you prefer a manual install, clone the repo and copy the prompts:
-
-```bash
-git clone https://github.com/nicobailon/visual-explainer.git ~/.pi/agent/skills/visual-explainer
-mkdir -p ~/.pi/agent/prompts
-cp ~/.pi/agent/skills/visual-explainer/prompts/*.md ~/.pi/agent/prompts/
-```
-
-### Claude Code
-
-Clone the skill, then copy the prompt templates so they register as slash commands:
-
+**Claude Code:**
 ```bash
 git clone https://github.com/nicobailon/visual-explainer.git ~/.claude/skills/visual-explainer
 mkdir -p ~/.claude/commands
 cp ~/.claude/skills/visual-explainer/prompts/*.md ~/.claude/commands/
 ```
 
-If you have [surf-cli](https://github.com/nicobailon/surf-cli) installed, the skill can also generate illustrations via Gemini and embed them in pages. The agent detects surf automatically and skips image generation if it's not there.
-
-## Usage
-
-The agent loads the skill when you mention diagrams, architecture, flowcharts, schemas, or visualizations. It also kicks in automatically when it's about to dump a complex table in the terminal (4+ rows or 3+ columns) — it renders HTML instead and opens it in the browser. Output goes to `~/.agent/diagrams/`.
-
-The skill ships with seven prompt templates:
+## Commands
 
 | Command | What it does |
 |---------|-------------|
 | `/generate-web-diagram` | Generate an HTML diagram for any topic |
 | `/generate-visual-plan` | Generate a visual implementation plan for a feature or extension |
-| `/generate-slides` | Generate a magazine-quality slide deck for any topic |
-| `/diff-review` | Visual diff review with architecture comparison, code review, decision log |
+| `/generate-slides` | Generate a magazine-quality slide deck |
+| `/diff-review` | Visual diff review with architecture comparison and code review |
 | `/plan-review` | Compare a plan against the codebase with risk assessment |
 | `/project-recap` | Mental model snapshot for context-switching back to a project |
-| `/fact-check` | Verify accuracy of a review page or plan doc against actual code |
+| `/fact-check` | Verify accuracy of a document against actual code |
+
+The agent also kicks in automatically when it's about to dump a complex table in the terminal (4+ rows or 3+ columns) — it renders HTML instead.
+
+## Slide Deck Mode
+
+Any command that produces a scrollable page supports `--slides` to generate a slide deck instead:
+
+```
+/diff-review --slides
+/project-recap --slides 2w
+```
 
 https://github.com/user-attachments/assets/342d3558-5fcf-4fb2-bc03-f0dd5b9e35dc
-
-Any prompt that produces a scrollable page also supports a `--slides` flag to generate a slide deck instead:
-
-```
-/diff-review --slides         # slide deck version of a diff review
-/project-recap --slides 2w    # slide deck recap of last 2 weeks
-```
-
-`/diff-review` is probably the most useful. Run it with no arguments to diff against `main`, or pass any git ref:
-
-```
-/diff-review                   # feature branch vs main (default)
-/diff-review abc123            # single commit
-/diff-review main..HEAD        # committed changes only
-/diff-review #42               # pull request
-```
-
-It generates a full page with before/after architecture diagrams, KPI dashboard, structured Good/Bad/Ugly code review, decision log with confidence indicators, and re-entry context for your future self.
-
-`/plan-review` does something similar but for implementation plans — pass it a plan file and it cross-references every claim against the actual codebase, produces current vs. planned architecture diagrams, and flags risks and gaps:
-
-```
-/plan-review ~/docs/refactor-plan.md
-```
-
-`/project-recap` is designed for context-switching back to a project after days away. It scans recent git activity and produces an architecture snapshot, decision log, and cognitive debt hotspots. `/fact-check` takes any document that makes claims about code and verifies every one of them.
 
 ## How It Works
 
 ```
 SKILL.md (workflow + design principles)
     ↓
-references/           ← agent reads before each generation
-├── css-patterns.md   (layouts, animations, theming, depth tiers)
-├── libraries.md      (Mermaid theming, Chart.js, anime.js, font pairings)
-├── responsive-nav.md (sticky sidebar TOC for multi-section pages)
-└── slide-patterns.md (slide engine, 10 slide types, transitions, presets)
+references/           ← agent reads before generating
+├── css-patterns.md   (layouts, animations, theming)
+├── libraries.md      (Mermaid, Chart.js, fonts)
+├── responsive-nav.md (sticky TOC for multi-section pages)
+└── slide-patterns.md (slide engine, transitions, presets)
     ↓
-templates/            ← agent reads the matching reference template
-├── architecture.html (CSS Grid cards — terracotta/sage palette)
-├── mermaid-flowchart.html (Mermaid + ELK — teal/cyan palette)
-├── data-table.html   (tables with KPIs and badges — rose/cranberry palette)
-└── slide-deck.html   (viewport-fit slides — midnight editorial palette)
+templates/            ← reference templates with different palettes
+├── architecture.html
+├── mermaid-flowchart.html
+├── data-table.html
+└── slide-deck.html
     ↓
 ~/.agent/diagrams/filename.html → opens in browser
 ```
 
-The agent picks an aesthetic direction, reads the right reference template, generates a self-contained HTML file with both light and dark themes, and opens it. The four templates use deliberately different palettes so the agent learns variety rather than defaulting to one look. The skill handles 11 diagram types — Mermaid for anything with connections (flowcharts, sequences, ER, state machines, mind maps), CSS Grid for text-heavy architecture overviews, HTML tables for data, Chart.js for dashboards — and routes to the right approach automatically.
-
-To customize the output directory, browser command, or add your own diagram types and CSS patterns, edit the files directly. The agent reads them fresh each time.
+The skill routes to the right approach automatically: Mermaid for flowcharts and diagrams, CSS Grid for architecture overviews, HTML tables for data, Chart.js for dashboards.
 
 ## Limitations
 
-- Requires a browser to view — no inline terminal rendering
-- Switching OS theme requires a page refresh for Mermaid SVGs (CSS-styled elements respond instantly)
-- Results vary by model capability — the skill provides design guidance, not pixel-perfect specs
+- Requires a browser to view
+- Switching OS theme requires a page refresh for Mermaid SVGs
+- Results vary by model capability
 
 ## Credits
 
-Borrows ideas from [Anthropic's frontend-design skill](https://github.com/anthropics/skills) and [interface-design](https://github.com/Dammyjay93/interface-design), adapted for one-shot diagram generation.
+Borrows ideas from [Anthropic's frontend-design skill](https://github.com/anthropics/skills) and [interface-design](https://github.com/Dammyjay93/interface-design).
 
 ## License
 
