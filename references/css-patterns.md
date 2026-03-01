@@ -160,6 +160,130 @@ The fundamental building block. A colored card representing a system component, 
 }
 ```
 
+## Code Blocks
+
+Code blocks need explicit whitespace preservation and a max-height constraint. Without these, code runs together and long files overwhelm the page.
+
+### Basic Pattern
+
+```css
+.code-block {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.5;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+  overflow-x: auto;
+  /* CRITICAL: preserve line breaks and indentation */
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* Constrain height for long code */
+.code-block--scroll {
+  max-height: 400px;
+  overflow-y: auto;
+}
+```
+
+```html
+<pre class="code-block code-block--scroll"><code>// Your code here
+function example() {
+  return true;
+}</code></pre>
+```
+
+### With File Header
+
+```css
+.code-file {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.code-file__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.code-file__body {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.5;
+  padding: 16px;
+  background: var(--surface-elevated);
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 500px;
+  overflow: auto;
+}
+```
+
+```html
+<div class="code-file">
+  <div class="code-file__header">
+    <span>src/extension.ts</span>
+  </div>
+  <pre class="code-file__body"><code>export function activate() {
+  // ...
+}</code></pre>
+</div>
+```
+
+### Implementation Plans: Don't Dump Full Files
+
+For implementation plans and architecture docs, **don't display entire source files inline**. Instead:
+
+1. **Show structure, not code:**
+   ```html
+   <div class="file-structure">
+     <div class="file-structure__path">src/extension.ts</div>
+     <ul class="file-structure__outline">
+       <li><code>BOOMERANG_INSTRUCTIONS</code> — System prompt for autonomous mode</li>
+       <li><code>clearState()</code> — Reset extension state</li>
+       <li><code>updateStatus()</code> — Update UI status indicator</li>
+       <li><code>/boomerang</code> command — Start autonomous task</li>
+       <li><code>/boomerang-cancel</code> command — Cancel active task</li>
+       <li><code>before_agent_start</code> hook — Inject instructions</li>
+       <li><code>agent_end</code> hook — Generate summary</li>
+     </ul>
+   </div>
+   ```
+
+2. **Use collapsible sections for full code:**
+   ```html
+   <details class="collapsible">
+     <summary>Full implementation (87 lines)</summary>
+     <pre class="code-file__body"><code>...</code></pre>
+   </details>
+   ```
+
+3. **Show key snippets only:**
+   ```html
+   <p>The core logic intercepts task completion:</p>
+   <pre class="code-block"><code>pi.on("agent_end", async () => {
+     const summary = generateSummary(workEntries);
+     boomerangComplete = true;
+   });</code></pre>
+   ```
+
+**Anti-patterns:**
+- Displaying full source files inline (100+ lines overwhelming the page)
+- Code blocks without `white-space: pre-wrap` (code runs together into unreadable wall)
+- No height constraint on long code (page becomes endless scroll)
+
+If someone needs the full file, put it in a collapsible section or link to it.
+
 ## Overflow Protection
 
 Grid and flex children default to `min-width: auto`, which prevents them from shrinking below their content width. Long text, inline code badges, and non-wrapping elements will blow out containers.
@@ -229,15 +353,112 @@ li::before {
 }
 ```
 
-## Mermaid Zoom Controls
+### List markers overlapping container borders
 
-Mermaid diagrams are often too small to read comfortably, especially complex flowcharts and sequence diagrams. Add zoom controls to every `.mermaid-wrap` container.
+By default, `list-style-position: outside` places list markers (bullets, numbers) outside the content box. When lists are inside bordered containers (cards, callout boxes), the markers can overlap or extend beyond the border.
 
-**Centering fix.** Mermaid SVGs render at a fixed size and default to the top-left of their container, leaving dead space in larger containers. Always add `display: flex; align-items: center; justify-content: center;` to `.mermaid-wrap` so the SVG centers regardless of container size. Use `transform-origin: center center` so zoom radiates from the middle.
+```css
+/* WRONG — markers overlap container border */
+.card ol, .card ul {
+  padding-left: 20px;  /* Not enough for outside markers */
+}
+
+/* RIGHT — use inside positioning */
+.card ol, .card ul {
+  list-style-position: inside;
+}
+
+/* OR — adequate padding for outside markers */
+.card ol, .card ul {
+  padding-left: 2em;  /* ~32px gives room for markers */
+}
+
+/* OR — custom markers with absolute positioning (most control) */
+.card ol {
+  list-style: none;
+  padding-left: 0;
+  counter-reset: item;
+}
+.card ol li {
+  counter-increment: item;
+  padding-left: 2em;
+  position: relative;
+}
+.card ol li::before {
+  content: counter(item) ".";
+  position: absolute;
+  left: 0;
+  color: var(--accent);
+  font-weight: 600;
+}
+```
+
+**Rule of thumb:** Any `<ol>` or `<ul>` inside a bordered container needs either `list-style-position: inside` or `padding-left: 2em` minimum. The default 20px padding is not enough for outside-positioned markers.
+
+## Mermaid Containers
+
+Mermaid diagrams have two common layout issues: they render too small to read, and they left-align in their container leaving awkward dead space (especially for narrow vertical flowcharts).
+
+### Centering (Required)
+
+Mermaid SVGs render at a fixed size based on content. Without explicit centering, they default to top-left alignment. **Always center Mermaid diagrams** — narrow vertical flowcharts look particularly bad when left-aligned in a wide container.
+
+```css
+/* WRONG — diagram hugs left edge */
+.mermaid-container {
+  padding: 24px;
+  border: 1px solid var(--border);
+}
+
+/* RIGHT — diagram centers in container */
+.mermaid-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;  /* or center for shorter diagrams */
+  padding: 24px;
+  border: 1px solid var(--border);
+}
+```
+
+### Scaling Small Diagrams
+
+Mermaid sizes diagrams based on content, not container. Complex diagrams with many nodes render small to fit everything, leaving the text nearly unreadable. Three fixes:
+
+**1. Increase fontSize in themeVariables** (most effective):
+```javascript
+mermaid.initialize({
+  theme: 'base',
+  themeVariables: {
+    fontSize: '18px',  // default is 16px, bump to 18-20px for complex diagrams
+  }
+});
+```
+
+**2. CSS scale transform** for diagrams that still render too small:
+```css
+.mermaid-wrap--scaled .mermaid svg {
+  transform: scale(1.3);
+  transform-origin: center top;
+}
+```
+
+**3. Constrain container width** so the diagram doesn't float in dead space:
+```css
+.mermaid-wrap--constrained {
+  max-width: 800px;
+  margin: 0 auto;
+}
+```
+
+**Rule of thumb:** If the diagram has 10+ nodes or the text is smaller than 12px rendered, increase fontSize to 18-20px or apply a scale transform.
+
+### Zoom Controls
+
+Add zoom controls to every `.mermaid-wrap` container for complex diagrams.
 
 **Small diagrams in slides.** If a diagram has fewer than ~7 nodes with no branching, it will render tiny in a full-viewport slide container. For simple linear flows (A → B → C → D), use CSS pipeline cards instead of Mermaid — see `slide-patterns.md` "CSS Pipeline Slide." Reserve Mermaid for complex graphs where automatic edge routing is actually needed.
 
-### CSS
+### Full Pattern
 
 ```css
 .mermaid-wrap {
@@ -247,9 +468,10 @@ Mermaid diagrams are often too small to read comfortably, especially complex flo
   border-radius: 12px;
   padding: 32px 24px;
   overflow: auto;
+  /* CRITICAL: center the diagram */
   display: flex;
-  align-items: center;
   justify-content: center;
+  align-items: flex-start;
   scrollbar-width: thin;
   scrollbar-color: var(--border) transparent;
 }
@@ -1080,6 +1302,317 @@ details.collapsible .collapsible__body {
   </div>
 </details>
 ```
+
+## Prose Page Elements
+
+Patterns for documentation, articles, blog posts, and other reading-first content. The key difference from visual explanations: optimize for sustained reading, not scanning.
+
+### Body Text Settings
+
+```css
+/* Comfortable reading baseline */
+.prose {
+  font-size: clamp(17px, 1.1vw + 14px, 19px);
+  line-height: 1.7;
+  max-width: 65ch;  /* ~600-680px */
+  text-wrap: pretty;
+}
+
+.prose p {
+  margin-bottom: 1.5em;
+}
+
+/* Narrow column for essays/literary content */
+.prose--narrow {
+  max-width: 60ch;
+  line-height: 1.8;
+}
+
+/* Wide column for technical content with code */
+.prose--wide {
+  max-width: 75ch;
+  line-height: 1.6;
+}
+```
+
+### Lead Paragraph
+
+Opening paragraph styled distinctly from body text.
+
+```css
+/* Larger size */
+.lead {
+  font-size: 20px;
+  line-height: 1.6;
+  color: var(--text-bright);
+  margin-bottom: 32px;
+}
+
+/* With drop cap */
+.lead--dropcap::first-letter {
+  float: left;
+  font-family: var(--font-display);
+  font-size: 64px;
+  font-weight: 600;
+  line-height: 0.85;
+  padding-right: 12px;
+  padding-top: 6px;
+  color: var(--accent);
+}
+```
+
+### Pull Quotes
+
+Key insights pulled out for emphasis. Use sparingly — one or two per article maximum.
+
+```css
+/* Border left — most versatile */
+.pullquote {
+  margin: 48px 0;
+  padding-left: 24px;
+  border-left: 3px solid var(--accent);
+}
+.pullquote p {
+  font-size: 22px;
+  font-style: italic;
+  line-height: 1.4;
+  color: var(--text-bright);
+  margin: 0;
+}
+
+/* Centered with quotation mark */
+.pullquote--centered {
+  margin: 56px 0;
+  padding: 32px 40px;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  text-align: center;
+  position: relative;
+}
+.pullquote--centered::before {
+  content: '"';
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--bg);
+  padding: 0 16px;
+  font-family: var(--font-display);
+  font-size: 48px;
+  color: var(--accent);
+  line-height: 1;
+}
+```
+
+### Section Dividers
+
+```css
+/* Horizontal rule */
+hr {
+  border: none;
+  height: 1px;
+  background: var(--border);
+  margin: 48px 0;
+}
+
+/* Ornamental divider — use: <div class="divider">✦ ✦ ✦</div> */
+.divider {
+  text-align: center;
+  margin: 48px 0;
+  color: var(--text-dim);
+  font-size: 18px;
+  letter-spacing: 12px;
+}
+```
+
+### Article Hero Patterns
+
+```css
+/* Centered minimal — essays, personal posts */
+.hero--centered {
+  text-align: center;
+  padding: 80px 24px 64px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+.hero__category {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--accent);
+  margin-bottom: 16px;
+}
+.hero__title {
+  font-size: clamp(32px, 5vw, 48px);
+  font-weight: 600;
+  line-height: 1.15;
+  margin-bottom: 16px;
+}
+.hero__subtitle {
+  font-size: 20px;
+  font-style: italic;
+  color: var(--text-dim);
+  max-width: 600px;
+  margin: 0 auto 24px;
+}
+.hero__meta {
+  font-size: 13px;
+  color: var(--text-dim);
+}
+
+/* Left-aligned editorial — features, documentation */
+.hero--editorial {
+  padding: 100px 40px 60px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+.hero--editorial .hero__title {
+  font-size: clamp(40px, 7vw, 72px);
+  font-weight: 800;
+  line-height: 1.0;
+  letter-spacing: -2px;
+}
+```
+
+### Author Byline
+
+```css
+.byline {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 24px;
+}
+.byline__avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}
+.byline__name {
+  font-weight: 600;
+  color: var(--text-bright);
+  display: block;
+}
+.byline__meta {
+  font-size: 13px;
+  color: var(--text-dim);
+}
+```
+
+### Callout Boxes
+
+For warnings, tips, notes, and key takeaways.
+
+```css
+.callout {
+  padding: 16px 20px;
+  border-radius: 8px;
+  border-left: 4px solid var(--callout-border);
+  background: var(--callout-bg);
+  margin: 24px 0;
+}
+
+.callout--info {
+  --callout-border: var(--accent);
+  --callout-bg: color-mix(in srgb, var(--accent) 10%, transparent);
+}
+
+.callout--warning {
+  --callout-border: var(--amber);
+  --callout-bg: color-mix(in srgb, var(--amber) 10%, transparent);
+}
+
+.callout--success {
+  --callout-border: var(--green);
+  --callout-bg: color-mix(in srgb, var(--green) 10%, transparent);
+}
+
+.callout__title {
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--callout-border);
+}
+
+/* Lists inside callouts need padding fix */
+.callout ul, .callout ol {
+  padding-left: 1.5em;
+  margin: 8px 0 0 0;
+}
+```
+
+### Theme Toggle
+
+Use `data-theme` attribute for user-controllable light/dark modes. Random initial theme adds variety.
+
+```css
+:root, [data-theme="light"] {
+  --bg: #fafaf9;
+  --surface: #ffffff;
+  --text: #1c1917;
+  --text-dim: #78716c;
+  --border: #e7e5e4;
+  --accent: #0d9488;
+}
+
+[data-theme="dark"] {
+  --bg: #0c0a09;
+  --surface: #1c1917;
+  --text: #fafaf9;
+  --text-dim: #a8a29e;
+  --border: #292524;
+  --accent: #14b8a6;
+}
+```
+
+```javascript
+// Random initial theme
+const themes = ['light', 'dark'];
+document.documentElement.setAttribute('data-theme', themes[Math.floor(Math.random() * 2)]);
+
+// Toggle function
+function toggleTheme() {
+  const current = document.documentElement.getAttribute('data-theme');
+  document.documentElement.setAttribute('data-theme', current === 'light' ? 'dark' : 'light');
+}
+```
+
+```html
+<button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+  <svg class="theme-toggle__sun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+  </svg>
+  <svg class="theme-toggle__moon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+  </svg>
+</button>
+```
+
+```css
+.theme-toggle {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px;
+  cursor: pointer;
+  z-index: 100;
+}
+[data-theme="light"] .theme-toggle__moon { display: none; }
+[data-theme="dark"] .theme-toggle__sun { display: none; }
+```
+
+### Prose Anti-Patterns
+
+Avoid these in reading-first content:
+- Body text smaller than 16px
+- Line-height below 1.5
+- Measure wider than 75ch (text spanning full viewport)
+- Pull quotes every other paragraph
+- Drop caps on every section
+- Busy background patterns behind text
 
 ## Generated Images
 

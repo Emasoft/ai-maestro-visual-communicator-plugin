@@ -59,11 +59,12 @@ If you have [surf-cli](https://github.com/nicobailon/surf-cli) installed, the sk
 
 The agent loads the skill when you mention diagrams, architecture, flowcharts, schemas, or visualizations. It also kicks in automatically when it's about to dump a complex table in the terminal (4+ rows or 3+ columns) — it renders HTML instead and opens it in the browser. Output goes to `~/.agent/diagrams/`.
 
-The skill ships with six prompt templates:
+The skill ships with seven prompt templates:
 
 | Command | What it does |
 |---------|-------------|
 | `/generate-web-diagram` | Generate an HTML diagram for any topic |
+| `/generate-visual-plan` | Generate a visual implementation plan for a feature or extension |
 | `/generate-slides` | Generate a magazine-quality slide deck for any topic |
 | `/diff-review` | Visual diff review with architecture comparison, code review, decision log |
 | `/plan-review` | Compare a plan against the codebase with risk assessment |

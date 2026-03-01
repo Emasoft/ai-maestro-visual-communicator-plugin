@@ -1,5 +1,48 @@
 # Changelog
 
+## [0.4.0] - 2026-02-28
+
+### New Prompt Template
+- `/generate-visual-plan` — generate visual implementation plans for features and extensions. Produces editorial/blueprint-style HTML pages with problem comparison panels, state machine diagrams, code snippets, edge case tables, and implementation notes. Designed for documenting feature specs before implementation.
+
+### Prose Accent Patterns
+Added patterns for use as accent elements within visual pages.
+
+**`css-patterns.md`** — New "Prose Page Elements" section:
+- Body text settings (font-size, line-height, max-width for comfortable reading)
+- Lead paragraph patterns (larger size, drop cap variants)
+- Pull quotes (border-left, centered with quotation mark)
+- Section dividers (horizontal rule, ornamental)
+- Article hero patterns (centered, editorial)
+- Author byline pattern
+- Prose-specific anti-patterns
+
+**`libraries.md`** — New "Typography by Content Voice" section:
+- Font recommendations by content type (literary, technical, bold, minimal)
+- Special mention of Literata for screen reading
+
+**`SKILL.md`** — New sections:
+- "Prose Accent Elements" — when to use lead paragraphs, pull quotes, callouts
+- "Documentation" — content-to-visual mapping (features→cards, steps→flows, APIs→tables)
+
+### Overflow Fix: List Markers in Bordered Containers
+- `css-patterns.md`: New section "List markers overlapping container borders" with three solutions
+- Rule of thumb: use `list-style-position: inside` or `padding-left: 2em` for lists in bordered containers
+
+### Mermaid Fixes
+- Centering: narrow vertical flowcharts must be centered, not left-aligned
+- Scaling: complex diagrams with 10+ nodes render too small — increase fontSize to 18-20px or use CSS scale transform
+- Special characters: node labels starting with `/`, `\`, `(`, `{` must be quoted to avoid shape syntax conflicts
+- New "Scaling Small Diagrams" section in css-patterns.md
+- New "Node Label Special Characters" section in libraries.md
+
+### Code Block Patterns
+- `css-patterns.md`: New "Code Blocks" section with:
+  - Basic pattern with `white-space: pre-wrap` (critical for preserving line breaks)
+  - File header pattern for displaying code with filename
+  - Implementation plan guidance: don't dump full files, show structure instead
+- `SKILL.md`: New "Implementation Plans" section with structure guidance
+
 ## [0.3.0] - 2026-02-26
 
 ### Anti-Slop Guardrails
