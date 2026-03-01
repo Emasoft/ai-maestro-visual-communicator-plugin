@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.4.3] - 2026-03-01
+
+### Mermaid Zoom and Positioning Fixes
+- **Fixed zoom clipping**: Replaced `transform: scale()` with CSS `zoom` property. Transform only changes visual appearance — content expanding upward/leftward goes into negative space which can't be scrolled to. Zoom changes actual layout size, so overflow scrolls normally in all directions.
+- **Fixed vertical centering**: Changed `align-items: flex-start` to `align-items: center` so diagrams are centered both horizontally and vertically in their container.
+- **Added initial zoom**: Complex diagrams can start at zoom > 1 (e.g., 1.4x) for better readability while keeping zoom controls functional.
+- **Added min-height**: Containers now have `min-height: 400px` to prevent vertical flowcharts from compressing into unreadable thumbnails.
+- Removed unnecessary `.mermaid-inner` wrapper — no longer needed with zoom-based approach.
+- Updated JavaScript to use `INITIAL_ZOOM` constant for consistent reset behavior.
+- Updated "Scaling Small Diagrams" section to use `zoom` instead of `transform: scale()` for consistency.
+
 ## [0.4.2] - 2026-03-01
 
 ### Link Styling

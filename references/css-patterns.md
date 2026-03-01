@@ -438,11 +438,10 @@ mermaid.initialize({
 });
 ```
 
-**2. CSS scale transform** for diagrams that still render too small:
+**2. CSS zoom** for diagrams that still render too small:
 ```css
-.mermaid-wrap--scaled .mermaid svg {
-  transform: scale(1.3);
-  transform-origin: center top;
+.mermaid-wrap--scaled .mermaid {
+  zoom: 1.3;
 }
 ```
 
@@ -454,7 +453,7 @@ mermaid.initialize({
 }
 ```
 
-**Rule of thumb:** If the diagram has 10+ nodes or the text is smaller than 12px rendered, increase fontSize to 18-20px or apply a scale transform.
+**Rule of thumb:** If the diagram has 10+ nodes or the text is smaller than 12px rendered, increase fontSize to 18-20px or apply CSS zoom.
 
 ### Zoom Controls
 
@@ -472,10 +471,12 @@ Add zoom controls to every `.mermaid-wrap` container for complex diagrams.
   border-radius: 12px;
   padding: 32px 24px;
   overflow: auto;
-  /* CRITICAL: center the diagram */
+  /* CRITICAL: center the diagram both horizontally and vertically */
   display: flex;
   justify-content: center;
-  align-items: flex-start;
+  align-items: center;
+  /* Prevent vertical flowcharts from compressing into unreadable thumbnails */
+  min-height: 400px;
   scrollbar-width: thin;
   scrollbar-color: var(--border) transparent;
 }
@@ -484,9 +485,22 @@ Add zoom controls to every `.mermaid-wrap` container for complex diagrams.
 .mermaid-wrap::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 .mermaid-wrap::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
 
+/* For shorter diagrams that don't need the full height */
+.mermaid-wrap--compact { min-height: 200px; }
+
+/* For very tall vertical flowcharts */
+.mermaid-wrap--tall { min-height: 600px; }
+
 .mermaid-wrap .mermaid {
-  transition: transform 0.2s ease;
-  transform-origin: center center;
+  /* Use CSS zoom instead of transform: scale().
+     Zoom changes actual layout size, so overflow scrolls normally in all directions.
+     Transform only changes visual appearance — content expanding upward/leftward
+     goes into negative space which can't be scrolled to.
+     Supported in all browsers (Firefox added support in v126, June 2024).
+     Note: zoom is not animatable, so no transition. */
+  /* Optional: start at >1 for complex diagrams that render too small.
+     The diagram stays centered, renders larger, and zoom controls still work. */
+  zoom: 1.4;
 }
 
 .zoom-controls {
@@ -523,13 +537,15 @@ Add zoom controls to every `.mermaid-wrap` container for complex diagrams.
   color: var(--text);
 }
 
-.mermaid-wrap.is-zoomed { cursor: grab; }
+.mermaid-wrap { cursor: grab; }
 .mermaid-wrap.is-panning { cursor: grabbing; user-select: none; }
-
-@media (prefers-reduced-motion: reduce) {
-  .mermaid-wrap .mermaid { transition: none; }
-}
 ```
+
+**Why zoom instead of transform?**
+
+CSS `transform: scale()` only changes visual appearance — the element's layout box stays the same size. When you scale from `center center`, content expands upward and leftward into negative coordinate space. Scroll containers can't scroll to negative positions, so the top and left of the zoomed content get clipped.
+
+CSS `zoom` actually changes the element's layout size. The content grows downward and rightward like any other growing element, staying fully scrollable.
 
 ### HTML
 
@@ -552,28 +568,23 @@ Add zoom controls to every `.mermaid-wrap` container for complex diagrams.
 Add once at the end of the page. Handles button clicks and scroll-to-zoom on all `.mermaid-wrap` containers:
 
 ```javascript
-function updateZoomState(wrap) {
-  var target = wrap.querySelector('.mermaid');
-  var zoom = parseFloat(target.dataset.zoom || '1');
-  wrap.classList.toggle('is-zoomed', zoom > 1);
-}
+// Match this to the CSS zoom value (or 1 if not set)
+var INITIAL_ZOOM = 1.4;
 
 function zoomDiagram(btn, factor) {
   var wrap = btn.closest('.mermaid-wrap');
   var target = wrap.querySelector('.mermaid');
-  var current = parseFloat(target.dataset.zoom || '1');
-  var next = Math.min(Math.max(current * factor, 0.3), 5);
+  var current = parseFloat(target.dataset.zoom || INITIAL_ZOOM);
+  var next = Math.min(Math.max(current * factor, 0.5), 5);
   target.dataset.zoom = next;
-  target.style.transform = 'scale(' + next + ')';
-  updateZoomState(wrap);
+  target.style.zoom = next;
 }
 
 function resetZoom(btn) {
   var wrap = btn.closest('.mermaid-wrap');
   var target = wrap.querySelector('.mermaid');
-  target.dataset.zoom = '1';
-  target.style.transform = 'scale(1)';
-  updateZoomState(wrap);
+  target.dataset.zoom = INITIAL_ZOOM;
+  target.style.zoom = INITIAL_ZOOM;
 }
 
 document.querySelectorAll('.mermaid-wrap').forEach(function(wrap) {
@@ -582,20 +593,17 @@ document.querySelectorAll('.mermaid-wrap').forEach(function(wrap) {
     if (!e.ctrlKey && !e.metaKey) return;
     e.preventDefault();
     var target = wrap.querySelector('.mermaid');
-    var current = parseFloat(target.dataset.zoom || '1');
+    var current = parseFloat(target.dataset.zoom || INITIAL_ZOOM);
     var factor = e.deltaY < 0 ? 1.1 : 0.9;
-    var next = Math.min(Math.max(current * factor, 0.3), 5);
+    var next = Math.min(Math.max(current * factor, 0.5), 5);
     target.dataset.zoom = next;
-    target.style.transform = 'scale(' + next + ')';
-    updateZoomState(wrap);
+    target.style.zoom = next;
   }, { passive: false });
 
-  // Click-and-drag to pan when zoomed
+  // Click-and-drag to pan
   var startX, startY, scrollL, scrollT;
   wrap.addEventListener('mousedown', function(e) {
     if (e.target.closest('.zoom-controls')) return;
-    var target = wrap.querySelector('.mermaid');
-    if (parseFloat(target.dataset.zoom || '1') <= 1) return;
     wrap.classList.add('is-panning');
     startX = e.clientX;
     startY = e.clientY;
@@ -613,7 +621,7 @@ document.querySelectorAll('.mermaid-wrap').forEach(function(wrap) {
 });
 ```
 
-Scroll-to-zoom requires Ctrl/Cmd+scroll to avoid hijacking normal page scroll. Click-and-drag panning activates only when zoomed in (zoom > 1). Cursor changes to `grab`/`grabbing` to signal the behavior. The zoom range is capped at 0.3x–5x.
+Scroll-to-zoom requires Ctrl/Cmd+scroll to avoid hijacking normal page scroll. Cursor changes to `grab`/`grabbing` to signal pan mode. The zoom range is capped at 0.5x–5x.
 
 ## Grid Layouts
 
