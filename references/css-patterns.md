@@ -86,6 +86,10 @@ body {
 }
 ```
 
+## Link Styling
+
+**Never rely on browser default link colors.** The default blue (`#0000EE`) has poor contrast on dark backgrounds. Style links with `color: var(--accent)` and keep underlines for discoverability. On dark backgrounds, use bright accents (`#22d3ee`, `#34d399`, `#fbbf24`). On light backgrounds, use deeper tones (`#0891b2`, `#059669`, `#d97706`).
+
 ## Section / Card Components
 
 The fundamental building block. A colored card representing a system component, pipeline step, or data entity.

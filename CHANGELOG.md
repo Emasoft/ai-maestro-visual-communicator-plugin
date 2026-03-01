@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.4.2] - 2026-03-01
+
+### Link Styling
+- New "Link Styling" section in `css-patterns.md` — never rely on browser default link colors; use accent colors with sufficient contrast
+
 ## [0.4.1] - 2026-03-01
 
 ### Mermaid Layout Direction
