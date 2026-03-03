@@ -5,7 +5,7 @@ license: MIT
 compatibility: Requires a browser to view generated HTML files. Optional surf-cli for AI image generation.
 metadata:
   author: nicobailon
-  version: "0.4.2"
+  version: "0.4.4"
 ---
 
 # Visual Explainer
@@ -82,7 +82,7 @@ Vary the choice each time. If the last diagram was dark and technical, make the 
 
 **Mermaid containers:** Always center Mermaid diagrams with `display: flex; justify-content: center;`. Add zoom controls (+/−/reset) to every `.mermaid-wrap` container.
 
-**Mermaid scaling:** Complex diagrams with 10+ nodes render too small by default. Increase `fontSize` in themeVariables to 18-20px (default is 16px), or apply a CSS `transform: scale(1.3)` on the SVG. Don't let diagrams float in oversized containers with unreadable text. See `./references/css-patterns.md` "Scaling Small Diagrams".
+**Mermaid scaling:** Diagrams with 10+ nodes render too small by default. For 10-12 nodes, increase `fontSize` in themeVariables to 18-20px and set `INITIAL_ZOOM` to 1.5-1.6. For 15+ elements, don't try to scale — use the hybrid pattern instead (simple Mermaid overview + CSS Grid cards). See "Architecture / System Diagrams" below.
 
 **Mermaid layout direction:** Prefer `flowchart TD` (top-down) over `flowchart LR` (left-to-right) for complex diagrams. LR spreads horizontally and makes labels unreadable when there are many nodes. Use LR only for simple 3-4 node linear flows. See `./references/libraries.md` "Layout Direction: TD vs LR".
 
@@ -181,11 +181,13 @@ Keep animations purposeful: entrance reveals, hover feedback, and user-initiated
 ## Diagram Types
 
 ### Architecture / System Diagrams
-Two approaches depending on what matters more:
+Three approaches depending on complexity:
 
-**Text-heavy overviews** (card content matters more than connections): CSS Grid with explicit row/column placement. Sections as rounded cards with colored borders and monospace labels. Vertical flow arrows between sections. Nested grids for subsystems. The reference template at `./templates/architecture.html` demonstrates this pattern. Use when cards need descriptions, code references, tool lists, or other rich content that Mermaid nodes can't hold.
+**Simple topology (under 10 elements):** Use Mermaid. A `graph TD` with custom `themeVariables` produces readable diagrams with automatic edge routing.
 
-**Topology-focused diagrams** (connections matter more than card content): **Use Mermaid.** A `graph TD` (or `graph LR` for simple linear flows) with custom `themeVariables` produces proper diagrams with automatic edge routing. Use when the point is showing how components connect rather than describing what each component does in detail.
+**Text-heavy overviews (under 15 elements):** CSS Grid with explicit row/column placement. Sections as rounded cards with colored borders and monospace labels. Vertical flow arrows between sections. The reference template at `./templates/architecture.html` demonstrates this pattern. Use when cards need descriptions, code references, tool lists, or other rich content that Mermaid nodes can't hold.
+
+**Complex architectures (15+ elements):** Use the **hybrid pattern** — a simple Mermaid overview (5-8 nodes showing module relationships) followed by detailed CSS Grid cards for each module's internals. This gives you visual topology AND readable details. The overview diagram uses module names with `<small>` tags for key function names. The cards below show full function lists with new/modified badges. Never try to cram 15+ elements into a single Mermaid diagram — it will render unreadably small even with zoom controls.
 
 ### Flowcharts / Pipelines
 **Use Mermaid.** Automatic node positioning and edge routing produces proper diagrams with connecting lines, decision diamonds, and parallel branches — dramatically better than CSS flexbox with arrow characters. Prefer `graph TD` (top-down); use `graph LR` only for simple 3-4 node linear flows. Color-code node types with Mermaid's `classDef` or rely on `themeVariables` for automatic styling.
