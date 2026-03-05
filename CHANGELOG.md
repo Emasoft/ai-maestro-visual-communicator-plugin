@@ -2,11 +2,22 @@
 
 ## [0.5.0] - 2026-03-04
 
+### Class Diagram and C4 Architecture Support
+- Added `classDiagram` guidance for OOP design and domain modeling
+- Documented relationships: association, composition, aggregation, inheritance
+- Added C4 architecture support using `graph TD` + `subgraph` (not native `C4Context` which ignores themes)
+- Added `.dir-tree` CSS pattern for file structures with tree connectors
+- Added quick-reference table for choosing Mermaid diagram types
+
 ### Claude Code Plugin Support
 - Added `.claude-plugin/plugin.json` manifest for Claude Code plugin installation
 - Renamed `prompts/` to `commands/` (compatible with both pi and Claude Code)
 - Claude Code: `claude /plugin install https://github.com/nicobailon/visual-explainer`
 - Note: Claude Code namespaces commands as `/visual-explainer:command-name`
+
+### OpenAI Codex Support
+- Added install instructions for OpenAI Codex to README
+- Uses `~/.agents/skills` and `~/.agents/commands` paths
 
 ### Share Command
 - New `/share` prompt and `scripts/share.sh` for instant sharing of visual explainer pages
@@ -16,6 +27,8 @@
 - JSON output for programmatic use
 
 ### Bug Fixes
+- Fixed pi skill loading: scoped `pi.skills` to `./SKILL.md` instead of `./` (was trying to load README.md and CHANGELOG.md as skills)
+- Fixed Mermaid line breaks: use `<br/>` instead of `\n` in flowchart labels (renders as literal text otherwise)
 - Fixed `mermaid-flowchart.html` to match documented pattern: moved flex centering from `.mermaid-wrap .mermaid` to `.mermaid-wrap`, added `min-height: 400px`
 - Fixed `share.sh` to properly capture and display deployment errors (was silently exiting due to `set -e`)
 
