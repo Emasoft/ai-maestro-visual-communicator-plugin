@@ -11,7 +11,7 @@
       "./SKILL.md"
     ],
     "prompts": [
-      "./prompts"
+      "./commands"
     ]
   }
 }

@@ -33,12 +33,12 @@ This skill fixes that. Real typography, dark/light themes, interactive Mermaid d
 pi install https://github.com/nicobailon/visual-explainer
 ```
 
-**Claude Code:**
+**Claude Code (plugin):**
 ```bash
-git clone https://github.com/nicobailon/visual-explainer.git ~/.claude/skills/visual-explainer
-mkdir -p ~/.claude/commands
-cp ~/.claude/skills/visual-explainer/prompts/*.md ~/.claude/commands/
+claude /plugin install https://github.com/nicobailon/visual-explainer
 ```
+
+Note: Claude Code plugins namespace commands as `/visual-explainer:command-name`.
 
 ## Commands
 
@@ -51,6 +51,7 @@ cp ~/.claude/skills/visual-explainer/prompts/*.md ~/.claude/commands/
 | `/plan-review` | Compare a plan against the codebase with risk assessment |
 | `/project-recap` | Mental model snapshot for context-switching back to a project |
 | `/fact-check` | Verify accuracy of a document against actual code |
+| `/share` | Deploy an HTML page to Vercel and get a live URL |
 
 The agent also kicks in automatically when it's about to dump a complex table in the terminal (4+ rows or 3+ columns) — it renders HTML instead.
 
@@ -68,14 +69,13 @@ https://github.com/user-attachments/assets/342d3558-5fcf-4fb2-bc03-f0dd5b9e35dc
 ## How It Works
 
 ```
-SKILL.md (workflow + design principles)
-    ↓
+SKILL.md              ← workflow + design principles
+commands/             ← slash commands (works with pi and Claude Code)
 references/           ← agent reads before generating
 ├── css-patterns.md   (layouts, animations, theming)
 ├── libraries.md      (Mermaid, Chart.js, fonts)
 ├── responsive-nav.md (sticky TOC for multi-section pages)
 └── slide-patterns.md (slide engine, transitions, presets)
-    ↓
 templates/            ← reference templates with different palettes
 ├── architecture.html
 ├── mermaid-flowchart.html

@@ -2,6 +2,12 @@
 
 ## [0.5.0] - 2026-03-04
 
+### Claude Code Plugin Support
+- Added `.claude-plugin/plugin.json` manifest for Claude Code plugin installation
+- Renamed `prompts/` to `commands/` (compatible with both pi and Claude Code)
+- Claude Code: `claude /plugin install https://github.com/nicobailon/visual-explainer`
+- Note: Claude Code namespaces commands as `/visual-explainer:command-name`
+
 ### Share Command
 - New `/share` prompt and `scripts/share.sh` for instant sharing of visual explainer pages
 - Uses vercel-deploy skill — no account or authentication required

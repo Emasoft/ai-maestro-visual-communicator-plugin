@@ -362,7 +362,7 @@ bash {{skill_dir}}/scripts/share.sh ~/.agent/diagrams/my-diagram.html
 - Preview deployments have configurable retention (default: 30 days)
 - Claim URL lets you transfer the deployment to your Vercel account
 
-See `./prompts/share.md` for the `/share` prompt template.
+See `./commands/share.md` for the `/share` command template.
 
 ## Quality Checks
 
