@@ -28,17 +28,23 @@ This skill fixes that. Real typography, dark/light themes, interactive Mermaid d
 
 ## Install
 
-**Pi:**
-```bash
-pi install https://github.com/nicobailon/visual-explainer
+**Claude Code (marketplace):**
+```shell
+/plugin marketplace add nicobailon/visual-explainer
+/plugin install visual-explainer@visual-explainer-marketplace
 ```
 
-**Claude Code (plugin):**
+**Claude Code (direct plugin):**
 ```bash
 claude /plugin install https://github.com/nicobailon/visual-explainer
 ```
 
 Note: Claude Code plugins namespace commands as `/visual-explainer:command-name`.
+
+**Pi:**
+```bash
+pi install https://github.com/nicobailon/visual-explainer
+```
 
 **OpenAI Codex:**
 ```bash
@@ -76,19 +82,28 @@ https://github.com/user-attachments/assets/342d3558-5fcf-4fb2-bc03-f0dd5b9e35dc
 ## How It Works
 
 ```
-SKILL.md              ← workflow + design principles
-commands/             ← slash commands (works with pi and Claude Code)
-references/           ← agent reads before generating
-├── css-patterns.md   (layouts, animations, theming)
-├── libraries.md      (Mermaid, Chart.js, fonts)
-├── responsive-nav.md (sticky TOC for multi-section pages)
-└── slide-patterns.md (slide engine, transitions, presets)
-templates/            ← reference templates with different palettes
-├── architecture.html
-├── mermaid-flowchart.html
-├── data-table.html
-└── slide-deck.html
-    ↓
+.claude-plugin/
+├── plugin.json           ← marketplace identity
+└── marketplace.json      ← plugin catalog
+plugins/
+└── visual-explainer/
+    ├── .claude-plugin/
+    │   └── plugin.json   ← plugin manifest
+    ├── SKILL.md           ← workflow + design principles
+    ├── commands/          ← slash commands
+    ├── references/        ← agent reads before generating
+    │   ├── css-patterns.md   (layouts, animations, theming)
+    │   ├── libraries.md      (Mermaid, Chart.js, fonts)
+    │   ├── responsive-nav.md (sticky TOC for multi-section pages)
+    │   └── slide-patterns.md (slide engine, transitions, presets)
+    ├── templates/         ← reference templates with different palettes
+    │   ├── architecture.html
+    │   ├── mermaid-flowchart.html
+    │   ├── data-table.html
+    │   └── slide-deck.html
+    └── scripts/
+        └── share.sh
+            ↓
 ~/.agent/diagrams/filename.html → opens in browser
 ```
 
