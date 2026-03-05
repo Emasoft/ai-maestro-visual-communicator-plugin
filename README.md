@@ -40,6 +40,13 @@ claude /plugin install https://github.com/nicobailon/visual-explainer
 
 Note: Claude Code plugins namespace commands as `/visual-explainer:command-name`.
 
+**OpenAI Codex:**
+```bash
+git clone https://github.com/nicobailon/visual-explainer.git ~/.agents/skills/visual-explainer
+mkdir -p ~/.agents/commands
+cp ~/.agents/skills/visual-explainer/commands/*.md ~/.agents/commands/
+```
+
 ## Commands
 
 | Command | What it does |
