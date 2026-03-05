@@ -8,7 +8,7 @@
   "license": "MIT",
   "pi": {
     "skills": [
-      "./"
+      "./SKILL.md"
     ],
     "prompts": [
       "./prompts"
