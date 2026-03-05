@@ -555,6 +555,7 @@ CSS `zoom` actually changes the element's layout size. The content grows downwar
     <button onclick="zoomDiagram(this, 1.2)" title="Zoom in">+</button>
     <button onclick="zoomDiagram(this, 0.8)" title="Zoom out">&minus;</button>
     <button onclick="resetZoom(this)" title="Reset zoom">&#8634;</button>
+    <button onclick="openDiagramFullscreen(this)" title="Open full size in new tab">&#x26F6;</button>
   </div>
   <pre class="mermaid">
     graph TD
@@ -562,6 +563,8 @@ CSS `zoom` actually changes the element's layout size. The content grows downwar
   </pre>
 </div>
 ```
+
+**Click to expand.** Clicking anywhere on the diagram (without dragging) opens it full-size in a new tab. The expand button (⛶) in the zoom controls does the same thing.
 
 ### JavaScript
 
@@ -587,6 +590,41 @@ function resetZoom(btn) {
   target.style.zoom = INITIAL_ZOOM;
 }
 
+function openDiagramFullscreen(btn) {
+  var wrap = btn.closest('.mermaid-wrap');
+  openMermaidInNewTab(wrap);
+}
+
+function openMermaidInNewTab(wrap) {
+  var svg = wrap.querySelector('.mermaid svg');
+  if (!svg) return;
+
+  // Clone the SVG and remove any inline transforms from zoom
+  var clone = svg.cloneNode(true);
+  clone.style.zoom = '';
+  clone.style.transform = '';
+
+  // Get computed styles for theming
+  var styles = getComputedStyle(document.documentElement);
+  var bg = styles.getPropertyValue('--bg').trim() || '#ffffff';
+
+  // Build standalone HTML page
+  var html = '<!DOCTYPE html>' +
+    '<html lang="en"><head><meta charset="UTF-8">' +
+    '<meta name="viewport" content="width=device-width, initial-scale=1.0">' +
+    '<title>Diagram</title>' +
+    '<style>' +
+    'body { margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center; background: ' + bg + '; padding: 40px; box-sizing: border-box; }' +
+    'svg { max-width: 100%; max-height: 90vh; height: auto; }' +
+    '</style></head><body>' +
+    clone.outerHTML +
+    '</body></html>';
+
+  var blob = new Blob([html], { type: 'text/html' });
+  var url = URL.createObjectURL(blob);
+  window.open(url, '_blank');
+}
+
 document.querySelectorAll('.mermaid-wrap').forEach(function(wrap) {
   // Ctrl/Cmd + scroll to zoom
   wrap.addEventListener('wheel', function(e) {
@@ -600,8 +638,8 @@ document.querySelectorAll('.mermaid-wrap').forEach(function(wrap) {
     target.style.zoom = next;
   }, { passive: false });
 
-  // Click-and-drag to pan
-  var startX, startY, scrollL, scrollT;
+  // Click-and-drag to pan, click (without drag) to open full-size
+  var startX, startY, scrollL, scrollT, startTime, didPan;
   wrap.addEventListener('mousedown', function(e) {
     if (e.target.closest('.zoom-controls')) return;
     wrap.classList.add('is-panning');
@@ -609,19 +647,30 @@ document.querySelectorAll('.mermaid-wrap').forEach(function(wrap) {
     startY = e.clientY;
     scrollL = wrap.scrollLeft;
     scrollT = wrap.scrollTop;
+    startTime = Date.now();
+    didPan = false;
   });
   window.addEventListener('mousemove', function(e) {
     if (!wrap.classList.contains('is-panning')) return;
-    wrap.scrollLeft = scrollL - (e.clientX - startX);
-    wrap.scrollTop = scrollT - (e.clientY - startY);
+    var dx = e.clientX - startX;
+    var dy = e.clientY - startY;
+    if (Math.abs(dx) > 5 || Math.abs(dy) > 5) didPan = true;
+    wrap.scrollLeft = scrollL - dx;
+    wrap.scrollTop = scrollT - dy;
   });
   window.addEventListener('mouseup', function() {
+    if (!wrap.classList.contains('is-panning')) return;
     wrap.classList.remove('is-panning');
+    // If click was quick and didn't move much, open full-size
+    var elapsed = Date.now() - startTime;
+    if (!didPan && elapsed < 300) {
+      openMermaidInNewTab(wrap);
+    }
   });
 });
 ```
 
-Scroll-to-zoom requires Ctrl/Cmd+scroll to avoid hijacking normal page scroll. Cursor changes to `grab`/`grabbing` to signal pan mode. The zoom range is capped at 0.5x–5x.
+Scroll-to-zoom requires Ctrl/Cmd+scroll to avoid hijacking normal page scroll. Cursor changes to `grab`/`grabbing` to signal pan mode. The zoom range is capped at 0.5x–5x. **Clicking without dragging opens the diagram full-size in a new browser tab.**
 
 ## Grid Layouts
 

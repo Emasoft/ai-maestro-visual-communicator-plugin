@@ -5,7 +5,7 @@ license: MIT
 compatibility: Requires a browser to view generated HTML files. Optional surf-cli for AI image generation.
 metadata:
   author: nicobailon
-  version: "0.4.4"
+  version: "0.5.0"
 ---
 
 # Visual Explainer
@@ -80,7 +80,7 @@ Vary the choice each time. If the last diagram was dark and technical, make the 
 
 **Mermaid theming:** Always use `theme: 'base'` with custom `themeVariables` so colors match your page palette. Use `layout: 'elk'` for complex graphs (requires the `@mermaid-js/layout-elk` package — see `./references/libraries.md` for the CDN import). Override Mermaid's SVG classes with CSS for pixel-perfect control. See `./references/libraries.md` for full theming guide.
 
-**Mermaid containers:** Always center Mermaid diagrams with `display: flex; justify-content: center;`. Add zoom controls (+/−/reset) to every `.mermaid-wrap` container.
+**Mermaid containers:** Always center Mermaid diagrams with `display: flex; justify-content: center;`. Add zoom controls (+/−/reset/expand) to every `.mermaid-wrap` container. Include the click-to-expand JavaScript so clicking the diagram (or the ⛶ button) opens it full-size in a new tab.
 
 **Mermaid scaling:** Diagrams with 10+ nodes render too small by default. For 10-12 nodes, increase `fontSize` in themeVariables to 18-20px and set `INITIAL_ZOOM` to 1.5-1.6. For 15+ elements, don't try to scale — use the hybrid pattern instead (simple Mermaid overview + CSS Grid cards). See "Architecture / System Diagrams" below.
 
@@ -330,6 +330,40 @@ Every diagram is a single self-contained `.html` file. No external assets except
 </html>
 ```
 
+## Sharing Pages
+
+Share visual explainer pages instantly via Vercel. No account or authentication required.
+
+**Usage:**
+```bash
+bash {{skill_dir}}/scripts/share.sh <html-file>
+```
+
+**Example:**
+```bash
+bash {{skill_dir}}/scripts/share.sh ~/.agent/diagrams/my-diagram.html
+
+# Output:
+# ✓ Shared successfully!
+# Live URL:  https://skill-deploy-abc123.vercel.app
+# Claim URL: https://vercel.com/claim-deployment?code=...
+```
+
+**How it works:**
+1. Copies HTML file to temp directory as `index.html`
+2. Deploys via the vercel-deploy skill (zero-auth claimable deployment)
+3. URL is live immediately — works in any browser
+
+**Requirements:**
+- vercel-deploy skill (should be pre-installed; if not: `pi install npm:vercel-deploy`)
+
+**Notes:**
+- Deployments are public — anyone with the URL can view
+- Preview deployments have configurable retention (default: 30 days)
+- Claim URL lets you transfer the deployment to your Vercel account
+
+See `./prompts/share.md` for the `/share` prompt template.
+
 ## Quality Checks
 
 Before delivering, verify:
@@ -338,7 +372,7 @@ Before delivering, verify:
 - **Both themes**: Toggle your OS between light and dark mode. Both should look intentional, not broken.
 - **Information completeness**: Does the diagram actually convey what the user asked for? Pretty but incomplete is a failure.
 - **No overflow**: Resize the browser to different widths. No content should clip or escape its container. Every grid and flex child needs `min-width: 0`. Side-by-side panels need `overflow-wrap: break-word`. Never use `display: flex` on `<li>` for marker characters — it creates anonymous flex items that can't shrink, causing lines with many inline `<code>` badges to overflow. Use absolute positioning for markers instead. See the Overflow Protection section in `./references/css-patterns.md`.
-- **Mermaid zoom controls**: Every `.mermaid-wrap` container must have zoom controls (+/−/reset buttons), Ctrl/Cmd+scroll zoom, and click-and-drag panning. Complex diagrams render too small without them. The cursor should change to `grab` when zoomed in and `grabbing` while dragging. See `./references/css-patterns.md` for the full pattern.
+- **Mermaid zoom controls**: Every `.mermaid-wrap` container must have zoom controls (+/−/reset/expand buttons), Ctrl/Cmd+scroll zoom, click-and-drag panning, and click-to-expand (clicking without dragging opens the diagram full-size in a new tab). The expand button (⛶) provides the same functionality. See `./references/css-patterns.md` for the full pattern including the `openMermaidInNewTab()` function.
 - **File opens cleanly**: No console errors, no broken font loads, no layout shifts.
 
 ## Anti-Patterns (AI Slop)

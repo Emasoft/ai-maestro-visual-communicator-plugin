@@ -1,5 +1,40 @@
 # Changelog
 
+## [0.5.0] - 2026-03-04
+
+### Share Command
+- New `/share` prompt and `scripts/share.sh` for instant sharing of visual explainer pages
+- Uses vercel-deploy skill — no account or authentication required
+- Zero-friction: just `bash scripts/share.sh mypage.html` → live URL in seconds
+- Returns claimable deployment (can transfer to your Vercel account later)
+- JSON output for programmatic use
+
+### Bug Fixes
+- Fixed `mermaid-flowchart.html` to match documented pattern: moved flex centering from `.mermaid-wrap .mermaid` to `.mermaid-wrap`, added `min-height: 400px`
+- Fixed `share.sh` to properly capture and display deployment errors (was silently exiting due to `set -e`)
+
+## [0.4.5] - 2026-03-04
+
+### Click-to-Expand Mermaid Diagrams
+- Clicking anywhere on a Mermaid diagram (without dragging) opens it full-size in a new browser tab
+- Added expand button (⛶) to zoom controls for discoverability
+- New `openMermaidInNewTab()` and `openDiagramFullscreen()` functions in the Mermaid JavaScript pattern
+- Click detection distinguishes quick clicks from drag-to-pan (5px movement threshold, 300ms time threshold)
+- Full-size view preserves the page's background color for visual consistency
+- Updated all templates (`mermaid-flowchart.html`, `slide-deck.html`) with new pattern
+- Updated `css-patterns.md` and `slide-patterns.md` documentation
+
+### Bug Fixes
+- Removed unused `text` variable in `openMermaidInNewTab()` function
+- Removed unused `e` parameter in mouseup handlers
+- Fixed inconsistent zoom range limits (standardized to 0.5x–5x across all files)
+- Removed dead CSS `.mermaid-wrap.is-zoomed` rule (class was never applied by JavaScript)
+- Removed dead CSS `transition: transform` on `.mermaid` (zoom property is not animatable)
+- Added missing `cursor: grab` to base `.mermaid-wrap` selector in templates
+- Added missing flex centering (`display: flex; justify-content: center; align-items: center`) to `.mermaid-wrap` in `slide-deck.html`
+- Updated `SKILL.md` to explicitly mention the click-to-expand feature and expand button so agents include it when generating pages
+- Updated all prompt templates (`diff-review.md`, `plan-review.md`, `project-recap.md`, `generate-visual-plan.md`) to specify the expand button and click-to-expand functionality for Mermaid diagrams
+
 ## [0.4.3] - 2026-03-01
 
 ### Mermaid Zoom and Positioning Fixes
