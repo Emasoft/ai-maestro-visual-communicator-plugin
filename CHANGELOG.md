@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.5.1] - 2026-03-05
+
+### Claude Code Marketplace Structure
+- Restructured repo to follow Claude Code's official plugin marketplace spec
+- Moved all skill files into `plugins/visual-explainer/` subdirectory
+- Added `.claude-plugin/marketplace.json` catalog for marketplace discovery
+- Plugin manifest now at `plugins/visual-explainer/.claude-plugin/plugin.json`
+- Install via marketplace: `/plugin marketplace add nicobailon/visual-explainer` then `/plugin install visual-explainer@visual-explainer-marketplace`
+
+### Pi Manual Install
+- Replaced `pi install` one-liner with manual installation instructions
+- Pi users now clone repo and copy skill + prompts to `~/.pi/agent/skills/` and `~/.pi/agent/prompts/`
+- Removed stale `pi` field from `package.json` (was pointing to non-existent root paths)
+
+### Breaking Changes
+- Direct Claude Code plugin install (`/plugin install https://...`) no longer works — use marketplace flow instead
+- `pi install https://github.com/nicobailon/visual-explainer` no longer works — use manual install
+
 ## [0.5.0] - 2026-03-04
 
 ### Class Diagram and C4 Architecture Support

@@ -4,7 +4,7 @@
     "name": "nicobailon"
   },
   "metadata": {
-    "description": "A marketplace for visual explainer plugins — tools that turn complex terminal output into styled HTML pages",
+    "description": "Plugin distribution for visual-explainer",
     "version": "1.0.0",
     "pluginRoot": "./plugins"
   },
@@ -13,7 +13,7 @@
       "name": "visual-explainer",
       "source": "./plugins/visual-explainer",
       "description": "Generate beautiful HTML pages for diagrams, diff reviews, plan reviews, slides, and data tables",
-      "version": "0.5.0",
+      "version": "0.5.1",
       "author": {
         "name": "nicobailon"
       },
