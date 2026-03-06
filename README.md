@@ -34,23 +34,30 @@ This skill fixes that. Real typography, dark/light themes, interactive Mermaid d
 /plugin install visual-explainer@visual-explainer-marketplace
 ```
 
-**Claude Code (direct plugin):**
-```bash
-claude /plugin install https://github.com/nicobailon/visual-explainer
-```
-
 Note: Claude Code plugins namespace commands as `/visual-explainer:command-name`.
 
-**Pi:**
+**Pi (manual):**
 ```bash
-pi install https://github.com/nicobailon/visual-explainer
+# Clone the repo
+git clone --depth 1 https://github.com/nicobailon/visual-explainer.git /tmp/visual-explainer
+
+# Install skill
+cp -r /tmp/visual-explainer/plugins/visual-explainer ~/.pi/agent/skills/visual-explainer
+
+# Install prompt templates (slash commands)
+cp /tmp/visual-explainer/plugins/visual-explainer/commands/*.md ~/.pi/agent/prompts/
+
+# Cleanup
+rm -rf /tmp/visual-explainer
 ```
 
 **OpenAI Codex:**
 ```bash
-git clone https://github.com/nicobailon/visual-explainer.git ~/.agents/skills/visual-explainer
+git clone --depth 1 https://github.com/nicobailon/visual-explainer.git /tmp/visual-explainer
+cp -r /tmp/visual-explainer/plugins/visual-explainer ~/.agents/skills/visual-explainer
 mkdir -p ~/.agents/commands
-cp ~/.agents/skills/visual-explainer/commands/*.md ~/.agents/commands/
+cp /tmp/visual-explainer/plugins/visual-explainer/commands/*.md ~/.agents/commands/
+rm -rf /tmp/visual-explainer
 ```
 
 ## Commands
