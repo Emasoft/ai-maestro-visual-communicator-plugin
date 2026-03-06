@@ -1,0 +1,27 @@
+{
+  "name": "visual-explainer-marketplace",
+  "owner": {
+    "name": "nicobailon"
+  },
+  "metadata": {
+    "description": "A marketplace for visual explainer plugins — tools that turn complex terminal output into styled HTML pages",
+    "version": "1.0.0",
+    "pluginRoot": "./plugins"
+  },
+  "plugins": [
+    {
+      "name": "visual-explainer",
+      "source": "./plugins/visual-explainer",
+      "description": "Generate beautiful HTML pages for diagrams, diff reviews, plan reviews, slides, and data tables",
+      "version": "0.5.0",
+      "author": {
+        "name": "nicobailon"
+      },
+      "repository": "https://github.com/nicobailon/visual-explainer",
+      "license": "MIT",
+      "keywords": ["diagrams", "html", "visualization", "diff-review", "slides"],
+      "category": "visualization",
+      "tags": ["diagrams", "html-generation", "code-review", "slides", "mermaid"]
+    }
+  ]
+}
