@@ -14,6 +14,11 @@
 - Pi users now clone repo and copy skill + prompts to `~/.pi/agent/skills/` and `~/.pi/agent/prompts/`
 - Removed stale `pi` field from `package.json` (was pointing to non-existent root paths)
 
+### OpenAI Codex Install Fix
+- Fixed prompts path: `~/.codex/prompts/` (was incorrectly `~/.agents/commands/`)
+- Prompts are optional (deprecated feature) — skill works without them via `$visual-explainer`
+- With prompts installed, invoke as `/prompts:diff-review`, `/prompts:plan-review`, etc.
+
 ### Breaking Changes
 - Direct Claude Code plugin install (`/plugin install https://...`) no longer works — use marketplace flow instead
 - `pi install https://github.com/nicobailon/visual-explainer` no longer works — use manual install

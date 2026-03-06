@@ -54,11 +54,18 @@ rm -rf /tmp/visual-explainer
 **OpenAI Codex:**
 ```bash
 git clone --depth 1 https://github.com/nicobailon/visual-explainer.git /tmp/visual-explainer
+
+# Install skill
 cp -r /tmp/visual-explainer/plugins/visual-explainer ~/.agents/skills/visual-explainer
-mkdir -p ~/.agents/commands
-cp /tmp/visual-explainer/plugins/visual-explainer/commands/*.md ~/.agents/commands/
+
+# Optional: Install slash commands (deprecated, but works)
+mkdir -p ~/.codex/prompts
+cp /tmp/visual-explainer/plugins/visual-explainer/commands/*.md ~/.codex/prompts/
+
 rm -rf /tmp/visual-explainer
 ```
+
+Invoke with `$visual-explainer` or let Codex activate it implicitly. With prompts installed, use `/prompts:diff-review`, `/prompts:plan-review`, etc.
 
 ## Commands
 
@@ -109,10 +116,10 @@ plugins/
     │   ├── data-table.html
     │   └── slide-deck.html
     └── scripts/
-        └── share.sh
-            ↓
-~/.agent/diagrams/filename.html → opens in browser
+        └── share.sh       ← deploy HTML to Vercel for sharing
 ```
+
+**Output:** `~/.agent/diagrams/filename.html` → opens in browser
 
 The skill routes to the right approach automatically: Mermaid for flowcharts and diagrams, CSS Grid for architecture overviews, HTML tables for data, Chart.js for dashboards.
 
