@@ -1,8 +1,15 @@
 # Changelog
 
+## [0.6.1] - 2026-03-08
+
+### Pi Install Script
+- New `install-pi.sh` for one-command installation
+- Automatically patches `{{skill_dir}}` to actual install path
+- Usage: `curl -fsSL https://raw.githubusercontent.com/nicobailon/visual-explainer/main/install-pi.sh | bash`
+
 ## [0.6.0] - 2026-03-08
 
-Thanks to [@peak-flow](https://github.com/peak-flow) (David Abraham) for the adaptive zoom/pan engine PR (#25).
+Based on PR #25 by [@peak-flow](https://github.com/peak-flow), with additional multi-diagram architecture and bug fixes.
 
 ### Multi-Diagram Support
 - New vector-based zoom/pan engine replacing CSS `zoom` with direct SVG sizing
