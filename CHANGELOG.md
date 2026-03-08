@@ -1,5 +1,30 @@
 # Changelog
 
+## [0.6.0] - 2026-03-08
+
+Thanks to [@peak-flow](https://github.com/peak-flow) (David Abraham) for the adaptive zoom/pan engine PR (#25).
+
+### Multi-Diagram Support
+- New vector-based zoom/pan engine replacing CSS `zoom` with direct SVG sizing
+- Closure-based `initDiagram(shell)` pattern — per-diagram state in closures, shared drag listeners at module scope
+- Unlimited diagrams per page with no ID collisions (each diagram gets a unique generated ID)
+- New HTML structure: `.diagram-shell` > `.mermaid-wrap` > `.mermaid-viewport` > `.mermaid-canvas`
+- Source Mermaid code lives in `<script type="text/plain" class="diagram-source">` to avoid parsing issues
+- Adaptive viewport height based on diagram aspect ratio
+- Smart fit algorithm with readability floor (prevents tiny unreadable diagrams)
+- New zoom controls: 1:1 button, zoom percentage label
+- Touch pinch-to-zoom support with proper pan transition
+- Double-click to fit diagram
+
+### Bug Fixes
+- Fixed touch pinch→pan transition (reset start coords after pinch ends)
+- Removed dead `fitZoom` variable from previous implementation
+- Removed 12 lines of dead scrollbar CSS (no longer needed with new viewport approach)
+
+### Documentation
+- Updated `css-patterns.md` with new multi-diagram structure and JavaScript pattern
+- Simplified Mermaid section to reference `mermaid-flowchart.html` as canonical source
+
 ## [0.5.1] - 2026-03-05
 
 ### Claude Code Marketplace Structure
