@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.6.2] - 2026-03-08
+
+### Bug Fixes
+- Fixed fullscreen diagram export using wrong background color — now uses the same dark/light mode that was used to render the Mermaid theme
+
 ## [0.6.1] - 2026-03-08
 
 ### Pi Install Script

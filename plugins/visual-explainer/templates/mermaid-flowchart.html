@@ -567,8 +567,9 @@
       clone.style.width = '';
       clone.style.height = '';
 
-      const bg = getComputedStyle(document.documentElement)
-        .getPropertyValue('--bg').trim() || '#ffffff';
+      // Use the same isDark value that was used to render the Mermaid theme
+      // This ensures the background matches the baked-in SVG colors
+      const bg = isDark ? '#042f2e' : '#f0fdfa';
 
       const html = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
