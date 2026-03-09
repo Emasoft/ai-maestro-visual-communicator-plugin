@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.6.3] - 2026-03-09
+
+### Documentation
+- Added explicit warning against using bare `<pre class="mermaid">` tags — they render but produce tiny unusable diagrams without zoom/pan controls. Updated SKILL.md to point to the full `diagram-shell` pattern from `templates/mermaid-flowchart.html`.
+
 ## [0.6.2] - 2026-03-08
 
 ### Bug Fixes
