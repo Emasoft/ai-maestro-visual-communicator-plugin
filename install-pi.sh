@@ -22,14 +22,6 @@ echo "Installing skill to $SKILL_DIR..."
 rm -rf "$SKILL_DIR"
 cp -r plugins/visual-explainer "$SKILL_DIR"
 
-# Replace {{skill_dir}} with actual path
-echo "Patching paths..."
-if [[ "$OSTYPE" == "darwin"* ]]; then
-    find "$SKILL_DIR" -name "*.md" -exec sed -i '' "s|{{skill_dir}}|$SKILL_DIR|g" {} \;
-else
-    find "$SKILL_DIR" -name "*.md" -exec sed -i "s|{{skill_dir}}|$SKILL_DIR|g" {} \;
-fi
-
 # Copy prompts (slash commands)
 echo "Installing prompts to $PROMPTS_DIR..."
 mkdir -p "$PROMPTS_DIR"
@@ -46,4 +38,4 @@ echo ""
 echo "Commands available:"
 echo "  /diff-review, /plan-review, /project-recap, /fact-check"
 echo "  /generate-web-diagram, /generate-slides, /generate-visual-plan"
-echo "  /share"
+echo "  /share-page"

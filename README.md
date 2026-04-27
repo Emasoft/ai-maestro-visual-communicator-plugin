@@ -28,6 +28,15 @@ This skill fixes that. Real typography, dark/light themes, interactive Mermaid d
 
 ## Install
 
+| Harness | Support | Install path / behavior |
+|---|---|---|
+| Claude Code | Marketplace plugin | Preserved marketplace shape with source at `plugins/visual-explainer/` |
+| Pi | Package metadata plus installer | `package.json` advertises the skill and prompts; `install-pi.sh` installs to `~/.pi/agent/skills/visual-explainer` and `~/.pi/agent/prompts/` |
+| Codex CLI | Native skill path plus optional prompts | Copy to `~/.codex/skills/visual-explainer`; optional prompts go in `~/.codex/prompts/` if your Codex build supports them |
+| OpenCode/opencode | Observed skill/command paths | Copy to `~/.config/opencode/skill/visual-explainer`; optional commands go in `~/.config/opencode/command/` |
+| Cursor | Rules-based guidance | Add the supplied `.mdc` rule; Cursor is not treated as native Agent Skills support |
+| OpenClaw | Lightweight AGENTS/rules guidance | Use the supplied AGENTS guidance with the canonical skill directory |
+
 **Claude Code (marketplace):**
 ```shell
 /plugin marketplace add nicobailon/visual-explainer
@@ -38,30 +47,74 @@ Note: Claude Code plugins namespace commands as `/visual-explainer:command-name`
 
 **Pi:**
 ```bash
+pi install git:github.com/nicobailon/visual-explainer
+```
+
+Or from a local checkout:
+```bash
+git clone --depth 1 https://github.com/nicobailon/visual-explainer.git
+pi install ./visual-explainer
+```
+
+The package manifest advertises the canonical skill and command templates:
+
+```json
+"pi": {
+  "skills": ["./plugins/visual-explainer"],
+  "prompts": ["./plugins/visual-explainer/commands"]
+}
+```
+
+If you previously used the old curl/manual installer, remove those copied files before using `pi install`; otherwise Pi will report skill and prompt conflicts because the user-level copies shadow the package resources:
+
+```bash
+rm -rf ~/.pi/agent/skills/visual-explainer
+rm -f ~/.pi/agent/prompts/{diff-review,fact-check,generate-slides,generate-visual-plan,generate-web-diagram,plan-review,project-recap,share-page}.md
+```
+
+The legacy installer still works if you prefer copied files over package management:
+
+```bash
 curl -fsSL https://raw.githubusercontent.com/nicobailon/visual-explainer/main/install-pi.sh | bash
 ```
 
-Or clone and run:
-```bash
-git clone --depth 1 https://github.com/nicobailon/visual-explainer.git
-cd visual-explainer && ./install-pi.sh
-```
-
-**OpenAI Codex:**
+**Codex CLI:**
 ```bash
 git clone --depth 1 https://github.com/nicobailon/visual-explainer.git /tmp/visual-explainer
 
-# Install skill
-cp -r /tmp/visual-explainer/plugins/visual-explainer ~/.agents/skills/visual-explainer
+mkdir -p ~/.codex/skills ~/.codex/prompts
+cp -R /tmp/visual-explainer/plugins/visual-explainer ~/.codex/skills/visual-explainer
 
-# Optional: Install slash commands (deprecated, but works)
-mkdir -p ~/.codex/prompts
+# Optional, only if your Codex build supports prompt templates:
 cp /tmp/visual-explainer/plugins/visual-explainer/commands/*.md ~/.codex/prompts/
 
 rm -rf /tmp/visual-explainer
 ```
 
-Invoke with `$visual-explainer` or let Codex activate it implicitly. With prompts installed, use `/prompts:diff-review`, `/prompts:plan-review`, etc.
+Invoke with `$visual-explainer` or ask Codex to use the `visual-explainer` skill. If prompts are installed and supported, use `/prompts:diff-review`, `/prompts:plan-review`, etc.
+
+**OpenCode/opencode:**
+```bash
+git clone --depth 1 https://github.com/nicobailon/visual-explainer.git /tmp/visual-explainer
+
+mkdir -p ~/.config/opencode/skill ~/.config/opencode/command
+cp -R /tmp/visual-explainer/plugins/visual-explainer ~/.config/opencode/skill/visual-explainer
+
+# Optional command templates:
+cp /tmp/visual-explainer/plugins/visual-explainer/commands/*.md ~/.config/opencode/command/
+
+rm -rf /tmp/visual-explainer
+```
+
+Activate it by asking OpenCode to use the `visual-explainer` skill. Command-template behavior depends on the installed OpenCode/opencode build.
+
+**Cursor:**
+
+Add `configs/cursor/visual-explainer.mdc` to your Cursor rules, or copy its contents into the project rules UI. This is rules-based guidance that points Cursor at the canonical skill; it does not claim native Agent Skills support.
+
+**OpenClaw:**
+
+Use `configs/openclaw/AGENTS.md` as lightweight project guidance and copy or reference `plugins/visual-explainer/` as the canonical skill source. No native OpenClaw plugin adapter is included.
 
 ## Commands
 
@@ -74,7 +127,7 @@ Invoke with `$visual-explainer` or let Codex activate it implicitly. With prompt
 | `/plan-review` | Compare a plan against the codebase with risk assessment |
 | `/project-recap` | Mental model snapshot for context-switching back to a project |
 | `/fact-check` | Verify accuracy of a document against actual code |
-| `/share` | Deploy an HTML page to Vercel and get a live URL |
+| `/share-page` | Deploy an HTML page to Vercel and get a live URL |
 
 The agent also kicks in automatically when it's about to dump a complex table in the terminal (4+ rows or 3+ columns) — it renders HTML instead.
 
@@ -121,9 +174,11 @@ The skill routes to the right approach automatically: Mermaid for flowcharts and
 
 ## Limitations
 
-- Requires a browser to view
-- Switching OS theme requires a page refresh for Mermaid SVGs
-- Results vary by model capability
+- Generated HTML is portable and self-contained, but auto-opening depends on the harness, browser access, and sandbox rules.
+- All harnesses write visual output to `~/.agent/diagrams/` unless the user asks for a different path.
+- Switching OS theme requires a page refresh for Mermaid SVGs.
+- `/share-page` uses `plugins/visual-explainer/scripts/share.sh`, which expects a Pi-compatible `vercel-deploy` skill in a standard Pi skill location. Other harnesses can still generate and open pages, but sharing may need that dependency installed separately.
+- Results vary by model capability.
 
 ## Credits
 

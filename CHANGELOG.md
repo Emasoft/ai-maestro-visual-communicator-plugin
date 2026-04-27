@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.7.1] - 2026-04-27
+
+### Compatibility
+- Added first-class Pi package metadata so `pi install` can load the canonical `plugins/visual-explainer/` skill and command templates directly from the repo.
+- Preserved the Claude Code marketplace layout while synchronizing package and plugin manifest versions to `0.7.1`.
+- Added lightweight harness guidance for Pi, Codex CLI, OpenCode/opencode, Cursor, and OpenClaw without duplicating skill directories or adding runtime adapters.
+- Documented migration cleanup for older manual Pi installs, which can otherwise shadow package resources with copied user-level skill and prompt files.
+
+### Changed
+- Completed the hard cutover from `/share` to `/share-page` by removing the deprecated command template and updating docs and installer output.
+- Removed `{{skill_dir}}` placeholders from canonical skill docs; share instructions now resolve `share.sh` from the installed `visual-explainer` skill directory.
+- Made `pi install` the primary Pi installation path while keeping the legacy installer documented as an explicit copied-file alternative.
+
 ## [0.6.3] - 2026-03-09
 
 ### Documentation
