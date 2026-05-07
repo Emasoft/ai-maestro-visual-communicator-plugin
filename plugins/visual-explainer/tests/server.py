@@ -20,11 +20,21 @@ from __future__ import annotations
 import argparse
 import http.server
 import json
+import re
 import socketserver
 import sys
 import time
 from pathlib import Path
 from urllib.parse import urlparse
+
+# threadId / commentId values are interpolated into queue filenames. Restrict
+# them to a charset that has no path-separator semantics on any platform so a
+# malformed (or hostile) test payload can never escape the queue dir.
+_TID_OK = re.compile(r"^[A-Za-z0-9._-]+$")
+
+
+def _safe_tid(s: str) -> str | None:
+    return s if s and _TID_OK.match(s) and ".." not in s else None
 
 
 def make_handler(root: Path, queue_dir: Path) -> type:
@@ -32,8 +42,8 @@ def make_handler(root: Path, queue_dir: Path) -> type:
         def __init__(self, *a, **kw):
             super().__init__(*a, directory=str(root), **kw)
 
-        def log_message(self, *_):  # quiet by default
-            return
+        def log_message(self, format, *args):  # noqa: A002 - match base class signature
+            del format, args  # quiet by default
 
         def end_headers(self):
             self.send_header("cache-control", "no-store")
@@ -47,12 +57,19 @@ def make_handler(root: Path, queue_dir: Path) -> type:
             self.end_headers()
 
         def do_GET(self):
-            p = urlparse(self.path).path
+            parsed = urlparse(self.path)
+            p = parsed.path
             if p.startswith("/__ve-reply/"):
-                tid = p[len("/__ve-reply/") :]
+                tid_raw = p[len("/__ve-reply/") :]
+                tid = _safe_tid(tid_raw)
+                if tid is None:
+                    self.send_response(400)
+                    self.end_headers()
+                    self.wfile.write(b'{"error":"bad threadId"}')
+                    return
                 qs = dict(
                     kv.split("=", 1)
-                    for kv in (urlparse(self.path).query or "").split("&")
+                    for kv in (parsed.query or "").split("&")
                     if "=" in kv
                 )
                 since = int(qs.get("since", "0") or "0")
@@ -90,7 +107,12 @@ def make_handler(root: Path, queue_dir: Path) -> type:
                 payload = {}
 
             if p == "/__ve-comment":
-                tid = str(payload.get("threadId") or "unknown")
+                tid = _safe_tid(str(payload.get("threadId") or ""))
+                if tid is None:
+                    self.send_response(400)
+                    self.end_headers()
+                    self.wfile.write(b'{"error":"bad threadId"}')
+                    return
                 line = (
                     json.dumps({**payload, "role": "user", "at": time.time()}) + "\n"
                 )
@@ -107,9 +129,9 @@ def make_handler(root: Path, queue_dir: Path) -> type:
                 return
 
             if p == "/__ve-test-reply":
-                tid = str(payload.get("threadId") or "")
+                tid = _safe_tid(str(payload.get("threadId") or ""))
                 turn = int(payload.get("turn") or 0)
-                if not tid or turn <= 0:
+                if tid is None or turn <= 0:
                     self.send_response(400)
                     self.end_headers()
                     self.wfile.write(b'{"error":"bad payload"}')

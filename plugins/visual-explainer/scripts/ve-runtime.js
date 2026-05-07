@@ -4913,11 +4913,23 @@
 
   function pollForCommentReply(pendingAgentTurn) {
     if (!commentModalState) return;
+    // Capture the threadId at poll-start. A fetch in flight when the user
+    // closes the modal (or opens a different anchor's thread) MUST NOT
+    // mutate the new state — otherwise indexOf(pendingAgentTurn) crashes
+    // on a null commentModalState, or worse, the new thread's turns get
+    // a stray agent reply slotted in. The threadId guard makes every
+    // async continuation self-detect a stale closure and bail.
+    var ownThreadId = commentModalState.threadId;
+    function isStale() {
+      return !commentModalState || commentModalState.threadId !== ownThreadId;
+    }
     function once() {
+      if (isStale()) return;
       var url = '/__ve-reply/' + encodeURIComponent(commentModalState.threadId)
         + '?since=' + (pendingAgentTurn.turn - 1);
       fetch(url, { headers: { 'accept': 'application/json' } })
         .then(function (r) {
+          if (isStale()) return null;
           if (r.status === 204) {
             schedule();
             return null;
@@ -4931,6 +4943,7 @@
         })
         .then(function (data) {
           if (!data) return;
+          if (isStale()) return;
           // Expect {turn, role:"agent", text}. Replace the pending entry.
           var idx = commentModalState.turns.indexOf(pendingAgentTurn);
           if (idx < 0) return;
@@ -4944,10 +4957,10 @@
           saveThreadToStorage(commentModalState);
           renderCommentModal();
         })
-        .catch(function () { schedule(); });
+        .catch(function () { if (!isStale()) schedule(); });
     }
     function schedule() {
-      if (!commentModalState) return;
+      if (isStale()) return;
       commentModalState.pollHandle = setTimeout(once, COMMENT_POLL_MS);
     }
     once();

@@ -228,6 +228,9 @@ def main() -> int:
 
         all_rows: list[dict] = []
         for script in scripts:
+            # Wipe the queue between scripts so residue from one suite cannot
+            # bleed into another. Each test asserts against fresh disk state.
+            clean_queue()
             print(f"running {script.name} …", flush=True)
             rows = run_script(script)
             all_rows.extend(rows)
