@@ -23,6 +23,20 @@
 /plugin install ai-maestro-visual-communicator@ai-maestro-plugins
 ```
 
+## Platform requirements
+
+**Supported OSes**: macOS and Linux. Windows is NOT supported.
+
+The `aimvc-share-page` command and the `tests/run-all-tests.sh` wrapper rely
+on POSIX-only Bash (`scripts/share.sh`, `tests/run-all-tests.sh`). The page
+renderer (`scripts/render-interactive-report.py`) and the selection
+server (`scripts/ve-select.py`) are pure-Python and run on every OS, but
+the user-facing entry points expect a POSIX shell. Windows users should
+run the plugin under WSL2.
+
+`banner.png` is the README banner image — there is no per-OS variant; it
+is intentionally a single shared asset rather than a multi-platform binary.
+
 ## License
 
 MIT. Forked from [`nicobailon/visual-explainer`](https://github.com/nicobailon/visual-explainer) v0.8.0; see `CHANGELOG.md`.

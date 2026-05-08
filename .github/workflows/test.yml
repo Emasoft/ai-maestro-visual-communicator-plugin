@@ -1,0 +1,65 @@
+name: test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: lint (python + bash)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: install uv
+        uses: astral-sh/setup-uv@v8
+        with:
+          enable-cache: true
+
+      - name: ruff check
+        run: |
+          uv tool install ruff
+          ruff check .
+
+      - name: shellcheck
+        uses: ludeeus/action-shellcheck@master
+        with:
+          severity: warning
+        env:
+          # The dev-browser test wrapper relies on bash arrays; we only
+          # check our own shell scripts, not the vendored regex-vis sources.
+          SHELLCHECK_OPTS: -e SC1091
+          SCANDIR: ./scripts ./tests ./.githooks
+
+  validate:
+    name: cpv-validate-plugin
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: install uv
+        uses: astral-sh/setup-uv@v8
+        with:
+          enable-cache: true
+
+      - name: validate plugin
+        run: |
+          uvx --from git+https://github.com/Emasoft/claude-plugins-validation \
+            --with pyyaml cpv-remote-validate plugin . --strict
+
+  # The dev-browser-driven 28-test suite cannot run on stock GitHub runners
+  # (it needs the dev-browser CLI which depends on a real Chrome instance
+  # and persistent state). It runs locally via `tests/run-all-tests.sh` and
+  # is enforced through the .githooks/pre-push hook before any push to
+  # origin. This job is intentionally skipped — restore it if a hosted
+  # dev-browser runner becomes available.

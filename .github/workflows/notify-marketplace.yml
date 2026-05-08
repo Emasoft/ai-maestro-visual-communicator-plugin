@@ -1,0 +1,58 @@
+# Notify the ai-maestro-plugins marketplace when this plugin is updated.
+# Requires MARKETPLACE_PAT secret on this repo (PAT with `repo` scope on the
+# marketplace repo). Configure once via:
+#   gh secret set MARKETPLACE_PAT --repo Emasoft/ai-maestro-visual-communicator-plugin --body "$MARKETPLACE_PAT"
+
+name: Notify Marketplace
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.claude-plugin/plugin.json'
+      - 'commands/**'
+      - 'scripts/**'
+      - 'templates/**'
+      - 'references/**'
+      - 'SKILL.md'
+
+permissions:
+  contents: read
+
+env:
+  MARKETPLACE_OWNER: 'Emasoft'
+  MARKETPLACE_REPO: 'ai-maestro-plugins'
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: get plugin info
+        id: plugin
+        run: |
+          echo "name=${{ github.event.repository.name }}" >> $GITHUB_OUTPUT
+          echo "ref=${{ github.sha }}" >> $GITHUB_OUTPUT
+
+      - name: trigger marketplace update
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.MARKETPLACE_PAT }}
+          repository: ${{ env.MARKETPLACE_OWNER }}/${{ env.MARKETPLACE_REPO }}
+          event-type: plugin-updated
+          client-payload: |
+            {
+              "plugin": "${{ steps.plugin.outputs.name }}",
+              "ref": "${{ steps.plugin.outputs.ref }}",
+              "source_repo": "${{ github.repository }}",
+              "triggered_by": "${{ github.actor }}"
+            }
+
+      - name: summary
+        run: |
+          echo "## Marketplace Notification" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Triggered update in ${{ env.MARKETPLACE_OWNER }}/${{ env.MARKETPLACE_REPO }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- Plugin: ${{ steps.plugin.outputs.name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Commit: ${{ steps.plugin.outputs.ref }}" >> $GITHUB_STEP_SUMMARY

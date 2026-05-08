@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+# Pre-push quality gate for ai-maestro-visual-communicator.
+#
+# Runs the dev-browser test suite (tests/run-all-tests.sh) before allowing a
+# push. dev-browser is the only hard requirement — without it the suite cannot
+# run, in which case the hook degrades to a soft-pass with a warning so a
+# fresh clone is not blocked from pushing.
+#
+# To install:
+#   git config core.hooksPath .githooks
+# Or invoke directly:
+#   .githooks/pre-push
+set -euo pipefail
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+cd "$REPO_ROOT"
+
+echo "[pre-push] running ai-maestro-visual-communicator quality gate..."
+
+# Gate 1 — dev-browser must be on PATH for the test suite to run.
+if ! command -v dev-browser >/dev/null 2>&1; then
+    echo "[pre-push] WARNING: dev-browser not found on PATH; skipping test suite."
+    echo "[pre-push] Install with: npm install -g dev-browser && dev-browser install"
+    echo "[pre-push] Push allowed (soft-pass) — install dev-browser to enable the gate."
+    exit 0
+fi
+
+# Gate 2 — the 28-test dev-browser suite must pass.
+if [ -x "tests/run-all-tests.sh" ]; then
+    echo "[pre-push] running tests/run-all-tests.sh..."
+    if ! tests/run-all-tests.sh; then
+        echo "[pre-push] FAIL: tests/run-all-tests.sh reported failures."
+        echo "[pre-push] Push aborted. Fix failing tests before pushing."
+        exit 1
+    fi
+else
+    echo "[pre-push] WARNING: tests/run-all-tests.sh missing or not executable; skipping."
+fi
+
+# Gate 3 — ruff lint on Python sources, if ruff is available.
+if command -v ruff >/dev/null 2>&1; then
+    echo "[pre-push] running ruff check..."
+    if ! ruff check .; then
+        echo "[pre-push] FAIL: ruff reported lint errors."
+        exit 1
+    fi
+fi
+
+echo "[pre-push] all gates passed."
+exit 0

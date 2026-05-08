@@ -1,0 +1,80 @@
+[project]
+name = "ai-maestro-visual-communicator"
+version = "1.0.0"
+description = "Generate interactive HTML pages — diagrams, diff reviews, plan reviews, slide decks, data tables, and v2 modal-comment agent reports. Every page sends the user's selection (or per-element comment thread) back to the agent."
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "MIT" }
+authors = [
+    { name = "Emasoft", email = "713559+Emasoft@users.noreply.github.com" },
+]
+keywords = [
+    "claude-code-plugin",
+    "claude-marketplace",
+    "ai-maestro",
+    "interactive-html",
+    "agent-reports",
+    "modal-comments",
+    "diagrams",
+    "diff-review",
+    "plan-review",
+    "slides",
+    "mermaid",
+    "regex-vis",
+]
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Operating System :: MacOS",
+    "Operating System :: POSIX :: Linux",
+]
+
+[project.urls]
+Homepage = "https://github.com/Emasoft/ai-maestro-visual-communicator-plugin"
+Repository = "https://github.com/Emasoft/ai-maestro-visual-communicator-plugin"
+Issues = "https://github.com/Emasoft/ai-maestro-visual-communicator-plugin/issues"
+
+# This is a Claude Code plugin, not a publishable Python package.
+# The Python scripts under scripts/ are invoked directly by Claude Code or by
+# the test runner — there is no installable wheel. The pyproject.toml exists
+# only to satisfy CPV's reproducible-build recommendation and to host the
+# linter/type-checker / test configuration below.
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+extend-exclude = [
+    "vendor/",
+    "tests_dev/",
+    "scripts/ve-regex.umd.js",
+    "scripts/ve-runtime.js",
+]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "UP",  # pyupgrade
+]
+ignore = [
+    "E501",  # line-too-long (handled by line-length)
+]
+
+[tool.mypy]
+python_version = "3.12"
+strict = false
+warn_unused_configs = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+exclude = [
+    "vendor/",
+    "tests_dev/",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py", "run-tests.py"]

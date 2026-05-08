@@ -324,23 +324,23 @@ def main(argv: list[str]) -> int:
     selection_event = threading.Event()
 
     class Handler(http.server.SimpleHTTPRequestHandler):
-        def log_message(self, *_args, **_kwargs):  # silence stderr access log
+        def log_message(self, *_args: object, **_kwargs: object) -> None:  # silence stderr access log
             return
 
-        def end_headers(self):
+        def end_headers(self) -> None:
             # Generated pages mutate every run — never let the browser cache
             # an old version that lacks the new selection wiring.
             self.send_header("cache-control", "no-store")
             super().end_headers()
 
-        def do_OPTIONS(self):
+        def do_OPTIONS(self) -> None:
             self.send_response(204)
             self.send_header("access-control-allow-origin", "*")
             self.send_header("access-control-allow-methods", "GET, POST, OPTIONS")
             self.send_header("access-control-allow-headers", "content-type")
             self.end_headers()
 
-        def do_GET(self):
+        def do_GET(self) -> None:
             req_path = urlparse(self.path).path
             # ── v2 — comment-thread reply polling ─────────────────────
             # GET /__ve-reply/<threadId>?since=<turn> → 204 if no new
@@ -429,7 +429,7 @@ def main(argv: list[str]) -> int:
                 return
             return super().do_GET()
 
-        def do_POST(self):
+        def do_POST(self) -> None:
             url = urlparse(self.path)
             # ── v2 — comment-thread queue endpoint ────────────────────
             # POST /__ve-comment {commentId, threadId, sourcePath, turn, text}
@@ -480,15 +480,15 @@ def main(argv: list[str]) -> int:
 
             length = int(self.headers.get("content-length") or 0)
             raw = self.rfile.read(length) if length else b""
-            payload: dict[str, object]
+            # NB: `payload` is reused from the /__ve-comment branch above when
+            # both branches share the function scope. Reassigning here is fine —
+            # we drop the redundant inline annotation to keep mypy's no-redef
+            # check happy under the strict-untyped-defs path.
             try:
                 parsed = json.loads(raw.decode("utf-8") or "{}")
             except Exception:
                 parsed = {"raw": raw.decode("utf-8", errors="replace")}
-            if isinstance(parsed, dict):
-                payload = dict(parsed)
-            else:
-                payload = {"value": parsed}
+            payload = dict(parsed) if isinstance(parsed, dict) else {"value": parsed}
             # New (phase 1+) wire format always carries `kind` plus a
             # `selections` list. Preserve the page payload shape verbatim
             # — never inject `id: None` or any other phantom field, since

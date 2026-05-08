@@ -12,9 +12,20 @@
 /reports/
 /reports_dev/
 
-# Python bytecode caches
+# Python bytecode caches and linter/type-checker caches
 __pycache__/
 *.pyc
+.ruff_cache/
+.mypy_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# Python virtual environments
+.venv/
+venv/
+env/
 
 # Janitor runtime state
 /.janitor/
