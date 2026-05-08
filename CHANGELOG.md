@@ -5,11 +5,21 @@ All notable changes to this project will be documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.1.3] — 2026-05-08
+
+### Bug Fixes
+
+- Auto-sync uv.lock during version bump
+
 ## [1.1.2] — 2026-05-08
 
 ### Bug Fixes
 
 - Make GitHub Release step idempotent
+
+### Chores
+
+- V1.1.2
 
 ## [1.1.1] — 2026-05-08
 
