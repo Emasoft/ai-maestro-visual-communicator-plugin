@@ -3,7 +3,7 @@
 **TRDD ID:** `7a2dab03-9350-458d-b4c2-7dad165018b9`
 **Filename:** `design/tasks/TRDD-7a2dab03-9350-458d-b4c2-7dad165018b9-per-element-decision.md`
 **Tracked in:** this repo (design/tasks/ is git-tracked)
-**Status:** In progress (2026-05-08)
+**Status:** Done (2026-05-08) — phases 2-7 implemented; phase 8 owned by `publish.py`
 **Depends on:** TRDD-eff1aa87 (interactive agent reports — v1 inline threads, v2 modal threads)
 
 ## 1. Original user request (verbatim)

@@ -551,15 +551,39 @@ def render_finding_html(f: Finding, prior_rounds: list[dict]) -> str:
         meta_text or f.title,
     )
 
+    # TRDD-7a2dab03 — per-finding decision pill (3-state: approve/reject/skip).
+    # The fieldset's `data-anchor-id` is the canonical anchorId the runtime
+    # writes into every JSONL turn it emits for this finding. We prefix the
+    # findingId with `ve-` so the namespace matches TRDD-7a2dab03 §3.4
+    # (e.g. findingId `finding-3` → anchorId `ve-finding-3`).
+    fid_safe = html.escape(f.findingId)
+    anchor_id = "ve-" + f.findingId
+    radio_name = "dec-" + f.findingId
+    decision_fieldset = (
+        f'  <fieldset class="ve-decision" data-anchor-id="{html.escape(anchor_id)}">\n'
+        f'    <legend class="ve-sr-only">Decision for {fid_safe}</legend>\n'
+        f'    <input type="radio" id="{html.escape(radio_name)}-approve" '
+        f'name="{html.escape(radio_name)}" value="approve">\n'
+        f'    <label for="{html.escape(radio_name)}-approve" class="ve-dec-approve">approve</label>\n'
+        f'    <input type="radio" id="{html.escape(radio_name)}-reject" '
+        f'name="{html.escape(radio_name)}" value="reject">\n'
+        f'    <label for="{html.escape(radio_name)}-reject" class="ve-dec-reject">reject</label>\n'
+        f'    <input type="radio" id="{html.escape(radio_name)}-skip" '
+        f'name="{html.escape(radio_name)}" value="skip" checked>\n'
+        f'    <label for="{html.escape(radio_name)}-skip" class="ve-dec-skip">skip</label>\n'
+        f'  </fieldset>\n'
+    )
+
     return (
         f'<section {" ".join(data_attrs)}>\n'
         f'  {h2_open}{html.escape(f.title)}</h2>\n'
         f'  {meta_open}{chip_html}{file_html}{"".join(meta_extra)}</div>\n'
+        f'{decision_fieldset}'
         f'  <div class="ve-finding-body">{md_to_html(f.body_md)}</div>\n'
         f'  <div class="ve-finding-thread">\n'
         f'    {"".join(rounds_html)}\n'
         f'    <textarea class="ve-finding-reply" data-ve-finding-reply\n'
-        f'              data-ve-finding-id="{html.escape(f.findingId)}"\n'
+        f'              data-ve-finding-id="{fid_safe}"\n'
         f'              placeholder="Reply to this finding…" rows="3"></textarea>\n'
         f'  </div>\n'
         f'</section>\n'

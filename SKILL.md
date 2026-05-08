@@ -261,6 +261,20 @@ The runtime (`ve-runtime.js`) handles these for you — do not try to recreate t
 - **Per-thread `localStorage` persistence** under key `ve-comment-thread:<commentId>`.
 - **Stale-state self-detection** — fetches that complete after the modal closes (or a different anchor's thread opens) bail without crashing.
 
+### v3 — per-element decision pill (approve / reject / skip)
+
+Each finding section also carries a 3-state decision pill (TRDD-7a2dab03). The pill is **independent** of the comment thread: the thread is for clarifications, the pill is the **outcome signal** Claude reads first.
+
+- Default state: `skip` (no opinion). Loading the page does NOT emit any turn.
+- Flipping a pill writes a **decision-only turn** (`text: ""`, `decision: "..."`, `anchorId: "ve-finding-N"`) into a per-finding JSONL file (`<queue-dir>/decision-ve-finding-N-<ts>.jsonl`).
+- Submitting a comment from inside a finding ANSWERs with the current decision attached as an extra `decision` key on the comment turn.
+- Closing the modal POSTs an aggregate `<threadId>.summary.json` with `decisions`, `totals`, and `closedAt` so the responder can `cat` one file instead of replaying every turn.
+
+When responding, **read the `decision` field first**:
+- `approve` → "Acknowledged: approving as-is."
+- `reject` → "Acknowledged: rejecting. \<one-line summary of what to do instead\>."
+- `skip` (or absent) → process the comment text only.
+
 ### Pointing another Claude at this plugin
 
 Two practical install patterns:

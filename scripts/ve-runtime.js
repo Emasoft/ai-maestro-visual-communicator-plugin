@@ -738,6 +738,57 @@
       '.ve-comment-answer:disabled { opacity:0.45; cursor:not-allowed; }',
       '.ve-comment-done:hover {',
       '  background:color-mix(in srgb, var(--text, currentColor) 14%, transparent);',
+      '}',
+      // ─── v3 — per-element decision pill (TRDD-7a2dab03 §3.1, §3.4) ──
+      // Segmented-control look: a pill row of three labels, only the
+      // checked one shows the accent fill. The radios themselves stay
+      // visually hidden but remain keyboard-focusable.
+      '.ve-decision {',
+      '  border:0; padding:0; margin:8px 0 12px;',
+      '  display:inline-flex; gap:0; align-items:center;',
+      '  border:1px solid color-mix(in srgb, var(--text, currentColor) 22%, transparent);',
+      '  border-radius:999px; overflow:hidden;',
+      '  background:color-mix(in srgb, var(--text, currentColor) 4%, transparent);',
+      '}',
+      '.ve-sr-only {',
+      '  position:absolute; width:1px; height:1px;',
+      '  padding:0; margin:-1px; overflow:hidden; clip:rect(0 0 0 0);',
+      '  white-space:nowrap; border:0;',
+      '}',
+      // Visually hide the radio inputs but keep them focusable.
+      '.ve-decision input[type="radio"] {',
+      '  position:absolute; opacity:0; pointer-events:none;',
+      '  width:1px; height:1px; margin:-1px;',
+      '}',
+      '.ve-decision label {',
+      '  cursor:pointer; user-select:none;',
+      '  padding:5px 14px;',
+      '  font:600 11px/1.2 ui-sans-serif,system-ui,sans-serif;',
+      '  letter-spacing:0.06em; text-transform:uppercase;',
+      '  color:color-mix(in srgb, var(--text, currentColor) 65%, transparent);',
+      '  transition:background 120ms, color 120ms;',
+      '}',
+      '.ve-decision label + input + label { /* divider before subsequent labels */',
+      '  border-left:1px solid color-mix(in srgb, var(--text, currentColor) 14%, transparent);',
+      '}',
+      '.ve-decision label:hover {',
+      '  background:color-mix(in srgb, var(--text, currentColor) 8%, transparent);',
+      '  color:var(--text, currentColor);',
+      '}',
+      // Checked-state colours per choice.
+      '.ve-decision input[value="approve"]:checked + label.ve-dec-approve {',
+      '  background:#1e8a4f; color:#f8fbf6;',
+      '}',
+      '.ve-decision input[value="reject"]:checked + label.ve-dec-reject {',
+      '  background:#b8331f; color:#fbf3f1;',
+      '}',
+      '.ve-decision input[value="skip"]:checked + label.ve-dec-skip {',
+      '  background:color-mix(in srgb, var(--text, currentColor) 18%, transparent);',
+      '  color:var(--text, currentColor);',
+      '}',
+      // Keyboard focus ring (Tab + arrow keys).
+      '.ve-decision input[type="radio"]:focus-visible + label {',
+      '  outline:2px solid var(--ve-accent, #b8861f); outline-offset:2px;',
       '}'
     ].join('\n');
     document.head.appendChild(s);
@@ -4753,9 +4804,32 @@
       commentModalState.pollHandle = null;
     }
     if (commentModalState.anchorEl) commentModalState.anchorEl.removeAttribute('data-ve-comment-active');
+    var threadIdAtClose = commentModalState.threadId;
     commentModalState = null;
     document.body.removeAttribute('data-ve-comment-modal-open');
     if (commentModalEl) commentModalEl.style.display = 'none';
+    // TRDD-7a2dab03 §3.7 — close-modal is the natural sync point at
+    // which to write the per-page decision summary. POST after we've
+    // torn the modal down so a slow network does not block the UI
+    // repaint. The summary is best-effort: if the POST fails, the
+    // JSONL trail is still on disk, so the orchestrator can always
+    // reconstruct the same totals. postPageSummary is a no-op on a
+    // page with no findings (e.g. a slide deck).
+    postPageSummary(threadIdAtClose);
+  }
+
+  function postPageSummary(modalThreadId) {
+    var fs = document.querySelectorAll('fieldset.ve-decision');
+    if (!fs.length) return;
+    var body = buildSummaryPayload();
+    body.threadId = modalThreadId || ('summary-page-' + Date.now().toString(36));
+    fetch('/__ve-comment-summary', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(body)
+    }).catch(function (e) {
+      console.warn('[ve-decision] summary POST failed:', e);
+    });
   }
 
   function renderCommentModal() {
@@ -4893,6 +4967,14 @@
   }
 
   function postCommentAndPoll(userTurn, pendingAgentTurn) {
+    // TRDD-7a2dab03 — when the comment is anchored inside a finding, also
+    // ship the finding's current decision pill state. The orchestrator's
+    // reply loop reads the `decision` field FIRST (see /aimvc-respond-to-
+    // comment) and uses it to choose the reply template (approve / reject
+    // / skip). If the anchor is outside any finding (e.g. in the preamble)
+    // there is no finding-scoped decision, so the field is omitted.
+    var anchorEl = commentModalState && commentModalState.anchorEl;
+    var findingAnchorId = findingAnchorIdFromElement(anchorEl);
     var payload = {
       commentId: commentModalState.commentId,
       threadId: commentModalState.threadId,
@@ -4900,6 +4982,10 @@
       turn: userTurn.turn,
       text: userTurn.text
     };
+    if (findingAnchorId) {
+      payload.anchorId = findingAnchorId;
+      payload.decision = currentDecisionFor(findingAnchorId);
+    }
     fetch('/__ve-comment', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
@@ -4966,6 +5052,152 @@
     once();
   }
 
+  // ─────────────────────────────────────────────────────────────────────
+  // v3 — per-element decision pill (TRDD-7a2dab03).
+  //
+  // Each finding section carries a `<fieldset class="ve-decision">` with
+  // three radios (approve/reject/skip; default skip). Flipping the radio
+  // emits a "decision-only" turn into the queue. A normal comment turn
+  // (typed in the modal + ANSWER) carries the current decision for the
+  // enclosing finding as an extra field.
+  //
+  // State is per-page (closure-scoped Maps). The runtime is loaded once
+  // per page so there is exactly one instance — but we still scope the
+  // state by anchorId in a Map (NOT a module-level mutable array) so
+  // multiple findings in the same page can't accidentally share state.
+  // See ~/.claude/rules/browser-ui-test-techniques.md §3 for the rule.
+  // ─────────────────────────────────────────────────────────────────────
+
+  // anchorId → "approve"|"reject"|"skip" (current radio state).
+  var decisionState = new Map();
+  // anchorId → "approve"|"reject"|"skip" — last decision actually written
+  // to the queue. Used to suppress idempotent decision-only writes per
+  // TRDD-7a2dab03 §3.3 ("clicking the same radio twice is a no-op").
+  var lastWrittenDecision = new Map();
+  // anchorId → threadId for decision-only turns. Each finding gets its
+  // own thread so all of a finding's decision flips append to the same
+  // JSONL file. Minted lazily on first write.
+  var decisionThreads = new Map();
+  // anchorId → next turn number for decision-only writes.
+  var decisionTurns = new Map();
+
+  function findingAnchorIdFromElement(el) {
+    // Walk up to the nearest `<section data-ve-finding-id="...">` and
+    // map its findingId to the canonical anchorId form `ve-{findingId}`.
+    if (!el || !el.closest) return null;
+    var sec = el.closest('section[data-ve-finding-id]');
+    if (!sec) return null;
+    var fid = sec.getAttribute('data-ve-finding-id');
+    if (!fid) return null;
+    return 've-' + fid;
+  }
+
+  function currentDecisionFor(anchorId) {
+    if (!anchorId) return 'skip';
+    if (decisionState.has(anchorId)) return decisionState.get(anchorId);
+    // Read the DOM state if no explicit flip has been recorded yet — the
+    // renderer marks one radio as `checked` (default: skip).
+    var fs = document.querySelector(
+      'fieldset.ve-decision[data-anchor-id="' + anchorId.replace(/"/g, '\\"') + '"]'
+    );
+    if (fs) {
+      var r = fs.querySelector('input[type="radio"]:checked');
+      if (r && r.value) return r.value;
+    }
+    return 'skip';
+  }
+
+  function ensureDecisionThreadId(anchorId) {
+    if (decisionThreads.has(anchorId)) return decisionThreads.get(anchorId);
+    // The `_TID_OK` charset on the server is `[A-Za-z0-9._-]+`; the
+    // anchorId is `ve-<findingId>` and the findingId is hyphen/dot/digit
+    // only, so concatenation is safe. Append a base36 timestamp so two
+    // pages opened in parallel don't collide on the same JSONL file.
+    var tid = 'decision-' + anchorId + '-' + Date.now().toString(36);
+    decisionThreads.set(anchorId, tid);
+    return tid;
+  }
+
+  function nextDecisionTurn(anchorId) {
+    var n = (decisionTurns.get(anchorId) || 0) + 1;
+    decisionTurns.set(anchorId, n);
+    return n;
+  }
+
+  function postDecisionTurn(anchorId, decision, text) {
+    // Atomic POST: one JSONL line per call. Idempotent suppression is
+    // applied by the caller (recordDecision) — this function always
+    // writes.
+    var threadId = ensureDecisionThreadId(anchorId);
+    var payload = {
+      commentId: anchorId,    // for back-compat with v2 readers
+      threadId: threadId,
+      sourcePath: commentSourcePath(),
+      anchorId: anchorId,
+      turn: nextDecisionTurn(anchorId),
+      text: text || '',
+      decision: decision
+    };
+    return fetch('/__ve-comment', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(payload)
+    }).catch(function (e) {
+      console.warn('[ve-decision] POST failed:', e);
+    });
+  }
+
+  function recordDecision(anchorId, decision) {
+    if (!anchorId) return;
+    if (decision !== 'approve' && decision !== 'reject' && decision !== 'skip') {
+      // Defence in depth — the renderer only emits the closed enum, but
+      // any DOM tampering would otherwise leak garbage into the queue.
+      console.warn('[ve-decision] refusing unknown decision:', decision);
+      return;
+    }
+    decisionState.set(anchorId, decision);
+    // Idempotent: if the previous decision-only write for this anchor
+    // had the same value AND empty text, skip. (TRDD-7a2dab03 §3.3.)
+    var prev = lastWrittenDecision.get(anchorId);
+    if (prev === decision) return;
+    lastWrittenDecision.set(anchorId, decision);
+    postDecisionTurn(anchorId, decision, '');
+  }
+
+  function wireDecisionPills() {
+    // Single delegated listener — survives DOM changes and never
+    // double-binds. Listens for `change` on every radio inside a
+    // ve-decision fieldset.
+    document.addEventListener('change', function (ev) {
+      var t = ev.target;
+      if (!t || t.type !== 'radio') return;
+      var fs = t.closest && t.closest('fieldset.ve-decision');
+      if (!fs) return;
+      var anchorId = fs.getAttribute('data-anchor-id');
+      if (!anchorId) return;
+      recordDecision(anchorId, t.value);
+    });
+  }
+
+  function buildSummaryPayload() {
+    // TRDD-7a2dab03 §3.7 — collect every finding's current decision into
+    // one summary object the orchestrator can `cat` instead of replaying
+    // every JSONL turn.
+    var decisions = {};
+    var totals = { approve: 0, reject: 0, skip: 0, total: 0 };
+    var fieldsets = document.querySelectorAll('fieldset.ve-decision[data-anchor-id]');
+    for (var i = 0; i < fieldsets.length; i++) {
+      var fs = fieldsets[i];
+      var aid = fs.getAttribute('data-anchor-id');
+      if (!aid) continue;
+      var d = currentDecisionFor(aid);
+      decisions[aid] = d;
+      if (totals.hasOwnProperty(d)) totals[d] += 1;
+      totals.total += 1;
+    }
+    return { decisions: decisions, totals: totals, closedAt: Date.now() };
+  }
+
   function setupCommentModal() {
     setupCommentHoverHandlers();
     document.addEventListener('keydown', function (ev) {
@@ -4995,6 +5227,7 @@
     setupMultiClickSelection();
     setupFindingReplyHandlers(); // TRDD-eff1aa87 v1 — interactive reports
     setupCommentModal();         // TRDD-eff1aa87 v2 — modal comment threads
+    wireDecisionPills();         // TRDD-7a2dab03 v3 — per-element decision pills
   }
 
   if (document.readyState === 'loading') {

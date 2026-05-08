@@ -24,8 +24,9 @@ Process pending user comments emitted by the v2 modal-comment box (TRDD-eff1aa87
 2. For each file (one per thread):
    1. Read every line. Each line is a single user turn:
       ```json
-      {"commentId":"bf917c95","threadId":"thread-bf917c95-...","sourcePath":"/path/to/report.md","turn":1,"role":"user","text":"...","at":1714998000.0}
+      {"commentId":"bf917c95","threadId":"thread-bf917c95-...","sourcePath":"/path/to/report.md","turn":1,"role":"user","text":"...","decision":"approve","anchorId":"ve-finding-3","at":1714998000.0}
       ```
+      The `decision` and `anchorId` keys are present on turns produced by v3 pages (TRDD-7a2dab03). On v1/v2 pages they are absent — treat the absence as `decision == "skip"` (no opinion).
    2. Find the highest `turn` for `role:"user"`.
    3. Check whether `<threadId>.reply.<turn+1>.json` already exists. If yes → already answered, skip.
    4. If no → this turn needs a reply.
@@ -33,11 +34,16 @@ Process pending user comments emitted by the v2 modal-comment box (TRDD-eff1aa87
    1. Load the source `idmap.json` to dereference `commentId` → `{kind, sectionId, text}`. **If you've already seen this commentId in the current conversation, skip the dereference and just refer to the id.** Saves tokens.
    2. Read the source `report.md` ONCE per session to load full context (when needed).
    3. Read all prior turns in the same JSONL — that's the conversation history.
-   4. Generate a **scoped per-turn reply** that:
+   4. **Check the `decision` field FIRST** (TRDD-7a2dab03 v3 — per-element decision pill). Each turn may carry a `decision` ∈ `{"approve","reject","skip"}` reflecting the radio state at the time the user submitted (or flipped the pill alone). The reply structure is:
+      - `decision == "approve"` → "Acknowledged: approving as-is. \<one-line confirmation that addresses any clarification text\>."
+      - `decision == "reject"` → "Acknowledged: rejecting. \<one-line summary of what to do instead, drawn from the comment text if present\>."
+      - `decision == "skip"` (or `decision` absent) → process the comment text only; do not infer approval either way.
+      Decision-only turns (empty `text`, `decision` present) get a **one-line acknowledgement** that records the new state without trying to invent a clarification (e.g. `"Acknowledged: marked as approve."`). Do not reply with full prose to a decision-only turn.
+   5. Generate a **scoped per-turn reply** that:
       - Addresses ONLY this commentId's content
       - References prior turns in the same thread
       - Is concise (the user is reading a comment box, not a wall of text)
-   5. Write `<queue-dir>/<threadId>.reply.<turn+1>.json`:
+   6. Write `<queue-dir>/<threadId>.reply.<turn+1>.json`:
       ```json
       {"turn": 2, "role": "agent", "text": "..."}
       ```
@@ -64,6 +70,25 @@ Re-running `/respond-to-comment` is safe — it skips any turn that already has 
 ## Token-efficiency note
 
 The `idmap.json` is the dereference table. For ANY `commentId` you have already seen in this session, refer to it by `#commentId` and skip re-reading the full text. The user gets faster replies AND less context budget burned on the same paragraph reread.
+
+## Decision summary (TRDD-7a2dab03 §3.7)
+
+When the user closes the modal (DONE button), the v3 runtime POSTs an aggregate `<threadId>.summary.json` with the current decision for every finding on the page:
+
+```json
+{
+  "threadId": "thread-...",
+  "decisions": {
+    "ve-finding-1": "approve",
+    "ve-finding-2": "reject",
+    "ve-finding-3": "skip"
+  },
+  "totals": {"approve": 7, "reject": 2, "skip": 19, "total": 28},
+  "closedAt": 1746725100
+}
+```
+
+Read this file at the end of a review pass to get a clean machine-readable summary instead of replaying every JSONL turn. It is the canonical source for "how many findings did the user actually accept?".
 
 ## See also
 

@@ -7,10 +7,13 @@ and exposes the same comment endpoints the production runtime expects:
     POST /__ve-comment            — append a JSONL line to <queue>/<tid>.jsonl
     GET  /__ve-reply/<tid>?since= — return the next reply file with turn > since
     POST /__ve-test-reply         — TEST-ONLY: write a reply file from JSON
+    POST /__ve-comment-summary    — write <tid>.summary.json (TRDD-7a2dab03 §3.7)
+    GET  /__ve-test-queue-list    — TEST-ONLY: list queue dir filenames
+    GET  /__ve-test-queue-read    — TEST-ONLY: read raw text of one queue file
 
-The TEST-ONLY endpoint is the only way for the QuickJS dev-browser sandbox
-(no FS access) to inject queue artefacts. Production servers (ve-select.py)
-do NOT expose this endpoint.
+The TEST-ONLY endpoints are the only way for the QuickJS dev-browser sandbox
+(no FS access) to inspect or inject queue artefacts. Production servers
+(ve-select.py) do NOT expose them.
 
 CLI:
     python3 server.py [--port 8767] [--queue /tmp/ve-comments-tests]
@@ -25,7 +28,7 @@ import socketserver
 import sys
 import time
 from pathlib import Path
-from urllib.parse import urlparse
+from urllib.parse import unquote, urlparse
 
 # threadId / commentId values are interpolated into queue filenames. Restrict
 # them to a charset that has no path-separator semantics on any platform so a
@@ -95,6 +98,46 @@ def make_handler(root: Path, queue_dir: Path) -> type:
                 self.send_response(204)
                 self.end_headers()
                 return
+            if p == "/__ve-test-queue-list":
+                # TEST-ONLY: enumerate the queue dir so the QuickJS sandbox
+                # (no FS access) can assert against on-disk state.
+                names = sorted(x.name for x in queue_dir.iterdir() if x.is_file())
+                body = json.dumps({"files": names}).encode("utf-8")
+                self.send_response(200)
+                self.send_header("content-type", "application/json")
+                self.send_header("content-length", str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
+                return
+            if p == "/__ve-test-queue-read":
+                # TEST-ONLY: return the raw bytes of one queue file. The
+                # name parameter is passed through _safe_tid first so a
+                # malicious test cannot escape the queue dir via "..".
+                qs = dict(
+                    kv.split("=", 1)
+                    for kv in (parsed.query or "").split("&")
+                    if "=" in kv
+                )
+                raw_name = unquote(qs.get("name", ""))
+                # Allow alphanumerics, dot, underscore, hyphen — same charset
+                # as _safe_tid plus dot for filename suffixes (.jsonl etc.).
+                if not raw_name or ".." in raw_name or "/" in raw_name or "\\" in raw_name:
+                    self.send_response(400)
+                    self.end_headers()
+                    self.wfile.write(b'{"error":"bad name"}')
+                    return
+                target = queue_dir / raw_name
+                if not target.is_file():
+                    self.send_response(404)
+                    self.end_headers()
+                    return
+                body = target.read_bytes()
+                self.send_response(200)
+                self.send_header("content-type", "text/plain; charset=utf-8")
+                self.send_header("content-length", str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
+                return
             return super().do_GET()
 
         def do_POST(self):
@@ -126,6 +169,29 @@ def make_handler(root: Path, queue_dir: Path) -> type:
                 self.send_header("content-length", str(len(resp)))
                 self.end_headers()
                 self.wfile.write(resp)
+                return
+
+            if p == "/__ve-comment-summary":
+                # TRDD-7a2dab03 §3.7 — runtime POSTs an aggregate summary
+                # (decisions + totals + closedAt) when the modal closes.
+                # The orchestrator can `cat <tid>.summary.json` to skip
+                # replaying every JSONL turn.
+                tid = _safe_tid(str(payload.get("threadId") or ""))
+                if tid is None:
+                    self.send_response(400)
+                    self.end_headers()
+                    self.wfile.write(b'{"error":"bad threadId"}')
+                    return
+                # Atomic write: same dance as the renderer's idmap.json so
+                # a polling reader never sees a half-written file.
+                tmp = queue_dir / f"{tid}.summary.json.tmp"
+                final = queue_dir / f"{tid}.summary.json"
+                tmp.write_text(json.dumps(payload), encoding="utf-8")
+                tmp.replace(final)
+                self.send_response(200)
+                self.send_header("content-type", "application/json")
+                self.end_headers()
+                self.wfile.write(b'{"ok":true}')
                 return
 
             if p == "/__ve-test-reply":
