@@ -70,18 +70,26 @@ jobs:
           print(f"Wrote {len(note)} bytes to {notes_path}")
           PY
 
-      - name: create release
+      - name: create or update release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG: ${{ github.ref_name }}
         run: |
-          # --verify-tag: refuse if the tag doesn't exist on the remote
-          # --notes-file: pull the body from the file we just wrote
-          # --title: use the tag name as the release title
-          gh release create "$TAG" \
-            --title "$TAG" \
-            --notes-file release-notes.md \
-            --verify-tag
+          # publish.py S10 may have already created the GitHub Release with
+          # --generate-notes. If so, we prefer the CHANGELOG-extracted body
+          # over auto-generated notes — so we update in place. Otherwise,
+          # create from scratch.
+          if gh release view "$TAG" --json id >/dev/null 2>&1; then
+            gh release edit "$TAG" \
+              --title "$TAG" \
+              --notes-file release-notes.md \
+              --verify-tag
+          else
+            gh release create "$TAG" \
+              --title "$TAG" \
+              --notes-file release-notes.md \
+              --verify-tag
+          fi
 
       - name: summary
         env:
