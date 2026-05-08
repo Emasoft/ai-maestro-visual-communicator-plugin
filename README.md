@@ -25,14 +25,13 @@
 
 ## Platform requirements
 
-**Supported OSes**: macOS and Linux. Windows is NOT supported.
+**Supported OSes**: macOS, Linux, and Windows. Python 3.12+ required.
 
-The `aimvc-share-page` command and the `tests/run-all-tests.sh` wrapper rely
-on POSIX-only Bash (`scripts/share.sh`, `tests/run-all-tests.sh`). The page
-renderer (`scripts/render-interactive-report.py`) and the selection
-server (`scripts/ve-select.py`) are pure-Python and run on every OS, but
-the user-facing entry points expect a POSIX shell. Windows users should
-run the plugin under WSL2.
+Every user-facing entry point is pure Python: the `aimvc-share-page`
+command (`scripts/share.py`), the test runner (`tests/run-all-tests.py`),
+the page renderer (`scripts/render-interactive-report.py`), and the
+selection server (`scripts/ve-select.py`). Windows users no longer need
+WSL2 — the plugin runs natively on every OS that has Python 3.12+.
 
 `banner.png` is the README banner image — there is no per-OS variant; it
 is intentionally a single shared asset rather than a multi-platform binary.

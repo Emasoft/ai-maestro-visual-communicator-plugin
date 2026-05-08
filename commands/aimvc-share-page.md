@@ -39,10 +39,10 @@ No Vercel account, Cloudflare account, or API keys needed. The deployment is "cl
 Resolve the script from the installed skill directory, then run it with the HTML file path:
 
 ```bash
-bash ~/.pi/agent/skills/ai-maestro-visual-communicator/scripts/share.sh <file>
+python3 ~/.pi/agent/skills/ai-maestro-visual-communicator/scripts/share.py <file>
 ```
 
-If the skill is installed somewhere else, use that install path instead. Common locations include `~/.codex/skills/ai-maestro-visual-communicator/scripts/share.sh`, `~/.config/opencode/skill/ai-maestro-visual-communicator/scripts/share.sh`, or `./scripts/share.sh` from a repository checkout.
+If the skill is installed somewhere else, use that install path instead. Common locations include `~/.codex/skills/ai-maestro-visual-communicator/scripts/share.py`, `~/.config/opencode/skill/ai-maestro-visual-communicator/scripts/share.py`, or `./scripts/share.py` from a repository checkout.
 
 The script currently looks for the Pi-compatible `vercel-deploy` script in the standard Pi skill locations. Other harnesses can generate and open HTML normally, but sharing requires that dependency to be available in a compatible location.
 

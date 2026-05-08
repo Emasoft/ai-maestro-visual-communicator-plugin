@@ -83,7 +83,7 @@ behaviors that v1.0.0 fixes:
 
 ### Formal dev-browser test suite
 
-`tests/run-all-tests.sh` now exercises every fixed bug end-to-end via
+`tests/run-all-tests.py` now exercises every fixed bug end-to-end via
 [dev-browser]. 28 named tests across two suites:
 
 - `tests/scripts/test-regex-panels.js` — every panel surface R1–R22,

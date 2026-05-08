@@ -59,7 +59,7 @@ jobs:
 
   # The dev-browser-driven 28-test suite cannot run on stock GitHub runners
   # (it needs the dev-browser CLI which depends on a real Chrome instance
-  # and persistent state). It runs locally via `tests/run-all-tests.sh` and
+  # and persistent state). It runs locally via `tests/run-all-tests.py` and
   # is enforced through the .githooks/pre-push hook before any push to
   # origin. This job is intentionally skipped — restore it if a hosted
   # dev-browser runner becomes available.

@@ -16,7 +16,7 @@ Two end-to-end test suites driven by [dev-browser] (Playwright Chromium):
 
 ```bash
 # from anywhere in the repo
-tests/run-all-tests.sh
+tests/run-all-tests.py
 
 # only one suite
 tests/run-tests.py --only test-regex-panels

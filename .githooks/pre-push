@@ -1,50 +1,86 @@
-#!/usr/bin/env bash
-# Pre-push quality gate for ai-maestro-visual-communicator.
-#
-# Runs the dev-browser test suite (tests/run-all-tests.sh) before allowing a
-# push. dev-browser is the only hard requirement — without it the suite cannot
-# run, in which case the hook degrades to a soft-pass with a warning so a
-# fresh clone is not blocked from pushing.
-#
-# To install:
-#   git config core.hooksPath .githooks
-# Or invoke directly:
-#   .githooks/pre-push
-set -euo pipefail
+#!/usr/bin/env python3
+"""Pre-push quality gate for ai-maestro-visual-communicator.
 
-REPO_ROOT="$(git rev-parse --show-toplevel)"
-cd "$REPO_ROOT"
+Runs the dev-browser test suite (tests/run-all-tests.py) before allowing a
+push. dev-browser is the only hard requirement — without it the suite cannot
+run, in which case the hook degrades to a soft-pass with a warning so a
+fresh clone is not blocked from pushing.
 
-echo "[pre-push] running ai-maestro-visual-communicator quality gate..."
+To install:
+  git config core.hooksPath .githooks
+Or invoke directly:
+  .githooks/pre-push
+"""
 
-# Gate 1 — dev-browser must be on PATH for the test suite to run.
-if ! command -v dev-browser >/dev/null 2>&1; then
-    echo "[pre-push] WARNING: dev-browser not found on PATH; skipping test suite."
-    echo "[pre-push] Install with: npm install -g dev-browser && dev-browser install"
-    echo "[pre-push] Push allowed (soft-pass) — install dev-browser to enable the gate."
-    exit 0
-fi
+from __future__ import annotations
 
-# Gate 2 — the 28-test dev-browser suite must pass.
-if [ -x "tests/run-all-tests.sh" ]; then
-    echo "[pre-push] running tests/run-all-tests.sh..."
-    if ! tests/run-all-tests.sh; then
-        echo "[pre-push] FAIL: tests/run-all-tests.sh reported failures."
-        echo "[pre-push] Push aborted. Fix failing tests before pushing."
-        exit 1
-    fi
-else
-    echo "[pre-push] WARNING: tests/run-all-tests.sh missing or not executable; skipping."
-fi
+import os
+import shutil
+import subprocess
+from pathlib import Path
 
-# Gate 3 — ruff lint on Python sources, if ruff is available.
-if command -v ruff >/dev/null 2>&1; then
-    echo "[pre-push] running ruff check..."
-    if ! ruff check .; then
-        echo "[pre-push] FAIL: ruff reported lint errors."
-        exit 1
-    fi
-fi
 
-echo "[pre-push] all gates passed."
-exit 0
+def log(msg: str) -> None:
+    """Emit a tagged log line — matches the bash hook's `[pre-push] ...` format."""
+    print(f"[pre-push] {msg}")
+
+
+def repo_root() -> Path:
+    """Resolve the repo root via `git rev-parse --show-toplevel`.
+
+    We cd here so test-runner relative paths (`tests/run-all-tests.py`) resolve
+    regardless of which subdirectory git invoked the hook from.
+    """
+    result = subprocess.run(
+        ["git", "rev-parse", "--show-toplevel"],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    return Path(result.stdout.strip())
+
+
+def main() -> int:
+    """Run the three quality gates; return a shell-style exit code."""
+    root = repo_root()
+    os.chdir(root)
+
+    log("running ai-maestro-visual-communicator quality gate...")
+
+    # Gate 1 — dev-browser must be on PATH for the test suite to run.
+    # Soft-pass (exit 0) if missing so a fresh clone isn't blocked from pushing.
+    if shutil.which("dev-browser") is None:
+        log("WARNING: dev-browser not found on PATH; skipping test suite.")
+        log("Install with: npm install -g dev-browser && dev-browser install")
+        log("Push allowed (soft-pass) — install dev-browser to enable the gate.")
+        return 0
+
+    # Gate 2 — the dev-browser test suite must pass.
+    # We check both existence AND the executable bit because the suite is
+    # invoked as a script (./tests/run-all-tests.py), not via `python3 ...`.
+    test_runner = Path("tests/run-all-tests.py")
+    if test_runner.is_file() and os.access(test_runner, os.X_OK):
+        log("running tests/run-all-tests.py...")
+        result = subprocess.run([str(test_runner)], check=False)
+        if result.returncode != 0:
+            log("FAIL: tests/run-all-tests.py reported failures.")
+            log("Push aborted. Fix failing tests before pushing.")
+            return 1
+    else:
+        log("WARNING: tests/run-all-tests.py missing or not executable; skipping.")
+
+    # Gate 3 — ruff lint on Python sources, if ruff is available.
+    # Skipped silently when ruff isn't installed (matches the bash hook's behavior).
+    if shutil.which("ruff") is not None:
+        log("running ruff check...")
+        result = subprocess.run(["ruff", "check", "."], check=False)
+        if result.returncode != 0:
+            log("FAIL: ruff reported lint errors.")
+            return 1
+
+    log("all gates passed.")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

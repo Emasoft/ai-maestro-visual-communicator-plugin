@@ -8,7 +8,7 @@ renders a Unicode-bordered results table.
 
 Usage:
     cd tests && python3 run-tests.py
-    or via the wrapper:  ./run-all-tests.sh
+    or via the wrapper:  ./run-all-tests.py
 
 Exits 0 only if every test PASSes. Any FAIL or ERROR aborts with
 exit 1 so CI gates stay simple.

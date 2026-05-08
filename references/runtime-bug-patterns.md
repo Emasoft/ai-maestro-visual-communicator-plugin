@@ -188,7 +188,7 @@ generalised techniques.
 ## Running the test suite
 
 ```bash
-tests/run-all-tests.sh
+tests/run-all-tests.py
 ```
 
 Output: Unicode-bordered results table, exits 0 only if all pass.
