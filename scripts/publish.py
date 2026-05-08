@@ -65,6 +65,7 @@ PLUGIN_JSON = REPO_ROOT / ".claude-plugin" / "plugin.json"
 PYPROJECT = REPO_ROOT / "pyproject.toml"
 PACKAGE_JSON = REPO_ROOT / "package.json"
 CHANGELOG = REPO_ROOT / "CHANGELOG.md"
+UV_LOCK = REPO_ROOT / "uv.lock"
 HOOK_SOURCE = REPO_ROOT / ".githooks" / "pre-push"
 
 
@@ -389,6 +390,18 @@ def _write_package_json(new_version: str) -> None:
     )
 
 
+def _sync_uv_lock() -> None:
+    # Keep uv.lock in lockstep with pyproject.toml. Without this every release
+    # leaves the lock stale by one version → next publish refuses S1 (clean
+    # tree) and a separate chore commit is needed to catch up. Idempotent and
+    # silently skipped when neither uv nor uv.lock is present.
+    if not UV_LOCK.exists():
+        return
+    if shutil.which("uv") is None:
+        return
+    _run(["uv", "lock"])
+
+
 def _regenerate_changelog(new_version: str) -> None:
     if not shutil.which("git-cliff"):
         _log("git-cliff not on PATH; skipping CHANGELOG regeneration.")
@@ -403,6 +416,8 @@ def _git_commit(new_version: str, message: str | None) -> None:
         files.append(str(PYPROJECT.relative_to(REPO_ROOT)))
     if PACKAGE_JSON.exists():
         files.append(str(PACKAGE_JSON.relative_to(REPO_ROOT)))
+    if UV_LOCK.exists():
+        files.append(str(UV_LOCK.relative_to(REPO_ROOT)))
     if CHANGELOG.exists():
         files.append(str(CHANGELOG.relative_to(REPO_ROOT)))
     _run(["git", "add", *files])
@@ -491,6 +506,7 @@ def _stage_bump(kind: str) -> str:
     _write_plugin_json(new_version)
     _write_pyproject(new_version)
     _write_package_json(new_version)
+    _sync_uv_lock()
     return new_version
 
 
