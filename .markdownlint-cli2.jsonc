@@ -1,15 +1,31 @@
 {
   // ai-maestro-visual-communicator markdownlint-cli2 config
   //
-  // CPV passes file paths directly via the command line, so the standard
-  // .markdownlint.json (rule config) is loaded via --config. This file
-  // (.markdownlint-cli2.jsonc) is auto-discovered by markdownlint-cli2 from
-  // the cwd (which CPV sets to repo_root) and supplies the ignores list.
+  // Auto-discovered by markdownlint-cli2 from the cwd (which CPV sets to
+  // repo_root) and merged with any --config rules CPV passes. Both `config`
+  // and `ignores` are honored.
   //
   // Vendored upstream READMEs are kept verbatim for attribution and must
   // not be touched (per the v1.0.0 publish contract — see THIRD_PARTY_NOTICES.md).
   // Skip them from lint to avoid spurious cosmetic findings on third-party
   // content we don't control.
+  "config": {
+    "default": true,
+    // MD013 (line-length): disabled. The plugin ships dense prose
+    // documentation — slash-command bodies, skill cookbooks, the SKILL.md
+    // narrative — where forcing a column-80 wrap produces unreadable lines
+    // mid-sentence and breaks copyable code snippets. Enforcing this rule
+    // would require ~hundreds of cosmetic edits across commands/, references/,
+    // and SKILL.md without any rendering benefit (every modern markdown
+    // renderer wraps automatically).
+    "MD013": false,
+    // MD032 (blanks-around-lists): disabled. Several command bodies
+    // intentionally embed bulleted lists immediately after a heading or
+    // colon-introduction without a blank line — that's the natural prose
+    // flow, and inserting blanks fragments the rendered HTML. The rule is
+    // a stylistic preference, not a correctness check.
+    "MD032": false
+  },
   "ignores": [
     "**/vendor/**"
   ]
