@@ -38,7 +38,6 @@ import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 
-
 FINDING_HEADER_RE = re.compile(
     r"^##\s+Finding\s+(?P<num>[\w.-]+)\s*:?\s*(?P<title>.*?)\s*$",
     re.IGNORECASE,

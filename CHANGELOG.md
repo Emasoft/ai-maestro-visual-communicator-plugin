@@ -48,8 +48,8 @@ writes per-turn replies into a queue dir that the page polls.
 - Stale-state self-detection — fetches that complete after the modal
   closes (or a different anchor's thread opens) bail without crashing
   via an `ownThreadId` guard captured at poll-start.
-- Per-thread `localStorage` persistence (`ve-comment-thread:<commentId>`)
-  + sidecar `<report>.idmap.json` mapping `commentId → {kind, sectionId,
+- Per-thread `localStorage` persistence (`ve-comment-thread:<commentId>`),
+  with sidecar `<report>.idmap.json` mapping `commentId → {kind, sectionId,
   text}` so the responder can dereference unknown ids without re-reading
   the source doc every round.
 

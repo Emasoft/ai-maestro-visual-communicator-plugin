@@ -935,7 +935,7 @@ For diagrams + tables + dashboards, **don't** add `data-ve-prose` — single-ele
 After receiving a `paragraph` or `text-snippet` selection, the agent can ask:
 
 > You selected **paragraph 1.1.2** ("Another paragraph in section 1."). What do you want me to do — rewrite it, move it (where to?), expand it, or remove it?
-
+>
 > You highlighted **"a clever turn of phrase"** in paragraph 1.1.2. What do you want me to do — explain it, rewrite it, fact-check it, move it elsewhere, or use it as input to another action?
 
 The user's response then becomes a normal edit task — re-generate the page after applying the change.
@@ -1296,7 +1296,7 @@ Wrap any TikZ source in `class="ve-tikz"`. **All examples below render in TikZJa
 
 `<div class="ve-tikz">` works for block diagrams; for an inline TikZ snippet inside text, use `<span class="ve-tikz">`. Source can also be passed via `data-tikz="…"` to keep the original LaTeX out of the page's text content (useful when special characters would otherwise be HTML-escaped). When the source doesn't already contain `\begin{tikzpicture}`, the runtime auto-wraps it.
 
-### What's selectable
+### What's selectable in TikZ diagrams
 
 After TikZJax renders, every `.ve-tikz` element gains:
 
