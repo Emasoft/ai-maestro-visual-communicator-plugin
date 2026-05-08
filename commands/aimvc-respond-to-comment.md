@@ -1,4 +1,5 @@
 ---
+name: aimvc-respond-to-comment
 description: Read pending comment-thread turns from the v2 modal-comment queue and write per-turn agent replies that the open page picks up via /__ve-reply polling.
 ---
 # Respond to Comment

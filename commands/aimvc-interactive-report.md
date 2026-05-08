@@ -1,4 +1,5 @@
 ---
+name: aimvc-interactive-report
 description: Render an agent report as an interactive HTML page with per-finding reply threads, then process the user's replies and re-render with Claude's responses inline
 ---
 # Interactive Agent Report

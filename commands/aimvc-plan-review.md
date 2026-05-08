@@ -1,4 +1,5 @@
 ---
+name: aimvc-plan-review
 description: Generate a visual HTML plan review — current codebase state vs. proposed implementation plan
 ---
 Load the ai-maestro-visual-communicator skill, then generate a comprehensive visual plan review as a self-contained HTML page, comparing the current codebase against a proposed implementation plan.

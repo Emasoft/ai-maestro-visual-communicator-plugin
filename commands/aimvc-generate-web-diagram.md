@@ -1,4 +1,5 @@
 ---
+name: aimvc-generate-web-diagram
 description: Generate a beautiful standalone HTML diagram and open it in the browser
 ---
 Load the ai-maestro-visual-communicator skill, then generate an HTML diagram for: $@

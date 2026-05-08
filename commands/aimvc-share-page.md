@@ -1,4 +1,5 @@
 ---
+name: aimvc-share-page
 description: Deploy a generated ai-maestro-visual-communicator HTML page and return a live Vercel URL
 ---
 # Share Visual Communicator Page

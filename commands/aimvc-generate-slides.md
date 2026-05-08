@@ -1,4 +1,5 @@
 ---
+name: aimvc-generate-slides
 description: Generate a stunning magazine-quality slide deck as a self-contained HTML page
 ---
 Load the ai-maestro-visual-communicator skill, then generate a slide deck for: $@

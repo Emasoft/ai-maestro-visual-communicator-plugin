@@ -1,4 +1,5 @@
 ---
+name: aimvc-diff-review
 description: Generate a visual HTML diff review — before/after architecture comparison with code review analysis
 ---
 Load the ai-maestro-visual-communicator skill, then generate a comprehensive visual diff review as a self-contained HTML page.
