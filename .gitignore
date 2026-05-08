@@ -47,3 +47,34 @@ env/
 # plugin's scripts/ folder).
 vendor/*/node_modules/
 vendor/*/dist/
+
+# ---------------------------------------------------------------------------
+# CPV-compatibility duplicates (DO NOT REMOVE)
+# ---------------------------------------------------------------------------
+# claude-plugins-validation v2.65.x has a bug in `is_path_gitignored`
+# (cpv_validation_common.py:4101) where anchored directory patterns of the
+# form `/foo/` and globbed directory patterns like `vendor/*/node_modules/`
+# fail to match descendant files. The patterns above are the canonical git
+# spelling; the entries below are the CPV-compatible spellings that
+# satisfy CPV's bugged matcher AND are no-ops for real git (git already
+# ignores the descendants via the canonical patterns above, so these
+# duplicates do not change the repo state — they only feed CPV's [REPO LINT]
+# step the strings it needs to skip those trees).
+# When CPV ships a fix for `is_path_gitignored`, this entire block can be
+# removed.
+/docs_dev/**
+/scripts_dev/**
+/samples_dev/**
+/examples_dev/**
+/tests_dev/**
+/downloads_dev/**
+/libs_dev/**
+/builds_dev/**
+/reports/**
+/reports_dev/**
+/.janitor/**
+/.rechecker/**
+/.claude/**
+/.tldr/**
+**/node_modules/**
+**/dist/**

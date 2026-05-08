@@ -1,0 +1,16 @@
+{
+  // ai-maestro-visual-communicator markdownlint-cli2 config
+  //
+  // CPV passes file paths directly via the command line, so the standard
+  // .markdownlint.json (rule config) is loaded via --config. This file
+  // (.markdownlint-cli2.jsonc) is auto-discovered by markdownlint-cli2 from
+  // the cwd (which CPV sets to repo_root) and supplies the ignores list.
+  //
+  // Vendored upstream READMEs are kept verbatim for attribution and must
+  // not be touched (per the v1.0.0 publish contract — see THIRD_PARTY_NOTICES.md).
+  // Skip them from lint to avoid spurious cosmetic findings on third-party
+  // content we don't control.
+  "ignores": [
+    "**/vendor/**"
+  ]
+}
