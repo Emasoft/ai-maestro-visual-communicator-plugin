@@ -1,10 +1,10 @@
 ---
-name: aimvc-project-recap
+name: amvcp-project-recap
 description: Generate a visual HTML project recap — rebuild mental model of a project's current state, recent decisions, and cognitive debt hotspots
 ---
-Load the ai-maestro-visual-communicator skill, then generate a comprehensive visual project recap as a self-contained HTML page.
+Load the amvcp-visual-communication skill, then generate a comprehensive visual project recap as a self-contained HTML page.
 
-Follow the ai-maestro-visual-communicator skill workflow. Read the reference template, CSS patterns, and mermaid theming references before generating. Use a warm editorial or paper/ink aesthetic with muted blues and greens, but vary fonts and palette from previous diagrams.
+Follow the amvcp-visual-communication skill workflow. Read the reference template, CSS patterns, and mermaid theming references before generating. Use a warm editorial or paper/ink aesthetic with muted blues and greens, but vary fonts and palette from previous diagrams.
 
 **Time window** — determine the recency window from `$1`:
 - Shorthand like `2w`, `30d`, `3m`: parse to git's `--since` format (`2w` → `"2 weeks ago"`, `30d` → `"30 days ago"`, `3m` → `"3 months ago"`)
@@ -57,9 +57,9 @@ Verify each claim against the code. If something cannot be verified, mark it as 
 
 Include responsive section navigation. Use a warm, approachable visual language: muted blues and greens for architecture, amber callouts for cognitive debt hotspots, green/blue/amber/red for state-of-things status. Overflow prevention on any side-by-side or grid-based sections: apply `min-width: 0` on all grid/flex children and `overflow-wrap: break-word`. Never use `display: flex` on `<li>` for marker characters — use absolute positioning instead (see css-patterns.md Overflow Protection).
 
-**Interactive selection:** every architecture-Mermaid node, in-progress card, cognitive-debt hotspot, and next-step entry must carry `data-ve-id` / `data-ve-type` / `data-ve-label`. Add `click X call veSelectMermaid(...)` directives plus `securityLevel: 'loose'` to the Mermaid diagram. Embed `<script src="ve-runtime.js"></script>` at end of body. The most useful clicks for a recap page are usually a hotspot ("walk me through this") or a next-step entry ("start working on this"). See `./references/interactive-selection.md`.
+**Interactive selection:** every architecture-Mermaid node, in-progress card, cognitive-debt hotspot, and next-step entry must carry `data-ve-id` / `data-ve-type` / `data-ve-label`. Add `click X call veSelectMermaid(...)` directives plus `securityLevel: 'loose'` to the Mermaid diagram. Embed `<script src="amvcp-runtime.js"></script>` at end of body. The most useful clicks for a recap page are usually a hotspot ("walk me through this") or a next-step entry ("start working on this"). See `./references/interactive-selection.md`.
 
-Write to `~/.agent/diagrams/`. Open it via the interactive selection runner (`python3 <skill-dir>/scripts/ve-select.py ~/.agent/diagrams/<file>.html`) and respond to the user's selection per the SKILL.md follow-up template.
+Write to `$CLAUDE_PROJECT_ROOT/reports/visual-communicator/diagrams/`. Open it via the interactive selection runner (`python3 <skill-dir>/scripts/amvcp-select.py $CLAUDE_PROJECT_ROOT/reports/visual-communicator/diagrams/<file>.html`) and respond to the user's selection per the SKILL.md follow-up template.
 
 Ultrathink.
 

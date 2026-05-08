@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Share an ai-maestro-visual-communicator HTML page via Vercel.
+"""Share an ai-maestro-visual-communicator-plugin HTML page via Vercel.
 
 Wraps the Pi-compatible ``vercel-deploy`` skill so the user gets a public,
 claim-able preview URL with no Vercel account or API key.

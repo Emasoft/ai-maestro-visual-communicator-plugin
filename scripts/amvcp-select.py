@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-ai-maestro-visual-communicator — interactive selection runner.
+ai-maestro-visual-communicator-plugin — interactive selection runner.
 
 Serves the given HTML file on a free localhost port, opens the page in a
 borderless Chromium app-mode window so window.close() works, and blocks
@@ -31,7 +31,7 @@ Environment:
                           harness POSTs the selection itself.
 
 Usage:
-    python3 ve-select.py /absolute/path/to/page.html
+    python3 amvcp-select.py /absolute/path/to/page.html
 """
 from __future__ import annotations
 
@@ -301,10 +301,10 @@ def main(argv: list[str]) -> int:
     os.chdir(str(serve_dir))
 
     # Auto-mirror the runtime next to the page so a relative
-    # <script src="ve-runtime.js"> always resolves. SimpleHTTPServer rejects
+    # <script src="amvcp-runtime.js"> always resolves. SimpleHTTPServer rejects
     # ../ traversal, so a sibling copy is the only reliable layout.
-    runtime_src = Path(__file__).resolve().parent / "ve-runtime.js"
-    runtime_dst = serve_dir / "ve-runtime.js"
+    runtime_src = Path(__file__).resolve().parent / "amvcp-runtime.js"
+    runtime_dst = serve_dir / "amvcp-runtime.js"
     runtime_bytes: bytes | None = None
     if runtime_src.is_file():
         try:
@@ -414,7 +414,7 @@ def main(argv: list[str]) -> int:
             # Inject `<link rel="manifest">` and `<link rel="icon">` into the
             # served HTML page so Chrome treats it as a web app. We do this
             # at serve-time rather than asking the page authors to remember,
-            # so every page that comes through ve-select.py gets the fix.
+            # so every page that comes through amvcp-select.py gets the fix.
             if req_path == f"/{served_name}" or req_path == "/" or req_path == "":
                 try:
                     raw = html_path.read_bytes()
@@ -525,7 +525,7 @@ def main(argv: list[str]) -> int:
 
     url = f"http://127.0.0.1:{port}/{served_name}?ve_select=1"
 
-    profile_dir = tempfile.mkdtemp(prefix="ve-select-profile-")
+    profile_dir = tempfile.mkdtemp(prefix="amvcp-select-profile-")
     browser_proc: subprocess.Popen | None = None
 
     # SIGTERM / SIGINT cleanup. Python's default behaviour on SIGTERM is
@@ -562,7 +562,7 @@ def main(argv: list[str]) -> int:
         launch_reason = "no-browser-requested"
         # Print URL to stderr so a manual tester / smoke-test harness can
         # find the served page without scraping logs.
-        print(f"[ve-select] listening at {url}", file=sys.stderr)
+        print(f"[amvcp-select] listening at {url}", file=sys.stderr)
     elif binary:
         browser_proc = launch_app_window(binary, url, profile_dir)
         if browser_proc is None:

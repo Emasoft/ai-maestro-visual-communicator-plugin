@@ -1,14 +1,13 @@
 ---
-name: ai-maestro-visual-communicator
+name: amvcp-visual-communication
 description: Generate beautiful, self-contained HTML pages that visually explain systems, code changes, plans, and data. Use when the user asks for a diagram, architecture overview, diff review, plan review, project recap, comparison table, or any visual explanation of technical concepts. Also use proactively when you are about to render a complex ASCII table (4+ rows or 3+ columns) — present it as a styled HTML page instead. Every generated page is interactive: a single click on any element returns the selection to the agent and the page closes itself.
 license: MIT
 compatibility: Requires a browser (Chromium-based browser strongly recommended for auto-close on click). Python 3 for the selection runner. Optional surf-cli for AI image generation.
 metadata:
   author: Emasoft
-  version: "1.0.0"
 ---
 
-# Visual Communicator
+# Visual Communication
 
 Generate self-contained HTML files for technical diagrams, visualizations, and data tables. Always open the result in the browser. Never fall back to ASCII art when this skill is loaded.
 
@@ -23,11 +22,9 @@ Generate self-contained HTML files for technical diagrams, visualizations, and d
 Always open generated pages with the bundled Python runner — never with `open` / `xdg-open` directly. The runner serves the file on a free localhost port, launches Chromium in app-mode (so `window.close()` actually works), and blocks until the user clicks something or the timeout elapses.
 
 ```bash
-# Resolve the script path from the loaded skill directory; in Pi it lives at
-#   ~/.pi/agent/skills/ai-maestro-visual-communicator/scripts/ve-select.py
-# In Claude Code it lives inside the cached plugin directory; in Codex/OpenCode
-# the path mirrors the install layout. Use the path that matches your harness.
-python3 "<skill-dir>/scripts/ve-select.py" ~/.agent/diagrams/<file>.html
+# Resolve the script path from the plugins script directory; it lives at
+# $CLAUDE_PLUGIN_ROOT/scripts/amvcp-select.py
+python3 "$CLAUDE_PLUGIN_ROOT/scripts/amvcp-select.py" $CLAUDE_PROJECT_ROOT/reports/visual-communicator/diagrams/<file>.html
 ```
 
 The runner prints a single line of JSON to stdout (and exits 0):
@@ -154,9 +151,9 @@ Two things are mandatory in every HTML file the skill produces:
 
 1. **The runtime script tag** at the end of `<body>`:
    ```html
-   <script src="ve-runtime.js"></script>
+   <script src="amvcp-runtime.js"></script>
    ```
-   The selection runner auto-copies `ve-runtime.js` into the same directory as the served HTML file, so a relative `src` always resolves. If you want maximum portability (sharing via `/share-page`, opening directly via `file://`), inline the runtime instead — see `./references/interactive-selection.md`.
+   The selection runner auto-copies `amvcp-runtime.js` into the same directory as the served HTML file, so a relative `src` always resolves. If you want maximum portability (sharing via `/share-page`, opening directly via `file://`), inline the runtime instead — see `./references/interactive-selection.md`.
 
 2. **`data-ve-id` on every meaningful element**, with optional `data-ve-type` and `data-ve-label`. Read `./references/interactive-selection.md` before generating — it lists exactly what to mark as selectable, the payload schema, and the right `data-ve-type` for each element category.
 
@@ -179,7 +176,7 @@ Both engines work inside table cells too — wrap any cell content in `<span cla
 
 For **regular expressions** (when teaching/explaining a regex pattern, comparing alternatives, or letting the user iterate on a regex visually):
 
-- **`<div class="ve-regex" data-regex="^([a-z]+)@([a-z]+)\.com$"></div>`** — vendored `regex-vis` (MIT, Bowen7) re-skinned to the plugin palette. Renders the regex as an SVG flow-graph (Begins with → groups → literals → Ends with) plus a **Legend / Edit / Test** tabbed side panel. The runtime auto-loads `ve-regex.umd.js` + `ve-regex.css` from the same directory as `ve-runtime.js` the first time a `.ve-regex[data-regex]` element appears on the page (~150 KB gzipped). Authors can supply any JavaScript-flavour regex — the parser is the upstream's verified implementation, **don't try to reuse another regex engine here**. Each `.ve-regex` wrapper is auto-stamped with `data-ve-id="ve-regex-<hash>"`, `data-ve-type="regex"`, `data-ve-label="Regex: …"` so it participates in Phase 1 element selection (single-click toggles the whole graph as one entry; the Edit panel lets the user iterate). When the user mutates the regex via the Edit panel (e.g. changes a quantifier from `+` to `*`, adds a character class, splits a group), the runtime pushes a `kind:"regex-edit"` selection entry containing `original`, `edited`, `regexId`, and the full upstream `ast` — the agent receives the user's new regex on submit and can act on it (e.g. "OK, now I'll update the test cases for that change"). Subsequent edits on the same wrapper REPLACE the prior entry so the agent only sees the latest version per regex block. **Use `.ve-regex` whenever the page is about a regex pattern** — explaining one to a user, comparing two alternatives side-by-side, helping the user fix a broken regex, or asking "which of these matches your intent?". Don't use it for prose that merely mentions a regex; use inline `<code>` for that.
+- **`<div class="ve-regex" data-regex="^([a-z]+)@([a-z]+)\.com$"></div>`** — vendored `regex-vis` (MIT, Bowen7) re-skinned to the plugin palette. Renders the regex as an SVG flow-graph (Begins with → groups → literals → Ends with) plus a **Legend / Edit / Test** tabbed side panel. The runtime auto-loads `amvcp-regex.umd.js` + `amvcp-regex.css` from the same directory as `amvcp-runtime.js` the first time a `.ve-regex[data-regex]` element appears on the page (~150 KB gzipped). Authors can supply any JavaScript-flavour regex — the parser is the upstream's verified implementation, **don't try to reuse another regex engine here**. Each `.ve-regex` wrapper is auto-stamped with `data-ve-id="ve-regex-<hash>"`, `data-ve-type="regex"`, `data-ve-label="Regex: …"` so it participates in Phase 1 element selection (single-click toggles the whole graph as one entry; the Edit panel lets the user iterate). When the user mutates the regex via the Edit panel (e.g. changes a quantifier from `+` to `*`, adds a character class, splits a group), the runtime pushes a `kind:"regex-edit"` selection entry containing `original`, `edited`, `regexId`, and the full upstream `ast` — the agent receives the user's new regex on submit and can act on it (e.g. "OK, now I'll update the test cases for that change"). Subsequent edits on the same wrapper REPLACE the prior entry so the agent only sees the latest version per regex block. **Use `.ve-regex` whenever the page is about a regex pattern** — explaining one to a user, comparing two alternatives side-by-side, helping the user fix a broken regex, or asking "which of these matches your intent?". Don't use it for prose that merely mentions a regex; use inline `<code>` for that.
 
 ### Fallbacks
 
@@ -204,8 +201,8 @@ The v2 flow has **two cooperating halves** — both must be running for ANSWER �
 
 | Half | What it does | How to start it |
 |------|-------------|-----------------|
-| **Renderer + transport** | Stamps every commentable element with `data-ve-comment-id`, ships an `*.idmap.json` sidecar, boots `ve-select.py` so the page can `POST /__ve-comment` and `GET /__ve-reply/<tid>`. | `/aimvc-interactive-report <report.md>` |
-| **Responder loop** | Watches the queue dir for pending user turns and writes `<threadId>.reply.<turn+1>.json` per reply. | `/aimvc-respond-to-comment --queue-dir <q> --watch --source <report.md>` |
+| **Renderer + transport** | Stamps every commentable element with `data-ve-comment-id`, ships an `*.idmap.json` sidecar, boots `amvcp-select.py` so the page can `POST /__ve-comment` and `GET /__ve-reply/<tid>`. | `/amvcp-interactive-report <report.md>` |
+| **Responder loop** | Watches the queue dir for pending user turns and writes `<threadId>.reply.<turn+1>.json` per reply. | `/amvcp-respond-to-comment --queue-dir <q> --watch --source <report.md>` |
 
 If only the renderer runs, the user can post comments but never see a reply. If only the responder runs, there is nothing for it to read. Always start both — the renderer command auto-spawns the transport; the responder is a separate session (often a different Claude entirely; see "Pointing another Claude at this plugin" below).
 
@@ -253,7 +250,7 @@ printf '%s\n' "$JSON" > "$TMP" && mv -f "$TMP" "<queue>/<threadId>.reply.<N+1>.j
 
 ### Page-side guarantees you can rely on
 
-The runtime (`ve-runtime.js`) handles these for you — do not try to recreate them in your reply text:
+The runtime (`amvcp-runtime.js`) handles these for you — do not try to recreate them in your reply text:
 
 - **Hover-bridge** (180 ms grace window so the pill stays clickable when the pointer crosses the gap from anchor to pill).
 - **Polling resume on reopen** — closing the modal while a reply is outstanding is safe; reopening restarts the poll loop.
@@ -276,42 +273,29 @@ When responding, **read the `decision` field first**:
 - `reject` → "Acknowledged: rejecting. \<one-line summary of what to do instead\>."
 - `skip` (or absent) → process the comment text only.
 
-### Pointing another Claude at this plugin
-
-Two practical install patterns:
-
-```bash
-# Project-scope (only this project sees the plugin)
-ln -s <abs-path-to>/. .claude/.
-
-# User-scope (every Claude session on this machine)
-ln -s <abs-path-to>/. ~/.claude/.
-```
-
-Then `/aimvc-respond-to-comment` is available to that Claude. If symlinking is impossible, paste the responder workflow above into the new session's first message and point it at the queue dir and the source `*.idmap.json` — it has everything it needs.
 
 ### When NOT to use v2 modal comments
 
-- The user just wants a **single click → return one selection** (use the v1 `Interactive Selection` flow at the top of this document; that is what `/aimvc-diff-review`, `plan-review`, etc. already do).
+- The user just wants a **single click → return one selection** (use the v1 `Interactive Selection` flow at the top of this document; that is what `/amvcp-diff-review`, `amvcp-plan-review`, etc. already do).
 - The page has no per-element commentables (a single diagram, a slide deck) — render with `generate-web-diagram` / `generate-slides` and skip v2.
 - One-shot HTML the user will only read offline — no transport, no comments, no responder.
 
 ## Available Commands
 
-Detailed prompt templates in `./commands/`. In Pi, these are slash commands (`/diff-review`). In Claude Code, namespaced (`/aimvc-diff-review`). In Codex, use `/prompts:diff-review` (if installed to `~/.codex/prompts/`) or invoke `$ai-maestro-visual-communicator` and describe the workflow.
+Detailed prompt templates in `./commands/`. In Pi, these are slash commands (`/amvcp-diff-review`). In Claude Code, namespaced (`/amvcp-diff-review`). In Codex, use `/prompts:amvcp-diff-review` (if installed to `~/.codex/prompts/`) or invoke `$amvcp-visual-communication` and describe the workflow.
 
 | Command | What it does |
 |---------|-------------|
-| `generate-web-diagram` | Generate an HTML diagram for any topic |
-| `generate-visual-plan` | Generate a visual implementation plan for a feature |
-| `generate-slides` | Generate a magazine-quality slide deck |
-| `diff-review` | Visual diff review with architecture comparison and code review |
-| `plan-review` | Compare a plan against the codebase with risk assessment |
-| `project-recap` | Mental model snapshot for context-switching back to a project |
-| `fact-check` | Verify accuracy of a document against actual code |
-| `interactive-report` | Render an agent report as an interactive HTML page with v2 modal-comment threads (renderer + transport half) |
-| `respond-to-comment` | Watch the comment queue and write per-turn agent replies the page polls in (responder half) |
-| `share-page` | Deploy an HTML page to Vercel and get a live URL |
+| `amvcp-generate-web-diagram` | Generate an HTML diagram for any topic |
+| `amvcp-generate-visual-plan` | Generate a visual implementation plan for a feature |
+| `amvcp-generate-slides` | Generate a magazine-quality slide deck |
+| `amvcp-diff-review` | Visual diff review with architecture comparison and code review |
+| `amvcp-plan-review` | Compare a plan against the codebase with risk assessment |
+| `amvcp-project-recap` | Mental model snapshot for context-switching back to a project |
+| `amvcp-fact-check` | Verify accuracy of a document against actual code |
+| `amvcp-interactive-report` | Render an agent report as an interactive HTML page with v2 modal-comment threads (renderer + transport half) |
+| `amvcp-respond-to-comment` | Watch the comment queue and write per-turn agent replies the page polls in (responder half) |
+| `amvcp-share-page` | Deploy an HTML page to Vercel and get a live URL |
 
 ## Workflow
 
@@ -352,7 +336,7 @@ Vary the choice each time. If the last diagram was dark and technical, make the 
 
 **Read the reference material** before generating. Don't memorize it — read it each time to absorb the patterns.
 - **Always** read `./references/interactive-selection.md` — every page must wire up element selection; this doc covers the payload schema, what to mark as selectable, Mermaid `click` directive integration, Chart.js wiring, and table-form (radio/checkbox) mode.
-- Before editing the runtime (`scripts/ve-runtime.js`) or the embedded ve-regex, read `./references/runtime-bug-patterns.md` — it catalogues the fixed bug classes (hover-bridge, polling-resume, atomic-save, per-mount Jotai state, case-insensitive shortcut keys, wide-graph overflow) and points at the regression tests under `./tests/scripts/`. Run `./tests/run-all-tests.py` to verify any runtime change.
+- Before editing the runtime (`scripts/amvcp-runtime.js`) or the embedded amvcp-regex, read `./references/runtime-bug-patterns.md` — it catalogues the fixed bug classes (hover-bridge, polling-resume, atomic-save, per-mount Jotai state, case-insensitive shortcut keys, wide-graph overflow) and points at the regression tests under `./tests/scripts/`. Run `./tests/run-all-tests.py` to verify any runtime change.
 - For text-heavy architecture overviews (card content matters more than topology): read `./templates/architecture.html`
 - For flowcharts, sequence diagrams, ER, state machines, mind maps, class diagrams, C4: read `./templates/mermaid-flowchart.html`
 - For data tables, comparisons, audits, feature matrices, **and tables that ask the user a question**: read `./templates/data-table.html` (it demonstrates passive selection plus single-choice and multi-choice form modes)
@@ -477,12 +461,12 @@ Keep animations purposeful: entrance reveals, hover feedback, and user-initiated
 
 ### 4. Deliver
 
-**Output location:** Write to `~/.agent/diagrams/`. Use a descriptive filename based on content: `modem-architecture.html`, `pipeline-flow.html`, `schema-overview.html`. The directory persists across sessions.
+**Output location:** Write to `$CLAUDE_PROJECT_ROOT/reports/visual-communicator/diagrams/`. Use a descriptive filename based on content: `modem-architecture.html`, `pipeline-flow.html`, `schema-overview.html`. The directory persists across project sessions.
 
 **Open with the interactive runner (always):**
 
 ```bash
-python3 "<skill-dir>/scripts/ve-select.py" ~/.agent/diagrams/<file>.html
+python3 "<skill-dir>/scripts/amvcp-select.py" $CLAUDE_PROJECT_ROOT/reports/visual-communicator/diagrams/<file>.html
 ```
 
 …then parse the JSON line printed to stdout. If `id` is non-null, follow the "Required follow-up after a selection" template above. If `reason` is `timeout`, tell the user the page is open and ask what they want to do.
@@ -653,18 +637,16 @@ Every diagram is a single self-contained `.html` file. No external assets except
 
 ## Sharing Pages
 
-Share visual communicator pages instantly via Vercel when a Pi-compatible `vercel-deploy` skill is available. No account or authentication required.
+Share visual communicator pages instantly via Vercel when a `vercel-deploy` skill is available. No account or authentication required.
 
-**Usage with the installed skill path:**
+**Usage with the skill path:**
 ```bash
-python3 ~/.pi/agent/skills/ai-maestro-visual-communicator/scripts/share.py <html-file>
+python3 $CLAUDE_PLUGIN_ROOT/scripts/share.py <html-file>
 ```
-
-If the skill lives somewhere else, use that install path instead, such as `~/.codex/skills/ai-maestro-visual-communicator/scripts/share.py`, `~/.config/opencode/skill/ai-maestro-visual-communicator/scripts/share.py`, or `./scripts/share.py` from a repository checkout.
 
 **Example:**
 ```bash
-python3 ~/.pi/agent/skills/ai-maestro-visual-communicator/scripts/share.py ~/.agent/diagrams/my-diagram.html
+python3 $CLAUDE_PLUGIN_ROOT/scripts/share.py $CLAUDE_PROJECT_ROOT/reports/visual-communicator/diagrams/my-diagram.html
 
 # Output:
 # ✓ Shared successfully!
@@ -673,19 +655,19 @@ python3 ~/.pi/agent/skills/ai-maestro-visual-communicator/scripts/share.py ~/.ag
 ```
 
 **How it works:**
-1. Runs the `share.py` script from the installed `ai-maestro-visual-communicator` skill directory
+1. Runs the `share.py` script from the `$CLAUDE_PLUGIN_ROOT/scripts/` directory
 2. Copies HTML file to temp directory as `index.html`
-3. Deploys via the Pi-compatible `vercel-deploy` skill
+3. Deploys via the `vercel-deploy` skill
 4. URL is live immediately — works in any browser
 
 **Requirements:**
-- vercel-deploy skill in a standard Pi-compatible skill location (in Pi: `pi install npm:vercel-deploy`)
+- vercel-deploy skill  `npm skills install vercel-deploy`)
 
 **Notes:**
 - Deployments are public — anyone with the URL can view
 - Preview deployments have configurable retention (default: 30 days)
 - Claim URL lets you transfer the deployment to your Vercel account
-- Other harnesses can generate and open HTML normally; `/share-page` depends on the Pi-compatible `vercel-deploy` script being available
+- Other harnesses can generate and open HTML normally; `/share-page` depends on the `vercel-deploy` script being available
 
 See `./commands/share-page.md` for the `/share-page` command template.
 

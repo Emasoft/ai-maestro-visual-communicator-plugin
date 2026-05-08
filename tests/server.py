@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Test-only HTTP server for the ai-maestro-visual-communicator test suite.
+"""Test-only HTTP server for the ai-maestro-visual-communicator-plugin test suite.
 
 Serves tests/fixtures/ on http://127.0.0.1:8767/
 and exposes the same comment endpoints the production runtime expects:
@@ -13,7 +13,7 @@ and exposes the same comment endpoints the production runtime expects:
 
 The TEST-ONLY endpoints are the only way for the QuickJS dev-browser sandbox
 (no FS access) to inspect or inject queue artefacts. Production servers
-(ve-select.py) do NOT expose them.
+(amvcp-select.py) do NOT expose them.
 
 CLI:
     python3 server.py [--port 8767] [--queue /tmp/ve-comments-tests]

@@ -1,10 +1,10 @@
 ---
-name: aimvc-generate-slides
+name: amvcp-generate-slides
 description: Generate a stunning magazine-quality slide deck as a self-contained HTML page
 ---
-Load the ai-maestro-visual-communicator skill, then generate a slide deck for: $@
+Load the amvcp-visual-communication skill, then generate a slide deck for: $@
 
-Follow the ai-maestro-visual-communicator skill workflow. Read the reference template at `./templates/slide-deck.html` and slide patterns at `./references/slide-patterns.md` before generating. Also read `./references/css-patterns.md` for shared patterns (Mermaid zoom controls, depth tiers, overflow protection) and `./references/libraries.md` for Mermaid theming, Chart.js, and font pairings.
+Follow the amvcp-visual-communication skill workflow. Read the reference template at `./templates/slide-deck.html` and slide patterns at `./references/slide-patterns.md` before generating. Also read `./references/css-patterns.md` for shared patterns (Mermaid zoom controls, depth tiers, overflow protection) and `./references/libraries.md` for Mermaid theming, Chart.js, and font pairings.
 
 **Slide output is always opt-in.** Only generate slides when this command is invoked or the user explicitly asks for a slide deck.
 
@@ -16,6 +16,6 @@ Follow the ai-maestro-visual-communicator skill workflow. Read the reference tem
 
 **Compositional variety:** Consecutive slides must vary their spatial approach. Alternate between centered, left-heavy, right-heavy, split, edge-aligned, and full-bleed. Three centered slides in a row means push one off-axis.
 
-**Interactive selection:** every `<section class="slide">` carries `data-ve-id="slide-N-<kind>"` / `data-ve-type="slide"` / `data-ve-label`; inner cards, KPI numbers, table rows, and Mermaid nodes also carry their own `data-ve-id` (the runtime resolves the innermost ancestor). Embed `<script src="ve-runtime.js"></script>` at end of body and add `mermaid.initialize({securityLevel:'loose', …})`. See `./references/interactive-selection.md`.
+**Interactive selection:** every `<section class="slide">` carries `data-ve-id="slide-N-<kind>"` / `data-ve-type="slide"` / `data-ve-label`; inner cards, KPI numbers, table rows, and Mermaid nodes also carry their own `data-ve-id` (the runtime resolves the innermost ancestor). Embed `<script src="amvcp-runtime.js"></script>` at end of body and add `mermaid.initialize({securityLevel:'loose', …})`. See `./references/interactive-selection.md`.
 
-Write to `~/.agent/diagrams/`. Open it via the interactive selection runner (`python3 <skill-dir>/scripts/ve-select.py ~/.agent/diagrams/<file>.html`) and respond to whatever the user clicks per the SKILL.md follow-up template.
+Write to `$CLAUDE_PROJECT_ROOT/reports/visual-communicator/diagrams/`. Open it via the interactive selection runner (`python3 <skill-dir>/scripts/amvcp-select.py $CLAUDE_PROJECT_ROOT/reports/visual-communicator/diagrams/<file>.html`) and respond to whatever the user clicks per the SKILL.md follow-up template.

@@ -1,5 +1,5 @@
 ---
-name: aimvc-respond-to-comment
+name: amvcp-respond-to-comment
 description: Read pending comment-thread turns from the v2 modal-comment queue and write per-turn agent replies that the open page picks up via /__ve-reply polling.
 ---
 # Respond to Comment
@@ -9,12 +9,12 @@ Process pending user comments emitted by the v2 modal-comment box (TRDD-eff1aa87
 ## Usage
 
 ```
-/aimvc-respond-to-comment [--queue-dir <path>] [--watch] [--source <report.md>]
+/amvcp-respond-to-comment [--queue-dir <path>] [--watch] [--source <report.md>]
 ```
 
 **Arguments:**
 
-- `--queue-dir <path>` — directory holding the queue JSONL files written by `ve-select.py`. Defaults to `<cwd>/.ve-comments/` (matches the runner's default).
+- `--queue-dir <path>` — directory holding the queue JSONL files written by `amvcp-select.py`. Defaults to `<cwd>/.ve-comments/` (matches the runner's default).
 - `--watch` — loop forever, polling the queue every 2 s and replying to new turns as they arrive. Without this flag, runs once and exits.
 - `--source <report.md>` — path to the source markdown report. Used to dereference unknown `commentId`s via the sidecar `<report>.idmap.json`.
 

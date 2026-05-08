@@ -1,5 +1,5 @@
 ---
-name: aimvc-interactive-report
+name: amvcp-interactive-report
 description: Render an agent report as an interactive HTML page with per-finding reply threads, then process the user's replies and re-render with Claude's responses inline
 ---
 # Interactive Agent Report
@@ -9,7 +9,7 @@ Convert any agent's Markdown report (code-auditor finding, llm-externalizer scan
 ## Usage
 
 ```
-/aimvc-interactive-report <report-path>
+/amvcp-interactive-report <report-path>
 ```
 
 **Arguments:**
@@ -26,11 +26,11 @@ Convert any agent's Markdown report (code-auditor finding, llm-externalizer scan
        --report "$REPORT_PATH" \
        --replies "${REPORT_PATH%.md}.replies.json" \
        --out    "${REPORT_PATH%.md}.html" \
-       --runtime-url ve-runtime.js
+       --runtime-url amvcp-runtime.js
    ```
-   — and copy `ve-runtime.js` next to the rendered HTML if it isn't there yet.
+   — and copy `amvcp-runtime.js` next to the rendered HTML if it isn't there yet.
 4. Hand the HTML over to whatever browser-launch path the user prefers — most commonly the existing `/share-page` workflow that returns a Vercel URL, or a local `python -m http.server` for offline review.
-5. Wait for the user to click Submit (or Exit). The selection POST lands in the file/endpoint the launcher chose (typically `ve-select.py --out /tmp/ve-select-output.json`).
+5. Wait for the user to click Submit (or Exit). The selection POST lands in the file/endpoint the launcher chose (typically `amvcp-select.py --out /tmp/ve-select-output.json`).
 6. Read the captured submission. For every `{kind:"finding-reply", findingId, text}` entry:
    1. Re-read the original finding text from `report.md`.
    2. Re-read any prior conversation rounds from `replies.json`.
@@ -77,7 +77,7 @@ The renderer reads this and emits one `<div class="ve-finding-round">` per `(fin
 
 ## Don't forget
 
-- The runtime JS file (`ve-runtime.js`) MUST be co-located with the rendered HTML or reachable via the `--runtime-url` flag — otherwise the page loads but the textareas don't capture anything.
+- The runtime JS file (`amvcp-runtime.js`) MUST be co-located with the rendered HTML or reachable via the `--runtime-url` flag — otherwise the page loads but the textareas don't capture anything.
 - `# Finding N` (h1) is **not** detected — only `## Finding N:` (h2). Agents need to use the right level.
 - The `<!-- ve-finding ... -->` comment must be on its own line OR immediately after the `## Finding` heading. Comments embedded mid-paragraph aren't picked up.
 - When you regenerate `replies.json`, write the WHOLE file — there's no merge step in the renderer.

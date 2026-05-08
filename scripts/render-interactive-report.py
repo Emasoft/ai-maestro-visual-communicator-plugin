@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 render-interactive-report.py — convert an agent's Markdown report to an
-interactive HTML page that the ai-maestro-visual-communicator runtime can host.
+interactive HTML page that the ai-maestro-visual-communicator-plugin runtime can host.
 
 Each `## Finding N: <title>` heading is detected and wrapped in a
 <section data-ve-finding-id="finding-N"> with a thread block containing
@@ -24,7 +24,7 @@ emits the page with no prior rounds and the textareas pristine.
 
 `--out` defaults to <report>.html alongside the source.
 
-The generated page links the runtime as `<script src="ve-runtime.js">`
+The generated page links the runtime as `<script src="amvcp-runtime.js">`
 by default. Override with `--runtime-url`.
 """
 from __future__ import annotations
@@ -648,8 +648,8 @@ def main(argv: list[str] | None = None) -> int:
     )
     p.add_argument(
         "--runtime-url",
-        default="ve-runtime.js",
-        help="src for the <script> tag that loads the runtime (default: ve-runtime.js)",
+        default="amvcp-runtime.js",
+        help="src for the <script> tag that loads the runtime (default: amvcp-runtime.js)",
     )
     p.add_argument(
         "--mode",

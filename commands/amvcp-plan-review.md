@@ -1,10 +1,10 @@
 ---
-name: aimvc-plan-review
+name: amvcp-plan-review
 description: Generate a visual HTML plan review — current codebase state vs. proposed implementation plan
 ---
-Load the ai-maestro-visual-communicator skill, then generate a comprehensive visual plan review as a self-contained HTML page, comparing the current codebase against a proposed implementation plan.
+Load the amvcp-visual-communication skill, then generate a comprehensive visual plan review as a self-contained HTML page, comparing the current codebase against a proposed implementation plan.
 
-Follow the ai-maestro-visual-communicator skill workflow. Read the reference template, CSS patterns, and mermaid theming references before generating. Use a blueprint/editorial aesthetic with current-state vs. planned-state panels, but vary fonts and palette from previous diagrams.
+Follow the amvcp-visual-communication skill workflow. Read the reference template, CSS patterns, and mermaid theming references before generating. Use a blueprint/editorial aesthetic with current-state vs. planned-state panels, but vary fonts and palette from previous diagrams.
 
 **Inputs:**
 - Plan file: `$1` (path to a markdown plan, spec, or RFC document)
@@ -82,9 +82,9 @@ Verify each claim against the code and the plan. If something cannot be verified
 
 Include responsive section navigation. Use a current-vs-planned visual language throughout: blue/neutral for current state, green/purple for planned additions, amber for areas of concern, red for gaps or risks.
 
-**Interactive selection:** every requirement row, risk callout, file entry, current-state Mermaid node, and planned-state Mermaid node must carry `data-ve-id` / `data-ve-type` / `data-ve-label`. Add `click X call veSelectMermaid(...)` directives plus `securityLevel: 'loose'` to both Mermaid diagrams. Embed `<script src="ve-runtime.js"></script>` at end of body. If the plan offers alternative paths, render the choice as a `data-ve-mode="single"` table-form so the user's pick comes back structured. See `./references/interactive-selection.md`.
+**Interactive selection:** every requirement row, risk callout, file entry, current-state Mermaid node, and planned-state Mermaid node must carry `data-ve-id` / `data-ve-type` / `data-ve-label`. Add `click X call veSelectMermaid(...)` directives plus `securityLevel: 'loose'` to both Mermaid diagrams. Embed `<script src="amvcp-runtime.js"></script>` at end of body. If the plan offers alternative paths, render the choice as a `data-ve-mode="single"` table-form so the user's pick comes back structured. See `./references/interactive-selection.md`.
 
-Write to `~/.agent/diagrams/`. Open it via the interactive selection runner (`python3 <skill-dir>/scripts/ve-select.py ~/.agent/diagrams/<file>.html`) and respond to the user's selection per the SKILL.md follow-up template.
+Write to `$CLAUDE_PROJECT_ROOT/reports/visual-communicator/diagrams/`. Open it via the interactive selection runner (`python3 <skill-dir>/scripts/amvcp-select.py $CLAUDE_PROJECT_ROOT/reports/visual-communicator/diagrams/<file>.html`) and respond to the user's selection per the SKILL.md follow-up template.
 
 Ultrathink.
 

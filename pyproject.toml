@@ -1,5 +1,5 @@
 [project]
-name = "ai-maestro-visual-communicator"
+name = "ai-maestro-visual-communicator-plugin"
 version = "1.1.5"
 description = "Generate interactive HTML pages — diagrams, diff reviews, plan reviews, slide decks, data tables, and v2 modal-comment agent reports. Every page sends the user's selection (or per-element comment thread) back to the agent."
 readme = "README.md"
@@ -47,8 +47,8 @@ target-version = "py312"
 extend-exclude = [
     "vendor/",
     "tests_dev/",
-    "scripts/ve-regex.umd.js",
-    "scripts/ve-runtime.js",
+    "scripts/amvcp-regex.umd.js",
+    "scripts/amvcp-runtime.js",
 ]
 
 [tool.ruff.lint]

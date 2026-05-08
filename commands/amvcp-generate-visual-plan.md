@@ -1,10 +1,10 @@
 ---
-name: aimvc-generate-visual-plan
+name: amvcp-generate-visual-plan
 description: Generate a visual HTML implementation plan — detailed feature specification with state machines, code snippets, and edge cases
 ---
-Load the ai-maestro-visual-communicator skill, then generate a comprehensive visual implementation plan for `$@` as a self-contained HTML page.
+Load the amvcp-visual-communication skill, then generate a comprehensive visual implementation plan for `$@` as a self-contained HTML page.
 
-Follow the ai-maestro-visual-communicator skill workflow. Read the reference template, CSS patterns, and mermaid theming references before generating. Use an editorial or blueprint aesthetic, but vary fonts and palette from previous diagrams.
+Follow the amvcp-visual-communication skill workflow. Read the reference template, CSS patterns, and mermaid theming references before generating. Use an editorial or blueprint aesthetic, but vary fonts and palette from previous diagrams.
 
 **Data gathering phase** — understand the context before designing:
 
@@ -103,8 +103,8 @@ Verify each against the code. If something cannot be verified, mark it as uncert
 - Never use `display: flex` on `<li>` for markers — use absolute positioning
 - Test tables with wide content don't overflow their container
 
-**Interactive selection:** every section card, state-machine node, file entry, edge case, and KPI must carry `data-ve-id` / `data-ve-type` / `data-ve-label`; the Mermaid state machine needs `click X call veSelectMermaid(...)` directives plus `securityLevel: 'loose'`; embed `<script src="ve-runtime.js"></script>` at end of body. If you want to ask the user to choose between alternative implementations, render the alternatives as a `data-ve-mode="single"` table-form so the answer comes back structured. See `./references/interactive-selection.md`.
+**Interactive selection:** every section card, state-machine node, file entry, edge case, and KPI must carry `data-ve-id` / `data-ve-type` / `data-ve-label`; the Mermaid state machine needs `click X call veSelectMermaid(...)` directives plus `securityLevel: 'loose'`; embed `<script src="amvcp-runtime.js"></script>` at end of body. If you want to ask the user to choose between alternative implementations, render the alternatives as a `data-ve-mode="single"` table-form so the answer comes back structured. See `./references/interactive-selection.md`.
 
-Write to `~/.agent/diagrams/` with a descriptive filename (e.g., `feature-name-plan.html`). Open it via the interactive selection runner (`python3 <skill-dir>/scripts/ve-select.py ~/.agent/diagrams/<file>.html`) and respond to whatever the user clicks per the SKILL.md follow-up template. Tell the user the file path.
+Write to `$CLAUDE_PROJECT_ROOT/reports/visual-communicator/diagrams/` with a descriptive filename (e.g., `feature-name-plan.html`). Open it via the interactive selection runner (`python3 <skill-dir>/scripts/amvcp-select.py $CLAUDE_PROJECT_ROOT/reports/visual-communicator/diagrams/<file>.html`) and respond to whatever the user clicks per the SKILL.md follow-up template. Tell the user the file path.
 
 Ultrathink.

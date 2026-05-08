@@ -6,8 +6,8 @@
 //   TEST | <name> | PASS|FAIL|ERROR | <description> | <detail>
 //
 // The test server (tests/server.py) exposes:
-//   - /sample-report.html (and ve-runtime.js sibling)
-//   - POST /__ve-comment       — same as ve-select.py's queue endpoint
+//   - /sample-report.html (and amvcp-runtime.js sibling)
+//   - POST /__ve-comment       — same as amvcp-select.py's queue endpoint
 //   - GET  /__ve-reply/<tid>   — same polling endpoint
 //   - POST /__ve-test-reply    — TEST-ONLY: write a reply file from JSON
 //                                payload {threadId, turn, text}

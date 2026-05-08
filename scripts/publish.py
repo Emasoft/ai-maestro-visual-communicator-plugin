@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Release helper for ai-maestro-visual-communicator.
+"""Release helper for ai-maestro-visual-communicator-plugin.
 
 This is the **single source of truth** for the plugin's quality pipeline.
 The script has three independently-invokable modes — pre-push hooks, CI

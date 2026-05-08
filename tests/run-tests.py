@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""ai-maestro-visual-communicator test orchestrator.
+"""ai-maestro-visual-communicator-plugin test orchestrator.
 
 Starts the test server, syncs fresh runtime + regex bundles into
 fixtures/, runs every dev-browser test script under scripts/, parses
@@ -39,15 +39,15 @@ PORT = 8767
 
 
 def sync_runtime_into_fixtures() -> None:
-    """Copy the production ve-runtime.js + ve-regex.* into fixtures/.
+    """Copy the production amvcp-runtime.js + amvcp-regex.* into fixtures/.
 
-    The fixtures HTML uses bare relative URLs (`<script src="ve-runtime.js">`)
+    The fixtures HTML uses bare relative URLs (`<script src="amvcp-runtime.js">`)
     so they must sit beside the HTML files. This is the same dance
     `tests_dev/` does — we replicate it under tests/ so the runner is
     fully self-contained.
     """
     src = PLUGIN_ROOT / "scripts"
-    for name in ("ve-runtime.js", "ve-regex.umd.js", "ve-regex.css"):
+    for name in ("amvcp-runtime.js", "amvcp-regex.umd.js", "amvcp-regex.css"):
         s = src / name
         d = FIXTURES / name
         if s.exists():
@@ -76,7 +76,7 @@ def regenerate_sample_report() -> None:
             "--mode",
             "auto",
             "--runtime-url",
-            "ve-runtime.js",
+            "amvcp-runtime.js",
         ],
         check=True,
         cwd=str(PROJECT_ROOT),

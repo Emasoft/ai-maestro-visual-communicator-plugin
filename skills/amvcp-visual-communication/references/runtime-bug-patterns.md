@@ -1,7 +1,7 @@
-# ve-runtime + ve-regex bug patterns
+# amvcp-runtime + amvcp-regex bug patterns
 
-A catalogue of bug classes found in the ai-maestro-visual-communicator runtime,
-the v2 modal-comment flow, and the embedded ve-regex visualizer —
+A catalogue of bug classes found in the ai-maestro-visual-communicator-plugin runtime,
+the v2 modal-comment flow, and the embedded amvcp-regex visualizer —
 each entry pairs the symptom with the fix and points at the
 verification test that locks the fix in place.
 
@@ -26,7 +26,7 @@ phase `mouseleave` listener cleared `commentHoverTarget` and
 
 **Fix:** Defer the hide on a 180 ms timer; cancel it on `mouseover`
 of the pill or its descendants.
-(`scripts/ve-runtime.js`,
+(`scripts/amvcp-runtime.js`,
 `scheduleHideCommentHoverPill` + `cancelCommentPillHide`.)
 
 **Test:** `tests/scripts/test-comment-modal.js` →

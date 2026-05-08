@@ -1,7 +1,7 @@
 // test-regex-panels.js
 //
 // Dev-browser script (QuickJS sandbox) — exercises every edit-panel
-// surface of the embedded ve-regex visualizer. Each test function
+// surface of the embedded amvcp-regex visualizer. Each test function
 // is named, has a one-line docstring, and prints exactly one line:
 //
 //   TEST | <name> | PASS|FAIL|ERROR | <description> | <detail>
@@ -12,7 +12,7 @@
 // Pre-conditions:
 //   - HTTP server up on http://127.0.0.1:8767/ serving
 //     tests/fixtures/
-//   - ve-runtime.js, ve-regex.umd.js, ve-regex.css siblinged with
+//   - amvcp-runtime.js, amvcp-regex.umd.js, amvcp-regex.css siblinged with
 //     the fixture HTML (run-all-tests.sh handles the sync).
 
 const FIXTURE = "http://127.0.0.1:8767/regex-vis-all-panels.html";

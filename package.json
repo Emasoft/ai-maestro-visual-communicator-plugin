@@ -1,5 +1,5 @@
 {
-  "name": "ai-maestro-visual-communicator",
+  "name": "ai-maestro-visual-communicator-plugin",
   "version": "1.1.5",
   "description": "Claude Code plugin that generates interactive HTML pages with v2 modal-comment threads, diagrams, diff reviews, plan reviews, slide decks, and data tables. Part of the ai-maestro plugin suite.",
   "license": "MIT",
@@ -29,12 +29,11 @@
   "files": [
     ".claude-plugin",
     "commands",
-    "references",
     "scripts",
     "templates",
     "tests",
     "vendor",
-    "SKILL.md",
+    "skills",
     "README.md",
     "CHANGELOG.md",
     "LICENSE",

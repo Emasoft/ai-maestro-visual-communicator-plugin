@@ -1,5 +1,5 @@
 /*!
- * ai-maestro-visual-communicator interactive selection runtime.
+ * ai-maestro-visual-communicator-plugin interactive selection runtime.
  *
  * Embed this script (inline or referenced) in every generated HTML page so
  * a single click on any element marked with `data-ve-id` returns the
@@ -156,7 +156,7 @@
  *
  * Transport:
  *   The runtime POSTs the selection to /__ve-select on the same origin.
- *   That endpoint is provided by scripts/ve-select.py; when the page is
+ *   That endpoint is provided by scripts/amvcp-select.py; when the page is
  *   opened directly via file:// the runtime falls back to a copy-to-
  *   clipboard overlay so the user can paste the JSON back to the agent.
  */
@@ -811,14 +811,14 @@
   function showSendingOverlay() {
     var ov = buildOverlay();
     ov.card.innerHTML =
-      '<div style="font:500 11px/1 ui-monospace,Menlo,monospace;letter-spacing:0.12em;text-transform:uppercase;opacity:0.55;margin-bottom:14px;">ai-maestro-visual-communicator</div>' +
+      '<div style="font:500 11px/1 ui-monospace,Menlo,monospace;letter-spacing:0.12em;text-transform:uppercase;opacity:0.55;margin-bottom:14px;">ai-maestro-visual-communicator-plugin</div>' +
       '<div style="font-size:18px;font-weight:500;">Sending selection&hellip;</div>';
     return ov;
   }
 
   function showSentThenClose(label, overlay) {
     overlay.card.innerHTML =
-      '<div style="font:500 11px/1 ui-monospace,Menlo,monospace;letter-spacing:0.12em;text-transform:uppercase;opacity:0.55;margin-bottom:14px;">ai-maestro-visual-communicator</div>' +
+      '<div style="font:500 11px/1 ui-monospace,Menlo,monospace;letter-spacing:0.12em;text-transform:uppercase;opacity:0.55;margin-bottom:14px;">ai-maestro-visual-communicator-plugin</div>' +
       '<div style="font-size:18px;font-weight:500;">Selection sent</div>' +
       '<div style="opacity:0.7;margin-top:10px;">' +
         escapeHtml(label || '(no label)') +
@@ -835,7 +835,7 @@
           document.body.innerHTML =
             '<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#0f1115;color:#e8eaee;font:16px/1.5 system-ui,sans-serif;text-align:center;padding:24px;">' +
               '<div>' +
-                '<div style="font:500 11px/1 ui-monospace,Menlo,monospace;letter-spacing:0.12em;text-transform:uppercase;opacity:0.5;margin-bottom:14px;">ai-maestro-visual-communicator</div>' +
+                '<div style="font:500 11px/1 ui-monospace,Menlo,monospace;letter-spacing:0.12em;text-transform:uppercase;opacity:0.5;margin-bottom:14px;">ai-maestro-visual-communicator-plugin</div>' +
                 '<h1 style="font-weight:500;font-size:24px;margin:0 0 10px;">Selection sent</h1>' +
                 '<p style="opacity:0.7;margin:0 0 16px;">You can close this tab.</p>' +
                 '<code style="background:#1a1d23;padding:8px 14px;border-radius:8px;font-size:13px;">' +
@@ -852,7 +852,7 @@
     var json = JSON.stringify(payload, null, 2);
     overlay.card.style.maxWidth = '640px';
     overlay.card.innerHTML =
-      '<div style="font:500 11px/1 ui-monospace,Menlo,monospace;letter-spacing:0.12em;text-transform:uppercase;opacity:0.55;margin-bottom:12px;">ai-maestro-visual-communicator · selection</div>' +
+      '<div style="font:500 11px/1 ui-monospace,Menlo,monospace;letter-spacing:0.12em;text-transform:uppercase;opacity:0.55;margin-bottom:12px;">ai-maestro-visual-communicator-plugin · selection</div>' +
       '<div style="text-align:left;font-size:14px;line-height:1.6;margin-bottom:12px;opacity:0.85;">' +
         'This page was opened directly (not via the agent runner), so the selection cannot be sent automatically. ' +
         'Copy the payload below and paste it back to your agent.' +
@@ -959,7 +959,7 @@
             + 'text-align:center;padding:24px;">'
             + '<div>'
               + '<div style="font:500 11px/1 ui-monospace,Menlo,monospace;letter-spacing:0.12em;'
-              + 'text-transform:uppercase;opacity:0.5;margin-bottom:14px;">ai-maestro-visual-communicator</div>'
+              + 'text-transform:uppercase;opacity:0.5;margin-bottom:14px;">ai-maestro-visual-communicator-plugin</div>'
               + '<h1 style="font-weight:500;font-size:22px;margin:0 0 6px;">Selection sent</h1>'
               + '<p style="opacity:0.6;margin:0;">You can close this tab.</p>'
             + '</div>'
@@ -1110,7 +1110,7 @@
             + 'text-align:center;padding:24px;">'
             + '<div>'
               + '<div style="font:500 11px/1 ui-monospace,Menlo,monospace;letter-spacing:0.12em;'
-              + 'text-transform:uppercase;opacity:0.5;margin-bottom:14px;">ai-maestro-visual-communicator</div>'
+              + 'text-transform:uppercase;opacity:0.5;margin-bottom:14px;">ai-maestro-visual-communicator-plugin</div>'
               + '<h1 style="font-weight:500;font-size:22px;margin:0 0 6px;">Selection sent</h1>'
               + '<p style="opacity:0.6;margin:0;">You can close this tab.</p>'
             + '</div>'
@@ -3836,7 +3836,7 @@
   // Pages opt in by writing:
   //   <div class="ve-regex" data-regex="^(\d{3})-(\d{4})$"></div>
   //
-  // The runtime lazy-loads ve-regex.umd.js + ve-regex.css from the same
+  // The runtime lazy-loads amvcp-regex.umd.js + amvcp-regex.css from the same
   // directory it itself was loaded from (parallel to KaTeX / viz.js /
   // TikZJax — except this bundle is hosted in our own scripts/ folder
   // rather than a CDN). On mount, every edit-panel commit pushes a
@@ -3847,16 +3847,16 @@
   var regexLoading = null;
 
   function veRuntimeScriptBase() {
-    // Where is ve-runtime.js sitting? Used to compute the sibling URL for
-    // ve-regex.umd.js / ve-regex.css. Three sources, in order:
+    // Where is amvcp-runtime.js sitting? Used to compute the sibling URL for
+    // amvcp-regex.umd.js / amvcp-regex.css. Three sources, in order:
     //   1. window.veRuntimeBase if the page set it explicitly
-    //   2. The <script src="…/ve-runtime.js"> tag in the DOM
+    //   2. The <script src="…/amvcp-runtime.js"> tag in the DOM
     //   3. document.currentScript (only valid synchronously)
     if (window.veRuntimeBase) return window.veRuntimeBase.replace(/\/$/, '');
     var tags = document.getElementsByTagName('script');
     for (var i = tags.length - 1; i >= 0; i--) {
       var src = tags[i].src || '';
-      var m = src.match(/^(.*\/)ve-runtime\.js(?:\?.*)?$/);
+      var m = src.match(/^(.*\/)amvcp-runtime\.js(?:\?.*)?$/);
       if (m) return m[1].replace(/\/$/, '');
     }
     if (document.currentScript && document.currentScript.src) {
@@ -3879,21 +3879,21 @@
       if (!document.querySelector('link[data-ve-regex-css]')) {
         var link = document.createElement('link');
         link.rel = 'stylesheet';
-        link.href = base + '/ve-regex.css';
+        link.href = base + '/amvcp-regex.css';
         link.setAttribute('data-ve-regex-css', '1');
         document.head.appendChild(link);
       }
       var script = document.createElement('script');
-      script.src = base + '/ve-regex.umd.js';
+      script.src = base + '/amvcp-regex.umd.js';
       script.async = true;
       script.onload = function () {
         if (window.VeRegex && typeof window.VeRegex.render === 'function') {
           resolve(window.VeRegex);
         } else {
-          reject(new Error('ve-regex.umd.js loaded but window.VeRegex.render missing'));
+          reject(new Error('amvcp-regex.umd.js loaded but window.VeRegex.render missing'));
         }
       };
-      script.onerror = function () { reject(new Error('Failed to load ve-regex.umd.js')); };
+      script.onerror = function () { reject(new Error('Failed to load amvcp-regex.umd.js')); };
       document.head.appendChild(script);
     });
     return regexLoading;
@@ -4983,7 +4983,7 @@
   function postCommentAndPoll(userTurn, pendingAgentTurn) {
     // TRDD-7a2dab03 — when the comment is anchored inside a finding, also
     // ship the finding's current decision pill state. The orchestrator's
-    // reply loop reads the `decision` field FIRST (see /aimvc-respond-to-
+    // reply loop reads the `decision` field FIRST (see /amvcp-respond-to-
     // comment) and uses it to choose the reply template (approve / reject
     // / skip). If the anchor is outside any finding (e.g. in the preamble)
     // there is no finding-scoped decision, so the field is omitted.

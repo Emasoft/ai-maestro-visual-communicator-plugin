@@ -1,5 +1,5 @@
 {
-  "name": "ai-maestro-visual-communicator",
+  "name": "ai-maestro-visual-communicator-plugin",
   "description": "Generate interactive HTML pages — diagrams, diff reviews, plan reviews, slide decks, data tables, and v2 modal-comment agent reports. Every page sends the user's selection (or per-element comment thread) back to the agent.",
   "version": "1.1.5",
   "author": {
@@ -25,6 +25,6 @@
     "regex-vis"
   ],
   "skills": [
-    "./"
+    "./skills/amvcp-visual-communication"
   ]
 }

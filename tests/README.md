@@ -27,15 +27,15 @@ results table and a per-failure detail block.
 
 ## What the runner does
 
-1. Copies the production `ve-runtime.js`, `ve-regex.umd.js`,
-   `ve-regex.css` into `fixtures/` so the test HTML loads the
+1. Copies the production `amvcp-runtime.js`, `amvcp-regex.umd.js`,
+   `amvcp-regex.css` into `fixtures/` so the test HTML loads the
    real bundle.
 2. Re-renders `fixtures/sample-report.md` → `sample-report.html` +
    `sample-report.idmap.json` via `render-interactive-report.py`.
 3. Cleans the queue dir `/tmp/ve-comments-tests/`.
 4. Boots `server.py` on port 8767. The server speaks the same
    `/__ve-comment` (POST) and `/__ve-reply/<tid>` (GET) endpoints
-   the production `ve-select.py` uses, plus a TEST-ONLY
+   the production `amvcp-select.py` uses, plus a TEST-ONLY
    `/__ve-test-reply` (POST) that lets the QuickJS sandbox inject
    reply files into the queue (the sandbox has no FS access).
 5. Runs each `scripts/test-*.js` via `dev-browser run`.
@@ -62,7 +62,7 @@ results table and a per-failure detail block.
 * `fixtures/sample-report.md` + `.html` + `.idmap.json` — synthetic
   4-finding agent report covering paragraph, list item, table row,
   and code block commentable anchors.
-* `fixtures/ve-runtime.js` + `ve-regex.umd.js` + `ve-regex.css` —
+* `fixtures/amvcp-runtime.js` + `amvcp-regex.umd.js` + `amvcp-regex.css` —
   copied from `scripts/` by the runner.
 
 ## Test naming convention

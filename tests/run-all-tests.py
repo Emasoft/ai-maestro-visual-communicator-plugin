@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Wrapper that runs the full ai-maestro-visual-communicator test suite.
+"""Wrapper that runs the full ai-maestro-visual-communicator-plugin test suite.
 
 Pre-requisites (the runner enforces them anyway):
   - python3 on PATH

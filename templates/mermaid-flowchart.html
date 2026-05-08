@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CI/CD Pipeline — Reference Template</title>
 <!--
-  Reference template for the ai-maestro-visual-communicator skill: Mermaid diagrams.
+  Reference template for the amvcp-visual-communication skill: Mermaid diagrams.
   Teal/cyan palette — distinctly different from terracotta (architecture)
   and rose (data-table) templates so agents absorb variety.
   Key patterns demonstrated:
@@ -408,7 +408,7 @@
     startOnLoad: false,
     // 'loose' is required so `click X call veSelectMermaid(...)` directives
     // can invoke our window-scoped selection helper. The helper is defined
-    // by ve-runtime.js and routes to the local /__ve-select endpoint.
+    // by amvcp-runtime.js and routes to the local /__ve-select endpoint.
     securityLevel: 'loose',
     theme: 'base',
     look: 'classic',
@@ -743,7 +743,7 @@
 
 <!-- Interactive selection runtime — REQUIRED in every generated page.
      See ../references/interactive-selection.md for authoring rules. -->
-<script src="ve-runtime.js"></script>
+<script src="amvcp-runtime.js"></script>
 
 </body>
 </html>
