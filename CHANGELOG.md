@@ -1,342 +1,129 @@
 # Changelog
 
-## [0.8.0] - 2026-05-04
-
-### Interactive Selection (default for every page)
-
-Every generated page is now interactive. A single click on any meaningful element returns a structured selection to the agent and closes the browser window automatically.
-
-- **`scripts/ve-select.py`** — local-server runner. Picks a free port, serves the HTML, launches Chromium in `--app=URL` mode (so `window.close()` actually works — normally browsers deny it for tabs they opened on their own), and blocks until the page POSTs a selection or the timeout elapses. Tries Chrome → Edge → Brave → Chromium → Vivaldi → Arc; falls back to the user's default browser with a polite "selection sent — close this tab" overlay if no Chromium is found. Auto-mirrors `ve-runtime.js` next to the served file (SimpleHTTPServer rejects `../` traversal) and also serves it at `/__ve/runtime.js` as a backup.
-- **`scripts/ve-runtime.js`** — page-side runtime, embedded in every generated page. Wires `[data-ve-id]` clicks via event delegation, integrates with Mermaid's native `click X call …` directive (`window.veSelectMermaid`), and Chart.js (`window.veWireChart`). Posts `{id, type, label, data}` to `/__ve-select`. Adds keyboard parity (Enter/Space on focused element). Falls back to a copy-to-clipboard overlay when the page is opened directly via `file://`.
-- **Tables-as-questions (form mode).** New `data-ve-type="table-form"` + `data-ve-mode="single|multi"` table mode replaces the agent's "ask a question in chat" flow. The runtime injects radio buttons (single) or checkboxes (multi), auto-wires row clicks to toggle the controls, and adds a Submit button in the `<tfoot>`. Optional last row with `data-ve-row-text="1"` exposes a "Write something else here:" free-text input that auto-selects its row when typed in and submits on Enter. Submit returns `{tableId, question, mode, selected[], text}`.
-- **Prose mode (paragraph numbering + text-snippet selection).** Wrapping prose in `<article data-ve-prose>` makes the runtime auto-number headings and paragraphs hierarchically (`1`, `1.1`, `1.1.1`, `1.1.2`, …) and insert a small monospace marker at the start of each. Every numbered element becomes a clickable `paragraph` / `section` selection. Inside the prose container, **mouse text-highlighting** also surfaces a floating "Ask about this snippet" button; clicking it returns `{text, paragraphId, paragraphNumber, paragraphText}` so the user can pick out any phrase to clarify, rewrite, fact-check, or reorder. Reordering by number works naturally ("move 1.1.2 to the start", "swap 1.1.2 and 2.3.1"). Opt-in via `data-ve-prose` so the popup never fights with diagram/table interactions on non-prose pages.
-- **LaTeX math via KaTeX + mhchem + copy-tex.** `<span class="ve-math">E=mc^2</span>` renders inline math; `ve-math--block` renders display math; `ve-math--chem` enables chemistry via `\ce{…}`. KaTeX (+ mhchem + copy-tex) lazy-load from `cdn.jsdelivr.net` on first use. Each rendered formula is a clickable `math-formula` selection; mouse-highlighting any sub-expression (a variable, an operator, an exponent) opens the snippet popup with `type=math-snippet` and the surrounding formula's full LaTeX so the agent can act on a single term without losing context. Right-click → Copy on any rendered formula returns the original LaTeX source (not MathML).
-- **86 default math notation macros.** The runtime pre-populates KaTeX with macros covering the contemporary notation that KaTeX does not ship out-of-the-box: bold vectors (`\bv`, `\bvec`, `\vct`, `\hatv`), matrices (`\mat`, `\bmat`, `\T` transpose, `\inv`, `\hc` hermitian), tensor notation (`\tensor`, `\indices`), the physics package (`\dv`, `\pdv`, `\fdv`, `\dvn`, `\pdvn`, `\grad`, `\divv`, `\curl`, `\laplacian`, `\dalembertian`), Dirac/quantum (`\bra`, `\ket`, `\braket`, `\matrixel`, `\dyad`, `\expval`, `\comm`, `\anticomm`, `\poissonbracket`), delimiters (`\norm`, `\abs`, `\set`, `\floor`, `\ceil`, `\inner`), number systems (`\R`, `\Z`, `\N`, `\Q`, `\C`, `\F`, `\K`, `\H`, `\E`, `\P`), logic (`\Iff`, `\Implies`, `\defeq`, `\eqdef`, `\given`), statistics (`\Var`, `\Cov`, `\Cor`, `\Prob`), linear algebra (`\rank`, `\tr`, `\Tr`, `\diag`, `\spn`, `\nullspace`, `\range`, `\sgn`), SI units (`\SI{5}{m/s}`, `\unit`, `\si`, `\degC`, `\degF`, `\angstrom`), plus shortcuts (`\half`, `\third`, `\quarter`, `\eps`). Authors extend or override via `window.veKatexMacros = {...}` per page or `data-tex-macros='{...}'` per element. KaTeX builtins `\vec`, `\Re`, `\Im`, `\arg`, `\Pr`, `\dag` are intentionally NOT overridden (use `\bv`, `\Real`, `\Imag`, `\Prob`, `\hc` instead).
-- **TikZ diagrams via TikZJax.** `<div class="ve-tikz">…</div>` renders any TikZ source — chemfig molecular structures, physics free-body / circuit / optics diagrams, thermodynamic PV / TS / Carnot cycles, Venn diagrams, geometry constructions (tkz-euclide), Feynman diagrams — entirely in the browser via TikZJax (WASM). The runtime auto-wraps bare `\chemfig{…}` calls inside a `tikzpicture` so authors can write the source naturally. Each diagram is a `tikz-diagram` selection; mouse-highlighting any sub-element of the rendered SVG opens the snippet popup with `type=tikz-snippet` and the full TikZ source in `data.fullDiagramLatex`. TikZJax is ~3 MB so the runtime only triggers the load when at least one `.ve-tikz` element is on the page; failure to load is non-fatal (raw LaTeX stays visible).
-- **Granular sub-element selection inside math** via 24 new `\ve*` macros that route through KaTeX's `\htmlData` (whitelisted via `trust`): `\veid` (generic), `\vecell` / `\veelem` (matrix cell), `\verow` / `\vecol` (row/column markers), `\veidx` (tensor / Einstein index), `\vesub` / `\vesup` (subscript / superscript), `\vebound` (sum / product / integral bound), `\veterm` / `\vefactor` (term in series, factor in product), `\vesum` / `\veprod` / `\veint` / `\velim` (whole operator), `\veop` (custom operator), `\vegrp` (grouped sub-expression), `\vevar` / `\veconst` / `\vetensor` / `\vevec` / `\vemat` / `\vesymb`. The author writes `\vecell{matA-r1c2}{Element a₁₂}{a_{12}}`; the rendered span gets `data-ve-id="matA-r1c2"` / `data-ve-type="matrix-cell"` / `data-ve-label="Element a₁₂"` automatically. `trust` is whitelisted *only* for `\htmlClass` / `\htmlData` / `\htmlId` / `\htmlStyle` — `\href` is intentionally still untrusted to prevent link injection from formula sources. Convention `r1c2`, `r2c3` for cell ids lets the agent compute "select row 1" / "select column 2" from any single cell click; whole-row / whole-column drag-selection falls through to the snippet popup.
-- **Graphviz cookbook + TikZJax limitations** documented in `references/interactive-selection.md`. New top-level "Engine routing — read this BEFORE generating a graph" section with a decision matrix (use `.ve-graph` for directed graphs, never `tkz-berge`); a "Graphviz cookbook — defaults that work" section with mandatory DOT graph attributes (`dpi=150`, `nodesep=0.35`, `ranksep=1.6`, node `penwidth=2`, `fontsize=22`, `width=0.85`, `fixedsize=true`, edge `color="#1f1a14"` solid never hex+alpha, `penwidth=1.2`); the page-CSS requirements (no `max-height` cap, `shape-rendering: geometricPrecision`); the LaTeX-label convention (`$…$` with **doubled backslashes** because the DOT lexer eats one); and a "TikZJax limitations & substitutions" troubleshooting table covering the silent-failure cases (`tkz-berge`, `forloop`, `mathrsfs`, `physics` package, `siunitx`, `tikz-3dplot`). SKILL.md now routes directed graphs to `.ve-graph` first by default and surfaces the most-critical Graphviz defaults inline so an author doesn't need to read the cookbook on every generation.
-
-- **Runtime guarantees for `.ve-graph` (every node and edge clickable on first attempt).** The runtime now (a) auto-assigns `data-ve-id="ve-node-<title>"` / `ve-edge-<from>-to-<to>"` to every Graphviz node and edge, derived from the `<title>` element Graphviz emits — so authors never need to write `id="…"` on every DOT element to make them clickable; (b) injects a transparent 14 px-wide **edge hit-area twin path** beneath the visible 1.4 px stroke so a click anywhere within ~7 px of an edge line lands on the edge rather than missing it; (c) suppresses the rectangular `outline` highlight inside SVG (it draws around the bbox, looking wrong on circles/arrows) and applies a shape-aware brightness filter instead — page CSS like `.ve-graph .node:hover circle` still wins for palette-specific colour change; (d) deliberately does NOT auto-tag the wrapper with `data-ve-id`, so background clicks are no-ops (only nodes/edges trigger selection — opt in by setting `data-ve-id` on the wrapper); (e) attaches a zoom + pan viewport (top-right `+ / − / 1:1` buttons, Ctrl/Cmd-wheel zoom-at-cursor, click-drag pan with 4 px movement threshold to disambiguate from clicks via the `is-panning` class, double-click-fit, keyboard `+/-/0`); (f) opt-out via `data-ve-graph-zoom="off"`. Same wrapper-no-auto-tag rule applied to `.ve-tikz`; an internal `data-ve-internal-id` is used to namespace the geometric-region overlay children without making the wrapper itself clickable.
-
-- **Click-to-close is now instantaneous.** The selection runtime no longer shows "Sending selection…" / "Selection sent — close this tab" cards on the happy path. On click, `navigator.sendBeacon` queues the POST (browser keeps it in flight even after the document unloads) and `window.close()` fires 30 ms later. With Chromium `--app=URL` the borderless window vanishes immediately, and the agent receives the JSON in a single round-trip. The "you can close this tab" overlay still shows up as the fallback when `window.close()` is denied (i.e., the page was opened in a normal browser tab, not via the runner).
-
-- **Math labels in graph nodes are now properly centred.** Previous implementation used the Graphviz `<text>` element's `y` attribute (which is the BASELINE, not the geometric centre) and offset by `height/2`, pushing the rendered KaTeX foreignObject down by ~30 % of the line-height. Switched to `getBBox()` (the actual rendered bounds, top-left origin) and centred on `bbox.x + bbox.width/2`, `bbox.y + bbox.height/2`. Math labels in node circles now sit dead-centre.
-
-- **Directed-graph rendering via viz.js (Graphviz WASM).** New `<div class="ve-graph">DOT source</div>` lazy-loads `@viz-js/viz` (~1 MB) on first use and renders any DOT graph via `dot` (default — strongest general-purpose directed-graph layout, Sugiyama-style ranking + minimum-crossings + orthogonal routing) or any other Graphviz engine via `data-ve-graph-engine="dot|neato|fdp|sfdp|circo|twopi|osage|patchwork"`. Nodes and edges with DOT `id="ve-…"` become semantic `[data-ve-id]` selectables (`type=graph-node` / `graph-edge`); the whole graph is selectable by clicking outside. **Math labels are first-class** — any DOT label matching `$…$` or `\(…\)` is post-processed through KaTeX after the SVG renders and replaced with a `<foreignObject>` containing the rendered HTML, so graph-theory / category-theory / automata diagrams get proper typeset math (`label="$V_1$"`, `label="$\\sigma$"`, `label="$f \\colon X \\to Y$"`) inside an exportable, self-contained SVG. The rendered math respects all 86+ default macros (`\R`, `\bra`, `\dv`, `\matrixel`, etc.). Use Graphviz for hierarchical or complex directed graphs; for layouts where node positions carry physical meaning (subway maps, schematics, certain graph-theory illustrations), fall back to `.ve-tikz` with manual `\node at (col, row)` placement plus the `data-ve-tikz-regions` overlay for semantic node IDs.
-- **Semantic geometric regions over TikZ.** A `data-ve-tikz-regions='[…]'` JSON sidecar on the wrapper declares clickable regions over a TikZ diagram (`shape: polygon | circle | ellipse | rect | path | line` plus geometry props). The runtime waits for TikZJax to render via `MutationObserver`, reads the resulting SVG `viewBox`, and overlays an invisible SVG with one hit area per region. Each region is a `data-ve-id` selectable — clicks return the **semantic identity** (`type=geometric-region`, `data.regionId="incircle"`, `data.regionLabel="Incircle of triangle ABC"`) plus the full TikZ source in `data.fullDiagramLatex`. Hover highlights the region; `data-ve-tikz-debug="1"` draws all regions visibly in red so authors can calibrate. **Crucial:** the TikZ source stays pure LaTeX — the region JSON is tooling metadata, *not* embedded in the source — so once a figure is finalized via the click-to-modify iteration loop, the same TikZ pastes straight into the user's `.tex` paper. This unlocks the canonical workflow: agent generates a paper figure → user clicks "the square on the hypotenuse" → agent rewrites just that `\draw …` (anchored via `% ve-region: <id>` comments) → repeat → ship the same source to the LaTeX paper.
-- **`references/interactive-selection.md`** — new authoring reference: payload schema, what to mark as selectable per element category, Mermaid `click` directive integration (requires `securityLevel: 'loose'`), Chart.js wiring, all three table modes (passive / single-form / multi-form) with examples, anti-patterns.
-- **All four templates** updated to demonstrate selectable elements: `architecture.html` (cards, KPIs, sections), `mermaid-flowchart.html` (every node has a `click` directive + `securityLevel: 'loose'`), `data-table.html` (passive selection on every row plus two new sections demonstrating single-choice and multi-choice form modes with the "Write something else" row), `slide-deck.html` (every slide carries `data-ve-id`; inner Mermaid nodes still take precedence via innermost-ancestor resolution).
-- **All command files** updated. `generate-web-diagram`, `generate-visual-plan`, `generate-slides`, `diff-review`, `plan-review`, `project-recap`, `fact-check` now instruct the agent to open generated pages with `python3 <skill-dir>/scripts/ve-select.py` instead of bare `open`/`xdg-open`, and to follow the SKILL.md "Required follow-up after a selection" template ("You selected the element X. What do you want me to do about it?"). `share-page` notes that shared deployments should inline the runtime since there's no `/__ve-select` endpoint on Vercel.
-- **SKILL.md** gains a top-level "Interactive Selection (default for every page)" section that documents the runner, the required follow-up template, the boilerplate every page needs (`<script src="ve-runtime.js"></script>` + `data-ve-id` on meaningful elements), table-form mode, and graceful-degradation paths.
-
-### Requirements
-
-- Python 3 is now required for the interactive selection runner (pre-installed on macOS and most Linux distributions).
-- A Chromium-based browser (Chrome, Edge, Brave, Chromium, Vivaldi, Arc) is strongly recommended for the auto-close behaviour. The runner gracefully degrades to the default browser otherwise.
-
-## [0.7.1] - 2026-04-27
-
-### Compatibility
-- Added first-class Pi package metadata so `pi install` can load the canonical `plugins/visual-explainer/` skill and command templates directly from the repo.
-- Preserved the Claude Code marketplace layout while synchronizing package and plugin manifest versions to `0.7.1`.
-- Added lightweight harness guidance for Pi, Codex CLI, OpenCode/opencode, Cursor, and OpenClaw without duplicating skill directories or adding runtime adapters.
-- Documented migration cleanup for older manual Pi installs, which can otherwise shadow package resources with copied user-level skill and prompt files.
-
-### Changed
-- Completed the hard cutover from `/share` to `/share-page` by removing the deprecated command template and updating docs and installer output.
-- Removed `{{skill_dir}}` placeholders from canonical skill docs; share instructions now resolve `share.sh` from the installed `visual-explainer` skill directory.
-- Made `pi install` the primary Pi installation path while keeping the legacy installer documented as an explicit copied-file alternative.
-
-## [0.6.3] - 2026-03-09
-
-### Documentation
-- Added explicit warning against using bare `<pre class="mermaid">` tags — they render but produce tiny unusable diagrams without zoom/pan controls. Updated SKILL.md to point to the full `diagram-shell` pattern from `templates/mermaid-flowchart.html`.
-
-## [0.6.2] - 2026-03-08
-
-### Bug Fixes
-- Fixed fullscreen diagram export using wrong background color — now uses the same dark/light mode that was used to render the Mermaid theme
-
-## [0.6.1] - 2026-03-08
-
-### Pi Install Script
-- New `install-pi.sh` for one-command installation
-- Automatically patches `{{skill_dir}}` to actual install path
-- Usage: `curl -fsSL https://raw.githubusercontent.com/nicobailon/visual-explainer/main/install-pi.sh | bash`
-
-## [0.6.0] - 2026-03-08
-
-Based on PR #25 by [@peak-flow](https://github.com/peak-flow), with additional multi-diagram architecture and bug fixes.
-
-### Multi-Diagram Support
-- New vector-based zoom/pan engine replacing CSS `zoom` with direct SVG sizing
-- Closure-based `initDiagram(shell)` pattern — per-diagram state in closures, shared drag listeners at module scope
-- Unlimited diagrams per page with no ID collisions (each diagram gets a unique generated ID)
-- New HTML structure: `.diagram-shell` > `.mermaid-wrap` > `.mermaid-viewport` > `.mermaid-canvas`
-- Source Mermaid code lives in `<script type="text/plain" class="diagram-source">` to avoid parsing issues
-- Adaptive viewport height based on diagram aspect ratio
-- Smart fit algorithm with readability floor (prevents tiny unreadable diagrams)
-- New zoom controls: 1:1 button, zoom percentage label
-- Touch pinch-to-zoom support with proper pan transition
-- Double-click to fit diagram
-
-### Bug Fixes
-- Fixed touch pinch→pan transition (reset start coords after pinch ends)
-- Removed dead `fitZoom` variable from previous implementation
-- Removed 12 lines of dead scrollbar CSS (no longer needed with new viewport approach)
-
-### Documentation
-- Updated `css-patterns.md` with new multi-diagram structure and JavaScript pattern
-- Simplified Mermaid section to reference `mermaid-flowchart.html` as canonical source
-
-## [0.5.1] - 2026-03-05
-
-### Claude Code Marketplace Structure
-- Restructured repo to follow Claude Code's official plugin marketplace spec
-- Moved all skill files into `plugins/visual-explainer/` subdirectory
-- Added `.claude-plugin/marketplace.json` catalog for marketplace discovery
-- Plugin manifest now at `plugins/visual-explainer/.claude-plugin/plugin.json`
-- Install via marketplace: `/plugin marketplace add nicobailon/visual-explainer` then `/plugin install visual-explainer@visual-explainer-marketplace`
-
-### Pi Manual Install
-- Replaced `pi install` one-liner with manual installation instructions
-- Pi users now clone repo and copy skill + prompts to `~/.pi/agent/skills/` and `~/.pi/agent/prompts/`
-- Removed stale `pi` field from `package.json` (was pointing to non-existent root paths)
-
-### OpenAI Codex Install Fix
-- Fixed prompts path: `~/.codex/prompts/` (was incorrectly `~/.agents/commands/`)
-- Prompts are optional (deprecated feature) — skill works without them via `$visual-explainer`
-- With prompts installed, invoke as `/prompts:diff-review`, `/prompts:plan-review`, etc.
-
-### Breaking Changes
-- Direct Claude Code plugin install (`/plugin install https://...`) no longer works — use marketplace flow instead
-- `pi install https://github.com/nicobailon/visual-explainer` no longer works — use manual install
-
-## [0.5.0] - 2026-03-04
-
-### Class Diagram and C4 Architecture Support
-- Added `classDiagram` guidance for OOP design and domain modeling
-- Documented relationships: association, composition, aggregation, inheritance
-- Added C4 architecture support using `graph TD` + `subgraph` (not native `C4Context` which ignores themes)
-- Added `.dir-tree` CSS pattern for file structures with tree connectors
-- Added quick-reference table for choosing Mermaid diagram types
-
-### Claude Code Plugin Support
-- Added `.claude-plugin/plugin.json` manifest for Claude Code plugin installation
-- Renamed `prompts/` to `commands/` (compatible with both pi and Claude Code)
-- Claude Code: `claude /plugin install https://github.com/nicobailon/visual-explainer`
-- Note: Claude Code namespaces commands as `/visual-explainer:command-name`
-
-### OpenAI Codex Support
-- Added install instructions for OpenAI Codex to README
-- Uses `~/.agents/skills` and `~/.agents/commands` paths
-
-### Share Command
-- New `/share` prompt and `scripts/share.sh` for instant sharing of visual explainer pages
-- Uses vercel-deploy skill — no account or authentication required
-- Zero-friction: just `bash scripts/share.sh mypage.html` → live URL in seconds
-- Returns claimable deployment (can transfer to your Vercel account later)
-- JSON output for programmatic use
-
-### Bug Fixes
-- Fixed pi skill loading: scoped `pi.skills` to `./SKILL.md` instead of `./` (was trying to load README.md and CHANGELOG.md as skills)
-- Fixed Mermaid line breaks: use `<br/>` instead of `\n` in flowchart labels (renders as literal text otherwise)
-- Fixed `mermaid-flowchart.html` to match documented pattern: moved flex centering from `.mermaid-wrap .mermaid` to `.mermaid-wrap`, added `min-height: 400px`
-- Fixed `share.sh` to properly capture and display deployment errors (was silently exiting due to `set -e`)
-
-## [0.4.5] - 2026-03-04
-
-### Click-to-Expand Mermaid Diagrams
-- Clicking anywhere on a Mermaid diagram (without dragging) opens it full-size in a new browser tab
-- Added expand button (⛶) to zoom controls for discoverability
-- New `openMermaidInNewTab()` and `openDiagramFullscreen()` functions in the Mermaid JavaScript pattern
-- Click detection distinguishes quick clicks from drag-to-pan (5px movement threshold, 300ms time threshold)
-- Full-size view preserves the page's background color for visual consistency
-- Updated all templates (`mermaid-flowchart.html`, `slide-deck.html`) with new pattern
-- Updated `css-patterns.md` and `slide-patterns.md` documentation
-
-### Bug Fixes
-- Removed unused `text` variable in `openMermaidInNewTab()` function
-- Removed unused `e` parameter in mouseup handlers
-- Fixed inconsistent zoom range limits (standardized to 0.5x–5x across all files)
-- Removed dead CSS `.mermaid-wrap.is-zoomed` rule (class was never applied by JavaScript)
-- Removed dead CSS `transition: transform` on `.mermaid` (zoom property is not animatable)
-- Added missing `cursor: grab` to base `.mermaid-wrap` selector in templates
-- Added missing flex centering (`display: flex; justify-content: center; align-items: center`) to `.mermaid-wrap` in `slide-deck.html`
-- Updated `SKILL.md` to explicitly mention the click-to-expand feature and expand button so agents include it when generating pages
-- Updated all prompt templates (`diff-review.md`, `plan-review.md`, `project-recap.md`, `generate-visual-plan.md`) to specify the expand button and click-to-expand functionality for Mermaid diagrams
-
-## [0.4.3] - 2026-03-01
-
-### Mermaid Zoom and Positioning Fixes
-- **Fixed zoom clipping**: Replaced `transform: scale()` with CSS `zoom` property. Transform only changes visual appearance — content expanding upward/leftward goes into negative space which can't be scrolled to. Zoom changes actual layout size, so overflow scrolls normally in all directions.
-- **Fixed vertical centering**: Changed `align-items: flex-start` to `align-items: center` so diagrams are centered both horizontally and vertically in their container.
-- **Added initial zoom**: Complex diagrams can start at zoom > 1 (e.g., 1.4x) for better readability while keeping zoom controls functional.
-- **Added min-height**: Containers now have `min-height: 400px` to prevent vertical flowcharts from compressing into unreadable thumbnails.
-- Removed unnecessary `.mermaid-inner` wrapper — no longer needed with zoom-based approach.
-- Updated JavaScript to use `INITIAL_ZOOM` constant for consistent reset behavior.
-- Updated "Scaling Small Diagrams" section to use `zoom` instead of `transform: scale()` for consistency.
-
-## [0.4.4] - 2026-03-02
-
-### Hybrid Architecture Pattern
-- New pattern for complex architectures (15+ elements): simple Mermaid overview (5-8 nodes) + CSS Grid cards for details
-- Updated "Architecture / System Diagrams" section in SKILL.md with three-tier approach based on complexity
-- Reduced max Mermaid node count from 15-20 to 10-12 in `libraries.md`
-- Updated Mermaid scaling guidance to recommend hybrid pattern over scaling tricks for complex diagrams
-
-## [0.4.2] - 2026-03-01
-
-### Link Styling
-- New "Link Styling" section in `css-patterns.md` — never rely on browser default link colors; use accent colors with sufficient contrast
-
-## [0.4.1] - 2026-03-01
-
-### Mermaid Layout Direction
-- New "Layout Direction: TD vs LR" section in `libraries.md`
-- Prefer `flowchart TD` (top-down) over `flowchart LR` (left-to-right) for complex diagrams
-- LR spreads horizontally and makes labels unreadable with many nodes
-- Rule: use TD for 5+ nodes or any branching; LR only for simple 3-4 node linear flows
-
-### Documentation
-- Simplified README: trimmed Usage section, consolidated Install, added Slide Deck Mode section
-- Added `/generate-visual-plan` to command table
-
-## [0.4.0] - 2026-02-28
-
-### New Prompt Template
-- `/generate-visual-plan` — generate visual implementation plans for features and extensions. Produces editorial/blueprint-style HTML pages with problem comparison panels, state machine diagrams, code snippets, edge case tables, and implementation notes. Designed for documenting feature specs before implementation.
-
-### Prose Accent Patterns
-Added patterns for use as accent elements within visual pages.
-
-**`css-patterns.md`** — New "Prose Page Elements" section:
-- Body text settings (font-size, line-height, max-width for comfortable reading)
-- Lead paragraph patterns (larger size, drop cap variants)
-- Pull quotes (border-left, centered with quotation mark)
-- Section dividers (horizontal rule, ornamental)
-- Article hero patterns (centered, editorial)
-- Author byline pattern
-- Prose-specific anti-patterns
-
-**`libraries.md`** — New "Typography by Content Voice" section:
-- Font recommendations by content type (literary, technical, bold, minimal)
-- Special mention of Literata for screen reading
-
-**`SKILL.md`** — New sections:
-- "Prose Accent Elements" — when to use lead paragraphs, pull quotes, callouts
-- "Documentation" — content-to-visual mapping (features→cards, steps→flows, APIs→tables)
-
-### Overflow Fix: List Markers in Bordered Containers
-- `css-patterns.md`: New section "List markers overlapping container borders" with three solutions
-- Rule of thumb: use `list-style-position: inside` or `padding-left: 2em` for lists in bordered containers
-
-### Mermaid Fixes
-- Centering: narrow vertical flowcharts must be centered, not left-aligned
-- Scaling: complex diagrams with 10+ nodes render too small — increase fontSize to 18-20px or use CSS scale transform
-- Special characters: node labels starting with `/`, `\`, `(`, `{` must be quoted to avoid shape syntax conflicts
-- New "Scaling Small Diagrams" section in css-patterns.md
-- New "Node Label Special Characters" section in libraries.md
-
-### Code Block Patterns
-- `css-patterns.md`: New "Code Blocks" section with:
-  - Basic pattern with `white-space: pre-wrap` (critical for preserving line breaks)
-  - File header pattern for displaying code with filename
-  - Implementation plan guidance: don't dump full files, show structure instead
-- `SKILL.md`: New "Implementation Plans" section with structure guidance
-
-## [0.3.0] - 2026-02-26
-
-### Anti-Slop Guardrails
-- Added explicit "Anti-Patterns (AI Slop)" section to SKILL.md with forbidden patterns
-- Removed "Neon dashboard" and "Gradient mesh" from allowed aesthetics — they always produce generic output
-- Categorized aesthetics as "Constrained" (safer) vs "Flexible" (use with caution)
-- Explicit forbidden fonts: Inter, Roboto, Arial, Helvetica, system-ui as primary
-- Explicit forbidden colors: indigo/violet range (`#8b5cf6`, `#7c3aed`, `#a78bfa`), cyan-magenta-pink combination
-- Explicit forbidden effects: gradient text on headings, animated glowing box-shadows, emoji section headers
-- Added "The Slop Test" — 7-point checklist to catch AI-generated patterns before delivery
-- Strengthened typography guidance with 5 explicit good pairings to use
-- Strengthened color guidance with 5 explicit good palettes to use
-- Referenced `websocket-implementation-plan.html` as positive example of Blueprint aesthetic
-
-### Template Fixes
-- Replaced violet secondary colors in `mermaid-flowchart.html` with sky blue to match anti-slop guidelines
-- Updated Mermaid themeVariables example in `libraries.md` to use teal/slate palette instead of violet
-
-## [0.2.0] - 2026-02-25
-
-### Slide Deck Mode
-- New output format: magazine-quality slide deck presentations as self-contained HTML files
-- 10 slide types: Title, Section Divider, Content, Split, Diagram, Dashboard, Table, Code, Quote, Full-Bleed
-- SlideEngine JS: keyboard/touch/wheel navigation, progress bar, nav dots, slide counter, keyboard hints with auto-fade
-- Cinematic transitions: fade + translateY + scale on slide entrance, staggered child reveals via IntersectionObserver
-- 4 curated presets: Midnight Editorial, Warm Signal, Terminal Mono, Swiss Clean (each with full light/dark palette)
-- Event delegation: Mermaid zoom, scrollable code/tables don't trigger slide navigation
-- Responsive height breakpoints (700px, 600px, 500px) for projection and small viewports
-- Typography scale 2–3× larger than scrollable pages (80–120px display, 28–48px headings, 16–24px body)
-- Per-slide background variation, SVG decorative accents, compositional variety rules
-- Proactive imagery: surf-cli integration for title/full-bleed backgrounds, inline sparklines, mini-charts
-- New `/generate-slides` prompt template; existing prompts support `--slides` flag via SKILL.md workflow
-- Unified `autoFit()` post-render function: auto-scales Mermaid SVGs, KPI values, and long blockquotes to fit their containers
-- Fix Mermaid diagrams rendering tiny in slide containers (flex shrink-wrap + inline max-width)
-- Fix KPI card overflow for text values (white-space + transform scale)
-- Fix quote slides with long text (proportional font-size reduction)
-
-### Files
-- `references/slide-patterns.md` — slide engine CSS, all 10 type layouts, transitions, nav chrome, content density limits, presets
-- `templates/slide-deck.html` — reference template demonstrating all 10 types in Midnight Editorial preset
-- `prompts/generate-slides.md` — slash command for generating slide decks
-- `SKILL.md` — new "Slide Deck Mode" section with slide routing, `--slides` flag detection, visual richness guidance
-
-## [0.1.4] - 2026-02-24
-
-- Removed Mermaid `handDrawn` mode — Rough.js hachure fills are hardcoded and render unreadable diagonal scribbles inside nodes with no user-facing override. All diagrams now use `look: 'classic'` with custom `themeVariables` for visual distinction.
-- Added `package.json` for `pi install` support — installs the skill and all slash commands in one step instead of `git clone` + manual `cp`
-
-## [0.1.3] - 2026-02-24
-
-- Extended `classDef` color warning to also cover per-node `style` directives — both hardcode text color that breaks in the opposite color scheme
-- Renamed `.node` card classes to `.ve-card` to fix CSS collision with Mermaid's internal `.node` class that broke diagram layout (PR #7)
-
-## [0.1.2] - 2026-02-19
-
-- Added sequence diagram syntax guidance to "Writing Valid Mermaid" — curly braces, brackets, and ampersands in message labels silently break rendering
-
-## [0.1.1] - 2026-02-19
-
-- Prompts no longer require the `pi-prompt-template-model` extension — each prompt now explicitly loads the skill itself
-- Added "Writing Valid Mermaid" section to `libraries.md` (quoting special chars, simple IDs, max node count, arrow styles, pipe escaping)
-- Fixed mobile scroll offset in `responsive-nav.md` — section headings now clear the sticky nav bar via `scroll-margin-top`
-- Added video preview to README
-
-## [0.1.0] - 2026-02-16
-
-Initial release.
-
-### Skill
-- Core workflow: Think (pick aesthetic) → Structure (read template) → Style (apply design) → Deliver (write + open)
-- 11 diagram types with rendering approach routing (Mermaid, CSS Grid, HTML tables, Chart.js)
-- 9 aesthetic directions (monochrome terminal, editorial, blueprint, neon, paper/ink, sketch, IDE-inspired, data-dense, gradient mesh)
-- Mermaid deep theming with `theme: 'base'` + `themeVariables`, hand-drawn mode, ELK layout
-- Zoom controls (buttons, scroll-to-zoom, drag-to-pan) required on all Mermaid containers
-- Proactive table rendering — agent generates HTML instead of ASCII for complex tables
-- Optional AI-generated illustrations via surf-cli + Gemini Nano Banana Pro
-- Both light and dark themes via CSS custom properties and `prefers-color-scheme`
-- Quality checks: squint test, swap test, overflow protection, zoom controls verification
-
-### References
-- `css-patterns.md` — theme setup, depth tiers, node cards, grid layouts, data tables, status badges, KPI cards, before/after panels, connectors, animations (fadeUp, fadeScale, drawIn, countUp), collapsible sections, overflow protection, generated image containers
-- `libraries.md` — Mermaid (CDN, ELK, deep theming, hand-drawn mode, CSS overrides, diagram examples), Chart.js, anime.js, Google Fonts with 13 font pairings
-- `responsive-nav.md` — sticky sidebar TOC on desktop, horizontal scrollable bar on mobile, scroll spy
-
-### Templates
-- `architecture.html` — CSS Grid card layout, terracotta/sage palette, depth tiers, flow arrows, pipeline with parallel branches
-- `mermaid-flowchart.html` — Mermaid flowchart with ELK + handDrawn mode, teal/cyan palette, zoom controls
-- `data-table.html` — HTML table with KPI cards, status badges, collapsible details, rose/cranberry palette
-
-### Prompt Templates
-- `/generate-web-diagram` — generate a diagram for any topic
-- `/diff-review` — visual diff review with architecture comparison, KPI dashboard, code review, decision log
-- `/plan-review` — plan vs. codebase with current/planned architecture, risk assessment, understanding gaps
-- `/project-recap` — project mental model snapshot for context-switching
-- `/fact-check` — verify factual accuracy of review pages and plan docs against actual code
+## [1.0.0] — 2026-05-08
+
+First release under the `ai-maestro-visual-communicator` identity. Forked from
+[`nicobailon/visual-explainer`](https://github.com/nicobailon/visual-explainer)
+v0.8.0; see that project's CHANGELOG for the pre-fork history of the v0.x
+selection runtime, prose / table / math / TikZ rendering, and Graphviz +
+viz.js wiring on which v1.0.0 builds.
+
+### Identity
+
+- **Plugin renamed**: `visual-explainer` → `ai-maestro-visual-communicator`.
+  Now part of the [`Emasoft/ai-maestro-plugins`](https://github.com/Emasoft/ai-maestro-plugins)
+  marketplace.
+- **Slash command namespace**: every `/visual-explainer:X` becomes
+  `/aimvc-X`. Ten commands renamed in lock-step: `aimvc-diff-review`,
+  `aimvc-fact-check`, `aimvc-generate-slides`, `aimvc-generate-visual-plan`,
+  `aimvc-generate-web-diagram`, `aimvc-interactive-report`,
+  `aimvc-plan-review`, `aimvc-project-recap`, `aimvc-respond-to-comment`,
+  `aimvc-share-page`.
+- **Repository layout flattened**. The v0.x layout shipped the plugin
+  under `plugins/visual-explainer/` and a wrapper `marketplace.json` at
+  the root. v1.0.0 is a single-plugin repo: `.claude-plugin/plugin.json`
+  is the manifest, `commands/`, `scripts/`, `templates/`, `references/`,
+  and `tests/` are siblings of `SKILL.md`. The nested marketplace is gone.
+- **Author + repository**: Emasoft `<713559+Emasoft@users.noreply.github.com>`,
+  source at `https://github.com/Emasoft/ai-maestro-visual-communicator-plugin`.
+
+### v2 modal-comment threads on agent reports (new in this fork)
+
+`/aimvc-interactive-report <report.md>` renders any agent's report as an
+HTML page where every paragraph, list item, table row, and `<pre>` block
+is **commentable**. The user hovers, clicks a pill, types a comment in a
+right-aligned modal, and the agent (running `/aimvc-respond-to-comment
+--watch --queue-dir <q> --source <report.md>` in a separate session)
+writes per-turn replies into a queue dir that the page polls.
+
+- Hover-bridge pattern (180 ms timer + cancel-on-bridge-mouseover) so the
+  hover pill is physically reachable when the pointer crosses the gap from
+  anchor to pill.
+- Polling resume on reopen — closing the modal while a reply is
+  outstanding is safe; reopening restarts the poll loop for the pending
+  agent turn.
+- Atomic save of pending placeholder — pushing the pending agent turn
+  before `saveThreadToStorage` so a refresh between SEND and reply
+  arrival preserves the pending state, defeating the data-loss window.
+- Stale-state self-detection — fetches that complete after the modal
+  closes (or a different anchor's thread opens) bail without crashing
+  via an `ownThreadId` guard captured at poll-start.
+- Per-thread `localStorage` persistence (`ve-comment-thread:<commentId>`)
+  + sidecar `<report>.idmap.json` mapping `commentId → {kind, sectionId,
+  text}` so the responder can dereference unknown ids without re-reading
+  the source doc every round.
+
+The full wire format and responder workflow are documented in `SKILL.md`
+under "Interactive Agent Reports & Modal Comments (v2)".
+
+### Vendored regex-vis edit-panel fixes
+
+The embedded `vendor/regex-vis/` (regex visualizer used by
+`<div class="ve-regex">`) shipped with three quietly-broken edit-panel
+behaviors that v1.0.0 fixes:
+
+- **Per-mount undo/redo history.** Module-level `undoStack` / `redoStack`
+  arrays were shared across every `.ve-regex` mount on the page —
+  pressing ⌘Z on graph A could pop history pushed by graph B and corrupt
+  its AST. Replaced with Jotai atoms (`undoStackAtom`, `redoStackAtom`)
+  scoped to each `<Provider store={createStore()}>`.
+- **⌘⇧Z (redo) silently no-op.** The Shift modifier case-shifts
+  `KeyboardEvent.key` from `'z'` to `'Z'`. The strict equality check
+  `key === 'z'` therefore never matched the redo combo. Now
+  case-insensitive.
+- **Shift+click multi-select.** The empty-state placeholder advertised
+  "Hold shift while clicking to extend the selection," but the click
+  handler ignored `event.shiftKey` and always replaced. New
+  `toggleSelectNodeAtom` toggles a single id in/out of `selectedIdsAtom`;
+  Backspace removes the entire multi-selection at once.
+- **Wide-regex per-graph horizontal scroll.** Stress regexes with SVG
+  widths 1150–1580 px previously pushed the page width past the viewport.
+  `.ve-regex-app` is now `overflow: hidden; max-width: 100%`; the inner
+  graph wrapper opts back into `overflow-x: auto` and shrinks to fit.
+
+### Formal dev-browser test suite
+
+`tests/run-all-tests.sh` now exercises every fixed bug end-to-end via
+[dev-browser]. 28 named tests across two suites:
+
+- `tests/scripts/test-regex-panels.js` — every panel surface R1–R22,
+  per-mount undo/redo (incl. ⌘⇧Z), shift+click multi-select, wide-regex
+  overflow.
+- `tests/scripts/test-comment-modal.js` — hover-bridge, POST round-trip,
+  polling reply, polling resume on reopen, atomic pending save,
+  multi-turn dialogue, draft preservation, ESC/DONE close, every
+  commentable element type (`p`, `li`, `tr`, `pre`).
+
+The orchestrator (`tests/run-tests.py`) auto-syncs the production
+bundle into fixtures/, regenerates the sample report via the renderer,
+boots `tests/server.py` (production endpoints + a TEST-ONLY
+`/__ve-test-reply` for the QuickJS sandbox to inject reply files),
+and prints a Unicode-bordered results table tolerating empty-detail
+trailing whitespace.
+
+### Hardening
+
+- `pollForCommentReply` now captures `ownThreadId` at poll-start;
+  every async continuation self-detects a stale closure (modal closed
+  or different thread opened during fetch) and bails without crashing.
+- `tests/server.py` validates `threadId` against `[A-Za-z0-9._-]+`
+  before interpolating into queue filenames; bad payloads return 400.
+- `tests/run-tests.py` cleans the queue between scripts so residue
+  from one suite cannot leak into another.
+
+### Lessons (extracted from real bug hunts)
+
+- `~/.claude/rules/browser-ui-test-techniques.md` — 12 reusable
+  techniques (real mouse paths, hover-bridge, per-instance state,
+  case-insensitive Shift keys, atomic save, polling resume, bundle
+  sync, test-only endpoints, ps snapshot, table format, dynamic
+  targets, three-place verification).
+- `references/runtime-bug-patterns.md` — catalogue of every bug class
+  fixed in this codebase, paired with the regression test that locks
+  the fix in place.
+- `SKILL.md` — new "Interactive Agent Reports & Modal Comments (v2)"
+  section integrates the full responder workflow into the skill so
+  any Claude that loads `ai-maestro-visual-communicator` learns the
+  answer/reply contract automatically.
+
+[dev-browser]: https://www.npmjs.com/package/dev-browser

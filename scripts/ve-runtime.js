@@ -1,0 +1,5005 @@
+/*!
+ * ai-maestro-visual-communicator interactive selection runtime.
+ *
+ * Embed this script (inline or referenced) in every generated HTML page so
+ * a single click on any element marked with `data-ve-id` returns the
+ * selection to the calling agent and closes the window.
+ *
+ * Marking elements:
+ *   <div data-ve-id="card-auth"
+ *        data-ve-type="card"
+ *        data-ve-label="Auth service">…</div>
+ *
+ *   - data-ve-id    (required) opaque identifier the agent receives back
+ *   - data-ve-type  (optional) category hint: card, table-row, table-cell,
+ *                   chart-point, mermaid-node, slide, file, kpi, timeline,
+ *                   section, etc.
+ *   - data-ve-label (optional) human-readable label shown to the user;
+ *                   defaults to the element's trimmed text content
+ *   - data-ve-data  (optional) JSON string with extra context the agent
+ *                   should receive (e.g. row/col indices, file path, value)
+ *
+ * Mermaid integration:
+ *   In a Mermaid diagram body, append `click <NodeId> call veSelectMermaid("<NodeId>","<Label>")`
+ *   for every node you want clickable. veSelectMermaid is exposed on window.
+ *
+ * Chart.js integration:
+ *   After `new Chart(...)`, call `veWireChart(chartInstance, {id: "revenue"})`.
+ *
+ * Custom payloads:
+ *   Call `window.veSelect({id, type, label, data})` from any handler.
+ *
+ * Math / LaTeX:
+ *   <span class="ve-math">E = mc^2</span>            (inline)
+ *   <div  class="ve-math ve-math--block">\int_0^1 x^2\,dx = \tfrac13</div>
+ *   <span class="ve-math ve-math--chem">H2O + CO2 -> H2CO3</span>
+ *   <span class="ve-math" data-tex="\\sum_{i=1}^n i^2">…fallback…</span>
+ *
+ *   The runtime lazy-loads KaTeX (+ mhchem for --chem) from CDN the first
+ *   time any `.ve-math` / `[data-ve-math]` element is found, renders each,
+ *   and tags it as `data-ve-type="math-formula"` so a click selects the
+ *   whole formula. Mouse text-highlighting inside a rendered formula
+ *   activates the snippet popup with `type=math-snippet`; the payload
+ *   includes the visible selection plus the full formula's LaTeX so the
+ *   agent can act on a single variable / sub-term.
+ *
+ * TikZ diagrams (chemistry structures, physics, thermodynamic cycles, Venn,
+ * geometry, circuits, Feynman, anything TikZ can express):
+ *   <div class="ve-tikz">
+ *     \begin{tikzpicture}
+ *       \draw (0,0) circle (1cm);
+ *     \end{tikzpicture}
+ *   </div>
+ *
+ *   Lazy-loads TikZJax (a WASM port of TikZ) from CDN the first time any
+ *   `.ve-tikz` / `[data-ve-tikz]` element is found. Includes pgfplots,
+ *   chemfig (\chemfig{H_2O}), physics, circuitikz, tkz-euclide, and most
+ *   common TikZ libraries. The rendered <svg> output replaces the wrapper.
+ *   Each rendered diagram becomes `data-ve-type="tikz-diagram"` (whole
+ *   diagram click) and mouse-highlight inside its SVG fires the snippet
+ *   popup with `type=tikz-snippet` carrying the user's visible selection
+ *   plus the full TikZ source.
+ *
+ * Directed graphs (Graphviz / DOT, lazy-loaded via viz.js WASM):
+ *   <div class="ve-graph" data-ve-graph-engine="dot">
+ *     digraph G {
+ *       rankdir=LR;
+ *       start  [id="ve-node-start",  label="Start"];
+ *       proc   [id="ve-node-proc",   label="Process"];
+ *       done   [id="ve-node-done",   label="Done"];
+ *       start -> proc -> done;
+ *       proc  -> start [id="ve-edge-loop", label="retry"];
+ *     }
+ *   </div>
+ *
+ *   Lazy-loads @viz-js/viz (~1 MB WASM) the first time a `.ve-graph`
+ *   element is found, renders the DOT source to SVG via `dot` (default,
+ *   best for directed graphs) or any other Graphviz engine via the
+ *   `data-ve-graph-engine` attribute (`dot | neato | fdp | sfdp | circo |
+ *   twopi | osage | patchwork`). After render, the runtime walks the SVG
+ *   and any `<g class="node">` / `<g class="edge">` whose DOT id starts
+ *   with `ve-` becomes a `data-ve-id` selectable (`graph-node` /
+ *   `graph-edge`). The whole graph is selectable by clicking outside any
+ *   tagged node/edge. When even `dot` doesn't produce a clean layout,
+ *   fall back to the manual-grid pattern: a `.ve-tikz` wrapper with
+ *   `\node at (col, row) {...};` + `\draw[rounded corners]` for
+ *   Manhattan-routed edges, plus `data-ve-tikz-regions` for semantic
+ *   node selection.
+ *
+ * Semantic geometric regions over TikZ diagrams:
+ *   <div class="ve-tikz"
+ *        data-ve-tikz-viewbox="-1 -6 10 9"
+ *        data-ve-tikz-regions='[
+ *          {"id":"square-hyp", "label":"Square upon the hypotenuse",
+ *           "shape":"polygon",
+ *           "points":[[5,3],[2,7.2],[-1.83,4.2],[1.17,0]]},
+ *          {"id":"incircle", "label":"Incircle of triangle ABC",
+ *           "shape":"circle","cx":2.5,"cy":1,"r":0.8}
+ *        ]'>
+ *     \begin{tikzpicture}…\end{tikzpicture}
+ *   </div>
+ *
+ *   The runtime waits for TikZJax to render, then overlays an invisible
+ *   <svg> with one shape per region. Hover highlights the region; click
+ *   returns the SEMANTIC identity (regionId + label) to the agent — never
+ *   "path[d=…]" without meaning. Payload type is `geometric-region` and
+ *   includes the full TikZ source for context. Regions take precedence
+ *   over the whole-diagram click because the runtime resolves the
+ *   innermost [data-ve-id] ancestor at the click target.
+ *
+ *   Add `data-ve-tikz-debug="1"` to draw the regions visibly so the
+ *   author can verify they line up with the rendered geometry.
+ *
+ * Prose mode (paragraph numbering + text-snippet selection):
+ *   <article data-ve-prose>
+ *     <h1>Title</h1>
+ *     <p>Lead paragraph…</p>
+ *     <h2>Section</h2>
+ *     <p>Content…</p>
+ *   </article>
+ *
+ *   Inside [data-ve-prose] the runtime walks the DOM, assigns hierarchical
+ *   numbers (1, 1.1, 1.1.1, 1.1.2 …) to each heading and paragraph, and
+ *   inserts a small monospace marker at the start of each. Every numbered
+ *   element becomes a selectable [data-ve-id] (type=section / paragraph)
+ *   so a click selects the whole element.
+ *
+ *   When the user highlights a text snippet (mouse selection) inside the
+ *   prose container, a floating "Ask about this snippet" button appears
+ *   above the selection. Clicking it submits:
+ *     { id: "ve-snippet-<pnum>-<n>", type: "text-snippet",
+ *       label: "<truncated snippet>",
+ *       data: { text, paragraphId, paragraphNumber, paragraphText } }
+ *
+ * Table-as-question (form selection):
+ *   <table data-ve-id="opts" data-ve-type="table-form" data-ve-mode="single|multi"
+ *          data-ve-label="Pick one">
+ *     <tbody>
+ *       <tr data-ve-row-id="opt-1" data-ve-row-label="React">…</tr>
+ *       <tr data-ve-row-id="opt-2" data-ve-row-label="Svelte">…</tr>
+ *       <tr data-ve-row-id="__text" data-ve-row-text="1"
+ *           data-ve-row-label="Other"><td colspan="2">
+ *         <input type="text" placeholder="Write something else here:">
+ *       </td></tr>
+ *     </tbody>
+ *   </table>
+ *
+ *   The runtime injects a leading <th>/<td> with a radio (mode=single) or
+ *   checkbox (mode=multi) into every <tr> and a Submit button in the
+ *   <tfoot>. Clicking anywhere in a row toggles its control. Typing into
+ *   the free-text row auto-selects it. Submit (or Enter inside the text
+ *   input) returns:
+ *     { id: "<tableId>-submit",
+ *       type: "table-form",
+ *       label: "<2 options>",
+ *       data: { tableId, mode, selected: [{id,label}…], text: "…" | null } }
+ *
+ * Transport:
+ *   The runtime POSTs the selection to /__ve-select on the same origin.
+ *   That endpoint is provided by scripts/ve-select.py; when the page is
+ *   opened directly via file:// the runtime falls back to a copy-to-
+ *   clipboard overlay so the user can paste the JSON back to the agent.
+ */
+(function () {
+  if (window.__veInit) return;
+  window.__veInit = true;
+
+  var params = new URLSearchParams(location.search);
+  var loc = location.origin || '';
+  var isInteractive =
+    params.get('ve_select') === '1' ||
+    /^https?:\/\/(127\.0\.0\.1|localhost)(:|$)/i.test(loc);
+
+  var sending = false;
+
+  function buildOverlay() {
+    var el = document.createElement('div');
+    el.setAttribute('data-ve-overlay', '');
+    el.style.cssText = [
+      'position:fixed', 'inset:0',
+      'display:flex', 'align-items:center', 'justify-content:center',
+      'background:rgba(8,10,14,0.72)',
+      'backdrop-filter:blur(6px)', '-webkit-backdrop-filter:blur(6px)',
+      'z-index:2147483647',
+      'font:15px/1.5 system-ui,-apple-system,Segoe UI,sans-serif',
+      'color:#fff', 'padding:24px', 'text-align:center',
+      'animation:veFadeIn 160ms ease-out both'
+    ].join(';');
+    var card = document.createElement('div');
+    card.style.cssText = [
+      'background:#15171c',
+      'border:1px solid rgba(255,255,255,0.08)',
+      'border-radius:14px',
+      'padding:24px 28px',
+      'max-width:560px',
+      'min-width:320px',
+      'box-shadow:0 20px 60px rgba(0,0,0,0.5)'
+    ].join(';');
+    el.appendChild(card);
+    document.body.appendChild(el);
+    return { root: el, card: card };
+  }
+
+  function injectStyles() {
+    if (document.getElementById('__ve-styles')) return;
+    var s = document.createElement('style');
+    s.id = '__ve-styles';
+    s.textContent = [
+      '@keyframes veFadeIn { from {opacity:0} to {opacity:1} }',
+      '@keyframes veSlideUp { from {opacity:0;transform:translateY(4px)} to {opacity:1;transform:translateY(0)} }',
+      '[data-ve-id] { cursor:pointer; transition:outline-color 120ms ease, box-shadow 120ms ease, filter 120ms ease; }',
+      // HTML elements with [data-ve-id]: rectangular outline on hover —
+      // matches their bbox geometry (cards, table rows, divs, etc.).
+      // Phase 1 of multi-select overhaul: hover and selected use the
+      // SAME accent colour (`--ve-accent`, page-overridable; defaults to
+      // currentColor for backwards compat). Hover adds a soft drop-shadow
+      // glow in the same colour; selected has a solid outline without
+      // the glow. This way the user sees one consistent "highlight"
+      // colour and the glow distinguishes "hover" from "already selected".
+      //
+      // The glow blur radius is small (4px) on purpose — wider blurs
+      // become a smeary band on long edges instead of a soft halo, and
+      // pages can always override per-element via their own CSS.
+      '[data-ve-id]:hover { outline:2px solid var(--ve-accent, currentColor); outline-offset:3px; filter: drop-shadow(0 0 4px var(--ve-accent, currentColor)); }',
+      '[data-ve-id]:focus-visible { outline:2px solid var(--ve-accent, currentColor); outline-offset:3px; }',
+      '[data-ve-id][data-ve-selected="1"] { outline:2px solid var(--ve-accent, currentColor); outline-offset:3px; }',
+      // Hover-on-selected (HTML elements): keep the glow active so the
+      // cursor still feels reactive over an already-picked element.
+      '[data-ve-id][data-ve-selected="1"]:hover { filter: drop-shadow(0 0 4px var(--ve-accent, currentColor)); }',
+      // SVG elements (Graphviz nodes/edges, geometric regions, etc.):
+      // a rectangular outline around a circle / arrow / path looks wrong,
+      // so suppress it and highlight the actual SHAPE instead. The
+      // brightness filter is the safe default that preserves the original
+      // colour palette; page-level CSS like `.ve-graph .node:hover circle`
+      // wins on specificity for palette-specific recolouring.
+      'svg [data-ve-id]:hover, svg [data-ve-id]:focus-visible, svg [data-ve-id]:hover *, svg [data-ve-id]:focus-visible *, svg [data-ve-id][data-ve-selected="1"], svg [data-ve-id][data-ve-selected="1"] * { outline:none !important; }',
+      // Hover: brightness boost + soft glow (drop-shadow). The glow is
+      // the visual signal that distinguishes hover from selected.
+      'svg g[data-ve-id]:hover > circle,',
+      'svg g[data-ve-id]:hover > ellipse,',
+      'svg g[data-ve-id]:hover > polygon,',
+      'svg g[data-ve-id]:hover > rect,',
+      'svg g[data-ve-id]:hover > path,',
+      'svg g[data-ve-id]:hover > polyline { filter: brightness(1.20) drop-shadow(0 0 4px var(--ve-accent, currentColor)); }',
+      // Selected: same brightness boost as hover (same colour intent),
+      // but NO glow — that absence is what tells the user "this is
+      // already in the set, hovering would re-glow it".
+      'svg g[data-ve-id][data-ve-selected="1"] > circle,',
+      'svg g[data-ve-id][data-ve-selected="1"] > ellipse,',
+      'svg g[data-ve-id][data-ve-selected="1"] > polygon,',
+      'svg g[data-ve-id][data-ve-selected="1"] > rect,',
+      'svg g[data-ve-id][data-ve-selected="1"] > path,',
+      'svg g[data-ve-id][data-ve-selected="1"] > polyline { filter: brightness(1.20); }',
+      // Hover-on-selected: the user is hovering an element they already
+      // picked. Re-introduce the glow so the cursor still feels reactive
+      // even on selected items. Without this combined-selector rule the
+      // selected-only filter wins (same specificity as :hover, declared
+      // later in the cascade) and the glow vanishes when the mouse moves
+      // back over an already-selected element.
+      'svg g[data-ve-id][data-ve-selected="1"]:hover > circle,',
+      'svg g[data-ve-id][data-ve-selected="1"]:hover > ellipse,',
+      'svg g[data-ve-id][data-ve-selected="1"]:hover > polygon,',
+      'svg g[data-ve-id][data-ve-selected="1"]:hover > rect,',
+      'svg g[data-ve-id][data-ve-selected="1"]:hover > path,',
+      'svg g[data-ve-id][data-ve-selected="1"]:hover > polyline { filter: brightness(1.20) drop-shadow(0 0 4px var(--ve-accent, currentColor)); }',
+      // Edge groups have a path + an arrowhead polygon. Hover and selected
+      // both thicken; only hover adds the glow (handled by the rules above).
+      'svg g.edge[data-ve-id]:hover > path { stroke-width: 2.4; opacity: 1; }',
+      'svg g.edge[data-ve-id]:hover > polygon { opacity: 1; }',
+      'svg g.edge[data-ve-id][data-ve-selected="1"] > path { stroke-width: 2.4; opacity: 1; }',
+      'svg g.edge[data-ve-id][data-ve-selected="1"] > polygon { opacity: 1; }',
+      // The hit-area twin path we inject (data-ve-hit="1") MUST stay
+      // permanently invisible — never inherits hover stroke / filter from
+      // page-level CSS. Without these !important resets, page CSS like
+      // `.ve-graph svg .edge:hover path { stroke: var(--gold); }` would
+      // override the twin\'s `stroke="transparent"` SVG attribute (CSS
+      // wins over presentation attributes), leaving TWO overlapping gold
+      // lines at the same coordinates → user sees a fat double / dashed
+      // edge instead of a clean highlight.
+      'svg path[data-ve-hit="1"] { stroke: transparent !important; fill: none !important; filter: none !important; }',
+      // Phase 2/3 — default highlight for multi-click text selections.
+      //
+      // The text colour is FORCED to a near-black tone (`--ve-sel-text`)
+      // because the highlight background is always a tint of the page's
+      // accent colour. When the accent is gold/amber/orange (a common
+      // editorial choice) and the page text is also a warm tone (e.g.
+      // dark mode using `--gold` for body text shadows), the page text
+      // colour and highlight tint sit close on the colour wheel and
+      // selected text becomes nearly unreadable. Forcing the selected
+      // text to near-black guarantees high contrast on every accent
+      // because the highlight tint, by being mixed with `transparent`,
+      // is always the LIGHTER end of the accent's luminosity range — and
+      // black contrasts well against any light tint regardless of hue.
+      //
+      // Pages that need to override (e.g. a dark-on-dark accent palette
+      // where black would be invisible) can set --ve-sel-text on :root
+      // to any contrasting tone.
+      ':root { --ve-sel-text: #14110b; }',
+      '.ve-text-sel {',
+      '  background: color-mix(in srgb, var(--ve-accent, #b8861f) 32%, transparent);',
+      '  color: var(--ve-sel-text);',
+      '  border-radius: 2px;',
+      '  padding: 0 1px;',
+      '  cursor: text;',
+      '}',
+      // Phase 3 — block-level highlight for depths 4-7 (paragraph,
+      // section, chapter, all). Lighter background than .ve-text-sel
+      // because it covers a much larger area and darker tones become
+      // overpowering. The data-ve-text-sel-block attribute carries the
+      // entryId, so multiple block selections can co-exist with
+      // independent IDs. Same forced text colour as .ve-text-sel.
+      '[data-ve-text-sel-block] {',
+      '  background: color-mix(in srgb, var(--ve-accent, #b8861f) 16%, transparent);',
+      '  color: var(--ve-sel-text);',
+      '  border-radius: 4px;',
+      '  outline: 1px solid color-mix(in srgb, var(--ve-accent, #b8861f) 50%, transparent);',
+      '  outline-offset: 2px;',
+      '}',
+      // Block-level selections recursively repaint descendant elements
+      // so their inherited colours don\'t override --ve-sel-text. Without
+      // this rule, a paragraph painted at depth 4 would have black
+      // outline + accent tint + still-original text colour because the
+      // paragraph\'s child elements (links, code spans, .ve-math nodes)
+      // each set their own `color`.
+      '[data-ve-text-sel-block] *:not([data-ve-pnum]) { color: inherit; }',
+      // Phase 3 — math sub-formula highlight for depths 1-3 inside
+      // .ve-math (atom, group, whole formula). Slightly brighter than the
+      // block highlight (since math atoms are tiny and need a sharper
+      // contrast to read), but still lighter than the prose .ve-text-sel
+      // because the highlight sits on top of KaTeX-rendered glyphs that
+      // can themselves be small. The selector is intentionally generic
+      // (not scoped to .ve-math) so it works even if the page wraps math
+      // in [data-ve-math] without the .ve-math class.
+      '[data-ve-math-sel] {',
+      '  background: color-mix(in srgb, var(--ve-accent, #b8861f) 24%, transparent);',
+      '  color: var(--ve-sel-text);',
+      '  border-radius: 3px;',
+      '  outline: 1px solid color-mix(in srgb, var(--ve-accent, #b8861f) 60%, transparent);',
+      '  outline-offset: 1px;',
+      '}',
+      // KaTeX renders glyphs with explicit `color` on inner spans (italic
+      // variables, operator glyphs, etc.). Force descendant inherit so
+      // the math selection actually wins.
+      '[data-ve-math-sel] * { color: inherit; }',
+      // Phase 3 — code highlight for <pre>/<code> blocks. Token (depth 1)
+      // and line (depth 2) selections are inline; block (depth 3) wraps
+      // the whole <pre>. Outline is brighter than the math selection
+      // because syntax-highlighted code typically already uses many
+      // colours, and a faint outline gets lost.
+      '[data-ve-code-sel] {',
+      '  background: color-mix(in srgb, var(--ve-accent, #b8861f) 22%, transparent);',
+      '  color: var(--ve-sel-text);',
+      '  border-radius: 3px;',
+      '  outline: 1px solid color-mix(in srgb, var(--ve-accent, #b8861f) 65%, transparent);',
+      '  outline-offset: 1px;',
+      '}',
+      // Prism / highlight.js use explicit `color` on per-token spans.
+      // Force descendants to inherit so the selection wins regardless of
+      // the syntax-highlight palette.
+      '[data-ve-code-sel] * { color: inherit; }',
+      // Block-level <pre> selection paints the whole block. Slightly
+      // darker tint than the inline code-sel because it covers a much
+      // larger area (full code block vs single token).
+      '[data-ve-code-sel-block] {',
+      '  background: color-mix(in srgb, var(--ve-accent, #b8861f) 14%, transparent);',
+      '  color: var(--ve-sel-text);',
+      '  border-radius: 6px;',
+      '  outline: 1.5px solid color-mix(in srgb, var(--ve-accent, #b8861f) 55%, transparent);',
+      '  outline-offset: 3px;',
+      '}',
+      '[data-ve-code-sel-block] * { color: inherit; }',
+      // Mermaid nodes (handled separately because their .node class isn\'t
+      // wrapped in [data-ve-id] until veSelectMermaid is wired):
+      '.mermaid .node { cursor:pointer; }',
+      '.mermaid .node:hover > * { filter:brightness(1.15); }',
+      '[data-ve-overlay] button { font:inherit; }',
+      // Paragraph-number marker in prose mode. Sized BIGGER than the
+      // body text (1.05em) and bold, because monospace glyphs render
+      // visually shorter than serif at the same point size — without the
+      // size bump the marker sits below the baseline and looks like a
+      // weak afterthought. The opacity stays modest (0.55) so the marker
+      // still recedes when the reader is focused on the prose; hover
+      // brightens it to 0.95 to confirm it\'s clickable.
+      // Numbering marker is INLINE — same font as the text it precedes,
+      // no border, no background, no monospace shift. The reader sees
+      // "1.1.2 The Report" as one phrase, not as a UI badge attached to
+      // a heading. Color slightly dimmed (0.75) so the prose dominates
+      // visually but the marker is still readable. The trailing space
+      // is part of the marker so word-spacing flows naturally.
+      '.ve-pnum {',
+      '  display:inline; font:inherit; color:currentColor; opacity:0.75;',
+      '  margin:0; padding:0; border:0; background:none;',
+      '  text-decoration:none; user-select:none;',
+      '  transition:opacity 120ms ease;',
+      '}',
+      '.ve-pnum:hover { opacity:1; text-decoration:underline dotted; }',
+      '.ve-pnum::after { content:" "; }',
+      // Depth-based paragraph indentation. The numberProse() function
+      // stamps data-ve-pdepth (1..N) alongside data-ve-pnum; CSS keys
+      // off it to indent each paragraph proportionally to its hierarchy
+      // level. One-character (1ch) per depth level — narrower than a
+      // tab, just enough to suggest hierarchy without burning horizontal
+      // real estate. ch unit is "width of the 0 glyph in the current
+      // font" which matches the user\'s "1 char" intuition.
+      '[data-ve-prose] [data-ve-pdepth="1"] { margin-left: 1ch; }',
+      '[data-ve-prose] [data-ve-pdepth="2"] { margin-left: 2ch; }',
+      '[data-ve-prose] [data-ve-pdepth="3"] { margin-left: 3ch; }',
+      '[data-ve-prose] [data-ve-pdepth="4"] { margin-left: 4ch; }',
+      '[data-ve-prose] [data-ve-pdepth="5"] { margin-left: 5ch; }',
+      '[data-ve-prose] [data-ve-pdepth="6"] { margin-left: 6ch; }',
+      // Vertical breathing room between numbered paragraphs. ~2 lines
+      // (1.4em ≈ 1.5 line-heights) so the eye groups each paragraph
+      // distinctly. Headings get more space above to anchor sections.
+      '[data-ve-prose] [data-ve-pnum] { margin-top: 1.4em; margin-bottom: 0.6em; }',
+      '[data-ve-prose] h1[data-ve-pnum] { margin-top: 2.2em; margin-bottom: 0.8em; }',
+      '[data-ve-prose] h2[data-ve-pnum] { margin-top: 2em;   margin-bottom: 0.7em; }',
+      '[data-ve-prose] h3[data-ve-pnum] { margin-top: 1.8em; margin-bottom: 0.6em; }',
+      '[data-ve-prose] h4[data-ve-pnum] { margin-top: 1.6em; margin-bottom: 0.5em; }',
+      // Heading sizes — H1 / H2 / H3 visibly different so the user
+      // perceives section depth at a glance. From H4 the gap shrinks
+      // because the reader is already deep enough to lose track of
+      // visual hierarchy and rely on numbering instead.
+      '[data-ve-prose] h1 { font-size: 2em;   font-weight: 600; line-height: 1.25; }',
+      '[data-ve-prose] h2 { font-size: 1.55em; font-weight: 600; line-height: 1.3; }',
+      '[data-ve-prose] h3 { font-size: 1.25em; font-weight: 600; line-height: 1.35; }',
+      '[data-ve-prose] h4 { font-size: 1.1em;  font-weight: 600; line-height: 1.4; }',
+      '[data-ve-prose] h5 { font-size: 1.05em; font-weight: 600; line-height: 1.4; }',
+      '[data-ve-prose] h6 { font-size: 1em;    font-weight: 600; line-height: 1.4; font-style: italic; }',
+      // The injected hover/selected outline adds an extra 8px padding.
+      // Since we now use margin-left for indent, the inset box-shadow
+      // still fires from the paragraph\'s left edge — exactly what the
+      // user expects (hover ribbon hugs the indented block, not the
+      // viewport edge).
+      '[data-ve-prose] [data-ve-id]:hover { outline:none; box-shadow:inset 4px 0 0 currentColor; padding-left:8px; }',
+      '[data-ve-prose] [data-ve-id] { transition:padding 120ms ease, box-shadow 120ms ease; padding-left:0; }',
+      // Floating "Ask about this snippet" popup that appears over a
+      // mouse text selection.
+      '[data-ve-snippet-popup] {',
+      '  position:absolute; z-index:2147483646;',
+      '  background:#15171c; color:#fff;',
+      '  border:1px solid rgba(255,255,255,0.1); border-radius:8px;',
+      '  padding:6px; box-shadow:0 8px 24px rgba(0,0,0,0.35);',
+      '  font:13px/1 system-ui,-apple-system,sans-serif;',
+      '  animation:veSlideUp 140ms ease-out both;',
+      '}',
+      '[data-ve-snippet-popup] button {',
+      '  background:#fff; color:#0f1115; border:0; cursor:pointer;',
+      '  padding:7px 14px; border-radius:6px; font:600 13px/1 inherit;',
+      '}',
+      '[data-ve-snippet-popup] button + button {',
+      '  margin-left:6px; background:transparent; color:#fff;',
+      '  border:1px solid rgba(255,255,255,0.18); font-weight:500;',
+      '}',
+      // ─── Phase 5: table row/column handles ────────────────────────────
+      // Wrapper provides a 24-px phantom hit-zone outside the table so
+      // mouse can reach the handles before drifting fully out.
+      '.ve-table-wrapper {',
+      '  position:relative; display:inline-block;',
+      '  padding:24px; margin:-12px;',
+      '}',
+      '.ve-table-handles-overlay {',
+      '  position:absolute; inset:24px; pointer-events:none;',
+      '}',
+      '.ve-table-handle {',
+      '  position:absolute; width:22px; height:22px;',
+      '  background:color-mix(in srgb, var(--ve-accent, #b8861f) 18%, transparent);',
+      '  color:var(--ve-accent, #b8861f);',
+      '  border:1px solid color-mix(in srgb, var(--ve-accent, #b8861f) 70%, transparent);',
+      '  border-radius:6px;',
+      '  font:600 11px/20px ui-monospace,Menlo,monospace; text-align:center;',
+      '  cursor:pointer; opacity:0; pointer-events:auto;',
+      '  transition:opacity 140ms ease, background 120ms ease, transform 120ms ease;',
+      '  user-select:none;',
+      '}',
+      '.ve-table-wrapper:hover .ve-table-handle { opacity:0.55; }',
+      '.ve-table-handle:hover { opacity:1; transform:scale(1.08); }',
+      '.ve-table-handle[data-ve-pressed="1"] {',
+      '  opacity:1;',
+      '  background:var(--ve-accent, #b8861f);',
+      '  color:var(--ve-sel-text, #14110b);',
+      '  box-shadow:inset 0 1.5px 2.5px rgba(0,0,0,0.32);',
+      '}',
+      '.ve-table-handle--row-left  { transform:translate(-100%, -50%); padding-right:1px; }',
+      '.ve-table-handle--row-right { transform:translate(0, -50%);     padding-left:1px;  }',
+      '.ve-table-handle--column-top    { transform:translate(-50%, -100%); padding-bottom:1px; }',
+      '.ve-table-handle--column-bottom { transform:translate(-50%, 0);     padding-top:1px;    }',
+      '.ve-table-handle--row-left:hover  { transform:translate(-100%, -50%) scale(1.12); }',
+      '.ve-table-handle--row-right:hover { transform:translate(0, -50%) scale(1.12); }',
+      '.ve-table-handle--column-top:hover    { transform:translate(-50%, -100%) scale(1.12); }',
+      '.ve-table-handle--column-bottom:hover { transform:translate(-50%, 0) scale(1.12); }',
+      // Selected row/column highlight on the table cells themselves.
+      // Row uses an attribute on the <tr>; column uses dynamic per-table
+      // CSS rules emitted by ensureColumnHighlightSheet().
+      'tr[data-ve-row-selected="1"] > td,',
+      'tr[data-ve-row-selected="1"] > th {',
+      '  background:color-mix(in srgb, var(--ve-accent, #b8861f) 18%, transparent) !important;',
+      '}',
+      // ─── Phase 6: code line-number gutter ─────────────────────────────
+      '.ve-code-block {',
+      '  display:flex; align-items:flex-start; gap:0;',
+      '  position:relative;',
+      '}',
+      '.ve-code-block > pre { margin:0; flex:1; min-width:0; }',
+      '.ve-code-gutter {',
+      '  display:flex; flex-direction:column;',
+      '  padding:6px 0; min-width:36px;',
+      '  background:color-mix(in srgb, var(--text, currentColor) 6%, transparent);',
+      '  border-right:1px solid color-mix(in srgb, var(--text, currentColor) 12%, transparent);',
+      '  font:600 12px/1.4 ui-monospace,Menlo,Consolas,monospace;',
+      '  color:color-mix(in srgb, var(--text, currentColor) 50%, transparent);',
+      '  user-select:none;',
+      '}',
+      '.ve-code-linenum {',
+      '  background:none; border:0; outline:0;',
+      '  cursor:pointer; padding:0 10px 0 8px;',
+      '  text-align:right; font:inherit; color:inherit;',
+      '  border-radius:3px;',
+      '  transition:background 100ms ease, color 100ms ease;',
+      '}',
+      '.ve-code-linenum:hover { background:color-mix(in srgb, var(--ve-accent, #b8861f) 18%, transparent); color:var(--ve-accent, #b8861f); }',
+      '.ve-code-linenum[data-ve-pressed="1"] {',
+      '  background:var(--ve-accent, #b8861f); color:var(--ve-sel-text, #14110b);',
+      '}',
+      '.ve-code-linenum[data-ve-preview="1"] {',
+      '  background:color-mix(in srgb, var(--ve-accent, #b8861f) 30%, transparent);',
+      '  color:var(--ve-sel-text, #14110b);',
+      '}',
+      // ─── Phase 7: bigger hit-zones on touch devices ──────────────────
+      // body[data-ve-touch="1"] is set by isTouchDevice() on first call.
+      'body[data-ve-touch="1"] .ve-table-handle { width:32px; height:32px; font-size:14px; line-height:30px; }',
+      'body[data-ve-touch="1"] .ve-code-linenum { padding:6px 12px 6px 10px; }',
+      'body[data-ve-touch="1"] .ve-table-wrapper:hover .ve-table-handle { opacity:0.85; }',
+      // ─── Interactive reports (TRDD-eff1aa87) ──────────────────────────
+      '[data-ve-finding-id] {',
+      '  display:block; margin:32px 0; padding:18px 22px;',
+      '  background:color-mix(in srgb, var(--ve-accent, #b8861f) 4%, transparent);',
+      '  border-left:3px solid color-mix(in srgb, var(--ve-accent, #b8861f) 60%, transparent);',
+      '  border-radius:6px;',
+      '}',
+      '[data-ve-finding-id] > h2 { margin:0 0 8px; font-size:1.1em; }',
+      '.ve-finding-meta {',
+      '  display:flex; gap:10px; align-items:center; flex-wrap:wrap;',
+      '  margin:0 0 14px; font-size:13px;',
+      '}',
+      '.ve-finding-chip {',
+      '  display:inline-block; padding:2px 9px; border-radius:999px;',
+      '  font:600 11px/1.4 inherit; letter-spacing:0.04em;',
+      '  background:color-mix(in srgb, currentColor 12%, transparent);',
+      '  text-transform:uppercase;',
+      '}',
+      '.ve-finding-chip--critical { color:#c0392b; background:color-mix(in srgb,#c0392b 15%, transparent); }',
+      '.ve-finding-chip--major    { color:#d35400; background:color-mix(in srgb,#d35400 15%, transparent); }',
+      '.ve-finding-chip--minor    { color:#7f8c8d; background:color-mix(in srgb,#7f8c8d 15%, transparent); }',
+      '.ve-finding-chip--info     { color:#2980b9; background:color-mix(in srgb,#2980b9 15%, transparent); }',
+      '.ve-finding-file { opacity:0.7; font:13px/1.4 ui-monospace,Menlo,monospace; }',
+      '.ve-finding-body { margin-bottom:14px; }',
+      '.ve-finding-thread {',
+      '  margin-top:16px; padding-top:12px;',
+      '  border-top:1px dashed color-mix(in srgb, var(--text, currentColor) 18%, transparent);',
+      '  display:flex; flex-direction:column; gap:10px;',
+      '}',
+      '.ve-finding-round {',
+      '  display:flex; flex-direction:column; gap:8px;',
+      '  padding:12px; border-radius:6px;',
+      '  background:color-mix(in srgb, var(--text, currentColor) 4%, transparent);',
+      '}',
+      '.ve-user-comment, .ve-claude-reply {',
+      '  display:block; padding:10px 14px; border-radius:6px;',
+      '  font:14px/1.55 inherit;',
+      '}',
+      '.ve-user-comment {',
+      '  background:color-mix(in srgb, var(--ve-accent, #b8861f) 14%, transparent);',
+      '  border-left:2px solid var(--ve-accent, #b8861f);',
+      '}',
+      '.ve-claude-reply {',
+      '  background:color-mix(in srgb, var(--text, currentColor) 6%, transparent);',
+      '  border-left:2px solid color-mix(in srgb, var(--text, currentColor) 35%, transparent);',
+      '}',
+      '.ve-finding-author {',
+      '  font:600 11px/1.4 ui-monospace,Menlo,monospace;',
+      '  letter-spacing:0.06em; text-transform:uppercase;',
+      '  opacity:0.65; margin-bottom:4px;',
+      '}',
+      '.ve-finding-reply {',
+      '  width:100%; box-sizing:border-box; resize:vertical; min-height:64px;',
+      '  padding:10px 14px; border-radius:6px;',
+      '  border:1px solid color-mix(in srgb, var(--text, currentColor) 22%, transparent);',
+      '  background:transparent; color:inherit;',
+      '  font:14px/1.55 inherit;',
+      '  transition:border-color 120ms ease, box-shadow 120ms ease;',
+      '}',
+      '.ve-finding-reply:focus {',
+      '  outline:none;',
+      '  border-color:var(--ve-accent, #b8861f);',
+      '  box-shadow:0 0 0 2px color-mix(in srgb, var(--ve-accent, #b8861f) 28%, transparent);',
+      '}',
+      '.ve-finding-reply::placeholder {',
+      '  color:color-mix(in srgb, var(--text, currentColor) 42%, transparent);',
+      '}',
+      // ─── v2 — modal comment threads (TRDD-eff1aa87 §6) ────────────────
+      // Hover pill shown over the focused commentable element.
+      '.ve-comment-pill {',
+      '  position:absolute; z-index:2147483647;',
+      '  background:var(--ve-accent, #b8861f); color:var(--ve-sel-text, #14110b);',
+      '  border:0; border-radius:999px;',
+      '  padding:4px 12px; font:600 11px/1.4 ui-sans-serif,system-ui,sans-serif;',
+      '  letter-spacing:0.02em; cursor:pointer;',
+      '  box-shadow:0 4px 14px rgba(0,0,0,0.28);',
+      '  opacity:0; pointer-events:none;',
+      '  transition:opacity 120ms ease;',
+      '}',
+      '.ve-comment-pill:hover { filter: brightness(1.08); }',
+      // Active commentable element gets a gold ring while modal is open.
+      '[data-ve-comment-active] {',
+      '  outline:2px solid var(--ve-accent, #b8861f);',
+      '  outline-offset:4px; border-radius:4px;',
+      '  background:color-mix(in srgb, var(--ve-accent, #b8861f) 8%, transparent);',
+      '}',
+      // Page reflow when modal open.
+      'body[data-ve-comment-modal-open="1"] { overflow-x:hidden; }',
+      'body[data-ve-comment-modal-open="1"] main {',
+      '  margin-right:480px; transition: margin 240ms ease;',
+      '}',
+      'body[data-ve-comment-modal-open="1"] main * {',
+      '  pointer-events:none;', // page becomes inert
+      '}',
+      'body[data-ve-comment-modal-open="1"] main [data-ve-comment-active] {',
+      '  pointer-events:auto;', // but the active anchor stays selectable
+      '}',
+      // Modal box.
+      '.ve-comment-modal {',
+      '  position:fixed; top:0; right:0; width:460px; height:100vh;',
+      '  z-index:2147483646;',
+      '  display:flex; flex-direction:column;',
+      '  background:var(--bg, #faf6ee); color:var(--text, #1f1a14);',
+      '  border-left:1px solid color-mix(in srgb, var(--ve-accent, #b8861f) 40%, transparent);',
+      '  box-shadow:-12px 0 28px rgba(0,0,0,0.18);',
+      '  font:14px/1.5 ui-sans-serif,system-ui,-apple-system,sans-serif;',
+      '  animation:veFadeIn 160ms ease-out both;',
+      '}',
+      '.ve-comment-modal-inner {',
+      '  display:flex; flex-direction:column; flex:1; min-height:0;',
+      '}',
+      '.ve-comment-modal-header {',
+      '  display:flex; align-items:center; justify-content:space-between;',
+      '  padding:12px 16px;',
+      '  border-bottom:1px solid color-mix(in srgb, var(--text, currentColor) 12%, transparent);',
+      '  background:color-mix(in srgb, var(--ve-accent, #b8861f) 8%, transparent);',
+      '}',
+      '.ve-comment-modal-title {',
+      '  font:600 13px/1.4 ui-monospace,Menlo,monospace;',
+      '  letter-spacing:0.04em; opacity:0.85;',
+      '}',
+      '.ve-comment-modal-close {',
+      '  background:transparent; border:0; color:inherit;',
+      '  font:300 22px/1 ui-sans-serif,sans-serif; cursor:pointer;',
+      '  padding:0 4px; opacity:0.6;',
+      '}',
+      '.ve-comment-modal-close:hover { opacity:1; }',
+      '.ve-comment-modal-body {',
+      '  display:flex; flex:1; min-height:0;',
+      '}',
+      '.ve-comment-thread-index {',
+      '  width:120px; min-width:120px;',
+      '  margin:0; padding:8px 0; list-style:none;',
+      '  border-right:1px solid color-mix(in srgb, var(--text, currentColor) 12%, transparent);',
+      '  overflow-y:auto;',
+      '  font:13px/1.4 ui-monospace,Menlo,monospace;',
+      '}',
+      '.ve-comment-thread-row {',
+      '  padding:6px 12px; cursor:pointer;',
+      '  white-space:pre;',
+      '  border-left:2px solid transparent;',
+      '  transition:background 100ms ease, border-color 100ms ease;',
+      '}',
+      '.ve-comment-thread-row:hover {',
+      '  background:color-mix(in srgb, var(--ve-accent, #b8861f) 10%, transparent);',
+      '}',
+      '.ve-comment-thread-row[data-active] {',
+      '  background:color-mix(in srgb, var(--ve-accent, #b8861f) 22%, transparent);',
+      '  border-left-color:var(--ve-accent, #b8861f);',
+      '  font-weight:600;',
+      '}',
+      '.ve-comment-thread-row[data-role="agent"] { color:color-mix(in srgb, var(--text, currentColor) 80%, transparent); }',
+      '.ve-comment-active-pane {',
+      '  flex:1; min-width:0; display:flex; flex-direction:column;',
+      '  padding:14px 18px; overflow-y:auto;',
+      '}',
+      '.ve-comment-active-meta {',
+      '  font:600 11px/1.4 ui-monospace,Menlo,monospace;',
+      '  letter-spacing:0.06em; opacity:0.55; margin-bottom:8px;',
+      '  text-transform:uppercase;',
+      '}',
+      '.ve-comment-active-content {',
+      '  flex:1; display:flex; flex-direction:column; min-height:0;',
+      '}',
+      '.ve-comment-active-text {',
+      '  white-space:pre-wrap; word-wrap:break-word;',
+      '  padding:10px 12px; border-radius:6px;',
+      '  background:color-mix(in srgb, var(--text, currentColor) 5%, transparent);',
+      '  border:1px solid color-mix(in srgb, var(--text, currentColor) 12%, transparent);',
+      '}',
+      '.ve-comment-active-textarea {',
+      '  flex:1; box-sizing:border-box; resize:none; min-height:120px;',
+      '  padding:10px 12px; border-radius:6px;',
+      '  border:1px solid color-mix(in srgb, var(--text, currentColor) 22%, transparent);',
+      '  background:transparent; color:inherit;',
+      '  font:14px/1.55 inherit;',
+      '}',
+      '.ve-comment-active-textarea:focus {',
+      '  outline:none;',
+      '  border-color:var(--ve-accent, #b8861f);',
+      '  box-shadow:0 0 0 2px color-mix(in srgb, var(--ve-accent, #b8861f) 28%, transparent);',
+      '}',
+      '.ve-comment-active-textarea::placeholder {',
+      '  color:color-mix(in srgb, var(--text, currentColor) 42%, transparent);',
+      '}',
+      '.ve-comment-pending {',
+      '  font:italic 13px/1.5 inherit; opacity:0.65; padding:10px 0;',
+      '}',
+      '.ve-comment-modal-footer {',
+      '  display:flex; gap:10px; justify-content:flex-end;',
+      '  padding:12px 18px;',
+      '  border-top:1px solid color-mix(in srgb, var(--text, currentColor) 12%, transparent);',
+      '  background:color-mix(in srgb, var(--text, currentColor) 4%, transparent);',
+      '}',
+      '.ve-comment-answer, .ve-comment-done {',
+      '  padding:8px 18px; border-radius:6px; cursor:pointer;',
+      '  border:1px solid color-mix(in srgb, var(--text, currentColor) 24%, transparent);',
+      '  background:transparent; color:inherit;',
+      '  font:600 13px/1.2 ui-sans-serif,system-ui,sans-serif;',
+      '  letter-spacing:0.04em; text-transform:uppercase;',
+      '  transition:background 120ms, color 120ms;',
+      '}',
+      '.ve-comment-answer:hover:not(:disabled) {',
+      '  background:var(--ve-accent, #b8861f); color:var(--ve-sel-text, #14110b);',
+      '  border-color:var(--ve-accent, #b8861f);',
+      '}',
+      '.ve-comment-answer:disabled { opacity:0.45; cursor:not-allowed; }',
+      '.ve-comment-done:hover {',
+      '  background:color-mix(in srgb, var(--text, currentColor) 14%, transparent);',
+      '}'
+    ].join('\n');
+    document.head.appendChild(s);
+  }
+
+  function showSendingOverlay() {
+    var ov = buildOverlay();
+    ov.card.innerHTML =
+      '<div style="font:500 11px/1 ui-monospace,Menlo,monospace;letter-spacing:0.12em;text-transform:uppercase;opacity:0.55;margin-bottom:14px;">ai-maestro-visual-communicator</div>' +
+      '<div style="font-size:18px;font-weight:500;">Sending selection&hellip;</div>';
+    return ov;
+  }
+
+  function showSentThenClose(label, overlay) {
+    overlay.card.innerHTML =
+      '<div style="font:500 11px/1 ui-monospace,Menlo,monospace;letter-spacing:0.12em;text-transform:uppercase;opacity:0.55;margin-bottom:14px;">ai-maestro-visual-communicator</div>' +
+      '<div style="font-size:18px;font-weight:500;">Selection sent</div>' +
+      '<div style="opacity:0.7;margin-top:10px;">' +
+        escapeHtml(label || '(no label)') +
+      '</div>' +
+      '<div style="opacity:0.45;margin-top:18px;font-size:13px;">Returning to your agent&hellip;</div>';
+    setTimeout(function () {
+      try { window.close(); } catch (_) {}
+      // window.close() is denied for tabs not opened by JS — leave a clean
+      // "you can close this tab" page so the user is not staring at the
+      // sending overlay forever.
+      setTimeout(function () {
+        if (document.visibilityState !== 'hidden') {
+          document.title = 'Selection sent — you can close this tab';
+          document.body.innerHTML =
+            '<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#0f1115;color:#e8eaee;font:16px/1.5 system-ui,sans-serif;text-align:center;padding:24px;">' +
+              '<div>' +
+                '<div style="font:500 11px/1 ui-monospace,Menlo,monospace;letter-spacing:0.12em;text-transform:uppercase;opacity:0.5;margin-bottom:14px;">ai-maestro-visual-communicator</div>' +
+                '<h1 style="font-weight:500;font-size:24px;margin:0 0 10px;">Selection sent</h1>' +
+                '<p style="opacity:0.7;margin:0 0 16px;">You can close this tab.</p>' +
+                '<code style="background:#1a1d23;padding:8px 14px;border-radius:8px;font-size:13px;">' +
+                  escapeHtml(label || '') +
+                '</code>' +
+              '</div>' +
+            '</div>';
+        }
+      }, 150);
+    }, 220);
+  }
+
+  function showStaticFallback(payload, overlay) {
+    var json = JSON.stringify(payload, null, 2);
+    overlay.card.style.maxWidth = '640px';
+    overlay.card.innerHTML =
+      '<div style="font:500 11px/1 ui-monospace,Menlo,monospace;letter-spacing:0.12em;text-transform:uppercase;opacity:0.55;margin-bottom:12px;">ai-maestro-visual-communicator · selection</div>' +
+      '<div style="text-align:left;font-size:14px;line-height:1.6;margin-bottom:12px;opacity:0.85;">' +
+        'This page was opened directly (not via the agent runner), so the selection cannot be sent automatically. ' +
+        'Copy the payload below and paste it back to your agent.' +
+      '</div>' +
+      '<pre id="ve-payload" style="background:#0c0e12;color:#e8eaee;padding:14px 16px;border-radius:10px;text-align:left;overflow:auto;font:13px/1.5 ui-monospace,Menlo,monospace;margin:0 0 14px;border:1px solid rgba(255,255,255,0.05);">' + escapeHtml(json) + '</pre>' +
+      '<div style="display:flex;gap:8px;justify-content:flex-end;">' +
+        '<button id="ve-cancel" style="background:transparent;color:#e8eaee;border:1px solid rgba(255,255,255,0.18);padding:8px 16px;border-radius:8px;cursor:pointer;">Cancel</button>' +
+        '<button id="ve-copy" style="background:#fff;color:#0f1115;border:0;padding:8px 18px;border-radius:8px;cursor:pointer;font-weight:600;">Copy JSON</button>' +
+      '</div>';
+    overlay.root.querySelector('#ve-copy').addEventListener('click', function () {
+      var btn = this;
+      var done = function () { btn.textContent = 'Copied'; btn.disabled = true; };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(json).then(done, function () { fallbackCopy(json); done(); });
+      } else {
+        fallbackCopy(json);
+        done();
+      }
+    });
+    overlay.root.querySelector('#ve-cancel').addEventListener('click', function () {
+      overlay.root.remove();
+      sending = false;
+    });
+  }
+
+  function fallbackCopy(text) {
+    try {
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      ta.setAttribute('readonly', '');
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+    } catch (_) {}
+  }
+
+  function escapeHtml(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  function postSelection(payload) {
+    if (sending) return;
+    sending = true;
+
+    payload = payload || {};
+    if (payload.id == null && payload.label == null && payload.type == null) {
+      sending = false;
+      return; // nothing meaningful to send
+    }
+    if (typeof payload.label === 'string') {
+      payload.label = payload.label.replace(/\s+/g, ' ').trim().slice(0, 240);
+    }
+
+    if (!isInteractive) {
+      // Page opened directly via file:// — there is no /__ve-select
+      // endpoint to talk to, so fall back to the copy-to-clipboard overlay.
+      var overlay = buildOverlay();
+      showStaticFallback(payload, overlay);
+      return;
+    }
+
+    // Interactive mode: fire-and-forget the POST and close the window
+    // immediately. sendBeacon is designed exactly for "send-on-unload"
+    // semantics — the browser keeps the request in flight even after the
+    // document is gone. Falls back to fetch(keepalive:true) on the small
+    // number of browsers that don't expose sendBeacon.
+    var body = JSON.stringify(payload);
+    var sent = false;
+    if (navigator.sendBeacon) {
+      try {
+        var blob = new Blob([body], { type: 'application/json' });
+        sent = navigator.sendBeacon('/__ve-select', blob);
+      } catch (_) {}
+    }
+    if (!sent) {
+      try {
+        fetch('/__ve-select', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: body,
+          keepalive: true
+        }).catch(function () {});
+      } catch (_) {}
+    }
+
+    // 30 ms is long enough for sendBeacon to hand the request off to the
+    // network stack and short enough to feel instant.
+    setTimeout(function () {
+      try { window.close(); } catch (_) {}
+      // If close was denied (tab not opened by JS), show the minimal
+      // close-confirmation. With Chromium --app this never runs because
+      // window.close() succeeds and the document is gone.
+      setTimeout(function () {
+        if (document.visibilityState !== 'hidden' && document.body) {
+          document.title = 'Selection sent — close this tab';
+          document.body.innerHTML =
+            '<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;'
+            + 'background:#0f1115;color:#e8eaee;font:15px/1.5 system-ui,-apple-system,sans-serif;'
+            + 'text-align:center;padding:24px;">'
+            + '<div>'
+              + '<div style="font:500 11px/1 ui-monospace,Menlo,monospace;letter-spacing:0.12em;'
+              + 'text-transform:uppercase;opacity:0.5;margin-bottom:14px;">ai-maestro-visual-communicator</div>'
+              + '<h1 style="font-weight:500;font-size:22px;margin:0 0 6px;">Selection sent</h1>'
+              + '<p style="opacity:0.6;margin:0;">You can close this tab.</p>'
+            + '</div>'
+            + '</div>';
+        }
+      }, 120);
+    }, 30);
+  }
+
+  // ─────────────────────────────────────────────────────────────────────
+  // MULTI-SELECT STATE — phase 1 of TRDD-7a98 overhaul.
+  //
+  // veSelection is the chronological list of currently-checked items.
+  // A click on any element-kind [data-ve-id] toggles its membership;
+  // the user closes the window by clicking Submit/Exit (or hitting
+  // Enter), not by individual clicks. ESC clears the multi-select set
+  // but never touches form-mode checkboxes/radios.
+  //
+  // Legacy callers (table-form submit, text-snippet popup) still go
+  // through the old single-shot postSelection() path until phases 4+
+  // unify them; that path remains structurally identical, just under
+  // a parallel API.
+  // ─────────────────────────────────────────────────────────────────────
+  var veSelection = [];
+  window.veSelection = veSelection;
+
+  function entryIdFor(payload) {
+    // Stable identity within the selection set. Element-kind entries
+    // collapse to their data-ve-id; future kinds (text/row/column/code)
+    // will each compose their own id from kind + anchor.
+    return 'element:' + (payload && payload.id);
+  }
+
+  function findSelectionIndex(entryId) {
+    for (var i = 0; i < veSelection.length; i++) {
+      if (veSelection[i].entryId === entryId) return i;
+    }
+    return -1;
+  }
+
+  function toggleElementSelection(payload) {
+    if (!payload || !payload.id) return;
+    var entry = {
+      kind: 'element',
+      entryId: entryIdFor(payload),
+      id: payload.id,
+      type: payload.type || null,
+      label: payload.label || null,
+      data: payload.data || null
+    };
+    var idx = findSelectionIndex(entry.entryId);
+    if (idx >= 0) {
+      veSelection.splice(idx, 1);
+    } else {
+      veSelection.push(entry);
+    }
+    repaintSelectedElements();
+  }
+  window.veToggle = toggleElementSelection;
+
+  function repaintSelectedElements() {
+    // Mark every [data-ve-id] with data-ve-selected="1" iff its id is
+    // currently in veSelection. Linear pass — pages don't have thousands
+    // of clickable elements, and this avoids tracking diffs.
+    var inSet = {};
+    for (var i = 0; i < veSelection.length; i++) {
+      var e = veSelection[i];
+      if (e && e.kind === 'element') inSet[e.id] = 1;
+    }
+    var all = document.querySelectorAll('[data-ve-id]');
+    for (var j = 0; j < all.length; j++) {
+      var el = all[j];
+      var id = el.getAttribute('data-ve-id');
+      if (inSet[id]) el.setAttribute('data-ve-selected', '1');
+      else el.removeAttribute('data-ve-selected');
+    }
+    updateSubmitButtonsState();
+  }
+
+  function buildSubmissionPayload(kind) {
+    // New wire format introduced in phase 1: a list of selections plus a
+    // top-level kind ("submit" when there is at least one selection,
+    // "exit" when the user closes with an empty set).
+    //
+    // We copy ALL fields per entry except `entryId` (internal dedupe key).
+    // Earlier this function hard-coded the element-kind fields (id, type,
+    // label, data) and dropped text-kind fields (text, depth, paragraphId,
+    // paragraphText) on the floor — the agent saw `[{kind:"text"},
+    // {kind:"text"}]` with no actual text. Spreading is the cleanest way
+    // to keep the payload future-proof as new kinds (row/column/codeline)
+    // arrive in later phases.
+    var INTERNAL = {entryId: 1};
+    var selections = [];
+    for (var i = 0; i < veSelection.length; i++) {
+      var e = veSelection[i];
+      var out = {};
+      for (var k in e) {
+        if (INTERNAL[k]) continue;
+        if (e[k] !== undefined) out[k] = e[k];
+      }
+      selections.push(out);
+    }
+    return {
+      kind: kind || (selections.length ? 'submit' : 'exit'),
+      count: selections.length,
+      selections: selections
+    };
+  }
+
+  function submitSelections(forcedKind) {
+    if (sending) return;
+    sending = true;
+    var payload = buildSubmissionPayload(forcedKind);
+    if (!isInteractive) {
+      // file:// fallback — same overlay path as legacy postSelection
+      // uses, but the payload is the new schema. The overlay's
+      // Copy-JSON button still works because it stringifies whatever
+      // we hand it.
+      var overlay = buildOverlay();
+      showStaticFallback(payload, overlay);
+      return;
+    }
+    var body = JSON.stringify(payload);
+    var sent = false;
+    if (navigator.sendBeacon) {
+      try {
+        sent = navigator.sendBeacon('/__ve-select', new Blob([body], { type: 'application/json' }));
+      } catch (_) {}
+    }
+    if (!sent) {
+      try {
+        fetch('/__ve-select', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: body,
+          keepalive: true
+        }).catch(function () {});
+      } catch (_) {}
+    }
+    setTimeout(function () {
+      try { window.close(); } catch (_) {}
+      setTimeout(function () {
+        if (document.visibilityState !== 'hidden' && document.body) {
+          document.title = 'Selection sent — close this tab';
+          document.body.innerHTML =
+            '<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;'
+            + 'background:#0f1115;color:#e8eaee;font:15px/1.5 system-ui,-apple-system,sans-serif;'
+            + 'text-align:center;padding:24px;">'
+            + '<div>'
+              + '<div style="font:500 11px/1 ui-monospace,Menlo,monospace;letter-spacing:0.12em;'
+              + 'text-transform:uppercase;opacity:0.5;margin-bottom:14px;">ai-maestro-visual-communicator</div>'
+              + '<h1 style="font-weight:500;font-size:22px;margin:0 0 6px;">Selection sent</h1>'
+              + '<p style="opacity:0.6;margin:0;">You can close this tab.</p>'
+            + '</div>'
+            + '</div>';
+        }
+      }, 120);
+    }, 30);
+  }
+  window.veSubmit = function () { submitSelections('submit'); };
+  window.veExit = function () { submitSelections('exit'); };
+
+  // Phase 7 — touch / mobile compatibility detector. Cached after first
+  // call so we don't re-query the platform every selection update.
+  var _isTouch = null;
+  function isTouchDevice() {
+    if (_isTouch !== null) return _isTouch;
+    _isTouch = (typeof window !== 'undefined') && (
+      ('ontouchstart' in window) ||
+      (navigator && (navigator.maxTouchPoints > 0 || navigator.msMaxTouchPoints > 0))
+    );
+    if (_isTouch && document.body) document.body.setAttribute('data-ve-touch', '1');
+    return _isTouch;
+  }
+
+  function injectClearAllButton() {
+    if (!document.body) return;
+    if (!isTouchDevice()) return;
+    if (document.getElementById('ve-clear-all')) return;
+    var btn = document.createElement('button');
+    btn.id = 've-clear-all';
+    btn.type = 'button';
+    btn.textContent = 'Clear all';
+    btn.setAttribute('data-ve-overlay', '1');
+    btn.style.cssText =
+      'position:fixed;bottom:14px;left:120px;'
+      + 'z-index:2147483646;'
+      + 'min-width:84px;padding:9px 14px;'
+      + 'border-radius:8px;border:1px solid rgba(0,0,0,0.18);'
+      + 'font:600 13px/1.2 system-ui,-apple-system,sans-serif;'
+      + 'cursor:pointer;'
+      + 'box-shadow:0 2px 8px rgba(0,0,0,0.28);'
+      + 'background:rgba(255,255,255,0.92);color:#1f1a14;'
+      + 'transition:opacity 120ms;'
+      + 'display:none;'; // shown on demand by updateSubmitButtonsState
+    btn.addEventListener('click', function () {
+      // Mirror what ESC does — wipe all selections + repaint surfaces.
+      if (veSelection.length === 0) return;
+      if (typeof clearAllTextSelections === 'function') clearAllTextSelections();
+      veSelection.length = 0;
+      if (typeof repaintSelectedElements === 'function') repaintSelectedElements();
+      if (typeof repaintTableHandles === 'function') repaintTableHandles();
+      if (typeof repaintCodeGutters === 'function') repaintCodeGutters();
+      updateSubmitButtonsState();
+    });
+    document.body.appendChild(btn);
+  }
+
+  function injectSubmitButtons() {
+    if (!document.body) return;
+    if (document.getElementById('ve-submit-tr')) return; // idempotent
+    // Two physically mirrored buttons (top-right + bottom-left) so the
+    // user can reach Submit/Exit without traversing the whole viewport
+    // — important on large pages and on touch devices.
+    var positions = [
+      { id: 've-submit-tr', cssText: 'position:fixed;top:14px;right:14px;' },
+      { id: 've-submit-bl', cssText: 'position:fixed;bottom:14px;left:14px;' }
+    ];
+    for (var i = 0; i < positions.length; i++) {
+      var pos = positions[i];
+      var btn = document.createElement('button');
+      btn.id = pos.id;
+      btn.type = 'button';
+      btn.setAttribute('data-ve-overlay', '1');
+      btn.style.cssText =
+        pos.cssText
+        + 'z-index:2147483646;'
+        + 'min-width:84px;padding:9px 14px;'
+        + 'border-radius:8px;border:1px solid rgba(0,0,0,0.18);'
+        + 'font:600 13px/1.2 system-ui,-apple-system,sans-serif;'
+        + 'cursor:pointer;'
+        + 'box-shadow:0 2px 8px rgba(0,0,0,0.28);'
+        + 'transition:background 120ms,color 120ms,box-shadow 120ms;';
+      (function (b) {
+        // Auto-derive kind from current selection size: empty → "exit",
+        // any items → "submit". Calling veSubmit() / veExit() bypasses
+        // this auto-derivation by forcing the kind, which is wrong for
+        // the button click — the button is a single physical element,
+        // its meaning depends on what's currently selected, not on which
+        // function name we wired up.
+        b.addEventListener('click', function () { submitSelections(); });
+      })(btn);
+      document.body.appendChild(btn);
+    }
+    injectClearAllButton(); // Phase 7: touch-only Clear-all button next to BL Submit
+    updateSubmitButtonsState();
+  }
+
+  function updateSubmitButtonsState() {
+    var n = veSelection.length;
+    var btns = [document.getElementById('ve-submit-tr'), document.getElementById('ve-submit-bl')];
+    for (var i = 0; i < btns.length; i++) {
+      var b = btns[i];
+      if (!b) continue;
+      if (n === 0) {
+        b.textContent = 'Exit';
+        b.style.background = 'rgba(255,255,255,0.92)';
+        b.style.color = '#1f1a14';
+      } else {
+        b.textContent = 'Submit (' + n + ')';
+        b.style.background = '#b8861f';   // accent gold (page can override via CSS)
+        b.style.color = '#1f1a14';
+      }
+    }
+    // Phase 7: Clear-all is touch-only, visible only when there's something to clear.
+    var clearBtn = document.getElementById('ve-clear-all');
+    if (clearBtn) clearBtn.style.display = (isTouchDevice() && n > 0) ? 'inline-block' : 'none';
+  }
+
+  // ESC clears multi-select; Enter triggers global Submit/Exit. Both
+  // skip when an editable form control has focus, so they don't
+  // hijack typing.
+  function isEditableFocused() {
+    var t = document.activeElement;
+    if (!t) return false;
+    if (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT') return true;
+    if (t.isContentEditable) return true;
+    return false;
+  }
+  document.addEventListener('keydown', function (ev) {
+    if (ev.key === 'Escape') {
+      if (veSelection.length === 0) return;
+      // Phase 2: text-kind entries also need their wrapping spans
+      // unwrapped from the DOM, otherwise the gold highlight stays
+      // even though veSelection is empty. clearAllTextSelections()
+      // walks DOM-side spans and is defined alongside the multi-click
+      // handler below.
+      clearAllTextSelections();
+      veSelection.length = 0;
+      repaintSelectedElements();
+      // Phase 5: clear table-handle pressed states + row/col highlights
+      // (the function reads veSelection — now empty — so every handle
+      // resets to its default state and column CSS rules are emptied).
+      if (typeof repaintTableHandles === 'function') repaintTableHandles();
+      // Phase 6: same idea for code-gutter pressed states.
+      if (typeof repaintCodeGutters === 'function') repaintCodeGutters();
+      // TRDD-eff1aa87: also empty any per-finding reply textareas so
+      // the visible inputs match the (now-empty) veSelection state.
+      if (typeof clearAllFindingReplyTextareas === 'function') clearAllFindingReplyTextareas();
+      // Reset multi-click chain so the next click starts depth=1.
+      lastClickChain = null;
+      ev.preventDefault();
+      return;
+    }
+    if (ev.key === 'Enter') {
+      // Enter on a focused [data-ve-id] toggles that element (handled by
+      // the existing focused-element handler below — let it run first).
+      // Enter inside a form input belongs to the input.
+      var t = document.activeElement;
+      if (t && t.matches && t.matches('[data-ve-id]')) return;
+      if (isEditableFocused()) return;
+      ev.preventDefault();
+      // Same as the button click — let buildSubmissionPayload auto-derive
+      // kind from the current selection count instead of forcing 'submit'.
+      submitSelections();
+    }
+  }, false);
+
+  // Auto-inject buttons when DOM is ready.
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', injectSubmitButtons);
+  } else {
+    injectSubmitButtons();
+  }
+
+  function elementSelection(target) {
+    var node = target.closest && target.closest('[data-ve-id]');
+    if (!node) return null;
+    var rawData = node.getAttribute('data-ve-data');
+    var data = null;
+    if (rawData) {
+      try { data = JSON.parse(rawData); } catch (_) { data = { raw: rawData }; }
+    }
+    var label = node.getAttribute('data-ve-label');
+    if (!label) {
+      label = (node.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 120);
+    }
+    var sel = {
+      id: node.getAttribute('data-ve-id'),
+      type: node.getAttribute('data-ve-type') || 'element',
+      label: label
+    };
+    if (data) sel.data = data;
+    return sel;
+  }
+
+  function dragInProgress(target) {
+    // Pan handlers (Mermaid + .ve-graph-viewport) add a temporary class;
+    // respect it so a pan does not register as a click-to-select.
+    var wrap = target.closest && target.closest('.mermaid-wrap, .ve-graph-viewport');
+    return !!(wrap && wrap.classList.contains('is-panning'));
+  }
+
+  function isInteractiveControl(target) {
+    return !!(target.closest &&
+      target.closest('a[href], button, input, textarea, select, label, summary, [contenteditable="true"], .zoom-controls'));
+  }
+
+  function isInsideTableForm(target) {
+    return !!(target.closest && target.closest('[data-ve-type="table-form"]'));
+  }
+
+  document.addEventListener(
+    'click',
+    function (ev) {
+      if (sending) return;
+      if (ev.defaultPrevented) return;
+      if (ev.target.closest('[data-ve-overlay]')) return;
+      if (isInteractiveControl(ev.target)) return;
+      if (dragInProgress(ev.target)) return;
+      // Inside a table-form, the form's own handlers manage row toggling
+      // and submission — never auto-select on bare row click.
+      if (isInsideTableForm(ev.target)) return;
+      // Inside a .ve-regex wrapper, the React graph + edit panel own all
+      // clicks. The pushRegexEdit() hook is the only path to push a
+      // regex-related selection (kind:'regex-edit' on edit-panel commit).
+      // Without this guard, clicking any glyph inside the regex graph
+      // would bubble up and add a duplicate kind:'element' entry for
+      // the wrapper, which has data-ve-id auto-stamped on mount.
+      if (ev.target.closest('.ve-regex')) return;
+      // Phase 2: inside [data-ve-prose], clicks on text content go to the
+      // multi-click handler (handleProseClick at bubble phase) instead of
+      // toggling the whole paragraph. The .ve-pnum number marker still
+      // toggles the paragraph (it has [data-ve-id] and isn't text).
+      if (ev.target.closest('[data-ve-prose]') && !ev.target.closest('.ve-pnum')) return;
+      var sel = elementSelection(ev.target);
+      if (!sel || !sel.id) return;
+      ev.preventDefault();
+      ev.stopPropagation();
+      // Phase 1 of multi-select overhaul: clicks toggle membership in
+      // veSelection instead of firing a single POST and closing the
+      // window. Submit/Exit (the floating buttons or the Enter key)
+      // is what closes the window now.
+      toggleElementSelection(sel);
+    },
+    true
+  );
+
+  // Keyboard parity: Space on a focused [data-ve-id] toggles it.
+  // (Enter is handled by the global submit handler unless focus is
+  // exactly on a [data-ve-id], in which case it should also toggle.)
+  document.addEventListener(
+    'keydown',
+    function (ev) {
+      if (ev.key !== 'Enter' && ev.key !== ' ') return;
+      var t = document.activeElement;
+      if (!t || !t.matches || !t.matches('[data-ve-id]')) return;
+      if (isInteractiveControl(t)) return;
+      // Same exclusion as the click handler: regex wrappers are owned
+      // by the embedded React app, never by the bare element-toggle.
+      if (t.closest && t.closest('.ve-regex')) return;
+      var sel = elementSelection(t);
+      if (!sel || !sel.id) return;
+      ev.preventDefault();
+      // Stop propagation so the global Enter handler doesn't ALSO
+      // submit when the user is just toggling a focused element.
+      ev.stopPropagation();
+      toggleElementSelection(sel);
+    },
+    true
+  );
+
+  // Public API for direct-call sites.
+  // Legacy `veSelect`: still maps to single-shot postSelection so
+  // pages that call it programmatically (e.g. for non-element flows)
+  // keep working; new code should call veToggle / veSubmit.
+  window.veSelect = postSelection;
+
+  window.veSelectMermaid = function (nodeId, label, extra) {
+    var payload = {
+      id: 've-mermaid-' + nodeId,
+      type: 'mermaid-node',
+      label: label || nodeId
+    };
+    if (extra) payload.data = extra;
+    // Phase 1: mermaid nodes participate in the multi-select set.
+    toggleElementSelection(payload);
+  };
+
+  window.veWireChart = function (chartInstance, opts) {
+    if (!chartInstance) return;
+    var chartId = (opts && opts.id) || 'chart';
+    chartInstance.options = chartInstance.options || {};
+    chartInstance.options.onClick = function (_evt, elements, chart) {
+      if (!elements || !elements.length) return;
+      var el = elements[0];
+      var ds = chart.data.datasets[el.datasetIndex] || {};
+      var label = chart.data.labels && chart.data.labels[el.index];
+      // Phase 1: chart points participate in the multi-select set.
+      toggleElementSelection({
+        id: 've-chart-' + chartId + '-d' + el.datasetIndex + '-i' + el.index,
+        type: 'chart-point',
+        label: (ds.label ? ds.label + ' · ' : '') + (label != null ? String(label) : 'index ' + el.index),
+        data: {
+          chartId: chartId,
+          datasetIndex: el.datasetIndex,
+          datasetLabel: ds.label || null,
+          index: el.index,
+          xLabel: label != null ? label : null,
+          value: Array.isArray(ds.data) ? ds.data[el.index] : null
+        }
+      });
+    };
+    try { chartInstance.update(); } catch (_) {}
+  };
+
+  // Make any [data-ve-id] focusable for keyboard users unless the author
+  // already set tabindex (defer to authoring intent in those cases).
+  function enhanceFocus() {
+    var els = document.querySelectorAll('[data-ve-id]:not([data-ve-type="table-form"]):not([data-ve-type="regex"]):not([tabindex])');
+    for (var i = 0; i < els.length; i++) {
+      // Skip nodes that contain a table-form — the form's own controls
+      // are tabbable and should not double up.
+      if (els[i].querySelector && els[i].querySelector('[data-ve-type="table-form"]')) continue;
+      // Skip regex wrappers — the embedded React app exposes its own
+      // tab-stops (input box, panel buttons). Adding a wrapper-level
+      // tabindex would steal focus to a non-interactive parent first.
+      if (els[i].matches && els[i].matches('.ve-regex')) continue;
+      els[i].setAttribute('tabindex', '0');
+      if (!els[i].hasAttribute('role')) els[i].setAttribute('role', 'button');
+    }
+  }
+
+  // ---------------------------------------------------------------------
+  // Table-as-question (form selection)
+  // ---------------------------------------------------------------------
+
+  function initTableForm(table) {
+    if (table.__veFormInit) return;
+    table.__veFormInit = true;
+
+    var tableId = table.getAttribute('data-ve-id') || ('table-' + Math.random().toString(36).slice(2, 8));
+    var mode = (table.getAttribute('data-ve-mode') || 'single').toLowerCase();
+    if (mode !== 'multi') mode = 'single';
+    var inputType = mode === 'multi' ? 'checkbox' : 'radio';
+    var groupName = 've-form-' + tableId;
+    var label = table.getAttribute('data-ve-label') || 'Make a selection';
+
+    var rows = table.querySelectorAll('tbody > tr[data-ve-row-id]');
+    if (!rows.length) return;
+
+    // Inject the leading "select" header cell if the author left it out.
+    var thead = table.querySelector('thead tr');
+    if (thead && !thead.querySelector('[data-ve-form-head]')) {
+      var th = document.createElement('th');
+      th.setAttribute('data-ve-form-head', '');
+      th.setAttribute('scope', 'col');
+      th.style.width = '1%';
+      th.style.whiteSpace = 'nowrap';
+      th.textContent = mode === 'multi' ? 'Pick' : 'Choose';
+      thead.insertBefore(th, thead.firstChild);
+    }
+
+    rows.forEach(function (row) {
+      var rowId = row.getAttribute('data-ve-row-id');
+      var rowLabel = row.getAttribute('data-ve-row-label')
+        || (row.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 120);
+      var isText = row.getAttribute('data-ve-row-text') === '1';
+
+      // Insert leading cell with the form control.
+      var cell = document.createElement('td');
+      cell.setAttribute('data-ve-form-cell', '');
+      cell.style.width = '1%';
+      cell.style.whiteSpace = 'nowrap';
+      cell.style.verticalAlign = 'middle';
+      cell.style.textAlign = 'center';
+
+      var input = document.createElement('input');
+      input.type = inputType;
+      input.name = groupName;
+      input.value = rowId;
+      input.setAttribute('data-ve-control', '');
+      if (isText) input.setAttribute('data-ve-text-control', '');
+      input.setAttribute('aria-label', rowLabel);
+
+      cell.appendChild(input);
+      row.insertBefore(cell, row.firstChild);
+
+      // Make the whole row toggle the control (except clicks on the text
+      // input itself, which should focus & not toggle).
+      row.addEventListener('click', function (ev) {
+        if (ev.target.closest('input, textarea, button, a, label, select')) return;
+        toggleRow(row, mode);
+      });
+
+      // Free-text rows: typing auto-selects the control; Enter submits.
+      if (isText) {
+        var textInput = row.querySelector('input[type="text"], textarea');
+        if (textInput) {
+          textInput.setAttribute('data-ve-text-input', '');
+          textInput.addEventListener('input', function () {
+            input.checked = true;
+            updateSubmitState(table);
+          });
+          textInput.addEventListener('focus', function () {
+            input.checked = true;
+            updateSubmitState(table);
+          });
+          textInput.addEventListener('keydown', function (ev) {
+            if (ev.key === 'Enter') {
+              ev.preventDefault();
+              submitTableForm(table);
+            }
+          });
+        }
+      }
+
+      input.addEventListener('change', function () {
+        updateSubmitState(table);
+      });
+    });
+
+    // Submit row in <tfoot>.
+    var tfoot = table.querySelector('tfoot');
+    if (!tfoot) {
+      tfoot = document.createElement('tfoot');
+      table.appendChild(tfoot);
+    }
+    var firstRow = rows[0];
+    var colCount = (firstRow.children.length) || 2;
+    var submitTr = document.createElement('tr');
+    submitTr.setAttribute('data-ve-form-footer', '');
+    var submitTd = document.createElement('td');
+    submitTd.colSpan = colCount;
+    submitTd.style.textAlign = 'right';
+    submitTd.style.padding = '14px 12px';
+    submitTd.innerHTML =
+      '<span data-ve-form-status style="opacity:0.6;font-size:13px;margin-right:12px;">No selection yet</span>' +
+      '<button type="button" data-ve-form-submit ' +
+      'style="font:600 14px/1 inherit;background:currentColor;color:transparent;'
+        + 'border:0;padding:9px 18px;border-radius:8px;cursor:pointer;'
+        + 'box-shadow:inset 0 0 0 9999px rgba(0,0,0,0);">'
+      + '<span style="color:#fff;mix-blend-mode:difference;">Submit</span>'
+      + '</button>';
+    submitTr.appendChild(submitTd);
+    tfoot.appendChild(submitTr);
+
+    var btn = submitTr.querySelector('[data-ve-form-submit]');
+    btn.addEventListener('click', function (ev) {
+      ev.preventDefault();
+      submitTableForm(table);
+    });
+
+    // Initialise submit state.
+    updateSubmitState(table);
+
+    // Expose label for the payload.
+    table.__veFormLabel = label;
+    table.__veFormMode = mode;
+    table.__veFormId = tableId;
+  }
+
+  function toggleRow(row, mode) {
+    var input = row.querySelector('input[data-ve-control]');
+    if (!input) return;
+    if (mode === 'multi') {
+      input.checked = !input.checked;
+    } else {
+      input.checked = true;
+    }
+    input.dispatchEvent(new Event('change', { bubbles: true }));
+  }
+
+  function updateSubmitState(table) {
+    var checked = table.querySelectorAll('tbody input[data-ve-control]:checked');
+    var status = table.querySelector('[data-ve-form-status]');
+    var btn = table.querySelector('[data-ve-form-submit]');
+    if (status) {
+      if (checked.length === 0) {
+        status.textContent = 'No selection yet';
+      } else if (checked.length === 1) {
+        status.textContent = '1 selected';
+      } else {
+        status.textContent = checked.length + ' selected';
+      }
+    }
+    if (btn) {
+      btn.disabled = checked.length === 0;
+      btn.style.opacity = checked.length === 0 ? '0.5' : '1';
+      btn.style.cursor = checked.length === 0 ? 'not-allowed' : 'pointer';
+    }
+  }
+
+  function submitTableForm(table) {
+    var mode = table.__veFormMode || 'single';
+    var tableId = table.__veFormId || (table.getAttribute('data-ve-id') || 'table');
+    var question = table.__veFormLabel || 'Selection';
+    var checked = Array.prototype.slice.call(table.querySelectorAll('tbody input[data-ve-control]:checked'));
+    if (!checked.length) return;
+
+    var selected = [];
+    var freeText = null;
+    checked.forEach(function (input) {
+      var row = input.closest('tr');
+      var rowId = row.getAttribute('data-ve-row-id');
+      var rowLabel = row.getAttribute('data-ve-row-label')
+        || (row.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 120);
+      if (input.hasAttribute('data-ve-text-control')) {
+        var textInput = row.querySelector('[data-ve-text-input]');
+        var textValue = textInput ? String(textInput.value || '').trim() : '';
+        freeText = textValue || null;
+        if (textValue) {
+          selected.push({ id: rowId, label: rowLabel, text: textValue });
+        }
+      } else {
+        selected.push({ id: rowId, label: rowLabel });
+      }
+    });
+
+    if (!selected.length && !freeText) return;
+
+    var summary;
+    if (mode === 'single') {
+      summary = (selected[0] && (selected[0].text || selected[0].label)) || 'Selection';
+    } else {
+      var parts = selected.map(function (s) { return s.text || s.label; });
+      summary = parts.length === 1
+        ? parts[0]
+        : parts.length + ' choices: ' + parts.slice(0, 3).join(', ') + (parts.length > 3 ? '…' : '');
+    }
+
+    postSelection({
+      id: 've-table-' + tableId + '-submit',
+      type: 'table-form',
+      label: summary,
+      data: {
+        tableId: tableId,
+        question: question,
+        mode: mode,
+        selected: selected,
+        text: freeText
+      }
+    });
+  }
+
+  function initAllTableForms() {
+    var tables = document.querySelectorAll('table[data-ve-type="table-form"]');
+    for (var i = 0; i < tables.length; i++) initTableForm(tables[i]);
+  }
+
+  // ---------------------------------------------------------------------
+  // Prose mode: paragraph numbering + text-snippet selection
+  // ---------------------------------------------------------------------
+
+  var HEADING_RE = /^H([1-6])$/;
+  var PARA_TAGS = { P: 1, BLOCKQUOTE: 1, LI: 0, PRE: 0 }; // P/BQ get full numbering; LI/PRE only if [data-ve-prose-list]
+
+  function numberSection(parts) {
+    return parts.filter(function (n) { return n > 0; }).join('.');
+  }
+
+  function makeNumberMarker(num) {
+    var marker = document.createElement('a');
+    marker.className = 've-pnum';
+    marker.setAttribute('href', '#ve-' + num);
+    marker.setAttribute('id', 've-' + num);
+    marker.setAttribute('aria-label', 'Paragraph ' + num);
+    marker.setAttribute('data-ve-pnum-marker', '1');
+    marker.textContent = num;
+    return marker;
+  }
+
+  function initProse(container) {
+    if (container.__veProseInit) return;
+    container.__veProseInit = true;
+
+    var counters = [0, 0, 0, 0, 0, 0]; // h1..h6 levels
+    var paraCounter = 0;
+    var lastHeadingLevel = 0;
+    var orderIndex = 0;
+
+    var nodes = Array.prototype.slice.call(
+      container.querySelectorAll('h1, h2, h3, h4, h5, h6, p, blockquote')
+    );
+
+    nodes.forEach(function (node) {
+      // Skip our own injected markers
+      if (node.closest('[data-ve-overlay], [data-ve-snippet-popup]')) return;
+
+      var hMatch = HEADING_RE.exec(node.tagName);
+      if (hMatch) {
+        var level = parseInt(hMatch[1], 10);
+        counters[level - 1]++;
+        for (var i = level; i < counters.length; i++) counters[i] = 0;
+        lastHeadingLevel = level;
+        paraCounter = 0;
+        orderIndex++;
+
+        var hnum = numberSection(counters);
+        if (!hnum) return;
+
+        node.setAttribute('data-ve-pnum', hnum);
+        // data-ve-pdepth = number of segments in the pnum (e.g. "1.2.1" = 3).
+        // Read by the CSS rules above to indent the element by depth.
+        node.setAttribute('data-ve-pdepth', String(hnum.split('.').length));
+        if (!node.hasAttribute('data-ve-id')) {
+          node.setAttribute('data-ve-id', 've-section-' + hnum);
+          node.setAttribute('data-ve-type', 'section');
+          node.setAttribute(
+            'data-ve-label',
+            'Section ' + hnum + ' — ' + (node.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 80)
+          );
+        }
+        if (!node.querySelector(':scope > .ve-pnum')) {
+          node.insertBefore(makeNumberMarker(hnum), node.firstChild);
+        }
+      } else if (PARA_TAGS[node.tagName]) {
+        paraCounter++;
+        orderIndex++;
+        var pnum = (numberSection(counters.slice(0, lastHeadingLevel)) || '0') + '.' + paraCounter;
+        node.setAttribute('data-ve-pnum', pnum);
+        node.setAttribute('data-ve-pdepth', String(pnum.split('.').length));
+        node.setAttribute('data-ve-pnum-order', String(orderIndex));
+        if (!node.hasAttribute('data-ve-id')) {
+          node.setAttribute('data-ve-id', 've-para-' + pnum);
+          node.setAttribute('data-ve-type', 'paragraph');
+          node.setAttribute(
+            'data-ve-label',
+            'Paragraph ' + pnum + ' — ' + (node.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 80)
+          );
+        }
+        if (!node.querySelector(':scope > .ve-pnum')) {
+          node.insertBefore(makeNumberMarker(pnum), node.firstChild);
+        }
+      }
+    });
+  }
+
+  function initAllProse() {
+    var containers = document.querySelectorAll('[data-ve-prose]');
+    for (var i = 0; i < containers.length; i++) initProse(containers[i]);
+  }
+
+  // ---------------------------------------------------------------------
+  // Math / LaTeX (KaTeX + mhchem, lazy-loaded from CDN)
+  // ---------------------------------------------------------------------
+
+  var KATEX_VERSION = '0.16.9';
+  var KATEX_BASE = 'https://cdn.jsdelivr.net/npm/katex@' + KATEX_VERSION + '/dist';
+  var katexLoading = null;
+
+  // Default macros covering the contemporary math notation that KaTeX does
+  // not ship out-of-the-box (mostly the physics LaTeX package, tensor
+  // shortcuts, bold vectors, set-theory blackboard letters, differential
+  // operators, and a lightweight SI-unit pair).
+  //
+  // `\vec` is intentionally NOT overridden — KaTeX's default (small over-
+  // arrow) is the conventional notation in many fields. Bold-vector folks
+  // get \bv / \bvec / \vct / \hatv. Same for matrices: \mat / \bmat.
+  //
+  // Authors override or extend these per-page via `window.veKatexMacros`
+  // (set BEFORE the runtime initialises math) or per-element via the
+  // `data-tex-macros='{"\\foo":"\\bar"}'` attribute on a `.ve-math` node.
+  var KATEX_DEFAULT_MACROS = {
+    // ----- bold-vector / matrix conventions (additive to \vec / \mathbf) -----
+    '\\bv':       '\\boldsymbol{#1}',
+    '\\bvec':     '\\boldsymbol{#1}',
+    '\\vct':      '\\boldsymbol{#1}',
+    '\\hatv':     '\\hat{\\boldsymbol{#1}}',
+    '\\unitvec':  '\\hat{\\boldsymbol{#1}}',
+    '\\mat':      '\\boldsymbol{#1}',
+    '\\bmat':     '\\boldsymbol{#1}',
+    '\\T':        '^{\\mathsf{T}}',          // transpose, e.g. \mat A\T
+    '\\inv':      '^{-1}',
+    '\\hc':       '^{\\dagger}',             // hermitian conjugate (avoid clobbering \dag)
+
+    // ----- tensor notation (physics) -----
+    // \tensor{T}{^a_b} → T^a_b ; full mixed-index spacing falls back to
+    // KaTeX's normal sup/sub rules: T^a{}_b{}^c writes correctly.
+    '\\tensor':   '#1#2',
+    '\\indices':  '#1',
+    // Christoffel-style: \Gamma_{ab}^{c} also works directly.
+
+    // ----- physics package (operators) -----
+    '\\dd':       '\\mathrm{d}',
+    '\\dv':       '\\frac{\\mathrm{d}#1}{\\mathrm{d}#2}',
+    '\\pdv':      '\\frac{\\partial #1}{\\partial #2}',
+    '\\fdv':      '\\frac{\\delta #1}{\\delta #2}',
+    '\\dvn':      '\\frac{\\mathrm{d}^{#1}#2}{\\mathrm{d}#3^{#1}}',
+    '\\pdvn':     '\\frac{\\partial^{#1}#2}{\\partial #3^{#1}}',
+    '\\grad':     '\\boldsymbol{\\nabla}',
+    '\\divv':     '\\boldsymbol{\\nabla}\\cdot',
+    '\\curl':     '\\boldsymbol{\\nabla}\\times',
+    '\\laplacian':'\\nabla^{2}',
+    '\\dalembertian': '\\Box',
+
+    // ----- physics package (delimiters / norms) -----
+    '\\norm':     '\\left\\lVert #1 \\right\\rVert',
+    '\\abs':      '\\left| #1 \\right|',
+    '\\set':      '\\left\\{ #1 \\right\\}',
+    '\\floor':    '\\left\\lfloor #1 \\right\\rfloor',
+    '\\ceil':     '\\left\\lceil #1 \\right\\rceil',
+    '\\inner':    '\\left\\langle #1, #2 \\right\\rangle',
+    '\\eval':     '\\left. #1 \\right|',
+
+    // ----- physics package (quantum / Dirac) -----
+    '\\bra':      '\\left\\langle #1 \\right|',
+    '\\ket':      '\\left| #1 \\right\\rangle',
+    '\\braket':   '\\left\\langle #1 \\middle| #2 \\right\\rangle',
+    '\\matrixel': '\\left\\langle #1 \\middle| #2 \\middle| #3 \\right\\rangle',
+    '\\dyad':     '\\left| #1 \\right\\rangle\\!\\left\\langle #2 \\right|',
+    '\\expval':   '\\left\\langle #1 \\right\\rangle',
+    '\\comm':     '\\left[ #1, #2 \\right]',
+    '\\anticomm': '\\left\\{ #1, #2 \\right\\}',
+    '\\poissonbracket': '\\left\\{ #1, #2 \\right\\}',
+
+    // ----- set theory / number systems -----
+    '\\R':        '\\mathbb{R}',
+    '\\Z':        '\\mathbb{Z}',
+    '\\N':        '\\mathbb{N}',
+    '\\Q':        '\\mathbb{Q}',
+    '\\C':        '\\mathbb{C}',
+    '\\F':        '\\mathbb{F}',
+    '\\K':        '\\mathbb{K}',
+    '\\H':        '\\mathbb{H}',     // quaternions
+    '\\E':        '\\mathbb{E}',     // expectation / Euclidean space
+    '\\P':        '\\mathbb{P}',     // probability / projective space
+
+    // ----- common set / logic shortcuts -----
+    '\\given':    '\\,\\middle|\\,',
+    '\\suchthat': '\\;\\big|\\;',
+    '\\Iff':      '\\Longleftrightarrow',
+    '\\Implies':  '\\Longrightarrow',
+    '\\impliedby':'\\Longleftarrow',
+    '\\defeq':    '\\coloneqq',
+    '\\eqdef':    '\\eqqcolon',
+
+    // ----- complex analysis (\Re, \Im, \arg are KaTeX builtins, kept as-is) -----
+    '\\Real':     '\\operatorname{Re}',      // upright alternative
+    '\\Imag':     '\\operatorname{Im}',
+
+    // ----- statistics (\Pr is a KaTeX builtin, kept as-is) -----
+    '\\Var':      '\\operatorname{Var}',
+    '\\Cov':      '\\operatorname{Cov}',
+    '\\Cor':      '\\operatorname{Corr}',
+    '\\Prob':     '\\operatorname{Pr}',
+
+    // ----- linear algebra -----
+    '\\rank':     '\\operatorname{rank}',
+    '\\tr':       '\\operatorname{tr}',
+    '\\Tr':       '\\operatorname{Tr}',
+    '\\diag':     '\\operatorname{diag}',
+    '\\spn':      '\\operatorname{span}',
+    '\\nullspace':'\\operatorname{null}',
+    '\\range':    '\\operatorname{range}',
+    '\\sgn':      '\\operatorname{sgn}',
+
+    // ----- SI units (lightweight siunitx-like) -----
+    '\\SI':       '#1\\,\\mathrm{#2}',
+    '\\unit':     '\\mathrm{#1}',
+    '\\num':      '#1',
+    '\\si':       '\\mathrm{#1}',
+    '\\degC':     '^{\\circ}\\mathrm{C}',
+    '\\degF':     '^{\\circ}\\mathrm{F}',
+    '\\angstrom': '\\text{\\AA}',
+
+    // ----- common math shortcuts -----
+    '\\half':     '\\tfrac{1}{2}',
+    '\\third':    '\\tfrac{1}{3}',
+    '\\quarter':  '\\tfrac{1}{4}',
+    '\\half2':    '\\tfrac{1}{2}',
+    '\\eps':      '\\varepsilon',
+    '\\veps':     '\\varepsilon',
+    '\\phi2':     '\\varphi',
+    '\\implies':  '\\Rightarrow',
+    '\\iff':      '\\Leftrightarrow',
+
+    // ====================================================================
+    // Granular math selection macros — these route through KaTeX's
+    // \htmlData (which we've enabled via `trust`) so the rendered HTML
+    // gets `data-ve-id` / `data-ve-type` / `data-ve-label` directly.
+    // The runtime's existing [data-ve-id] click handler picks them up.
+    //
+    // Naming convention recommended for matrix cells:
+    //   \vecell{matA-r1c2}{Element a₁₂ of matrix A}{a_{12}}
+    // The "rNcM" suffix lets the agent compute "select row N" from any
+    // cell click, and lets the user mouse-highlight a whole row/column.
+    //
+    // Generic form: \veid{id}{type}{label}{content}
+    // ====================================================================
+
+    '\\veid':     '\\htmlData{ve-id=#1,ve-type=#2,ve-label=#3}{#4}',
+    '\\vecell':   '\\htmlData{ve-id=#1,ve-type=matrix-cell,ve-label=#2}{#3}',
+    '\\veelem':   '\\htmlData{ve-id=#1,ve-type=matrix-cell,ve-label=#2}{#3}',
+    '\\verow':    '\\htmlData{ve-id=#1,ve-type=matrix-row,ve-label=#2}{#3}',
+    '\\vecol':    '\\htmlData{ve-id=#1,ve-type=matrix-column,ve-label=#2}{#3}',
+    '\\veidx':    '\\htmlData{ve-id=#1,ve-type=index,ve-label=#2}{#3}',
+    '\\vesub':    '\\htmlData{ve-id=#1,ve-type=subscript,ve-label=#2}{#3}',
+    '\\vesup':    '\\htmlData{ve-id=#1,ve-type=superscript,ve-label=#2}{#3}',
+    '\\vebound':  '\\htmlData{ve-id=#1,ve-type=bound,ve-label=#2}{#3}',
+    '\\veterm':   '\\htmlData{ve-id=#1,ve-type=term,ve-label=#2}{#3}',
+    '\\vefactor': '\\htmlData{ve-id=#1,ve-type=factor,ve-label=#2}{#3}',
+    '\\vesum':    '\\htmlData{ve-id=#1,ve-type=sum,ve-label=#2}{#3}',
+    '\\veprod':   '\\htmlData{ve-id=#1,ve-type=product,ve-label=#2}{#3}',
+    '\\veint':    '\\htmlData{ve-id=#1,ve-type=integral,ve-label=#2}{#3}',
+    '\\velim':    '\\htmlData{ve-id=#1,ve-type=limit,ve-label=#2}{#3}',
+    '\\veop':     '\\htmlData{ve-id=#1,ve-type=operator,ve-label=#2}{#3}',
+    '\\vegrp':    '\\htmlData{ve-id=#1,ve-type=group,ve-label=#2}{#3}',
+    '\\vevar':    '\\htmlData{ve-id=#1,ve-type=variable,ve-label=#2}{#3}',
+    '\\veconst':  '\\htmlData{ve-id=#1,ve-type=constant,ve-label=#2}{#3}',
+    '\\vetensor': '\\htmlData{ve-id=#1,ve-type=tensor,ve-label=#2}{#3}',
+    '\\vevec':    '\\htmlData{ve-id=#1,ve-type=vector,ve-label=#2}{#3}',
+    '\\vemat':    '\\htmlData{ve-id=#1,ve-type=matrix,ve-label=#2}{#3}',
+    '\\vesymb':   '\\htmlData{ve-id=#1,ve-type=symbol,ve-label=#2}{#3}'
+  };
+
+  function buildKatexMacros(extra) {
+    var merged = {};
+    for (var k in KATEX_DEFAULT_MACROS) merged[k] = KATEX_DEFAULT_MACROS[k];
+    var pageMacros = (typeof window.veKatexMacros === 'object' && window.veKatexMacros) || null;
+    if (pageMacros) for (var k2 in pageMacros) merged[k2] = pageMacros[k2];
+    if (extra && typeof extra === 'object') {
+      for (var k3 in extra) merged[k3] = extra[k3];
+    }
+    return merged;
+  }
+
+  function loadKatex() {
+    if (window.katex) return Promise.resolve(window.katex);
+    if (katexLoading) return katexLoading;
+    katexLoading = new Promise(function (resolve, reject) {
+      // CSS first so layout settles before render.
+      if (!document.querySelector('link[data-ve-katex-css]')) {
+        var link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = KATEX_BASE + '/katex.min.css';
+        link.setAttribute('data-ve-katex-css', '1');
+        link.crossOrigin = 'anonymous';
+        document.head.appendChild(link);
+      }
+      var script = document.createElement('script');
+      script.src = KATEX_BASE + '/katex.min.js';
+      script.crossOrigin = 'anonymous';
+      script.onload = function () {
+        // Best-effort: mhchem (chemistry) + copy-tex (right-click copies
+        // back the original LaTeX source — invaluable when iterating on a
+        // paper figure). Failure of either is non-fatal.
+        var mh = document.createElement('script');
+        mh.src = KATEX_BASE + '/contrib/mhchem.min.js';
+        mh.crossOrigin = 'anonymous';
+        mh.onload = function () {
+          var ct = document.createElement('script');
+          ct.src = KATEX_BASE + '/contrib/copy-tex.min.js';
+          ct.crossOrigin = 'anonymous';
+          ct.onload = function () { resolve(window.katex); };
+          ct.onerror = function () { resolve(window.katex); };
+          document.head.appendChild(ct);
+        };
+        mh.onerror = function () { resolve(window.katex); };
+        document.head.appendChild(mh);
+      };
+      script.onerror = function () { reject(new Error('Failed to load KaTeX')); };
+      document.head.appendChild(script);
+    });
+    return katexLoading;
+  }
+
+  function renderMathElement(el, idx, katex) {
+    if (el.__veMathRendered) return;
+    el.__veMathRendered = true;
+
+    var displayMode =
+      el.classList.contains('ve-math--block') ||
+      el.tagName === 'DIV' ||
+      el.getAttribute('data-ve-math-display') === 'block';
+    var isChem = el.classList.contains('ve-math--chem');
+
+    var src = el.getAttribute('data-tex');
+    if (src == null) src = (el.textContent || '').trim();
+    if (!src) return;
+
+    var renderSrc = src;
+    if (isChem && src.indexOf('\\ce{') !== 0 && src.indexOf('\\pu{') !== 0) {
+      renderSrc = '\\ce{' + src + '}';
+    }
+
+    // Per-element macro overrides via data-tex-macros='{"\\foo":"\\bar"}'
+    var perElementMacros = null;
+    var macrosAttr = el.getAttribute('data-tex-macros');
+    if (macrosAttr) {
+      try { perElementMacros = JSON.parse(macrosAttr); }
+      catch (_) { /* ignore bad JSON; fall back to defaults */ }
+    }
+
+    try {
+      katex.render(renderSrc, el, {
+        displayMode: displayMode,
+        throwOnError: false,
+        output: 'html',
+        strict: 'ignore',
+        // Whitelist ONLY the html-* commands so authors can attach
+        // semantic data attributes via \vecell / \veidx / etc. \href is
+        // explicitly NOT trusted (would let TikZ/math sources inject links).
+        trust: function (ctx) {
+          var allowed = {
+            '\\htmlClass': 1,
+            '\\htmlData': 1,
+            '\\htmlId': 1,
+            '\\htmlStyle': 1
+          };
+          return !!allowed[ctx.command];
+        },
+        macros: buildKatexMacros(perElementMacros)
+      });
+    } catch (err) {
+      el.textContent = src;
+      el.style.color = 'crimson';
+      el.title = 'KaTeX render error: ' + (err && err.message ? err.message : err);
+      return;
+    }
+
+    var fid = 'formula-' + (idx + 1);
+    if (!el.hasAttribute('data-ve-id')) {
+      el.setAttribute('data-ve-id', 've-math-' + fid);
+      el.setAttribute('data-ve-type', 'math-formula');
+      el.setAttribute(
+        'data-ve-label',
+        (isChem ? 'Chemistry' : 'Formula') + ' — ' + src.slice(0, 100)
+      );
+      try {
+        el.setAttribute(
+          'data-ve-data',
+          JSON.stringify({ latex: src, chem: !!isChem, formulaId: fid })
+        );
+      } catch (_) {}
+    }
+    // Mark as a snippet-source so mouse-highlighting inside it opens the
+    // snippet popup, even outside a [data-ve-prose] container.
+    el.setAttribute('data-ve-snippet-source', '1');
+    if (!el.hasAttribute('data-ve-math-source')) {
+      el.setAttribute('data-ve-math-source', src);
+    }
+  }
+
+  function initAllMath() {
+    var elements = document.querySelectorAll('.ve-math, [data-ve-math]');
+    if (!elements.length) return;
+    loadKatex().then(function (katex) {
+      for (var i = 0; i < elements.length; i++) {
+        renderMathElement(elements[i], i, katex);
+      }
+    }).catch(function (err) {
+      // KaTeX failed to load (offline / CSP): leave content as-is so the
+      // raw LaTeX is at least visible and copy-pastable.
+      console.warn('[ve-runtime] math rendering disabled:', err);
+    });
+  }
+
+  // ---------------------------------------------------------------------
+  // TikZ diagrams (TikZJax — full TikZ + chemfig + physics + circuitikz)
+  // ---------------------------------------------------------------------
+
+  var tikzLoading = null;
+
+  function loadTikzJax() {
+    if (window.__tikzjaxLoaded) return Promise.resolve(true);
+    if (tikzLoading) return tikzLoading;
+    tikzLoading = new Promise(function (resolve, reject) {
+      // TikZJax injects its own CSS for the rendered SVGs.
+      var script = document.createElement('script');
+      script.src = 'https://tikzjax.com/v1/tikzjax.js';
+      script.async = true;
+      script.onload = function () { window.__tikzjaxLoaded = true; resolve(true); };
+      script.onerror = function () { reject(new Error('Failed to load TikZJax')); };
+      document.head.appendChild(script);
+    });
+    return tikzLoading;
+  }
+
+  function prepareTikzElement(el, idx) {
+    if (el.__veTikzInit) return;
+    el.__veTikzInit = true;
+
+    // Pull the TikZ source: prefer data-tikz attribute, then text content.
+    var src = el.getAttribute('data-tikz');
+    if (src == null) src = (el.textContent || '').trim();
+    if (!src) return;
+
+    // Wrap bare \chemfig / non-tikzpicture sources so TikZJax accepts them.
+    var needsWrap = src.indexOf('\\begin{tikzpicture}') === -1
+                 && src.indexOf('\\begin{document}') === -1;
+    var wrapped = needsWrap
+      ? '\\begin{tikzpicture}\n' + src + '\n\\end{tikzpicture}'
+      : src;
+
+    // Internal ID used to namespace child geometric-region [data-ve-id]s.
+    // We store it on a non-clickable attribute (data-ve-internal-id) and
+    // deliberately do NOT set data-ve-id on the wrapper itself: that
+    // would make the figure background / whitespace fire a "whole-
+    // diagram" selection on click, which is almost never the intent.
+    // Authors who want background clicks can set data-ve-id explicitly
+    // before render — we honour that.
+    if (!el.hasAttribute('data-ve-internal-id')) {
+      el.setAttribute('data-ve-internal-id', 've-tikz-' + (idx + 1));
+    }
+    el.setAttribute('data-ve-snippet-source', '1');
+    if (!el.hasAttribute('data-ve-tikz-source')) {
+      el.setAttribute('data-ve-tikz-source', src);
+    }
+
+    // Replace the element's contents with the magic <script type="text/tikz">
+    // tag that TikZJax looks for. TikZJax mutates the DOM in place.
+    el.textContent = '';
+    var scriptTag = document.createElement('script');
+    scriptTag.type = 'text/tikz';
+    scriptTag.textContent = wrapped;
+    el.appendChild(scriptTag);
+  }
+
+  function initAllTikz() {
+    var elements = document.querySelectorAll('.ve-tikz, [data-ve-tikz]');
+    if (!elements.length) return;
+    // Prepare DOM first so the <script type="text/tikz"> tags exist before
+    // TikZJax's auto-discovery runs on load.
+    for (var i = 0; i < elements.length; i++) prepareTikzElement(elements[i], i);
+    // Schedule the region-overlay watcher for any wrapper that declares
+    // semantic regions; runs concurrently with TikZJax's render.
+    for (var k = 0; k < elements.length; k++) watchForTikzRender(elements[k]);
+    loadTikzJax().catch(function (err) {
+      console.warn('[ve-runtime] tikz rendering disabled:', err);
+      // Restore raw source so the user at least sees the LaTeX.
+      for (var j = 0; j < elements.length; j++) {
+        var el = elements[j];
+        var src = el.getAttribute('data-ve-tikz-source');
+        if (src) el.textContent = src;
+      }
+    });
+  }
+
+  // ---------------------------------------------------------------------
+  // Semantic geometric regions — invisible SVG overlay on top of a
+  // TikZJax-rendered figure. Each region is a clickable [data-ve-id]
+  // with the SEMANTIC identity Claude needs to act ("the square upon the
+  // hypotenuse", not "<path d='…'/>" without meaning).
+  // ---------------------------------------------------------------------
+
+  var SVG_NS = 'http://www.w3.org/2000/svg';
+
+  function createRegionElement(r) {
+    if (r.shape === 'polygon' && Array.isArray(r.points)) {
+      var poly = document.createElementNS(SVG_NS, 'polygon');
+      poly.setAttribute('points', r.points.map(function (p) { return p.join(','); }).join(' '));
+      return poly;
+    }
+    if (r.shape === 'circle') {
+      var c = document.createElementNS(SVG_NS, 'circle');
+      c.setAttribute('cx', String(r.cx));
+      c.setAttribute('cy', String(r.cy));
+      c.setAttribute('r', String(r.r));
+      return c;
+    }
+    if (r.shape === 'ellipse') {
+      var e = document.createElementNS(SVG_NS, 'ellipse');
+      e.setAttribute('cx', String(r.cx));
+      e.setAttribute('cy', String(r.cy));
+      e.setAttribute('rx', String(r.rx));
+      e.setAttribute('ry', String(r.ry));
+      return e;
+    }
+    if (r.shape === 'rect') {
+      var rect = document.createElementNS(SVG_NS, 'rect');
+      rect.setAttribute('x', String(r.x));
+      rect.setAttribute('y', String(r.y));
+      rect.setAttribute('width', String(r.w != null ? r.w : r.width));
+      rect.setAttribute('height', String(r.h != null ? r.h : r.height));
+      return rect;
+    }
+    if (r.shape === 'path' && r.d) {
+      var p = document.createElementNS(SVG_NS, 'path');
+      p.setAttribute('d', String(r.d));
+      return p;
+    }
+    if (r.shape === 'line' && Array.isArray(r.from) && Array.isArray(r.to)) {
+      // Render as a thick invisible polyline so a "line" region has a
+      // clickable hit area.
+      var line = document.createElementNS(SVG_NS, 'polyline');
+      line.setAttribute('points', r.from.join(',') + ' ' + r.to.join(','));
+      line.setAttribute('stroke-width', String(r.thickness || 0.4));
+      line.setAttribute('fill', 'none');
+      return line;
+    }
+    return null;
+  }
+
+  function applyTikzRegions(wrapperEl, svgEl, regions) {
+    var vbAttr = wrapperEl.getAttribute('data-ve-tikz-viewbox');
+    var vb = vbAttr ? vbAttr.trim().split(/\s+/).map(Number) : null;
+    if (!vb || vb.length !== 4 || vb.some(isNaN)) {
+      var svgVb = svgEl.getAttribute('viewBox');
+      if (svgVb) vb = svgVb.trim().split(/\s+/).map(Number);
+    }
+    if (!vb || vb.length !== 4 || vb.some(isNaN)) {
+      console.warn('[ve-runtime] no usable viewBox for TikZ region overlay; specify data-ve-tikz-viewbox');
+      return;
+    }
+
+    var debug = wrapperEl.getAttribute('data-ve-tikz-debug') === '1';
+
+    // Make wrapper position-relative so the absolute overlay aligns.
+    var cs = window.getComputedStyle(wrapperEl);
+    if (cs.position === 'static') wrapperEl.style.position = 'relative';
+
+    var existing = wrapperEl.querySelector('[data-ve-tikz-overlay]');
+    if (existing) existing.remove();
+
+    var overlay = document.createElementNS(SVG_NS, 'svg');
+    overlay.setAttribute('viewBox', vb.join(' '));
+    overlay.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+    overlay.setAttribute('data-ve-tikz-overlay', '1');
+    overlay.style.cssText =
+      'position:absolute;inset:0;width:100%;height:100%;pointer-events:none;'
+      + 'overflow:visible;';
+
+    var diagramId =
+      wrapperEl.getAttribute('data-ve-id')
+      || wrapperEl.getAttribute('data-ve-internal-id')
+      || 've-tikz-?';
+    var diagramTikz = wrapperEl.getAttribute('data-ve-tikz-source') || null;
+
+    regions.forEach(function (r) {
+      if (!r || !r.id) return;
+      var el = createRegionElement(r);
+      if (!el) return;
+
+      el.setAttribute('data-ve-id', diagramId + '-region-' + r.id);
+      el.setAttribute('data-ve-type', 'geometric-region');
+      el.setAttribute('data-ve-label', r.label || r.id);
+      try {
+        el.setAttribute('data-ve-data', JSON.stringify({
+          regionId: r.id,
+          regionLabel: r.label || r.id,
+          regionShape: r.shape,
+          diagramId: diagramId,
+          fullDiagramLatex: diagramTikz
+        }));
+      } catch (_) {}
+
+      // Hit area: invisible by default (transparent fill, no stroke), but
+      // accepts pointer events so the click registers. On hover, fill in
+      // a subtle accent so the user sees what they're picking.
+      el.style.cssText =
+        'pointer-events:auto;cursor:pointer;'
+        + 'fill:' + (debug ? 'rgba(220,38,38,0.28)' : 'transparent') + ';'
+        + 'stroke:' + (debug ? 'rgba(220,38,38,0.85)' : 'transparent') + ';'
+        + 'stroke-width:' + (debug ? '0.06' : '0') + ';'
+        + 'transition:fill 120ms ease, stroke 120ms ease;';
+
+      el.addEventListener('mouseenter', function () {
+        if (debug) return;
+        el.style.fill = 'currentColor';
+        el.style.fillOpacity = '0.18';
+        el.style.stroke = 'currentColor';
+        el.style.strokeOpacity = '0.65';
+        el.style.strokeWidth = '0.05';
+      });
+      el.addEventListener('mouseleave', function () {
+        if (debug) return;
+        el.style.fill = 'transparent';
+        el.style.stroke = 'transparent';
+      });
+
+      overlay.appendChild(el);
+    });
+
+    wrapperEl.appendChild(overlay);
+  }
+
+  // ---------------------------------------------------------------------
+  // Directed graphs via viz.js (Graphviz WASM)
+  // ---------------------------------------------------------------------
+
+  var VIZ_URL = 'https://cdn.jsdelivr.net/npm/@viz-js/viz/lib/viz-standalone.js';
+  var vizLoading = null;
+  var vizInstance = null;
+
+  function loadViz() {
+    if (vizInstance) return Promise.resolve(vizInstance);
+    if (vizLoading) return vizLoading;
+    vizLoading = new Promise(function (resolve, reject) {
+      var script = document.createElement('script');
+      script.src = VIZ_URL;
+      script.async = true;
+      script.crossOrigin = 'anonymous';
+      script.onload = function () {
+        if (!window.Viz || typeof window.Viz.instance !== 'function') {
+          reject(new Error('@viz-js/viz did not expose Viz.instance'));
+          return;
+        }
+        window.Viz.instance().then(function (inst) {
+          vizInstance = inst;
+          resolve(inst);
+        }, reject);
+      };
+      script.onerror = function () { reject(new Error('Failed to load viz.js')); };
+      document.head.appendChild(script);
+    });
+    return vizLoading;
+  }
+
+  // Replace a Graphviz <text> label that looks like LaTeX math ($…$ or
+  // \(...\)) with a <foreignObject> holding the KaTeX-rendered HTML. The
+  // math stays inside the SVG (not absolute-positioned) so the graph
+  // remains a self-contained, exportable figure for paper inclusion.
+  function rerenderTextAsMath(textEl, latex, katex) {
+    var fontSize = parseFloat(textEl.getAttribute('font-size'))
+                || parseFloat(window.getComputedStyle(textEl).fontSize)
+                || 14;
+
+    // textEl.getBBox() returns the actual rendered bounding box (top-left
+    // origin), which is the only reliable way to position the
+    // foreignObject — the <text> element's `y` attribute is the BASELINE,
+    // not the geometric centre, so naive `y - height/2` placement pushes
+    // the math down by ~30 % of the line-height. getBBox() avoids that.
+    var bbox;
+    try {
+      bbox = textEl.getBBox();
+    } catch (e) {
+      var fx = parseFloat(textEl.getAttribute('x')) || 0;
+      var fy = parseFloat(textEl.getAttribute('y')) || 0;
+      bbox = {
+        x: fx - fontSize * 0.4,
+        y: fy - fontSize * 0.85,
+        width: fontSize * 0.8,
+        height: fontSize * 1.0
+      };
+    }
+
+    // Pad generously so KaTeX (which has its own internal margins) doesn't
+    // get clipped, then re-centre on the original text's geometric centre.
+    var width = Math.max(bbox.width * 2.4, fontSize * 3);
+    var height = Math.max(bbox.height * 2.4, fontSize * 2.2);
+    var cx = bbox.x + bbox.width / 2;
+    var cy = bbox.y + bbox.height / 2;
+
+    var fo = document.createElementNS(SVG_NS, 'foreignObject');
+    fo.setAttribute('x', String(cx - width / 2));
+    fo.setAttribute('y', String(cy - height / 2));
+    fo.setAttribute('width', String(width));
+    fo.setAttribute('height', String(height));
+    fo.setAttribute('overflow', 'visible');
+    fo.setAttribute('data-ve-math-label', '1');
+
+    var div = document.createElement('div');
+    div.setAttribute('xmlns', 'http://www.w3.org/1999/xhtml');
+    div.style.cssText =
+      'display:flex;align-items:center;justify-content:center;'
+      + 'width:100%;height:100%;font-size:' + fontSize + 'px;';
+    try {
+      katex.render(latex, div, {
+        throwOnError: false,
+        output: 'html',
+        strict: 'ignore',
+        trust: function (ctx) {
+          var allowed = { '\\htmlClass':1, '\\htmlData':1, '\\htmlId':1, '\\htmlStyle':1 };
+          return !!allowed[ctx.command];
+        },
+        macros: buildKatexMacros()
+      });
+    } catch (e) {
+      div.textContent = latex;
+    }
+    fo.appendChild(div);
+
+    textEl.parentNode.insertBefore(fo, textEl);
+    textEl.style.display = 'none';
+  }
+
+  function applyGraphMathLabels(svgEl) {
+    var texts = svgEl.querySelectorAll('text');
+    if (!texts.length) return;
+    var pending = [];
+    for (var i = 0; i < texts.length; i++) {
+      var t = texts[i];
+      var content = (t.textContent || '').trim();
+      var m = /^\$([\s\S]+?)\$$/.exec(content) || /^\\\(([\s\S]+?)\\\)$/.exec(content);
+      if (!m) continue;
+      pending.push({ el: t, latex: m[1] });
+    }
+    if (!pending.length) return;
+    loadKatex().then(function (katex) {
+      pending.forEach(function (item) {
+        rerenderTextAsMath(item.el, item.latex, katex);
+      });
+    }).catch(function () {});
+  }
+
+  function decorateGraphSvg(wrapperEl, svgEl) {
+    var dotSrc = wrapperEl.getAttribute('data-ve-graph-source') || null;
+
+    // Internal id used to namespace nodes / edges / regions. We deliberately
+    // do NOT set data-ve-id on the wrapper itself — that would make clicks
+    // on the figure background / whitespace fire a "whole-diagram" selection,
+    // which is almost never what the user wants. Authors who DO want a
+    // background-clickable figure can set data-ve-id explicitly on the
+    // wrapper before render; we only honor it if it was already there.
+    var diagramId = wrapperEl.getAttribute('data-ve-id');
+    if (!diagramId) {
+      if (typeof window.__veGraphCounter !== 'number') window.__veGraphCounter = 0;
+      window.__veGraphCounter += 1;
+      diagramId = 've-graph-' + window.__veGraphCounter;
+      // intentionally not exposed as a click target
+    }
+
+    // Walk node + edge groups. Graphviz emits <g class="node"> per node
+    // and <g class="edge"> per edge. We auto-assign data-ve-id to every
+    // one (deriving from Graphviz's emitted <title> like "i3->j5"), so
+    // authors don't have to write id="…" on every DOT edge to make them
+    // clickable. Author-supplied ids that already start with "ve-" win.
+    var groups = svgEl.querySelectorAll('g.node, g.edge');
+    var autoCounters = { node: 0, edge: 0 };
+    for (var i = 0; i < groups.length; i++) {
+      var g = groups[i];
+      var isEdge = g.classList.contains('edge');
+      var kind = isEdge ? 'edge' : 'node';
+      var titleEl = g.querySelector('title');
+      var titleText = titleEl ? titleEl.textContent.trim() : '';
+
+      // Resolve a stable id: explicit ve-* DOT id wins; otherwise derive
+      // from <title> content (turns "i3->j5" into "ve-edge-i3-to-j5"); if
+      // even that's empty, fall back to a counter.
+      var id = g.getAttribute('id');
+      if (!id || id.indexOf('ve-') !== 0) {
+        autoCounters[kind] += 1;
+        var slug = titleText
+          .replace(/->/g, '-to-')
+          .replace(/--/g, '-to-')
+          .replace(/[^A-Za-z0-9_-]+/g, '-')
+          .replace(/^-+|-+$/g, '');
+        if (!slug) slug = String(autoCounters[kind]);
+        id = 've-' + kind + '-' + slug;
+        g.setAttribute('id', id);
+      }
+
+      // Human label: prefer the visible <text> for nodes; fall back to
+      // the title for edges (which usually says "from->to") or to the id
+      // as last resort.
+      var label = titleText || id.replace(/^ve-(node|edge)-/, '');
+      var textEl = g.querySelector('text');
+      if (textEl && textEl.textContent.trim()) label = textEl.textContent.trim();
+
+      g.setAttribute('data-ve-id', id);
+      g.setAttribute('data-ve-type', isEdge ? 'graph-edge' : 'graph-node');
+      g.setAttribute('data-ve-label', label);
+      g.setAttribute('data-ve-data', JSON.stringify({
+        graphId: diagramId,
+        kind: isEdge ? 'edge' : 'node',
+        dotSource: dotSrc
+      }));
+      g.style.cursor = 'pointer';
+
+      // Edge hit-area expansion: Graphviz strokes edge paths at 1–2 px,
+      // and SVG default `pointer-events: visiblePainted` only registers
+      // clicks on those few painted pixels. The visual line stays thin
+      // (good design), but precise clicks become frustrating. Add an
+      // invisible 14 px-wide twin path as a hit area beneath the visible
+      // path — same `d`, transparent stroke, `pointer-events: stroke` so
+      // clicks anywhere within ~7 px of the line bubble to the edge <g>.
+      if (isEdge) {
+        addEdgeHitArea(g);
+      }
+    }
+  }
+
+  function addEdgeHitArea(edgeGroup) {
+    var paths = edgeGroup.querySelectorAll('path');
+    for (var i = 0; i < paths.length; i++) {
+      var p = paths[i];
+      // Don't double-clone our own hit-area paths.
+      if (p.getAttribute('data-ve-hit') === '1') continue;
+      // Skip if this path is the one we just inserted (in a prior pass).
+      if (p.previousSibling
+          && p.previousSibling.nodeType === 1
+          && p.previousSibling.getAttribute
+          && p.previousSibling.getAttribute('data-ve-hit') === '1') continue;
+      var clone = p.cloneNode(false);
+      clone.setAttribute('data-ve-hit', '1');
+      clone.setAttribute('stroke', 'transparent');
+      clone.setAttribute('stroke-width', '14');
+      clone.setAttribute('stroke-linecap', 'round');
+      clone.setAttribute('stroke-linejoin', 'round');
+      clone.setAttribute('fill', 'none');
+      clone.setAttribute('pointer-events', 'stroke');
+      clone.style.cursor = 'pointer';
+      // Insert BEFORE the visible path so the visible stroke paints on
+      // top (z-order). Pointer-events still reach the hit clone for
+      // clicks landing in the empty space around the visible stroke.
+      p.parentNode.insertBefore(clone, p);
+    }
+  }
+
+  function renderGraph(wrapperEl) {
+    if (wrapperEl.__veGraphInit) return;
+    wrapperEl.__veGraphInit = true;
+
+    var src = wrapperEl.getAttribute('data-dot') || (wrapperEl.textContent || '').trim();
+    if (!src) return;
+    wrapperEl.setAttribute('data-ve-graph-source', src);
+    wrapperEl.setAttribute('data-ve-snippet-source', '1');
+
+    var engine = wrapperEl.getAttribute('data-ve-graph-engine') || 'dot';
+
+    loadViz().then(function (viz) {
+      var svgEl;
+      try {
+        svgEl = viz.renderSVGElement(src, { engine: engine });
+      } catch (err) {
+        wrapperEl.textContent = src;
+        wrapperEl.style.color = 'crimson';
+        wrapperEl.title = 'Graphviz error: ' + (err && err.message ? err.message : err);
+        return;
+      }
+      // Make the SVG fluid in its container.
+      svgEl.removeAttribute('width');
+      svgEl.removeAttribute('height');
+      svgEl.style.maxWidth = '100%';
+      svgEl.style.height = 'auto';
+      wrapperEl.textContent = '';
+      wrapperEl.appendChild(svgEl);
+      decorateGraphSvg(wrapperEl, svgEl);
+      // Re-render math labels last; the SVG is in the DOM so getBBox()
+      // works for sizing the foreignObject containers.
+      applyGraphMathLabels(svgEl);
+      // Wrap the SVG in a zoom/pan viewport. Author can opt out by
+      // setting data-ve-graph-zoom="off" on the wrapper.
+      if (wrapperEl.getAttribute('data-ve-graph-zoom') !== 'off') {
+        enableGraphZoom(wrapperEl, svgEl);
+      }
+    }).catch(function (err) {
+      // Restore raw source so the user at least sees the DOT.
+      console.warn('[ve-runtime] graph rendering disabled:', err);
+      wrapperEl.textContent = src;
+    });
+  }
+
+  function initAllGraphs() {
+    var elements = document.querySelectorAll('.ve-graph, [data-ve-graph]');
+    if (!elements.length) return;
+    for (var i = 0; i < elements.length; i++) renderGraph(elements[i]);
+  }
+
+  // ---------------------------------------------------------------------
+  // Graph zoom + pan controls — wraps a rendered Graphviz SVG in a
+  // viewport with overflow:hidden + transform-based zoom + drag-to-pan.
+  // Same UX pattern as the Mermaid `.diagram-shell`.
+  // ---------------------------------------------------------------------
+
+  function enableGraphZoom(wrapperEl, svgEl) {
+    if (wrapperEl.__veZoomInit) return;
+    wrapperEl.__veZoomInit = true;
+
+    var minZoom = 0.2;
+    var maxZoom = 8;
+    var zoom = 1;
+    var panX = 0;
+    var panY = 0;
+
+    // Wrap the SVG in a viewport div so overflow can be clipped while we
+    // CSS-transform the SVG itself for zoom/pan.
+    var viewport = document.createElement('div');
+    viewport.className = 've-graph-viewport';
+    viewport.style.cssText = [
+      'position:relative',
+      'overflow:hidden',
+      'width:100%',
+      'cursor:grab',
+      'user-select:none',
+      'touch-action:none',
+      'border-radius:6px'
+    ].join(';');
+
+    svgEl.parentNode.insertBefore(viewport, svgEl);
+    viewport.appendChild(svgEl);
+
+    // Reset SVG sizing — it now lives inside the viewport and is
+    // CSS-transformed for zoom/pan. The `width:100%` keeps the natural
+    // unzoomed size matching the viewport's width.
+    svgEl.style.maxWidth = 'none';
+    svgEl.style.transformOrigin = '0 0';
+    svgEl.style.transition = 'transform 80ms ease-out';
+    svgEl.style.willChange = 'transform';
+
+    // Match viewport height to the SVG's natural rendered height so the
+    // "fit" baseline is the unscaled view.
+    function refreshViewportHeight() {
+      var h = svgEl.getBoundingClientRect().height;
+      if (h > 0) viewport.style.height = h + 'px';
+    }
+    refreshViewportHeight();
+    new ResizeObserver(refreshViewportHeight).observe(svgEl);
+
+    function apply() {
+      svgEl.style.transform =
+        'translate(' + panX + 'px,' + panY + 'px) scale(' + zoom + ')';
+      if (zoomLabel) zoomLabel.textContent = Math.round(zoom * 100) + '%';
+    }
+
+    function clampZoom(z) { return Math.max(minZoom, Math.min(maxZoom, z)); }
+
+    function fit() { zoom = 1; panX = 0; panY = 0; apply(); }
+
+    function zoomAtPoint(factor, viewportX, viewportY) {
+      var newZoom = clampZoom(zoom * factor);
+      if (newZoom === zoom) return;
+      // Keep the point under the cursor stationary across the zoom.
+      var ratio = newZoom / zoom;
+      panX = viewportX - (viewportX - panX) * ratio;
+      panY = viewportY - (viewportY - panY) * ratio;
+      zoom = newZoom;
+      apply();
+    }
+
+    // Controls overlay (top-right corner of the viewport).
+    var controls = document.createElement('div');
+    controls.className = 've-graph-controls';
+    controls.style.cssText = [
+      'position:absolute',
+      'top:8px',
+      'right:8px',
+      'z-index:10',
+      'display:flex',
+      'align-items:center',
+      'gap:2px',
+      'background:rgba(15,17,21,0.82)',
+      'backdrop-filter:blur(8px)',
+      '-webkit-backdrop-filter:blur(8px)',
+      'border:1px solid rgba(255,255,255,0.08)',
+      'border-radius:8px',
+      'padding:4px',
+      'font:600 12px/1 ui-monospace,Menlo,monospace',
+      'pointer-events:auto'
+    ].join(';');
+
+    var btnBaseStyle =
+      'background:transparent;border:0;color:#fff;width:30px;height:30px;'
+      + 'cursor:pointer;border-radius:5px;font:inherit;font-size:14px;'
+      + 'display:inline-flex;align-items:center;justify-content:center;';
+
+    function makeBtn(label, title, onClick) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.tabIndex = 0;
+      b.textContent = label;
+      b.title = title;
+      b.setAttribute('aria-label', title);
+      b.style.cssText = btnBaseStyle;
+      b.addEventListener('mouseenter', function () { b.style.background = 'rgba(255,255,255,0.14)'; });
+      b.addEventListener('mouseleave', function () { b.style.background = 'transparent'; });
+      b.addEventListener('click', function (ev) {
+        ev.preventDefault();
+        ev.stopPropagation();
+        onClick();
+      });
+      return b;
+    }
+
+    var zoomLabel = document.createElement('span');
+    zoomLabel.textContent = '100%';
+    zoomLabel.style.cssText =
+      'color:rgba(255,255,255,0.7);padding:0 8px;display:inline-flex;'
+      + 'align-items:center;font-size:11px;letter-spacing:0.04em;';
+
+    controls.appendChild(makeBtn('+', 'Zoom in (Ctrl+wheel up)',
+      function () { zoomAtPoint(1.18, viewport.clientWidth / 2, viewport.clientHeight / 2); }));
+    controls.appendChild(makeBtn('−', 'Zoom out (Ctrl+wheel down)',
+      function () { zoomAtPoint(1 / 1.18, viewport.clientWidth / 2, viewport.clientHeight / 2); }));
+    controls.appendChild(makeBtn('1:1', 'Reset to 100%', fit));
+    controls.appendChild(zoomLabel);
+
+    viewport.appendChild(controls);
+
+    // Ctrl/Cmd + wheel → zoom at the cursor location.
+    viewport.addEventListener('wheel', function (ev) {
+      if (!(ev.ctrlKey || ev.metaKey)) return;
+      ev.preventDefault();
+      var rect = viewport.getBoundingClientRect();
+      var px = ev.clientX - rect.left;
+      var py = ev.clientY - rect.top;
+      var factor = ev.deltaY < 0 ? 1.12 : 1 / 1.12;
+      zoomAtPoint(factor, px, py);
+    }, { passive: false });
+
+    // Click-and-drag to pan. Skip drag start if the press lands on a
+    // selectable element (so node clicks still register cleanly). A small
+    // movement threshold (4 px) prevents micro-jitter from cancelling the
+    // click.
+    var dragging = false;
+    var dragMoved = false;
+    var sx = 0, sy = 0, spx = 0, spy = 0;
+
+    viewport.addEventListener('mousedown', function (ev) {
+      if (ev.button !== 0) return;
+      if (ev.target.closest('.ve-graph-controls, button, a[href]')) return;
+      dragging = true;
+      dragMoved = false;
+      sx = ev.clientX; sy = ev.clientY;
+      spx = panX; spy = panY;
+      svgEl.style.transition = 'none';
+    });
+
+    document.addEventListener('mousemove', function (ev) {
+      if (!dragging) return;
+      var dx = ev.clientX - sx;
+      var dy = ev.clientY - sy;
+      if (!dragMoved && (Math.abs(dx) > 4 || Math.abs(dy) > 4)) {
+        dragMoved = true;
+        viewport.classList.add('is-panning');  // tells ve-runtime click handler to ignore the upcoming click
+        viewport.style.cursor = 'grabbing';
+      }
+      if (dragMoved) {
+        panX = spx + dx;
+        panY = spy + dy;
+        apply();
+      }
+    });
+
+    document.addEventListener('mouseup', function () {
+      if (!dragging) return;
+      dragging = false;
+      viewport.style.cursor = 'grab';
+      svgEl.style.transition = 'transform 80ms ease-out';
+      // Defer removing the panning class so the click event that fires
+      // immediately after mouseup sees it (and is therefore ignored).
+      setTimeout(function () { viewport.classList.remove('is-panning'); }, 50);
+    });
+
+    // Double-click anywhere in the viewport background → fit.
+    viewport.addEventListener('dblclick', function (ev) {
+      if (ev.target.closest('g.node, g.edge, .ve-graph-controls')) return;
+      ev.preventDefault();
+      fit();
+    });
+
+    // Keyboard shortcuts when the viewport is focused.
+    viewport.tabIndex = 0;
+    viewport.addEventListener('keydown', function (ev) {
+      if (ev.key === '+' || ev.key === '=') { zoomAtPoint(1.18, viewport.clientWidth / 2, viewport.clientHeight / 2); ev.preventDefault(); }
+      else if (ev.key === '-') { zoomAtPoint(1 / 1.18, viewport.clientWidth / 2, viewport.clientHeight / 2); ev.preventDefault(); }
+      else if (ev.key === '0') { fit(); ev.preventDefault(); }
+    });
+
+    apply();
+  }
+
+  function watchForTikzRender(wrapperEl) {
+    var regionsJson = wrapperEl.getAttribute('data-ve-tikz-regions');
+    if (!regionsJson) return;
+    var regions;
+    try {
+      regions = JSON.parse(regionsJson);
+    } catch (err) {
+      console.warn('[ve-runtime] invalid data-ve-tikz-regions JSON:', err);
+      return;
+    }
+    if (!Array.isArray(regions) || !regions.length) return;
+
+    var attempt = function () {
+      // TikZJax replaces the <script type="text/tikz"> with the rendered
+      // <svg>. Wait for that swap.
+      var svg = wrapperEl.querySelector(':scope > svg, :scope svg');
+      if (svg && svg.getAttribute('viewBox')) {
+        applyTikzRegions(wrapperEl, svg, regions);
+        return true;
+      }
+      return false;
+    };
+
+    if (attempt()) return;
+
+    var observer = new MutationObserver(function () {
+      if (attempt()) observer.disconnect();
+    });
+    observer.observe(wrapperEl, { childList: true, subtree: true });
+
+    // Hard timeout (TikZJax may fail to load or take a long time on cold
+    // WASM fetch). Stop watching after 60 s so we don't leak observers.
+    setTimeout(function () { observer.disconnect(); }, 60000);
+  }
+
+  // ---------------------------------------------------------------------
+  // Text-snippet selection: floating popup over a mouse selection.
+  // Only active inside [data-ve-prose] so it never fights with normal
+  // copy-paste behaviour on diagram pages.
+  // ---------------------------------------------------------------------
+
+  var snippetPopup = null;
+  var snippetSeq = 0;
+
+  function clearSnippetPopup() {
+    if (snippetPopup) {
+      snippetPopup.remove();
+      snippetPopup = null;
+    }
+  }
+
+  function paragraphFromNode(node) {
+    if (!node) return null;
+    var el = node.nodeType === 3 ? node.parentElement : node;
+    return el && el.closest ? el.closest('[data-ve-pnum]') : null;
+  }
+
+  function showSnippetPopup() {
+    var sel = window.getSelection();
+    if (!sel || sel.isCollapsed) { clearSnippetPopup(); return; }
+    var text = sel.toString().trim();
+    if (text.length < 1) { clearSnippetPopup(); return; }
+
+    var range = sel.getRangeAt(0);
+    var anchor = range.commonAncestorContainer;
+    var anchorEl = (anchor.nodeType === 3 ? anchor.parentElement : anchor);
+
+    // The popup activates inside any opt-in snippet source: prose
+    // containers, math formulas, TikZ diagrams, or anything explicitly
+    // marked with [data-ve-snippet-source].
+    var snippetHost = anchorEl && anchorEl.closest
+      ? anchorEl.closest('[data-ve-prose], [data-ve-snippet-source], .ve-math, [data-ve-math], .ve-tikz, [data-ve-tikz]')
+      : null;
+    if (!snippetHost) { clearSnippetPopup(); return; }
+
+    // Detect whether we're inside a rendered math formula or a TikZ figure.
+    var mathHost = anchorEl && anchorEl.closest
+      ? anchorEl.closest('.ve-math, [data-ve-math]')
+      : null;
+    var tikzHost = anchorEl && anchorEl.closest
+      ? anchorEl.closest('.ve-tikz, [data-ve-tikz]')
+      : null;
+
+    var paraEl = paragraphFromNode(range.startContainer) || paragraphFromNode(range.endContainer);
+    var pnum = paraEl ? paraEl.getAttribute('data-ve-pnum') : null;
+    var paraText = paraEl ? (paraEl.textContent || '').replace(/\s+/g, ' ').trim() : null;
+
+    // Math-mode payload preferences.
+    var mathLatex = mathHost
+      ? (mathHost.getAttribute('data-ve-math-source') || mathHost.getAttribute('data-tex') || null)
+      : null;
+    var mathFormulaId = mathHost ? (mathHost.getAttribute('data-ve-id') || null) : null;
+    var mathFormulaLabel = mathHost ? (mathHost.getAttribute('data-ve-label') || null) : null;
+    var isChem = mathHost && mathHost.classList && mathHost.classList.contains('ve-math--chem');
+
+    var rect = range.getBoundingClientRect();
+    if (!rect || (!rect.width && !rect.height)) { clearSnippetPopup(); return; }
+
+    if (!snippetPopup) {
+      snippetPopup = document.createElement('div');
+      snippetPopup.setAttribute('data-ve-snippet-popup', '');
+      document.body.appendChild(snippetPopup);
+    }
+
+    snippetPopup.innerHTML = '';
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.textContent = mathHost
+      ? 'Ask about this part of the formula'
+      : (tikzHost ? 'Ask about this part of the diagram' : 'Ask about this snippet');
+    var cancel = document.createElement('button');
+    cancel.type = 'button';
+    cancel.textContent = 'Cancel';
+    snippetPopup.appendChild(btn);
+    snippetPopup.appendChild(cancel);
+
+    var top = rect.top + window.scrollY - 44;
+    var left = rect.left + window.scrollX + (rect.width / 2) - (snippetPopup.offsetWidth / 2 || 90);
+    if (top < 8) top = rect.bottom + window.scrollY + 8;
+    if (left < 8) left = 8;
+    snippetPopup.style.top = top + 'px';
+    snippetPopup.style.left = left + 'px';
+
+    btn.addEventListener('click', function () {
+      snippetSeq++;
+      var truncated = text.length > 120 ? text.slice(0, 117) + '…' : text;
+      var payload;
+      if (mathHost) {
+        payload = {
+          id: (mathFormulaId || 've-math-?') + '-snippet-' + snippetSeq,
+          type: isChem ? 'chem-snippet' : 'math-snippet',
+          label: truncated,
+          data: {
+            text: text,
+            fullFormulaLatex: mathLatex,
+            fullFormulaLabel: mathFormulaLabel,
+            formulaId: mathFormulaId,
+            chem: !!isChem,
+            paragraphId: pnum,
+            paragraphNumber: pnum
+          }
+        };
+      } else if (tikzHost) {
+        var tikzSrc = tikzHost.getAttribute('data-ve-tikz-source')
+                   || tikzHost.getAttribute('data-tikz')
+                   || null;
+        var tikzId = tikzHost.getAttribute('data-ve-id') || null;
+        var tikzLabel = tikzHost.getAttribute('data-ve-label') || null;
+        payload = {
+          id: (tikzId || 've-tikz-?') + '-snippet-' + snippetSeq,
+          type: 'tikz-snippet',
+          label: truncated,
+          data: {
+            text: text,
+            fullDiagramLatex: tikzSrc,
+            fullDiagramLabel: tikzLabel,
+            diagramId: tikzId,
+            paragraphId: pnum,
+            paragraphNumber: pnum
+          }
+        };
+      } else {
+        payload = {
+          id: 've-snippet-' + (pnum || 'p?') + '-' + snippetSeq,
+          type: 'text-snippet',
+          label: truncated,
+          data: {
+            text: text,
+            paragraphId: pnum,
+            paragraphNumber: pnum,
+            paragraphText: paraText
+          }
+        };
+      }
+      postSelection(payload);
+      clearSnippetPopup();
+    });
+    cancel.addEventListener('click', function () {
+      clearSnippetPopup();
+      window.getSelection && window.getSelection().removeAllRanges();
+    });
+  }
+
+  // ─────────────────────────────────────────────────────────────────────
+  // Phase 2 — multi-click text selection inside [data-ve-prose].
+  //
+  // 1 click  = single character / grapheme at the click point
+  // 2 clicks (within 500ms) = the surrounding word (Intl.Segmenter)
+  // 3 clicks = a "block" — non-whitespace run, stopping at operators /
+  //            brackets, but keeping comma/dot inside numbers (locale-
+  //            aware: 10,000.00 in en-US, 10.000,00 in it/de/...)
+  //
+  // Selections are added to veSelection as kind:'text' entries. Per
+  // TRDD §3.4, multi-click NEVER deselects — only mouse-drag (Phase 4)
+  // does. Each new click within the chain REPLACES the previous entry
+  // at a deeper depth, so triple-clicking ends with one block, not
+  // three fragments. The first click in a new chain (different text
+  // node, > 500ms, or > 8px from the previous click) starts at depth=1.
+  // ─────────────────────────────────────────────────────────────────────
+
+  var lastClickChain = null; // {textNode, charIdx, depth, entryId, time}
+  var CLICK_GRACE_MS = 500;
+  var CLICK_GRACE_PX = 8;
+  var veLocale = null;
+
+  function getLocale() {
+    if (veLocale) return veLocale;
+    var raw = (document.documentElement.getAttribute('lang') || 'en');
+    var lang = String(raw).toLowerCase().split(/[-_]/)[0];
+    // Per TRDD §3.4, only `<html lang>` drives locale — never
+    // navigator.language (unreliable on Safari mobile per user). If
+    // unrecognised, default to US format.
+    var european = ['it','de','nl','da','nb','pt','pl','tr','vi','id','is','el','ru','uk','bg','hr','cs','hu','lv','mk','ro','sk','sl','bs','mt','sr'];
+    var french   = ['fr','fi','et','lt','sv'];
+    if (french.indexOf(lang) >= 0)   veLocale = {lang: lang, decSep: ',', thouSep: ' '};
+    else if (european.indexOf(lang) >= 0) veLocale = {lang: lang, decSep: ',', thouSep: '.'};
+    else                                  veLocale = {lang: lang, decSep: '.', thouSep: ','};
+    return veLocale;
+  }
+
+  function isInsideProseText(target) {
+    if (!target || !target.closest) return false;
+    if (target.closest('[data-ve-overlay], button, input, textarea, select, .ve-pnum, [data-ve-snippet-popup]')) return false;
+    return !!target.closest('[data-ve-prose]');
+  }
+
+  function caretInfoAt(x, y) {
+    var pos = null;
+    if (document.caretPositionFromPoint) {
+      var p = document.caretPositionFromPoint(x, y);
+      if (p) pos = {node: p.offsetNode, offset: p.offset};
+    } else if (document.caretRangeFromPoint) {
+      var r = document.caretRangeFromPoint(x, y);
+      if (r) pos = {node: r.startContainer, offset: r.startOffset};
+    }
+    if (!pos || !pos.node || pos.node.nodeType !== Node.TEXT_NODE) return null;
+    return pos;
+  }
+
+  function buildLetterRange(node, idx) {
+    var text = node.textContent;
+    if (!text || text.length === 0) return null;
+    var i = Math.max(0, Math.min(idx, text.length - 1));
+    if (typeof Intl !== 'undefined' && Intl.Segmenter) {
+      var segs = new Intl.Segmenter(getLocale().lang, {granularity: 'grapheme'}).segment(text);
+      for (var s of segs) {
+        if (i >= s.index && i < s.index + s.segment.length) {
+          var r = document.createRange();
+          r.setStart(node, s.index);
+          r.setEnd(node, s.index + s.segment.length);
+          return r;
+        }
+      }
+    }
+    var r2 = document.createRange();
+    r2.setStart(node, i);
+    r2.setEnd(node, Math.min(i + 1, text.length));
+    return r2;
+  }
+
+  function buildWordRange(node, idx) {
+    var text = node.textContent;
+    if (!text || text.length === 0) return null;
+    if (typeof Intl !== 'undefined' && Intl.Segmenter) {
+      var segs = new Intl.Segmenter(getLocale().lang, {granularity: 'word'});
+      var fallback = null;
+      for (var s of segs.segment(text)) {
+        if (idx >= s.index && idx < s.index + s.segment.length) {
+          if (s.isWordLike) {
+            var r = document.createRange();
+            r.setStart(node, s.index);
+            r.setEnd(node, s.index + s.segment.length);
+            return r;
+          }
+          fallback = s;
+        }
+      }
+      if (fallback) {
+        var r2 = document.createRange();
+        r2.setStart(node, fallback.index);
+        r2.setEnd(node, fallback.index + fallback.segment.length);
+        return r2;
+      }
+    }
+    // Fallback: walk \w characters
+    var left = idx, right = idx;
+    while (left > 0 && /[A-Za-z0-9_À-ɏ]/.test(text[left-1])) left--;
+    while (right < text.length && /[A-Za-z0-9_À-ɏ]/.test(text[right])) right++;
+    if (left === right) return buildLetterRange(node, idx);
+    var r3 = document.createRange();
+    r3.setStart(node, left);
+    r3.setEnd(node, right);
+    return r3;
+  }
+
+  function buildBlockRange(node, idx) {
+    var text = node.textContent;
+    if (!text || text.length === 0) return null;
+    // Stop characters: whitespace, brackets, operators, punctuation that
+    // is NEVER part of a numeric literal. Comma and dot are special-cased
+    // below so that 10,000.00 / 10.000,00 stay glued together.
+    // The STOP set is intentionally MINIMAL: only whitespace, brackets,
+    // and quote marks. Most other punctuation (.,/:;-+=*%@#&|^~!?$\)
+    // routinely appears mid-token in real-world text and would split
+    // every example below if listed here:
+    //   - dates / times:   2026-05-04, 14:30:00, 5/4/2026, 04.05.2026
+    //   - URLs / emails:   jane.doe@example.com, https://x.io/path
+    //   - IDs / tickers:   IT12345678901, BRK.A, 123-45-6789
+    //   - money / pct:     $100, $1.5M, 5%, 5.5%
+    //   - law citations:   D.Lgs., § 823 BGB
+    // The boundary still always stops at the next space / bracket /
+    // quote, so multi-word names like "Apple Inc." still split on the
+    // space (the user can multi-select or wait for depth=4 in phase 3).
+    var STOP = /[\s\u00a0(){}\[\]<>"`'«»‹›‚„“”‘’‛‟]/;
+    function isDigit(c) { return c !== undefined && c >= '0' && c <= '9'; }
+    function isSep(c)   { return c === ',' || c === '.'; }
+
+    var left = idx;
+    while (left > 0) {
+      var c = text[left - 1];
+      if (STOP.test(c)) break;
+      if (isSep(c)) {
+        var prev = text[left - 2], next = text[left];
+        if (!(isDigit(prev) && isDigit(next))) break;
+      }
+      left--;
+    }
+    var right = idx;
+    while (right < text.length) {
+      var c2 = text[right];
+      if (STOP.test(c2)) break;
+      if (isSep(c2)) {
+        var prev2 = text[right - 1], next2 = text[right + 1];
+        if (!(isDigit(prev2) && isDigit(next2))) break;
+      }
+      right++;
+    }
+    if (left === right) return buildLetterRange(node, idx);
+    var r = document.createRange();
+    r.setStart(node, left);
+    r.setEnd(node, right);
+    return r;
+  }
+
+  function paintTextSelection(range, depth, hostEl) {
+    // Capture the range's anchor BEFORE surroundContents (the call splits
+    // text nodes and reparents them, so the post-call range is no longer
+    // anchored to the same DOM context). paragraphFromNode walks up from
+    // the start container, which IS the actual text node we're selecting,
+    // not the click event's target. The click target may be a wrapping
+    // span from a prior chain or some other parent — always less reliable
+    // than the range start for paragraph attribution.
+    var anchor = range.startContainer;
+    var paraEl = paragraphFromNode(anchor)
+              || (hostEl && hostEl.closest ? hostEl.closest('[data-ve-pnum]') : null);
+    var span = document.createElement('span');
+    span.className = 've-text-sel';
+    var entryId = 'text:' + Date.now() + ':' + Math.random().toString(36).slice(2, 8);
+    span.setAttribute('data-ve-text-sel', entryId);
+    try {
+      range.surroundContents(span);
+    } catch (e) {
+      return null; // range crosses element boundaries — give up silently
+    }
+    var text = span.textContent || '';
+    var pnum = paraEl && paraEl.getAttribute ? paraEl.getAttribute('data-ve-pnum') : null;
+    var paraText = paraEl ? (paraEl.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 240) : null;
+    veSelection.push({
+      kind: 'text',
+      entryId: entryId,
+      text: text,
+      depth: depth,
+      paragraphId: pnum,
+      paragraphText: paraText
+    });
+    updateSubmitButtonsState();
+    return entryId;
+  }
+
+  // ─────────────────────────────────────────────────────────────────────
+  // Phase 3 — block-level text selection (depths 4-7).
+  //
+  // Depths 1-3 wrap a sub-paragraph fragment in a <span> via
+  // surroundContents. Depths 4+ span across paragraph (or larger)
+  // boundaries, so surroundContents would throw — instead we mark the
+  // affected ELEMENTS with [data-ve-text-sel-block="<entryId>"] and
+  // paint via CSS. Removal walks the DOM for matching elements.
+  //
+  // Scope by paragraph-numbering hierarchy (the existing numberProse()
+  // assigns data-ve-pnum like "1.2.1"):
+  //   depth 4 = paragraph     (single [data-ve-pnum] element)
+  //   depth 5 = section       (chop one segment: "1.2.1" → "1.2",
+  //                            select all elements with pnum "1.2"
+  //                            or starting with "1.2.")
+  //   depth 6 = chapter       (keep first segment: "1.2.1" → "1",
+  //                            select all elements with pnum "1"
+  //                            or starting with "1.")
+  //   depth 7 = ALL prose     (every [data-ve-pnum] in the page)
+  // ─────────────────────────────────────────────────────────────────────
+
+  function pnumScope(currentPnum, depth) {
+    if (!currentPnum) return null;
+    if (depth === 4) return currentPnum;
+    var parts = currentPnum.split('.');
+    if (depth === 5) parts.pop();
+    else if (depth === 6) parts = [parts[0]];
+    return parts.join('.');
+  }
+
+  function elementsInPnumScope(scope) {
+    if (!scope) return [];
+    var els = document.querySelectorAll('[data-ve-prose] [data-ve-pnum]');
+    var matches = [];
+    var prefix = scope + '.';
+    for (var i = 0; i < els.length; i++) {
+      var p = els[i].getAttribute('data-ve-pnum');
+      if (p === scope || p.indexOf(prefix) === 0) matches.push(els[i]);
+    }
+    return matches;
+  }
+
+  function paintBlockSelection(elements, depth) {
+    if (!elements || elements.length === 0) return null;
+    var entryId = 'text:' + Date.now() + ':' + Math.random().toString(36).slice(2, 8);
+    for (var i = 0; i < elements.length; i++) {
+      elements[i].setAttribute('data-ve-text-sel-block', entryId);
+    }
+    var combined = '';
+    for (var j = 0; j < elements.length; j++) {
+      combined += (elements[j].textContent || '') + ' ';
+      if (combined.length > 8000) break; // hard cap on collected text
+    }
+    combined = combined.replace(/\s+/g, ' ').trim();
+    var firstPara = elements[0];
+    var pnum = firstPara && firstPara.getAttribute ? firstPara.getAttribute('data-ve-pnum') : null;
+    veSelection.push({
+      kind: 'text',
+      entryId: entryId,
+      text: combined.slice(0, 5000),
+      depth: depth,
+      paragraphId: pnum,
+      paragraphText: combined.slice(0, 240)
+    });
+    updateSubmitButtonsState();
+    return entryId;
+  }
+
+  // ─────────────────────────────────────────────────────────────────────
+  // Phase 3 — math sub-formula selection (depths 1-3 inside .ve-math).
+  //
+  // KaTeX renders LaTeX into nested <span> trees with predictable class
+  // names. The smallest visible atoms carry one of: .mord (ordinary
+  // letter/digit), .mbin (binary op), .mrel (relation), .mop (large
+  // operator), .mopen / .mclose (delimiters), .mpunct (punctuation),
+  // .minner (inner). Group containers carry .mfrac, .msupsub, .minner,
+  // or are themselves nested .mord wrappers.
+  //
+  //   depth 1 = smallest atom under the click
+  //   depth 2 = enclosing group container (parent atom/group)
+  //   depth 3 = the whole .ve-math element (single formula)
+  //
+  // Depths 4-7 fall through to the prose block path — the math click
+  // is treated as a click on its containing [data-ve-pnum] paragraph.
+  // ─────────────────────────────────────────────────────────────────────
+
+  var MATH_ATOM_SELECTOR = '.mord,.mbin,.mrel,.mop,.mopen,.mclose,.mpunct,.minner,.mfrac,.msupsub';
+
+  function mathAtomFromPoint(x, y, mathEl) {
+    if (!document.elementsFromPoint) return null;
+    var stack = document.elementsFromPoint(x, y);
+    for (var i = 0; i < stack.length; i++) {
+      var el = stack[i];
+      if (!mathEl.contains(el)) continue;
+      if (el.matches && el.matches(MATH_ATOM_SELECTOR)) return el;
+    }
+    return null;
+  }
+
+  function mathGroupFromAtom(atom, mathEl) {
+    if (!atom) return null;
+    var p = atom.parentElement;
+    while (p && p !== mathEl) {
+      if (p.matches && p.matches(MATH_ATOM_SELECTOR)) return p;
+      p = p.parentElement;
+    }
+    return null;
+  }
+
+  function paintMathSelection(mathEl, x, y, depth) {
+    if (!mathEl) return null;
+    var painted = null;
+    if (depth === 1) {
+      painted = mathAtomFromPoint(x, y, mathEl) || mathEl;
+    } else if (depth === 2) {
+      var atom = mathAtomFromPoint(x, y, mathEl);
+      painted = mathGroupFromAtom(atom, mathEl) || atom || mathEl;
+    } else {
+      painted = mathEl;
+    }
+    var entryId = 'math:' + Date.now() + ':' + Math.random().toString(36).slice(2, 8);
+    painted.setAttribute('data-ve-math-sel', entryId);
+    var src = mathEl.getAttribute('data-ve-math-source') || '';
+    var paraEl = mathEl.closest ? mathEl.closest('[data-ve-pnum]') : null;
+    var pnum = paraEl && paraEl.getAttribute ? paraEl.getAttribute('data-ve-pnum') : null;
+    var text = (painted.textContent || '').replace(/\s+/g, ' ').trim();
+    veSelection.push({
+      kind: 'math',
+      entryId: entryId,
+      depth: depth,
+      text: text.slice(0, 240),
+      formulaLatex: src,
+      paragraphId: pnum,
+      paragraphText: paraEl ? (paraEl.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 240) : null
+    });
+    updateSubmitButtonsState();
+    return entryId;
+  }
+
+  function removeMathSelection(entryId) {
+    var el = document.querySelector('[data-ve-math-sel="' + entryId + '"]');
+    if (el) el.removeAttribute('data-ve-math-sel');
+    for (var i = 0; i < veSelection.length; i++) {
+      if (veSelection[i].entryId === entryId) {
+        veSelection.splice(i, 1);
+        break;
+      }
+    }
+    updateSubmitButtonsState();
+  }
+
+  // ─────────────────────────────────────────────────────────────────────
+  // Phase 3 — code selection (depths 1-3 inside <pre>/<code> blocks).
+  //
+  //   depth 1 = TOKEN (single keyword/identifier/literal — Prism .token
+  //              ancestor if present, otherwise word-range via caret)
+  //   depth 2 = LINE  (the line containing the click, bounded by \n)
+  //   depth 3 = BLOCK (the whole <pre> element)
+  //   depth 4-7 = paragraph/section/chapter/all (prose hierarchy fallthrough)
+  //
+  // Token + line both wrap a Range via surroundContents (similar to the
+  // prose inline path). Block stamps [data-ve-code-sel-block] on the
+  // <pre> itself.
+  // ─────────────────────────────────────────────────────────────────────
+
+  function codeTokenAtPoint(x, y, preEl) {
+    // If the click landed on a Prism .token / highlight.js .hljs-* span,
+    // use that span's bounds. Otherwise fall back to a word-range from
+    // the text node under the caret.
+    if (document.elementsFromPoint) {
+      var stack = document.elementsFromPoint(x, y);
+      for (var i = 0; i < stack.length; i++) {
+        var el = stack[i];
+        if (!preEl.contains(el)) continue;
+        var cls = el.className || '';
+        if (typeof cls !== 'string') continue;
+        if (cls.indexOf('token') >= 0 || cls.indexOf('hljs-') >= 0) {
+          var r = document.createRange();
+          r.selectNodeContents(el);
+          return r;
+        }
+      }
+    }
+    var pos = caretInfoAt(x, y);
+    if (!pos) return null;
+    return buildWordRange(pos.node, pos.offset);
+  }
+
+  function codeLineRangeAt(x, y, preEl) {
+    var pos = caretInfoAt(x, y);
+    if (!pos || !pos.node || pos.node.nodeType !== 3) return null;
+    var text = pos.node.textContent || '';
+    var idx = pos.offset;
+    var left = idx;
+    while (left > 0 && text.charAt(left - 1) !== '\n') left--;
+    var right = idx;
+    while (right < text.length && text.charAt(right) !== '\n') right++;
+    if (left === right) {
+      // Empty line — pick a single-character range so surroundContents
+      // can still wrap something visible.
+      if (right < text.length) right = Math.min(right + 1, text.length);
+      else if (left > 0) left = Math.max(left - 1, 0);
+      else return null;
+    }
+    var range = document.createRange();
+    range.setStart(pos.node, left);
+    range.setEnd(pos.node, right);
+    return range;
+  }
+
+  function paintCodeInlineSelection(range, depth) {
+    if (!range) return null;
+    var entryId = 'code:' + Date.now() + ':' + Math.random().toString(36).slice(2, 8);
+    var span = document.createElement('span');
+    span.setAttribute('data-ve-code-sel', entryId);
+    try {
+      range.surroundContents(span);
+    } catch (e) {
+      // Range crossed element boundaries (e.g. spans Prism token
+      // boundaries on a multi-character word). Re-extract as a fragment
+      // and re-wrap; the visual highlight is the same.
+      var frag = range.extractContents();
+      span.appendChild(frag);
+      range.insertNode(span);
+    }
+    var pre = span.closest('pre');
+    var lang = pre && pre.getAttribute('data-language')
+      || (pre && pre.querySelector('code') ? pre.querySelector('code').className.replace(/.*language-([\w+-]+).*/, '$1') : null)
+      || null;
+    var codeId = pre && pre.getAttribute('data-ve-id') || null;
+    var paraEl = pre && pre.closest ? pre.closest('[data-ve-pnum]') : null;
+    var pnum = paraEl && paraEl.getAttribute ? paraEl.getAttribute('data-ve-pnum') : null;
+    veSelection.push({
+      kind: 'code',
+      entryId: entryId,
+      depth: depth,
+      text: (span.textContent || '').slice(0, 5000),
+      language: lang,
+      codeId: codeId,
+      paragraphId: pnum,
+      paragraphText: paraEl ? (paraEl.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 240) : null
+    });
+    updateSubmitButtonsState();
+    return entryId;
+  }
+
+  function paintCodeBlockSelection(preEl) {
+    if (!preEl) return null;
+    var entryId = 'code:' + Date.now() + ':' + Math.random().toString(36).slice(2, 8);
+    preEl.setAttribute('data-ve-code-sel-block', entryId);
+    var lang = preEl.getAttribute('data-language')
+      || (preEl.querySelector('code') ? preEl.querySelector('code').className.replace(/.*language-([\w+-]+).*/, '$1') : null)
+      || null;
+    var codeId = preEl.getAttribute('data-ve-id') || null;
+    var paraEl = preEl.closest ? preEl.closest('[data-ve-pnum]') : null;
+    var pnum = paraEl && paraEl.getAttribute ? paraEl.getAttribute('data-ve-pnum') : null;
+    veSelection.push({
+      kind: 'code',
+      entryId: entryId,
+      depth: 3,
+      text: (preEl.textContent || '').slice(0, 5000),
+      language: lang,
+      codeId: codeId,
+      paragraphId: pnum,
+      paragraphText: paraEl ? (paraEl.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 240) : null
+    });
+    updateSubmitButtonsState();
+    return entryId;
+  }
+
+  function removeCodeSelection(entryId) {
+    // Inline span entry (depths 1-2): unwrap.
+    var span = document.querySelector('[data-ve-code-sel="' + entryId + '"]');
+    if (span && span.parentNode) {
+      var parent = span.parentNode;
+      while (span.firstChild) parent.insertBefore(span.firstChild, span);
+      parent.removeChild(span);
+      if (parent.normalize) parent.normalize();
+    }
+    // Block entry (depth 3): clear marker on the <pre>.
+    var blockEl = document.querySelector('[data-ve-code-sel-block="' + entryId + '"]');
+    if (blockEl) blockEl.removeAttribute('data-ve-code-sel-block');
+    for (var i = 0; i < veSelection.length; i++) {
+      if (veSelection[i].entryId === entryId) {
+        veSelection.splice(i, 1);
+        break;
+      }
+    }
+    updateSubmitButtonsState();
+  }
+
+  // Dispatch helper used by the chain-bump code: an entryId's prefix tells
+  // which painter ran ("math:" → math, "code:" → code, otherwise text).
+  // The click handler doesn't have to remember which painter ran last.
+  function removeChainSelection(entryId) {
+    if (!entryId) return;
+    if (entryId.indexOf('math:') === 0) removeMathSelection(entryId);
+    else if (entryId.indexOf('code:') === 0) removeCodeSelection(entryId);
+    else removeTextSelection(entryId);
+  }
+
+  function removeTextSelection(entryId) {
+    // Inline span entry (depths 1-3): unwrap.
+    var span = document.querySelector('[data-ve-text-sel="' + entryId + '"]');
+    if (span && span.parentNode) {
+      var parent = span.parentNode;
+      while (span.firstChild) parent.insertBefore(span.firstChild, span);
+      parent.removeChild(span);
+      if (parent.normalize) parent.normalize();
+    }
+    // Block-attribute entry (depths 4-7): clear the marker on every
+    // element that was painted under this entryId.
+    var blocks = document.querySelectorAll('[data-ve-text-sel-block="' + entryId + '"]');
+    for (var b = 0; b < blocks.length; b++) {
+      blocks[b].removeAttribute('data-ve-text-sel-block');
+    }
+    for (var i = 0; i < veSelection.length; i++) {
+      if (veSelection[i].entryId === entryId) {
+        veSelection.splice(i, 1);
+        break;
+      }
+    }
+    updateSubmitButtonsState();
+  }
+
+  function clearAllTextSelections() {
+    var spans = document.querySelectorAll('[data-ve-text-sel]');
+    for (var i = 0; i < spans.length; i++) {
+      var s = spans[i];
+      var parent = s.parentNode;
+      if (!parent) continue;
+      while (s.firstChild) parent.insertBefore(s.firstChild, s);
+      parent.removeChild(s);
+      if (parent.normalize) parent.normalize();
+    }
+    var blocks = document.querySelectorAll('[data-ve-text-sel-block]');
+    for (var k = 0; k < blocks.length; k++) {
+      blocks[k].removeAttribute('data-ve-text-sel-block');
+    }
+    var maths = document.querySelectorAll('[data-ve-math-sel]');
+    for (var m = 0; m < maths.length; m++) {
+      maths[m].removeAttribute('data-ve-math-sel');
+    }
+    var codes = document.querySelectorAll('[data-ve-code-sel]');
+    for (var c = 0; c < codes.length; c++) {
+      var cs = codes[c];
+      var cp = cs.parentNode;
+      if (!cp) continue;
+      while (cs.firstChild) cp.insertBefore(cs.firstChild, cs);
+      cp.removeChild(cs);
+      if (cp.normalize) cp.normalize();
+    }
+    var codeBlocks = document.querySelectorAll('[data-ve-code-sel-block]');
+    for (var cb = 0; cb < codeBlocks.length; cb++) {
+      codeBlocks[cb].removeAttribute('data-ve-code-sel-block');
+    }
+    for (var j = veSelection.length - 1; j >= 0; j--) {
+      var k2 = veSelection[j].kind;
+      if (k2 === 'text' || k2 === 'math' || k2 === 'code') veSelection.splice(j, 1);
+    }
+  }
+
+  function handleProseClick(ev) {
+    if (sending) return;
+    if (ev.defaultPrevented) return;
+    var target = ev.target;
+    if (!target || !target.closest) return;
+    // Math/code click inside prose container? Route to the right grammar.
+    var inProse = target.closest('[data-ve-prose]');
+    if (!inProse) return;
+    var mathEl = target.closest('.ve-math, [data-ve-math]');
+    var preEl = !mathEl && target.closest('pre');
+    var isMathClick = !!mathEl;
+    var isCodeClick = !!preEl;
+    var isProseClick = !mathEl && !preEl && isInsideProseText(target);
+    if (!isProseClick && !isMathClick && !isCodeClick) return;
+    // If the user is mid-drag (window selection has range), let the
+    // snippet popup own that gesture — multi-click only fires for clean
+    // collapsed-selection clicks.
+    var winSel = window.getSelection();
+    if (winSel && !winSel.isCollapsed && winSel.toString().length > 0) return;
+    var now = Date.now();
+    var clickX = ev.clientX, clickY = ev.clientY;
+    // Track the chain by SCREEN COORDINATES, not by text-node identity.
+    // surroundContents() splits the original text node into 3 siblings,
+    // so the textNode reference is invalidated after the first paint —
+    // the second click would otherwise look like a completely new chain
+    // and reset depth to 1. Coordinates are stable across DOM mutations
+    // (layout doesn't shift for a 1px-padded inline span).
+    var sameChain = lastClickChain
+      && (now - lastClickChain.time) < CLICK_GRACE_MS
+      && Math.abs(clickX - lastClickChain.x) <= CLICK_GRACE_PX
+      && Math.abs(clickY - lastClickChain.y) <= CLICK_GRACE_PX;
+    if (sameChain) {
+      // Remove the previous depth's selection FIRST. For text it unwraps
+      // the inline span (so the text node re-unifies before re-painting);
+      // for math it clears the [data-ve-math-sel] attribute. The dispatch
+      // is by entryId prefix — see removeChainSelection.
+      if (lastClickChain.entryId) removeChainSelection(lastClickChain.entryId);
+      lastClickChain.depth = Math.min(lastClickChain.depth + 1, 8);
+    } else {
+      // SHIFTED-BY-1 grammar (revised 2026-05-06): the FIRST click in a
+      // chain DOES NOT select anything — it just registers the start.
+      // The 2nd click within 500 ms is the first one that paints (depth
+      // 1 = letter), the 3rd paints depth 2 = word, and so on up to
+      // depth 7 (= depth=8 in the chain counter). This matches a
+      // double-click conventionally selecting a word: a single click is
+      // cursor-only, the second click is the first selection action.
+      lastClickChain = {x: clickX, y: clickY, depth: 1, entryId: null, time: now};
+      // First click never paints. Schedule a watchdog so the chain can
+      // also auto-expire on its own (the proximity-and-time check above
+      // already prunes stale chains, but resetting the entry helps tests).
+      lastClickChain.depth = 1; // sentinel for "no paint yet"
+      lastClickChain.firstClickOnly = true;
+      return; // no selection action on the very first click of a chain
+    }
+    // From the 2nd click onward, depth is (chainCount - 1) clamped to 7.
+    // The chain counter (lastClickChain.depth) ranges 1..8; selection
+    // depth ranges 1..7. This is the only place we apply the shift.
+    var visualDepth = Math.min(lastClickChain.depth - 1, 7);
+    if (visualDepth < 1) return; // belt-and-braces — never paint at depth 0
+    var entryId = null;
+    if (isMathClick) {
+      // Math grammar (depths 1-3 = atom/group/formula; depths 4-7 fall
+      // through to the prose block path on the surrounding paragraph).
+      if (visualDepth <= 3) {
+        entryId = paintMathSelection(mathEl, clickX, clickY, visualDepth);
+      } else {
+        var mathPara = mathEl.closest('[data-ve-pnum]');
+        var mathPnum = mathPara && mathPara.getAttribute ? mathPara.getAttribute('data-ve-pnum') : null;
+        if (mathPnum) {
+          var melements;
+          if (visualDepth === 7) {
+            melements = Array.from(document.querySelectorAll('[data-ve-prose] [data-ve-pnum]'));
+          } else {
+            var mscope = pnumScope(mathPnum, visualDepth);
+            melements = elementsInPnumScope(mscope);
+          }
+          entryId = paintBlockSelection(melements, visualDepth);
+        } else {
+          // No numbered paragraph around the formula — degrade to depth 3
+          // (whole formula).
+          entryId = paintMathSelection(mathEl, clickX, clickY, 3);
+          if (entryId) lastClickChain.depth = 4; // chain counter = depth+1
+        }
+      }
+    } else if (isCodeClick) {
+      // Code grammar (depths 1-3 = token/line/whole-block; depths 4-7
+      // fall through to the prose block path on the surrounding paragraph,
+      // identical to the math fallthrough).
+      if (visualDepth === 1) {
+        var tokenRange = codeTokenAtPoint(clickX, clickY, preEl);
+        if (tokenRange) entryId = paintCodeInlineSelection(tokenRange, 1);
+      } else if (visualDepth === 2) {
+        var lineRange = codeLineRangeAt(clickX, clickY, preEl);
+        if (lineRange) entryId = paintCodeInlineSelection(lineRange, 2);
+      } else if (visualDepth === 3) {
+        entryId = paintCodeBlockSelection(preEl);
+      } else {
+        // For depths 4-7 from a code click: find the [data-ve-pnum] anchor.
+        // <pre> isn't auto-numbered (PARA_TAGS has PRE: 0), so the closest
+        // ancestor often returns null. Fall back to the nearest PRECEDING
+        // numbered element in document order — that's the heading or
+        // paragraph that introduces this code block, which is the natural
+        // scope for "select the section around this code".
+        var codePara = preEl.closest('[data-ve-pnum]');
+        if (!codePara) {
+          var allNumbered = document.querySelectorAll('[data-ve-prose] [data-ve-pnum]');
+          for (var an = allNumbered.length - 1; an >= 0; an--) {
+            var cmp = preEl.compareDocumentPosition(allNumbered[an]);
+            if (cmp & Node.DOCUMENT_POSITION_PRECEDING) {
+              codePara = allNumbered[an];
+              break;
+            }
+          }
+        }
+        var codePnum = codePara && codePara.getAttribute ? codePara.getAttribute('data-ve-pnum') : null;
+        if (codePnum) {
+          var celements;
+          if (visualDepth === 7) {
+            celements = Array.from(document.querySelectorAll('[data-ve-prose] [data-ve-pnum]'));
+          } else {
+            var cscope = pnumScope(codePnum, visualDepth);
+            celements = elementsInPnumScope(cscope);
+          }
+          entryId = paintBlockSelection(celements, visualDepth);
+        } else {
+          // No numbered paragraph anywhere — degrade to depth 3 (whole
+          // code block).
+          entryId = paintCodeBlockSelection(preEl);
+          if (entryId) lastClickChain.depth = 4;
+        }
+      }
+    } else {
+      // Prose text grammar (existing depths 1-3 inline + 4-7 block).
+      // Re-resolve caret AFTER any unwrap — the text node may have changed.
+      var pos = caretInfoAt(clickX, clickY);
+      if (!pos) {
+        lastClickChain = null;
+        return;
+      }
+      var textNode = pos.node;
+      var idx = pos.offset;
+      var range = null;
+      if (visualDepth <= 3) {
+        if (visualDepth === 1)      range = buildLetterRange(textNode, idx);
+        else if (visualDepth === 2) range = buildWordRange(textNode, idx);
+        else                         range = buildBlockRange(textNode, idx);
+        if (!range) return;
+        entryId = paintTextSelection(range, visualDepth, target);
+      } else {
+        var paraEl = paragraphFromNode(textNode);
+        var pnum = paraEl && paraEl.getAttribute ? paraEl.getAttribute('data-ve-pnum') : null;
+        if (!pnum) {
+          range = buildBlockRange(textNode, idx);
+          if (range) entryId = paintTextSelection(range, 3, target);
+          if (entryId) lastClickChain.depth = 4;
+        } else {
+          var elements;
+          if (visualDepth === 7) {
+            elements = Array.from(document.querySelectorAll('[data-ve-prose] [data-ve-pnum]'));
+          } else {
+            var scope = pnumScope(pnum, visualDepth);
+            elements = elementsInPnumScope(scope);
+          }
+          entryId = paintBlockSelection(elements, visualDepth);
+        }
+      }
+    }
+    if (entryId) {
+      lastClickChain.entryId = entryId;
+      lastClickChain.time = Date.now();
+    }
+  }
+
+  function setupMultiClickSelection() {
+    document.addEventListener('click', handleProseClick, false);
+  }
+
+  // ─────────────────────────────────────────────────────────────────────
+  // Phase 4 — drag text selection toggles existing entries.
+  //
+  // Per TRDD §3.5: standard browser drag still works. On mouseup after a
+  // drag, the highlighted Range is captured. If it matches an existing
+  // kind:'text' entry → REMOVE (deselect). Otherwise → ADD a new entry.
+  // This is the ONLY path that can DESELECT a text entry — multi-click
+  // depths 1-7 always ADD.
+  //
+  // Scope: prose only. Drag inside .ve-math / .ve-tikz still falls
+  // through to the snippet popup → POST single-shot path because those
+  // payloads carry domain-specific context (LaTeX source, TikZ source,
+  // chem flag) that hasn't been multi-select-converted yet.
+  //
+  // Match key: normalized text content + paragraph id (when both have
+  // one). This avoids false collisions across paragraphs that happen to
+  // share a common phrase.
+  // ─────────────────────────────────────────────────────────────────────
+
+  function findDragMatchTextEntry(text, pnum) {
+    var normalized = (text || '').replace(/\s+/g, ' ').trim();
+    if (!normalized) return -1;
+    for (var i = 0; i < veSelection.length; i++) {
+      var e = veSelection[i];
+      if (e.kind !== 'text') continue;
+      var eText = (e.text || '').replace(/\s+/g, ' ').trim();
+      if (eText !== normalized) continue;
+      // If both sides have a paragraph id, they must match. If either is
+      // null, accept — this lets a drag in an unnumbered paragraph still
+      // toggle a previously-saved entry of the same text.
+      if (e.paragraphId && pnum && e.paragraphId !== pnum) continue;
+      return i;
+    }
+    return -1;
+  }
+
+  function paintDragTextSelection(range) {
+    var paraEl = paragraphFromNode(range.startContainer)
+              || paragraphFromNode(range.endContainer);
+    var entryId = 'text:' + Date.now() + ':' + Math.random().toString(36).slice(2, 8);
+    var span = document.createElement('span');
+    span.className = 've-text-sel ve-text-sel--drag';
+    span.setAttribute('data-ve-text-sel', entryId);
+    try {
+      range.surroundContents(span);
+    } catch (e) {
+      // Range crosses element boundaries (e.g. spans paragraphs or
+      // contains inline children). extractContents + insertNode always
+      // works — the visual highlight looks the same.
+      var frag = range.extractContents();
+      span.appendChild(frag);
+      range.insertNode(span);
+    }
+    var text = (span.textContent || '').replace(/\s+/g, ' ').trim();
+    var pnum = paraEl && paraEl.getAttribute ? paraEl.getAttribute('data-ve-pnum') : null;
+    var paraText = paraEl ? (paraEl.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 240) : null;
+    veSelection.push({
+      kind: 'text',
+      entryId: entryId,
+      text: text,
+      depth: 'drag',
+      paragraphId: pnum,
+      paragraphText: paraText
+    });
+    updateSubmitButtonsState();
+    return entryId;
+  }
+
+  function handleProseDragSelection() {
+    var sel = window.getSelection();
+    if (!sel || sel.isCollapsed) return false;
+    var text = sel.toString();
+    if (!text || text.replace(/\s+/g, '').length < 1) return false;
+    var range;
+    try { range = sel.getRangeAt(0); } catch (_) { return false; }
+    if (!range) return false;
+    var anchor = range.commonAncestorContainer;
+    var anchorEl = anchor.nodeType === 3 ? anchor.parentElement : anchor;
+    if (!anchorEl || !anchorEl.closest) return false;
+    // Skip drags inside our own UI surfaces.
+    if (anchorEl.closest('[data-ve-overlay], [data-ve-snippet-popup], button, input, textarea, select')) return false;
+    // Phase 4 owns prose drag only. Math/TikZ drag stays on the popup
+    // path so their domain-specific snippet payloads keep working.
+    var prose = anchorEl.closest('[data-ve-prose]');
+    var math = anchorEl.closest('.ve-math, [data-ve-math]');
+    var tikz = anchorEl.closest('.ve-tikz, [data-ve-tikz]');
+    if (!prose || math || tikz) return false;
+    var paraEl = paragraphFromNode(range.startContainer)
+              || paragraphFromNode(range.endContainer);
+    var pnum = paraEl && paraEl.getAttribute ? paraEl.getAttribute('data-ve-pnum') : null;
+    var matchIdx = findDragMatchTextEntry(text, pnum);
+    if (matchIdx >= 0) {
+      // Toggle off: remove the existing entry (and its DOM marker).
+      var existing = veSelection[matchIdx];
+      removeChainSelection(existing.entryId);
+      sel.removeAllRanges();
+      clearSnippetPopup();
+      return true;
+    }
+    // Toggle on: paint + push new entry.
+    paintDragTextSelection(range);
+    sel.removeAllRanges();
+    clearSnippetPopup();
+    return true;
+  }
+
+  function setupSnippetSelection() {
+    document.addEventListener('mouseup', function (ev) {
+      // Defer so the selection state has settled.
+      if (ev.target.closest('[data-ve-snippet-popup], [data-ve-overlay]')) return;
+      setTimeout(function () {
+        // Phase 4: prose drag toggles a kind:'text' entry directly. If
+        // it handled the drag, the snippet popup is bypassed. Math and
+        // TikZ drags still fall through to the popup → POST flow.
+        if (handleProseDragSelection()) return;
+        showSnippetPopup();
+      }, 30);
+    });
+    // Phase 7: touchend mirrors mouseup. The browser sets the selection
+    // after a long-press + drag; we just run the same Phase 4 → popup
+    // dispatch on touchend so touch-screen users get the same toggle.
+    document.addEventListener('touchend', function (ev) {
+      var target = (ev.target || document.body);
+      if (target.closest && target.closest('[data-ve-snippet-popup], [data-ve-overlay]')) return;
+      setTimeout(function () {
+        if (handleProseDragSelection()) return;
+        showSnippetPopup();
+      }, 30);
+    }, { passive: true });
+    document.addEventListener('keyup', function (ev) {
+      if (ev.shiftKey || ev.key === 'Shift') return;
+      // Selection via keyboard nav: same Phase 4 → popup fallback chain.
+      setTimeout(function () {
+        if (handleProseDragSelection()) return;
+        showSnippetPopup();
+      }, 30);
+    });
+    document.addEventListener('mousedown', function (ev) {
+      if (snippetPopup && !ev.target.closest('[data-ve-snippet-popup]')) {
+        clearSnippetPopup();
+      }
+    });
+    document.addEventListener('selectionchange', function () {
+      var sel = window.getSelection();
+      if (!sel || sel.isCollapsed) clearSnippetPopup();
+    });
+    window.addEventListener('scroll', clearSnippetPopup, { passive: true });
+  }
+
+  // ─────────────────────────────────────────────────────────────────────
+  // Regex visualizer + editor (vendored Bowen7/regex-vis, MIT).
+  //
+  // Pages opt in by writing:
+  //   <div class="ve-regex" data-regex="^(\d{3})-(\d{4})$"></div>
+  //
+  // The runtime lazy-loads ve-regex.umd.js + ve-regex.css from the same
+  // directory it itself was loaded from (parallel to KaTeX / viz.js /
+  // TikZJax — except this bundle is hosted in our own scripts/ folder
+  // rather than a CDN). On mount, every edit-panel commit pushes a
+  // {kind:"regex-edit", original, edited, ast} entry into veSelection
+  // so the agent sees the user's modified regex on submit.
+  // ─────────────────────────────────────────────────────────────────────
+
+  var regexLoading = null;
+
+  function veRuntimeScriptBase() {
+    // Where is ve-runtime.js sitting? Used to compute the sibling URL for
+    // ve-regex.umd.js / ve-regex.css. Three sources, in order:
+    //   1. window.veRuntimeBase if the page set it explicitly
+    //   2. The <script src="…/ve-runtime.js"> tag in the DOM
+    //   3. document.currentScript (only valid synchronously)
+    if (window.veRuntimeBase) return window.veRuntimeBase.replace(/\/$/, '');
+    var tags = document.getElementsByTagName('script');
+    for (var i = tags.length - 1; i >= 0; i--) {
+      var src = tags[i].src || '';
+      var m = src.match(/^(.*\/)ve-runtime\.js(?:\?.*)?$/);
+      if (m) return m[1].replace(/\/$/, '');
+    }
+    if (document.currentScript && document.currentScript.src) {
+      var s = document.currentScript.src;
+      return s.substring(0, s.lastIndexOf('/'));
+    }
+    // Fallback: same-origin relative path. Works when the page is opened
+    // from a file:// URL with everything in the same directory.
+    return '.';
+  }
+
+  function loadRegexBundle() {
+    if (window.VeRegex && typeof window.VeRegex.render === 'function') {
+      return Promise.resolve(window.VeRegex);
+    }
+    if (regexLoading) return regexLoading;
+    var base = veRuntimeScriptBase();
+    regexLoading = new Promise(function (resolve, reject) {
+      // Inject CSS first so it's ready when React mounts.
+      if (!document.querySelector('link[data-ve-regex-css]')) {
+        var link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = base + '/ve-regex.css';
+        link.setAttribute('data-ve-regex-css', '1');
+        document.head.appendChild(link);
+      }
+      var script = document.createElement('script');
+      script.src = base + '/ve-regex.umd.js';
+      script.async = true;
+      script.onload = function () {
+        if (window.VeRegex && typeof window.VeRegex.render === 'function') {
+          resolve(window.VeRegex);
+        } else {
+          reject(new Error('ve-regex.umd.js loaded but window.VeRegex.render missing'));
+        }
+      };
+      script.onerror = function () { reject(new Error('Failed to load ve-regex.umd.js')); };
+      document.head.appendChild(script);
+    });
+    return regexLoading;
+  }
+
+  function pushRegexEdit(el, original, edited, ast) {
+    if (original === edited) return;
+    var entryId = 'regex:' + Date.now() + ':' + Math.random().toString(36).slice(2, 8);
+    // Replace any existing edit entry for this same wrapper so the user
+    // sees only the latest change per regex block — matching the way
+    // multi-click chains replace rather than accumulate.
+    var existing = el.getAttribute('data-ve-regex-entry-id');
+    if (existing) {
+      for (var i = veSelection.length - 1; i >= 0; i--) {
+        if (veSelection[i].entryId === existing) { veSelection.splice(i, 1); break; }
+      }
+    }
+    el.setAttribute('data-ve-regex-entry-id', entryId);
+    veSelection.push({
+      kind: 'regex-edit',
+      entryId: entryId,
+      regexId: el.getAttribute('data-ve-id') || null,
+      original: original,
+      edited: edited,
+      ast: ast || null,
+    });
+    updateSubmitButtonsState();
+  }
+
+  function mountRegexElement(el, VeRegex) {
+    if (el.__veRegexMounted) return;
+    el.__veRegexMounted = true;
+    var original = el.getAttribute('data-regex') || '';
+    if (!el.hasAttribute('data-ve-id')) {
+      el.setAttribute('data-ve-id', 've-regex-' + Math.random().toString(36).slice(2, 8));
+    }
+    if (!el.hasAttribute('data-ve-type')) el.setAttribute('data-ve-type', 'regex');
+    if (!el.hasAttribute('data-ve-label')) el.setAttribute('data-ve-label', 'Regex: ' + original.slice(0, 60));
+    try {
+      VeRegex.render(el, {
+        regex: original,
+        onChange: function (next) {
+          pushRegexEdit(el, original, next.regex, next.ast);
+        },
+      });
+    } catch (err) {
+      console.warn('[ve-runtime] regex mount failed:', err);
+      el.textContent = 'Regex render failed: ' + (err && err.message ? err.message : err);
+    }
+  }
+
+  function initAllRegex() {
+    var elements = document.querySelectorAll('.ve-regex[data-regex], [data-ve-regex][data-regex]');
+    if (!elements.length) return;
+    loadRegexBundle().then(function (VeRegex) {
+      for (var i = 0; i < elements.length; i++) mountRegexElement(elements[i], VeRegex);
+    }).catch(function (err) {
+      console.warn('[ve-runtime] regex bundle disabled:', err);
+      for (var j = 0; j < elements.length; j++) {
+        var src = elements[j].getAttribute('data-regex') || '';
+        elements[j].textContent = 'Regex (could not load visualizer): ' + src;
+      }
+    });
+  }
+
+  // ─────────────────────────────────────────────────────────────────────
+  // Phase 5 — table row / column handles.
+  //
+  // Per TRDD-7a98 §3.6: every <table> reached by the prose / table-form
+  // scanner gets a hover overlay with four small handle buttons:
+  //
+  //   ◀ row left, ▶ row right        — toggle the entire row
+  //   ▼ col top,  ▲ col bottom       — toggle the entire column
+  //
+  // Click toggles a kind:'row' or kind:'column' entry. Multiple rows
+  // and columns are independent (no per-cell entries at intersections).
+  // Clicking individual cells does NOT deselect handles — you must
+  // re-click the handle.
+  //
+  // Tables that ARE table-form questionnaires (data-ve-type="table-form")
+  // are skipped — their own row-click handlers own that surface.
+  // ─────────────────────────────────────────────────────────────────────
+
+  function tableHandlesId(table) {
+    var existing = table.getAttribute('data-ve-id');
+    if (existing) return existing;
+    var fresh = 've-table-' + Math.random().toString(36).slice(2, 8);
+    table.setAttribute('data-ve-id', fresh);
+    return fresh;
+  }
+
+  function ensureColumnHighlightSheet() {
+    var s = document.getElementById('__ve-table-col-styles');
+    if (s) return s;
+    s = document.createElement('style');
+    s.id = '__ve-table-col-styles';
+    document.head.appendChild(s);
+    return s;
+  }
+
+  function repaintColumnHighlights() {
+    // Build a single rules string from every kind:'column' entry. Each
+    // selected (table, col) becomes:
+    //   table[data-ve-id="X"] tr > td:nth-child(N),
+    //   table[data-ve-id="X"] tr > th:nth-child(N) { background: ...; }
+    var s = ensureColumnHighlightSheet();
+    var lines = [];
+    for (var i = 0; i < veSelection.length; i++) {
+      var e = veSelection[i];
+      if (e.kind !== 'column') continue;
+      var sel = 'table[data-ve-id="' + e.table + '"] tr > td:nth-child(' + e.col + '),'
+              + 'table[data-ve-id="' + e.table + '"] tr > th:nth-child(' + e.col + ')';
+      lines.push(sel + ' { background: color-mix(in srgb, var(--ve-accent, #b8861f) 18%, transparent) !important; }');
+    }
+    s.textContent = lines.join('\n');
+  }
+
+  function repaintTableHandles() {
+    // Walk every handle and set [data-ve-pressed] based on whether its
+    // row/col index appears in veSelection for the table it belongs to.
+    var handles = document.querySelectorAll('.ve-table-handle');
+    for (var i = 0; i < handles.length; i++) {
+      var h = handles[i];
+      var tableId = h.getAttribute('data-ve-table-id');
+      var kind = h.getAttribute('data-ve-handle-kind');
+      var idx = parseInt(h.getAttribute('data-ve-handle-index'), 10);
+      var pressed = false;
+      for (var j = 0; j < veSelection.length; j++) {
+        var e = veSelection[j];
+        if (e.kind !== kind) continue;
+        if (e.table !== tableId) continue;
+        if (kind === 'row' && e.row === idx) { pressed = true; break; }
+        if (kind === 'column' && e.col === idx) { pressed = true; break; }
+      }
+      if (pressed) h.setAttribute('data-ve-pressed', '1');
+      else h.removeAttribute('data-ve-pressed');
+    }
+    // Row highlights via data-ve-row-selected on each <tr>.
+    var allRows = document.querySelectorAll('table[data-ve-id] tbody > tr');
+    for (var r = 0; r < allRows.length; r++) {
+      var row = allRows[r];
+      var table = row.closest('table');
+      if (!table) continue;
+      var tid = table.getAttribute('data-ve-id');
+      var rowIdx = -1;
+      var trs = table.querySelectorAll('tbody > tr');
+      for (var k = 0; k < trs.length; k++) {
+        if (trs[k] === row) { rowIdx = k + 1; break; }
+      }
+      var sel = false;
+      for (var m = 0; m < veSelection.length; m++) {
+        var ent = veSelection[m];
+        if (ent.kind === 'row' && ent.table === tid && ent.row === rowIdx) { sel = true; break; }
+      }
+      if (sel) row.setAttribute('data-ve-row-selected', '1');
+      else row.removeAttribute('data-ve-row-selected');
+    }
+    repaintColumnHighlights();
+  }
+
+  function tableHeaderTexts(table) {
+    var headerRow = table.querySelector('thead > tr')
+                 || table.querySelector('tr');
+    if (!headerRow) return [];
+    var out = [];
+    for (var i = 0; i < headerRow.children.length; i++) {
+      out.push((headerRow.children[i].textContent || '').replace(/\s+/g, ' ').trim());
+    }
+    return out;
+  }
+
+  function rowLabelFor(row) {
+    // Use the first cell's text as the row label — common for matrix
+    // tables where the leftmost column is a row name.
+    var first = row.children[0];
+    if (!first) return null;
+    return (first.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 80) || null;
+  }
+
+  function toggleRowSelection(tableId, rowIdx, label) {
+    var entryId = 'row:' + tableId + ':' + rowIdx;
+    for (var i = 0; i < veSelection.length; i++) {
+      if (veSelection[i].entryId === entryId) {
+        veSelection.splice(i, 1);
+        repaintTableHandles();
+        updateSubmitButtonsState();
+        return;
+      }
+    }
+    veSelection.push({
+      kind: 'row',
+      entryId: entryId,
+      table: tableId,
+      row: rowIdx,
+      header: label || null
+    });
+    repaintTableHandles();
+    updateSubmitButtonsState();
+  }
+
+  function toggleColumnSelection(tableId, colIdx, header) {
+    var entryId = 'col:' + tableId + ':' + colIdx;
+    for (var i = 0; i < veSelection.length; i++) {
+      if (veSelection[i].entryId === entryId) {
+        veSelection.splice(i, 1);
+        repaintTableHandles();
+        updateSubmitButtonsState();
+        return;
+      }
+    }
+    veSelection.push({
+      kind: 'column',
+      entryId: entryId,
+      table: tableId,
+      col: colIdx,
+      header: header || null
+    });
+    repaintTableHandles();
+    updateSubmitButtonsState();
+  }
+
+  function makeHandle(symbol, kind, idx, tableId, side) {
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 've-table-handle ve-table-handle--' + kind + '-' + side;
+    btn.textContent = symbol;
+    btn.setAttribute('data-ve-table-id', tableId);
+    btn.setAttribute('data-ve-handle-kind', kind);
+    btn.setAttribute('data-ve-handle-index', String(idx));
+    btn.setAttribute('aria-label',
+      (kind === 'row' ? 'Toggle row ' : 'Toggle column ') + idx);
+    return btn;
+  }
+
+  function repositionHandles(table, overlay) {
+    overlay.innerHTML = '';
+    var tableId = table.getAttribute('data-ve-id');
+    if (!tableId) return;
+    var overlayRect = overlay.getBoundingClientRect();
+    var bodyRows = table.querySelectorAll('tbody > tr');
+    if (!bodyRows.length) bodyRows = table.querySelectorAll('tr');
+    if (!bodyRows.length) return;
+    var headers = tableHeaderTexts(table);
+    var firstRow = bodyRows[0];
+    var colCount = firstRow.children.length;
+
+    // Row handles (◀ and ▶ at each row's vertical centre).
+    for (var r = 0; r < bodyRows.length; r++) {
+      var row = bodyRows[r];
+      var rect = row.getBoundingClientRect();
+      var top = rect.top - overlayRect.top + (rect.height / 2);
+      var rowIdx = r + 1;
+      var rowLabel = rowLabelFor(row);
+
+      var leftH = makeHandle('◀', 'row', rowIdx, tableId, 'left');
+      leftH.style.top = top + 'px';
+      leftH.style.left = (rect.left - overlayRect.left - 6) + 'px';
+      (function (idx, lbl) {
+        leftH.addEventListener('click', function (ev) { ev.preventDefault(); ev.stopPropagation(); toggleRowSelection(tableId, idx, lbl); });
+      })(rowIdx, rowLabel);
+      overlay.appendChild(leftH);
+
+      var rightH = makeHandle('▶', 'row', rowIdx, tableId, 'right');
+      rightH.style.top = top + 'px';
+      rightH.style.left = (rect.right - overlayRect.left + 6) + 'px';
+      (function (idx, lbl) {
+        rightH.addEventListener('click', function (ev) { ev.preventDefault(); ev.stopPropagation(); toggleRowSelection(tableId, idx, lbl); });
+      })(rowIdx, rowLabel);
+      overlay.appendChild(rightH);
+    }
+
+    // Column handles (▼ above, ▲ below) at each column's horizontal
+    // centre. Anchor against the first body row (where colspan effects
+    // are usually absent).
+    for (var c = 0; c < colCount; c++) {
+      var cell = firstRow.children[c];
+      var crect = cell.getBoundingClientRect();
+      var left = crect.left - overlayRect.left + (crect.width / 2);
+      var colIdx = c + 1;
+      var headerText = headers[c] || null;
+      var lastRow = bodyRows[bodyRows.length - 1];
+      var lastRect = lastRow.getBoundingClientRect();
+
+      var topH = makeHandle('▼', 'column', colIdx, tableId, 'top');
+      topH.style.left = left + 'px';
+      topH.style.top = (firstRow.getBoundingClientRect().top - overlayRect.top - 6) + 'px';
+      (function (idx, hdr) {
+        topH.addEventListener('click', function (ev) { ev.preventDefault(); ev.stopPropagation(); toggleColumnSelection(tableId, idx, hdr); });
+      })(colIdx, headerText);
+      overlay.appendChild(topH);
+
+      var bottomH = makeHandle('▲', 'column', colIdx, tableId, 'bottom');
+      bottomH.style.left = left + 'px';
+      bottomH.style.top = (lastRect.bottom - overlayRect.top + 6) + 'px';
+      (function (idx, hdr) {
+        bottomH.addEventListener('click', function (ev) { ev.preventDefault(); ev.stopPropagation(); toggleColumnSelection(tableId, idx, hdr); });
+      })(colIdx, headerText);
+      overlay.appendChild(bottomH);
+    }
+    repaintTableHandles();
+  }
+
+  function initTableHandles(table) {
+    if (table.__veHandlesInit) return;
+    if (table.matches('[data-ve-type="table-form"]')) return;
+    if (table.closest('[data-ve-type="table-form"]')) return;
+    table.__veHandlesInit = true;
+    tableHandlesId(table);
+    var wrapper = document.createElement('div');
+    wrapper.className = 've-table-wrapper';
+    table.parentNode.insertBefore(wrapper, table);
+    wrapper.appendChild(table);
+    var overlay = document.createElement('div');
+    overlay.className = 've-table-handles-overlay';
+    wrapper.appendChild(overlay);
+    repositionHandles(table, overlay);
+    if (typeof ResizeObserver !== 'undefined') {
+      var ro = new ResizeObserver(function () { repositionHandles(table, overlay); });
+      ro.observe(table);
+    }
+    window.addEventListener('resize', function () {
+      repositionHandles(table, overlay);
+    }, { passive: true });
+  }
+
+  function initAllTableHandles() {
+    var tables = document.querySelectorAll('table');
+    for (var i = 0; i < tables.length; i++) initTableHandles(tables[i]);
+  }
+
+  // ─────────────────────────────────────────────────────────────────────
+  // Phase 6 — code line-number gutter.
+  //
+  // Per TRDD-7a98 §3.7: every <pre><code> (or .ve-code) gets a left-side
+  // gutter with line numbers. The numbers are clickable and draggable:
+  //
+  //   1 click   = toggle a kind:'codeline' for that line (single line).
+  //   drag N→M  = push a kind:'codelines' for the inclusive interval.
+  //   2 clicks  = select all lines as one kind:'codelines'.
+  //   3 clicks  = clear every codeline / codelines for that block.
+  //
+  // Re-selecting an interval that overlaps existing lines ADDS — the
+  // accumulated entries can be reasoned about by the agent. The single
+  // exception is "drag back over already-selected lines deselects" —
+  // that within-drag deselect path is deferred (a future tweak).
+  //
+  // Pages opt out by stamping [data-ve-no-gutter] on the <pre>.
+  // ─────────────────────────────────────────────────────────────────────
+
+  var GUTTER_CHAIN_MS = 350;
+  var gutterClickChain = null;   // {blockId, line, count, timer, lineCount}
+  var gutterDragStart = null;    // {blockId, line, dragging, lineCount}
+
+  function gutterBlockId(pre) {
+    var existing = pre.getAttribute('data-ve-id');
+    if (existing) return existing;
+    var fresh = 've-code-' + Math.random().toString(36).slice(2, 8);
+    pre.setAttribute('data-ve-id', fresh);
+    return fresh;
+  }
+
+  function findCodeLineButton(target) {
+    if (!target || !target.closest) return null;
+    var btn = target.closest('.ve-code-linenum');
+    if (!btn) return null;
+    var line = parseInt(btn.getAttribute('data-line'), 10);
+    var gutter = btn.closest('.ve-code-gutter');
+    var blockId = gutter && gutter.getAttribute('data-ve-block-id');
+    var lineCount = gutter && parseInt(gutter.getAttribute('data-ve-line-count'), 10);
+    return { btn: btn, line: line, blockId: blockId, lineCount: lineCount };
+  }
+
+  function repaintCodeGutters() {
+    // Walk every line button and set [data-ve-pressed] based on whether
+    // the line is covered by any kind:'codeline' or kind:'codelines'
+    // entry for the same block.
+    var btns = document.querySelectorAll('.ve-code-linenum');
+    for (var i = 0; i < btns.length; i++) {
+      var btn = btns[i];
+      var line = parseInt(btn.getAttribute('data-line'), 10);
+      var gutter = btn.parentNode;
+      var blockId = gutter && gutter.getAttribute('data-ve-block-id');
+      var pressed = false;
+      for (var j = 0; j < veSelection.length; j++) {
+        var e = veSelection[j];
+        if (e.block !== blockId) continue;
+        if (e.kind === 'codeline' && e.line === line) { pressed = true; break; }
+        if (e.kind === 'codelines' && line >= e.fromLine && line <= e.toLine) { pressed = true; break; }
+      }
+      if (pressed) btn.setAttribute('data-ve-pressed', '1');
+      else btn.removeAttribute('data-ve-pressed');
+    }
+  }
+
+  function paintGutterPreview(blockId, fromLine, toLine) {
+    var lo = Math.min(fromLine, toLine), hi = Math.max(fromLine, toLine);
+    var btns = document.querySelectorAll('.ve-code-gutter[data-ve-block-id="' + blockId + '"] .ve-code-linenum');
+    for (var i = 0; i < btns.length; i++) {
+      var ln = parseInt(btns[i].getAttribute('data-line'), 10);
+      if (ln >= lo && ln <= hi) btns[i].setAttribute('data-ve-preview', '1');
+      else btns[i].removeAttribute('data-ve-preview');
+    }
+  }
+
+  function clearGutterPreview(blockId) {
+    var btns = document.querySelectorAll('.ve-code-gutter[data-ve-block-id="' + blockId + '"] .ve-code-linenum[data-ve-preview]');
+    for (var i = 0; i < btns.length; i++) btns[i].removeAttribute('data-ve-preview');
+  }
+
+  function pushSingleCodeLine(blockId, line) {
+    var entryId = 'codeline:' + blockId + ':' + line;
+    for (var i = 0; i < veSelection.length; i++) {
+      if (veSelection[i].entryId === entryId) {
+        // Toggle off
+        veSelection.splice(i, 1);
+        repaintCodeGutters();
+        updateSubmitButtonsState();
+        return;
+      }
+    }
+    veSelection.push({ kind: 'codeline', entryId: entryId, block: blockId, line: line });
+    repaintCodeGutters();
+    updateSubmitButtonsState();
+  }
+
+  function pushCodeLineRange(blockId, fromLine, toLine) {
+    var lo = Math.min(fromLine, toLine), hi = Math.max(fromLine, toLine);
+    if (lo === hi) { pushSingleCodeLine(blockId, lo); return; }
+    var entryId = 'codelines:' + blockId + ':' + lo + '-' + hi;
+    // Re-selecting an interval that overlaps existing lines ADDS — never
+    // deselects (TRDD §3.7). So no toggle here, just append.
+    for (var i = 0; i < veSelection.length; i++) {
+      if (veSelection[i].entryId === entryId) return; // exact dup — silently ignore
+    }
+    veSelection.push({
+      kind: 'codelines', entryId: entryId, block: blockId,
+      fromLine: lo, toLine: hi
+    });
+    repaintCodeGutters();
+    updateSubmitButtonsState();
+  }
+
+  function selectAllCodeLines(blockId, lineCount) {
+    if (!lineCount) return;
+    pushCodeLineRange(blockId, 1, lineCount);
+  }
+
+  function clearAllCodeLines(blockId) {
+    for (var i = veSelection.length - 1; i >= 0; i--) {
+      var e = veSelection[i];
+      if ((e.kind === 'codeline' || e.kind === 'codelines') && e.block === blockId) {
+        veSelection.splice(i, 1);
+      }
+    }
+    repaintCodeGutters();
+    updateSubmitButtonsState();
+  }
+
+  function setupGutterEvents() {
+    document.addEventListener('mousedown', function (ev) {
+      var hit = findCodeLineButton(ev.target);
+      if (!hit) return;
+      ev.preventDefault();
+      gutterDragStart = {
+        blockId: hit.blockId,
+        line: hit.line,
+        dragging: false,
+        lineCount: hit.lineCount
+      };
+    }, true);
+
+    document.addEventListener('mouseover', function (ev) {
+      if (!gutterDragStart) return;
+      var hit = findCodeLineButton(ev.target);
+      if (!hit || hit.blockId !== gutterDragStart.blockId) return;
+      if (hit.line !== gutterDragStart.line) gutterDragStart.dragging = true;
+      paintGutterPreview(gutterDragStart.blockId, gutterDragStart.line, hit.line);
+    }, true);
+
+    document.addEventListener('mouseup', function (ev) {
+      if (!gutterDragStart) return;
+      var snapshot = gutterDragStart;
+      gutterDragStart = null;
+      if (snapshot.dragging) {
+        var hit = findCodeLineButton(ev.target);
+        var endLine = hit && hit.blockId === snapshot.blockId ? hit.line : snapshot.line;
+        clearGutterPreview(snapshot.blockId);
+        pushCodeLineRange(snapshot.blockId, snapshot.line, endLine);
+        return;
+      }
+      // No drag — single line click. Feed the click chain so we can
+      // distinguish 1×, 2×, 3× clicks per the TRDD vocabulary.
+      handleGutterClickChain(snapshot.blockId, snapshot.line, snapshot.lineCount);
+    }, true);
+
+    // Phase 7: touch parity — touchstart begins the drag, touchmove
+    // tracks the line under the finger via elementFromPoint (touch
+    // events don't bubble like mouseover), touchend finalises.
+    document.addEventListener('touchstart', function (ev) {
+      var hit = findCodeLineButton(ev.target);
+      if (!hit) return;
+      // preventDefault on the line button stops the long-press selection
+      // popup from hijacking the gesture on iOS.
+      ev.preventDefault();
+      gutterDragStart = {
+        blockId: hit.blockId,
+        line: hit.line,
+        dragging: false,
+        lineCount: hit.lineCount
+      };
+    }, { passive: false, capture: true });
+
+    document.addEventListener('touchmove', function (ev) {
+      if (!gutterDragStart) return;
+      var t = ev.touches && ev.touches[0];
+      if (!t) return;
+      var el = document.elementFromPoint(t.clientX, t.clientY);
+      var hit = findCodeLineButton(el);
+      if (!hit || hit.blockId !== gutterDragStart.blockId) return;
+      if (hit.line !== gutterDragStart.line) gutterDragStart.dragging = true;
+      paintGutterPreview(gutterDragStart.blockId, gutterDragStart.line, hit.line);
+    }, { passive: true, capture: true });
+
+    document.addEventListener('touchend', function (ev) {
+      if (!gutterDragStart) return;
+      var snapshot = gutterDragStart;
+      gutterDragStart = null;
+      var endLine = snapshot.line;
+      if (ev.changedTouches && ev.changedTouches[0]) {
+        var t = ev.changedTouches[0];
+        var el = document.elementFromPoint(t.clientX, t.clientY);
+        var hit = findCodeLineButton(el);
+        if (hit && hit.blockId === snapshot.blockId) endLine = hit.line;
+      }
+      if (snapshot.dragging) {
+        clearGutterPreview(snapshot.blockId);
+        pushCodeLineRange(snapshot.blockId, snapshot.line, endLine);
+        return;
+      }
+      handleGutterClickChain(snapshot.blockId, snapshot.line, snapshot.lineCount);
+    }, { passive: true, capture: true });
+  }
+
+  function handleGutterClickChain(blockId, line, lineCount) {
+    if (!gutterClickChain
+        || gutterClickChain.blockId !== blockId
+        || gutterClickChain.line !== line) {
+      if (gutterClickChain && gutterClickChain.timer) clearTimeout(gutterClickChain.timer);
+      gutterClickChain = { blockId: blockId, line: line, count: 0, timer: null, lineCount: lineCount };
+    }
+    gutterClickChain.count++;
+    if (gutterClickChain.timer) clearTimeout(gutterClickChain.timer);
+    gutterClickChain.timer = setTimeout(function () {
+      var c = gutterClickChain;
+      gutterClickChain = null;
+      if (c.count === 1) pushSingleCodeLine(c.blockId, c.line);
+      else if (c.count === 2) selectAllCodeLines(c.blockId, c.lineCount);
+      else if (c.count >= 3) clearAllCodeLines(c.blockId);
+    }, GUTTER_CHAIN_MS);
+  }
+
+  function initCodeGutter(pre) {
+    if (pre.__veGutterInit) return;
+    if (pre.matches('[data-ve-no-gutter]')) return;
+    if (pre.closest('[data-ve-no-gutter]')) return;
+    if (pre.closest('.ve-regex')) return; // regex graph never gets a gutter
+    if (pre.closest('[data-ve-overlay], [data-ve-snippet-popup]')) return;
+    pre.__veGutterInit = true;
+    var blockId = gutterBlockId(pre);
+    var raw = pre.textContent || '';
+    // Trim trailing newline so the gutter line count matches what users see.
+    if (raw.length && raw.charAt(raw.length - 1) === '\n') raw = raw.slice(0, -1);
+    var lineCount = raw.split('\n').length;
+    if (lineCount === 0) return;
+
+    var wrapper = document.createElement('div');
+    wrapper.className = 've-code-block';
+    pre.parentNode.insertBefore(wrapper, pre);
+
+    var gutter = document.createElement('div');
+    gutter.className = 've-code-gutter';
+    gutter.setAttribute('data-ve-block-id', blockId);
+    gutter.setAttribute('data-ve-line-count', String(lineCount));
+
+    // Sync line-height: read the <pre>'s computed line-height so each
+    // gutter button lines up with the visual line of code beside it.
+    var styles = window.getComputedStyle(pre);
+    var lineHeight = styles.lineHeight;
+    if (lineHeight && lineHeight !== 'normal') gutter.style.lineHeight = lineHeight;
+
+    for (var i = 0; i < lineCount; i++) {
+      var num = document.createElement('button');
+      num.type = 'button';
+      num.className = 've-code-linenum';
+      num.setAttribute('data-line', String(i + 1));
+      num.textContent = String(i + 1);
+      if (lineHeight) num.style.lineHeight = lineHeight;
+      gutter.appendChild(num);
+    }
+
+    wrapper.appendChild(gutter);
+    wrapper.appendChild(pre);
+  }
+
+  function initAllCodeGutters() {
+    var pres = document.querySelectorAll('pre');
+    for (var i = 0; i < pres.length; i++) initCodeGutter(pres[i]);
+  }
+
+  // ─────────────────────────────────────────────────────────────────────
+  // Interactive agent reports — TRDD-eff1aa87.
+  //
+  // Pages rendered by render-interactive-report.py contain one or more
+  //   <textarea data-ve-finding-reply data-ve-finding-id="finding-N">…</textarea>
+  // controls. Typing in any of them pushes/updates a single
+  //   {kind:'finding-reply', findingId, text}
+  // entry into veSelection (replace-on-keystroke, debounced 350 ms).
+  // Empty (after trim) → entry removed. Submit then carries the latest
+  // text per finding to the agent in the standard /__ve-select POST.
+  // ─────────────────────────────────────────────────────────────────────
+
+  var findingReplyTimers = {};
+  var FINDING_REPLY_DEBOUNCE_MS = 350;
+
+  function pushOrUpdateFindingReply(findingId, text) {
+    var trimmed = (text || '').replace(/\s+$/g, '').replace(/^\s+/g, '');
+    var entryId = 'finding-reply:' + findingId;
+    var existingIdx = -1;
+    for (var i = 0; i < veSelection.length; i++) {
+      if (veSelection[i].entryId === entryId) { existingIdx = i; break; }
+    }
+    if (!trimmed) {
+      if (existingIdx >= 0) {
+        veSelection.splice(existingIdx, 1);
+        updateSubmitButtonsState();
+      }
+      return;
+    }
+    if (existingIdx >= 0) {
+      veSelection[existingIdx].text = trimmed;
+    } else {
+      veSelection.push({
+        kind: 'finding-reply',
+        entryId: entryId,
+        findingId: findingId,
+        text: trimmed
+      });
+    }
+    updateSubmitButtonsState();
+  }
+
+  function setupFindingReplyHandlers() {
+    document.addEventListener('input', function (ev) {
+      var t = ev.target;
+      if (!t || !t.matches || !t.matches('textarea[data-ve-finding-reply]')) return;
+      var fid = t.getAttribute('data-ve-finding-id');
+      if (!fid) return;
+      // Debounce per-finding so rapid typing doesn't thrash veSelection.
+      if (findingReplyTimers[fid]) clearTimeout(findingReplyTimers[fid]);
+      findingReplyTimers[fid] = setTimeout(function () {
+        delete findingReplyTimers[fid];
+        pushOrUpdateFindingReply(fid, t.value);
+      }, FINDING_REPLY_DEBOUNCE_MS);
+    });
+    // Make ESC also clear the textarea contents that were captured into
+    // veSelection. The global ESC handler wipes veSelection; here we
+    // mirror that on the visible inputs so user typing is reset too.
+    document.addEventListener('keydown', function (ev) {
+      if (ev.key !== 'Escape') return;
+      if (veSelection.length !== 0) return; // ESC handler ran first and cleared
+      // (handler above already cleared; this is the post-clear pass)
+    });
+  }
+
+  // Phase 5 of TRDD-eff1aa87 hook — extend the global ESC handler that
+  // already clears veSelection so that the visible textareas also empty
+  // their values. Without this, the user typed text would still appear
+  // in the box even though the entry was removed from veSelection.
+  function clearAllFindingReplyTextareas() {
+    var areas = document.querySelectorAll('textarea[data-ve-finding-reply]');
+    for (var i = 0; i < areas.length; i++) areas[i].value = '';
+    findingReplyTimers = {};
+  }
+
+  // ─────────────────────────────────────────────────────────────────────
+  // v2 — modal comment threads (TRDD-eff1aa87 §6).
+  //
+  // Hover any [data-ve-comment-id] → "💬 Comment this" pill in the
+  // top-right of the element. Click the pill → modal slides in from
+  // the right; main content reflows so the modal never overlaps text.
+  //
+  // Inside the modal: left thread index + right active-turn pane +
+  // bottom ANSWER / DONE buttons. Clicking a thread row displays that
+  // turn's content in the right pane (read-only). Pressing ANSWER
+  // appends a new user-turn entry at the bottom of the index, focuses
+  // the right-pane textarea. SEND-on-ANSWER posts the comment to
+  // /__ve-comment, then the page polls /__ve-reply/<threadId> every
+  // 1.5 s for the agent's reply, which lands as a new agent-turn at
+  // the bottom of the index. DONE saves and closes.
+  //
+  // Thread state lives in localStorage so a reload preserves history.
+  // ─────────────────────────────────────────────────────────────────────
+
+  var COMMENT_POLL_MS = 1500;
+  var COMMENT_LS_PREFIX = 've-comment-thread:';
+  var commentModalEl = null;
+  var commentModalState = null; // {commentId, threadId, anchorEl, turns:[], activeTurn:N, polling:boolean, pollHandle:any}
+
+  function commentSourcePath() {
+    // The original source markdown path is recorded in the page's
+    // <meta name="ve-source-path"> if the renderer stamped it; otherwise
+    // we fall back to location.pathname so the orchestrator can still
+    // map a thread to a doc on disk.
+    var meta = document.querySelector('meta[name="ve-source-path"]');
+    if (meta && meta.content) return meta.content;
+    return location.pathname || '';
+  }
+
+  function ensureThreadId(commentId) {
+    return 'thread-' + commentId + '-' + Date.now().toString(36);
+  }
+
+  function loadThreadFromStorage(commentId) {
+    try {
+      var raw = localStorage.getItem(COMMENT_LS_PREFIX + commentId);
+      if (!raw) return null;
+      return JSON.parse(raw);
+    } catch (_) { return null; }
+  }
+
+  function saveThreadToStorage(state) {
+    try {
+      localStorage.setItem(
+        COMMENT_LS_PREFIX + state.commentId,
+        JSON.stringify({
+          commentId: state.commentId,
+          threadId: state.threadId,
+          turns: state.turns,
+          updatedAt: Date.now()
+        })
+      );
+    } catch (_) {}
+  }
+
+  function findCommentAnchor(target) {
+    if (!target || !target.closest) return null;
+    return target.closest('[data-ve-comment-id]');
+  }
+
+  // ── Hover affordance ────────────────────────────────────────────────
+  var commentHoverPill = null;
+  var commentHoverTarget = null;
+
+  function showCommentHoverPill(el) {
+    if (!el) return;
+    if (commentHoverTarget === el) return;
+    commentHoverTarget = el;
+    if (!commentHoverPill) {
+      commentHoverPill = document.createElement('button');
+      commentHoverPill.type = 'button';
+      commentHoverPill.className = 've-comment-pill';
+      commentHoverPill.setAttribute('data-ve-overlay', '1');
+      commentHoverPill.textContent = '💬 Comment this';
+      commentHoverPill.addEventListener('click', function (ev) {
+        ev.preventDefault();
+        ev.stopPropagation();
+        if (commentHoverTarget) openCommentModal(commentHoverTarget);
+      });
+      document.body.appendChild(commentHoverPill);
+    }
+    var rect = el.getBoundingClientRect();
+    commentHoverPill.style.top = (rect.top + window.scrollY + 4) + 'px';
+    commentHoverPill.style.left = (rect.right + window.scrollX - 130) + 'px';
+    commentHoverPill.style.opacity = '1';
+    commentHoverPill.style.pointerEvents = 'auto';
+  }
+
+  // Standard tooltip hover-bridge pattern: schedule the hide on mouseleave
+  // with a small grace window, and cancel the timer when the pointer
+  // re-enters either the anchor or the pill itself. Without this, the
+  // mouseleave that fires the moment the pointer crosses from the
+  // commentable element onto the pill clears `commentHoverTarget` and
+  // hides the pill BEFORE the click event registers — making the
+  // affordance physically unreachable for real users.
+  var commentPillHideTimer = null;
+  function cancelCommentPillHide() {
+    if (commentPillHideTimer) {
+      clearTimeout(commentPillHideTimer);
+      commentPillHideTimer = null;
+    }
+  }
+  function actualHideCommentHoverPill() {
+    commentPillHideTimer = null;
+    if (!commentHoverPill) return;
+    commentHoverPill.style.opacity = '0';
+    commentHoverPill.style.pointerEvents = 'none';
+    commentHoverTarget = null;
+  }
+  function hideCommentHoverPill() {
+    cancelCommentPillHide();
+    actualHideCommentHoverPill();
+  }
+  function scheduleHideCommentHoverPill() {
+    cancelCommentPillHide();
+    commentPillHideTimer = setTimeout(actualHideCommentHoverPill, 180);
+  }
+
+  function setupCommentHoverHandlers() {
+    document.addEventListener('mouseover', function (ev) {
+      if (commentModalEl && commentModalEl.style.display !== 'none') return;
+      // Mouse is over the pill (or its child) — keep current target alive
+      // and cancel any pending hide so the click can land.
+      if (ev.target === commentHoverPill || (commentHoverPill && commentHoverPill.contains(ev.target))) {
+        cancelCommentPillHide();
+        return;
+      }
+      var anchor = findCommentAnchor(ev.target);
+      if (!anchor) return;
+      // Don't trigger inside our own modal or other overlays.
+      if (anchor.closest('[data-ve-overlay], .ve-comment-modal, [data-ve-snippet-popup]')) return;
+      cancelCommentPillHide();
+      showCommentHoverPill(anchor);
+    });
+    // mouseleave doesn't bubble; capture-phase + the deferred hide gives
+    // the pointer 180 ms to cross the 4 px gap onto the pill.
+    document.addEventListener('mouseleave', scheduleHideCommentHoverPill, true);
+    // Hide on scroll (the pill is absolute-positioned so it would drift).
+    window.addEventListener('scroll', hideCommentHoverPill, { passive: true });
+  }
+
+  // ── Modal ───────────────────────────────────────────────────────────
+  function buildCommentModal() {
+    var m = document.createElement('div');
+    m.className = 've-comment-modal';
+    m.setAttribute('data-ve-overlay', '1');
+    m.style.display = 'none';
+    m.innerHTML = ''
+      + '<div class="ve-comment-modal-inner">'
+      + '  <div class="ve-comment-modal-header">'
+      + '    <span class="ve-comment-modal-title">Comment thread</span>'
+      + '    <button type="button" class="ve-comment-modal-close" aria-label="Close">×</button>'
+      + '  </div>'
+      + '  <div class="ve-comment-modal-body">'
+      + '    <ul class="ve-comment-thread-index"></ul>'
+      + '    <div class="ve-comment-active-pane">'
+      + '      <div class="ve-comment-active-meta"></div>'
+      + '      <div class="ve-comment-active-content"></div>'
+      + '    </div>'
+      + '  </div>'
+      + '  <div class="ve-comment-modal-footer">'
+      + '    <button type="button" class="ve-comment-answer">ANSWER</button>'
+      + '    <button type="button" class="ve-comment-done">DONE</button>'
+      + '  </div>'
+      + '</div>';
+    document.body.appendChild(m);
+    m.querySelector('.ve-comment-modal-close').addEventListener('click', closeCommentModal);
+    m.querySelector('.ve-comment-done').addEventListener('click', closeCommentModal);
+    m.querySelector('.ve-comment-answer').addEventListener('click', handleAnswerButton);
+    return m;
+  }
+
+  function openCommentModal(anchor) {
+    hideCommentHoverPill();
+    if (!commentModalEl) commentModalEl = buildCommentModal();
+    var commentId = anchor.getAttribute('data-ve-comment-id');
+    if (!commentId) return;
+    // Restore thread from storage if present, else start a fresh one.
+    var stored = loadThreadFromStorage(commentId);
+    var turns;
+    var threadId;
+    if (stored) {
+      turns = stored.turns || [];
+      threadId = stored.threadId;
+    } else {
+      turns = [];
+      threadId = ensureThreadId(commentId);
+    }
+    commentModalState = {
+      commentId: commentId,
+      threadId: threadId,
+      anchorEl: anchor,
+      turns: turns,
+      activeTurn: turns.length > 0 ? turns.length : 1, // last turn or first new
+      polling: false,
+      pollHandle: null,
+      lastSeen: turns.length
+    };
+    if (turns.length === 0) {
+      // Fresh thread — pre-create an empty user turn so the right pane
+      // is editable from the start.
+      commentModalState.turns.push({ turn: 1, role: 'user', text: '', at: null, draft: true });
+      commentModalState.activeTurn = 1;
+    }
+    document.body.setAttribute('data-ve-comment-modal-open', '1');
+    anchor.setAttribute('data-ve-comment-active', '1');
+    commentModalEl.style.display = 'flex';
+    renderCommentModal();
+    // If the user closed the modal while an agent reply was still
+    // outstanding, the pending placeholder is now in storage but the
+    // poll loop was torn down on close. Restart it for the first
+    // pending turn so a reply that landed on disk while the modal
+    // was closed renders as soon as the modal reopens.
+    for (var i = 0; i < commentModalState.turns.length; i++) {
+      var pendingTurn = commentModalState.turns[i];
+      if (pendingTurn.role === 'agent' && pendingTurn.pending) {
+        pollForCommentReply(pendingTurn);
+        break;
+      }
+    }
+    // Scroll the anchor into view if the reflow would push it off-screen.
+    requestAnimationFrame(function () {
+      anchor.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    });
+  }
+
+  function closeCommentModal() {
+    if (!commentModalState) return;
+    saveCurrentDraftIfPresent();
+    saveThreadToStorage(commentModalState);
+    if (commentModalState.pollHandle) {
+      clearTimeout(commentModalState.pollHandle);
+      commentModalState.pollHandle = null;
+    }
+    if (commentModalState.anchorEl) commentModalState.anchorEl.removeAttribute('data-ve-comment-active');
+    commentModalState = null;
+    document.body.removeAttribute('data-ve-comment-modal-open');
+    if (commentModalEl) commentModalEl.style.display = 'none';
+  }
+
+  function renderCommentModal() {
+    if (!commentModalEl || !commentModalState) return;
+    var index = commentModalEl.querySelector('.ve-comment-thread-index');
+    var active = commentModalEl.querySelector('.ve-comment-active-content');
+    var meta = commentModalEl.querySelector('.ve-comment-active-meta');
+    var title = commentModalEl.querySelector('.ve-comment-modal-title');
+    title.textContent = 'Comment · #' + commentModalState.commentId;
+
+    // Index — one row per turn.
+    index.innerHTML = '';
+    commentModalState.turns.forEach(function (t) {
+      var li = document.createElement('li');
+      li.className = 've-comment-thread-row';
+      li.setAttribute('data-turn', String(t.turn));
+      li.setAttribute('data-role', t.role);
+      var label = (commentModalState.activeTurn === t.turn ? '> ' : '   ')
+                + t.turn + ': ' + t.role
+                + (commentModalState.activeTurn === t.turn ? ' <' : '');
+      li.textContent = label;
+      if (commentModalState.activeTurn === t.turn) li.setAttribute('data-active', '1');
+      li.addEventListener('click', function () {
+        saveCurrentDraftIfPresent();
+        commentModalState.activeTurn = t.turn;
+        renderCommentModal();
+      });
+      index.appendChild(li);
+    });
+
+    // Auto-scroll the index so the active row is visible.
+    var activeRow = index.querySelector('[data-active]');
+    if (activeRow) activeRow.scrollIntoView({ block: 'nearest' });
+
+    // Active pane.
+    var activeT = commentModalState.turns.find(function (t) { return t.turn === commentModalState.activeTurn; });
+    if (!activeT) {
+      active.innerHTML = '';
+      meta.textContent = '';
+      return;
+    }
+    meta.textContent = (activeT.role === 'user' ? 'YOU' : 'CLAUDE')
+      + ' · turn ' + activeT.turn
+      + (activeT.at ? ' · ' + new Date(activeT.at).toLocaleTimeString() : '');
+    if (activeT.role === 'user' && activeT.draft) {
+      active.innerHTML = '';
+      var ta = document.createElement('textarea');
+      ta.className = 've-comment-active-textarea';
+      ta.placeholder = 'Write your comment here…';
+      ta.value = activeT.text || '';
+      ta.addEventListener('input', function () {
+        activeT.text = ta.value;
+        // Re-evaluate ANSWER's enabled state on each keystroke so the
+        // button enables/disables in lockstep with the user's typing.
+        updateAnswerButtonState();
+      });
+      active.appendChild(ta);
+      // Focus + put cursor at the end.
+      requestAnimationFrame(function () {
+        ta.focus();
+        ta.selectionStart = ta.selectionEnd = ta.value.length;
+      });
+    } else if (activeT.role === 'agent' && activeT.pending) {
+      active.innerHTML = '<div class="ve-comment-pending">Waiting for Claude to reply…</div>';
+    } else {
+      active.innerHTML = '';
+      var pre = document.createElement('div');
+      pre.className = 've-comment-active-text';
+      pre.textContent = activeT.text || '';
+      active.appendChild(pre);
+    }
+    updateAnswerButtonState();
+  }
+
+  function updateAnswerButtonState() {
+    if (!commentModalEl || !commentModalState) return;
+    var btn = commentModalEl.querySelector('.ve-comment-answer');
+    var activeT = commentModalState.turns.find(function (t) { return t.turn === commentModalState.activeTurn; });
+    // ANSWER does TWO things depending on context:
+    //   1) Active turn is a user-draft with text → submit it (POST + poll for reply).
+    //   2) Active turn is an agent reply (or any past turn) → start a new user turn at the bottom.
+    if (!activeT) { btn.disabled = true; return; }
+    if (activeT.role === 'user' && activeT.draft) {
+      btn.disabled = !(activeT.text || '').trim();
+      btn.textContent = 'ANSWER';
+    } else if (activeT.role === 'agent' && activeT.pending) {
+      btn.disabled = true;
+      btn.textContent = '…waiting…';
+    } else {
+      btn.disabled = false;
+      btn.textContent = 'ANSWER';
+    }
+  }
+
+  function saveCurrentDraftIfPresent() {
+    if (!commentModalState) return;
+    var ta = commentModalEl && commentModalEl.querySelector('.ve-comment-active-textarea');
+    if (!ta) return;
+    var activeT = commentModalState.turns.find(function (t) { return t.turn === commentModalState.activeTurn; });
+    if (activeT && activeT.draft) activeT.text = ta.value;
+  }
+
+  function handleAnswerButton() {
+    if (!commentModalState) return;
+    saveCurrentDraftIfPresent();
+    var activeT = commentModalState.turns.find(function (t) { return t.turn === commentModalState.activeTurn; });
+    if (!activeT) return;
+    if (activeT.role === 'user' && activeT.draft) {
+      // SEND case: post the comment, then poll for the reply.
+      var text = (activeT.text || '').trim();
+      if (!text) return;
+      activeT.text = text;
+      activeT.draft = false;
+      activeT.at = Date.now();
+      // Insert a "pending" agent turn so the user sees something is happening.
+      var pending = { turn: activeT.turn + 1, role: 'agent', text: '', at: null, pending: true };
+      commentModalState.turns.push(pending);
+      commentModalState.activeTurn = pending.turn;
+      // Persist BOTH the committed user turn AND the pending agent turn
+      // in one save. If the user refreshes between SEND and the reply
+      // arriving, the pending placeholder is restored on next open and
+      // openCommentModal restarts the poll loop for it.
+      saveThreadToStorage(commentModalState);
+      renderCommentModal();
+      postCommentAndPoll(activeT, pending);
+      return;
+    }
+    // ELSE: append a brand-new user-draft turn at the bottom.
+    var nextTurn = (commentModalState.turns[commentModalState.turns.length - 1].turn) + 1;
+    var draft = { turn: nextTurn, role: 'user', text: '', at: null, draft: true };
+    commentModalState.turns.push(draft);
+    commentModalState.activeTurn = nextTurn;
+    saveThreadToStorage(commentModalState);
+    renderCommentModal();
+  }
+
+  function postCommentAndPoll(userTurn, pendingAgentTurn) {
+    var payload = {
+      commentId: commentModalState.commentId,
+      threadId: commentModalState.threadId,
+      sourcePath: commentSourcePath(),
+      turn: userTurn.turn,
+      text: userTurn.text
+    };
+    fetch('/__ve-comment', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(payload)
+    }).catch(function (e) {
+      console.warn('[ve-comment] POST failed:', e);
+    }).then(function () {
+      pollForCommentReply(pendingAgentTurn);
+    });
+  }
+
+  function pollForCommentReply(pendingAgentTurn) {
+    if (!commentModalState) return;
+    // Capture the threadId at poll-start. A fetch in flight when the user
+    // closes the modal (or opens a different anchor's thread) MUST NOT
+    // mutate the new state — otherwise indexOf(pendingAgentTurn) crashes
+    // on a null commentModalState, or worse, the new thread's turns get
+    // a stray agent reply slotted in. The threadId guard makes every
+    // async continuation self-detect a stale closure and bail.
+    var ownThreadId = commentModalState.threadId;
+    function isStale() {
+      return !commentModalState || commentModalState.threadId !== ownThreadId;
+    }
+    function once() {
+      if (isStale()) return;
+      var url = '/__ve-reply/' + encodeURIComponent(commentModalState.threadId)
+        + '?since=' + (pendingAgentTurn.turn - 1);
+      fetch(url, { headers: { 'accept': 'application/json' } })
+        .then(function (r) {
+          if (isStale()) return null;
+          if (r.status === 204) {
+            schedule();
+            return null;
+          }
+          if (!r.ok) {
+            console.warn('[ve-comment] poll error', r.status);
+            schedule();
+            return null;
+          }
+          return r.json();
+        })
+        .then(function (data) {
+          if (!data) return;
+          if (isStale()) return;
+          // Expect {turn, role:"agent", text}. Replace the pending entry.
+          var idx = commentModalState.turns.indexOf(pendingAgentTurn);
+          if (idx < 0) return;
+          commentModalState.turns[idx] = {
+            turn: data.turn || pendingAgentTurn.turn,
+            role: 'agent',
+            text: data.text || '',
+            at: Date.now()
+          };
+          commentModalState.activeTurn = commentModalState.turns[idx].turn;
+          saveThreadToStorage(commentModalState);
+          renderCommentModal();
+        })
+        .catch(function () { if (!isStale()) schedule(); });
+    }
+    function schedule() {
+      if (isStale()) return;
+      commentModalState.pollHandle = setTimeout(once, COMMENT_POLL_MS);
+    }
+    once();
+  }
+
+  function setupCommentModal() {
+    setupCommentHoverHandlers();
+    document.addEventListener('keydown', function (ev) {
+      if (ev.key === 'Escape' && commentModalState) {
+        ev.preventDefault();
+        closeCommentModal();
+      }
+    });
+  }
+
+  function bootEverything() {
+    injectStyles();
+    isTouchDevice(); // Phase 7: stamp body[data-ve-touch="1"] early so the
+                     // CSS that ups handle hit-zones is in effect by the
+                     // time the table/gutter overlays paint.
+    initAllMath();      // KaTeX, lazy
+    initAllTikz();      // TikZJax, lazy
+    initAllGraphs();    // viz.js (Graphviz), lazy
+    initAllRegex();     // regex-vis, lazy from same-origin scripts/
+    initAllProse();
+    enhanceFocus();
+    initAllTableForms();
+    initAllTableHandles();   // Phase 5
+    initAllCodeGutters();    // Phase 6
+    setupGutterEvents();     // Phase 6 + Phase 7 (touch)
+    setupSnippetSelection(); // Phase 4 + Phase 7 (touchend)
+    setupMultiClickSelection();
+    setupFindingReplyHandlers(); // TRDD-eff1aa87 v1 — interactive reports
+    setupCommentModal();         // TRDD-eff1aa87 v2 — modal comment threads
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bootEverything);
+  } else {
+    bootEverything();
+  }
+})();
