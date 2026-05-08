@@ -5,7 +5,17 @@ All notable changes to this project will be documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.1.5] — 2026-05-08
+
+### Features
+
+- Swap radios for two toggle switches with mutex (TRDD-7a2dab03 §6.5)
+
 ## [1.1.4] — 2026-05-08
+
+### Chores
+
+- V1.1.4
 
 ### Documentation
 
