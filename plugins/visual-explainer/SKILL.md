@@ -194,6 +194,93 @@ Most pages are explanatory, not interrogative — the user might just want to lo
 2. Run the selection runner with a short timeout (e.g. `VE_SELECT_TIMEOUT=180`) for question-style pages where you genuinely want a click.
 3. For purely explanatory pages, you can still run the runner so auto-close works — but a `{"id":null,"reason":"timeout"}` response is fine; just open your reply with "I generated the page; let me know what you want to do" instead of asking about a phantom selection.
 
+## Interactive Agent Reports & Modal Comments (v2)
+
+When the user asks you to render a report (audit, finding list, scan output, comparison) as an **interactive HTML page they can comment on inline**, use the v2 modal-comment flow. It is the right tool any time the user says things like "make this commentable", "let me reply to each finding", "interactive report", "let me ask Claude follow-ups on individual paragraphs", or simply attaches an agent report and asks for a clickable HTML version.
+
+### Two halves of the round-trip
+
+The v2 flow has **two cooperating halves** — both must be running for ANSWER → reply to work end-to-end:
+
+| Half | What it does | How to start it |
+|------|-------------|-----------------|
+| **Renderer + transport** | Stamps every commentable element with `data-ve-comment-id`, ships an `*.idmap.json` sidecar, boots `ve-select.py` so the page can `POST /__ve-comment` and `GET /__ve-reply/<tid>`. | `/visual-explainer:interactive-report <report.md>` |
+| **Responder loop** | Watches the queue dir for pending user turns and writes `<threadId>.reply.<turn+1>.json` per reply. | `/visual-explainer:respond-to-comment --queue-dir <q> --watch --source <report.md>` |
+
+If only the renderer runs, the user can post comments but never see a reply. If only the responder runs, there is nothing for it to read. Always start both — the renderer command auto-spawns the transport; the responder is a separate session (often a different Claude entirely; see "Pointing another Claude at this plugin" below).
+
+### Wire format (what lives on disk)
+
+```
+<queue-dir>/                              # default: <cwd>/.ve-comments/
+  <threadId>.jsonl                        # one user turn per line, append-only
+  <threadId>.reply.<turn>.json            # one file per agent reply
+
+<report>.html                             # rendered page; <body> elements carry data-ve-comment-id
+<report>.idmap.json                       # { "<commentId>": { "kind": "p"|"li"|"tr"|"pre"|…,
+                                          #                    "sectionId": "…", "text": "…" } }
+```
+
+**One user turn (`*.jsonl` line):**
+```json
+{"commentId":"bf917c95","threadId":"thread-bf917c95-…","sourcePath":"/abs/path/report.md","turn":1,"role":"user","text":"…","at":1714998000.0}
+```
+
+**One agent reply (`*.reply.<turn>.json`):**
+```json
+{"turn":2,"role":"agent","text":"…"}
+```
+
+**Polling cycle is 1.5 s** (`COMMENT_POLL_MS`). The page picks up a reply within 2 s of the file landing.
+
+### Responding to comments (the workflow `respond-to-comment` runs)
+
+When invoked as a responder (whether via the slash command or because the user asks "process the pending comments"):
+
+1. List every `*.jsonl` under `--queue-dir` (default `<cwd>/.ve-comments/`).
+2. For each thread file:
+   1. Read every line. Each is one user turn.
+   2. Find the highest `turn` whose `role == "user"`. Call it `N`.
+   3. If `<threadId>.reply.<N+1>.json` already exists → already answered, skip.
+   4. Otherwise: dereference `commentId` via `<source>.idmap.json` to recover the anchored text, generate a reply, write it **atomically** as `<threadId>.reply.<N+1>.json`.
+3. With `--watch`, sleep ~2 s and repeat. Without it, run once and exit.
+
+Atomic write pattern (so the polling page never reads a half-written file):
+```bash
+TMP="<queue>/<threadId>.reply.<N+1>.json.tmp.$$"
+printf '%s\n' "$JSON" > "$TMP" && mv -f "$TMP" "<queue>/<threadId>.reply.<N+1>.json"
+```
+
+### Page-side guarantees you can rely on
+
+The runtime (`ve-runtime.js`) handles these for you — do not try to recreate them in your reply text:
+
+- **Hover-bridge** (180 ms grace window so the pill stays clickable when the pointer crosses the gap from anchor to pill).
+- **Polling resume on reopen** — closing the modal while a reply is outstanding is safe; reopening restarts the poll loop.
+- **Atomic save of the pending placeholder** — a refresh between SEND and reply arrival preserves the pending state.
+- **Per-thread `localStorage` persistence** under key `ve-comment-thread:<commentId>`.
+- **Stale-state self-detection** — fetches that complete after the modal closes (or a different anchor's thread opens) bail without crashing.
+
+### Pointing another Claude at this plugin
+
+Two practical install patterns:
+
+```bash
+# Project-scope (only this project sees the plugin)
+ln -s <abs-path-to>/plugins/visual-explainer .claude/plugins/visual-explainer
+
+# User-scope (every Claude session on this machine)
+ln -s <abs-path-to>/plugins/visual-explainer ~/.claude/plugins/visual-explainer
+```
+
+Then `/visual-explainer:respond-to-comment` is available to that Claude. If symlinking is impossible, paste the responder workflow above into the new session's first message and point it at the queue dir and the source `*.idmap.json` — it has everything it needs.
+
+### When NOT to use v2 modal comments
+
+- The user just wants a **single click → return one selection** (use the v1 `Interactive Selection` flow at the top of this document; that is what `/visual-explainer:diff-review`, `plan-review`, etc. already do).
+- The page has no per-element commentables (a single diagram, a slide deck) — render with `generate-web-diagram` / `generate-slides` and skip v2.
+- One-shot HTML the user will only read offline — no transport, no comments, no responder.
+
 ## Available Commands
 
 Detailed prompt templates in `./commands/`. In Pi, these are slash commands (`/diff-review`). In Claude Code, namespaced (`/visual-explainer:diff-review`). In Codex, use `/prompts:diff-review` (if installed to `~/.codex/prompts/`) or invoke `$visual-explainer` and describe the workflow.
@@ -207,6 +294,8 @@ Detailed prompt templates in `./commands/`. In Pi, these are slash commands (`/d
 | `plan-review` | Compare a plan against the codebase with risk assessment |
 | `project-recap` | Mental model snapshot for context-switching back to a project |
 | `fact-check` | Verify accuracy of a document against actual code |
+| `interactive-report` | Render an agent report as an interactive HTML page with v2 modal-comment threads (renderer + transport half) |
+| `respond-to-comment` | Watch the comment queue and write per-turn agent replies the page polls in (responder half) |
 | `share-page` | Deploy an HTML page to Vercel and get a live URL |
 
 ## Workflow
