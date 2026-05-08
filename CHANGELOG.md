@@ -5,11 +5,25 @@ All notable changes to this project will be documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.1.4] — 2026-05-08
+
+### Documentation
+
+- Add TRDD-7a2dab03 — per-element approve/reject/skip decision
+
+### Features
+
+- Per-element approve/reject/skip pills (TRDD-7a2dab03)
+
 ## [1.1.3] — 2026-05-08
 
 ### Bug Fixes
 
 - Auto-sync uv.lock during version bump
+
+### Chores
+
+- V1.1.3
 
 ## [1.1.2] — 2026-05-08
 
