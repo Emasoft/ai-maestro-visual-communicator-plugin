@@ -1,0 +1,97 @@
+name: release
+
+# Fires when a vX.Y.Z tag is pushed (typically by `scripts/publish.py --push`,
+# or by hand via `git push origin vX.Y.Z`). Creates a GitHub Release whose
+# body is the matching `## [X.Y.Z] — YYYY-MM-DD` section of CHANGELOG.md.
+#
+# The publish.py pipeline already produces a local commit + tag in lockstep
+# (chore(release): vX.Y.Z + tag vX.Y.Z + CHANGELOG.md regeneration); the
+# release body therefore matches what was committed for that tag.
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write   # required: gh release create writes a Release object
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false   # never cancel a release in flight
+
+jobs:
+  release:
+    name: GitHub Release
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          # Need full history so the tag's commit is reachable when we
+          # extract notes / check for prior tags.
+          fetch-depth: 0
+
+      - name: extract changelog section for this tag
+        id: notes
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          # Convert "v1.2.3" -> "1.2.3" so we can match `## [1.2.3] — ...`
+          version="${TAG#v}"
+          python3 - <<'PY' "$version"
+          import os
+          import re
+          import sys
+          from pathlib import Path
+
+          version = sys.argv[1]
+          changelog = Path("CHANGELOG.md")
+          if not changelog.is_file():
+              # No CHANGELOG -> emit a stub note. gh release create still
+              # works, the user can edit the body in the GitHub UI.
+              note = f"Release {version}.\n\n(no CHANGELOG.md found)\n"
+          else:
+              text = changelog.read_text(encoding="utf-8")
+              # Match the version header and capture everything until the
+              # next `## ` header at column 0 (or end of file).
+              pattern = re.compile(
+                  rf"^##\s*\[{re.escape(version)}\][^\n]*\n(.*?)(?=^##\s|\Z)",
+                  re.MULTILINE | re.DOTALL,
+              )
+              match = pattern.search(text)
+              if match:
+                  note = match.group(1).strip() + "\n"
+              else:
+                  note = f"Release {version}.\n\n(no CHANGELOG section found)\n"
+
+          notes_path = Path(os.environ["GITHUB_WORKSPACE"]) / "release-notes.md"
+          notes_path.write_text(note, encoding="utf-8")
+          print(f"Wrote {len(note)} bytes to {notes_path}")
+          PY
+
+      - name: create release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          # --verify-tag: refuse if the tag doesn't exist on the remote
+          # --notes-file: pull the body from the file we just wrote
+          # --title: use the tag name as the release title
+          gh release create "$TAG" \
+            --title "$TAG" \
+            --notes-file release-notes.md \
+            --verify-tag
+
+      - name: summary
+        env:
+          TAG: ${{ github.ref_name }}
+          REPO: ${{ github.repository }}
+        run: |
+          {
+            echo "## Release created"
+            echo
+            echo "- Tag: \`${TAG}\`"
+            echo "- Repo: \`${REPO}\`"
+            echo "- URL: https://github.com/${REPO}/releases/tag/${TAG}"
+          } >> "$GITHUB_STEP_SUMMARY"

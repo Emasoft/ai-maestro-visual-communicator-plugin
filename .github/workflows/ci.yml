@@ -1,0 +1,114 @@
+name: ci
+
+# Canonical CI workflow.
+#
+# The check-run names below MUST stay exactly `Lint`, `Validate`, `Test` (bare
+# job display names — not `workflow / job` format). The CPV
+# `cpv-setup-branch-rules` CLI relies on those three names verbatim when it
+# wires up GitHub branch-protection required-status-checks. Renaming a job
+# here silently breaks the protection rule.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  merge_group:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    # IMPORTANT: display name must remain `Lint` — see file header.
+    name: Lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: install uv
+        uses: astral-sh/setup-uv@v8
+        with:
+          enable-cache: true
+
+      - name: ruff check
+        run: |
+          uv tool install ruff
+          ruff check .
+
+      - name: shellcheck
+        uses: ludeeus/action-shellcheck@master
+        with:
+          severity: warning
+        env:
+          # The dev-browser test wrapper relies on bash arrays; we only
+          # check our own shell scripts, not the vendored regex-vis sources.
+          SHELLCHECK_OPTS: -e SC1091
+          SCANDIR: ./scripts ./tests ./.githooks
+
+  validate:
+    # IMPORTANT: display name must remain `Validate` — see file header.
+    name: Validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: install uv
+        uses: astral-sh/setup-uv@v8
+        with:
+          enable-cache: true
+
+      - name: validate plugin
+        run: |
+          uvx --from git+https://github.com/Emasoft/claude-plugins-validation \
+            --with pyyaml cpv-remote-validate plugin . --strict
+
+  test:
+    # IMPORTANT: display name must remain `Test` — see file header.
+    #
+    # The 28-test dev-browser-driven suite (tests/run-all-tests.py) cannot
+    # run on stock GitHub runners: it needs the `dev-browser` CLI which
+    # depends on a real Chrome instance and persistent state, neither of
+    # which are available in headless ubuntu-latest. The suite is enforced
+    # locally via the .githooks/pre-push hook before any push to origin.
+    #
+    # This job is intentionally a CI smoke-check that the test runner is
+    # syntactically valid Python — it parses run-all-tests.py, run-tests.py,
+    # and server.py without executing them. Restore the full suite when a
+    # hosted dev-browser runner becomes available.
+    name: Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: install uv
+        uses: astral-sh/setup-uv@v8
+        with:
+          enable-cache: true
+
+      - name: smoke-check the test runner
+        run: |
+          # Compile-only check: catches Python syntax errors in the test
+          # runner without spinning up Chrome / dev-browser.
+          uv run --python 3.12 python -m py_compile \
+            tests/run-all-tests.py \
+            tests/run-tests.py \
+            tests/server.py
+
+      - name: note about dev-browser suite
+        run: |
+          {
+            echo "## Test job — note"
+            echo
+            echo "The full 28-test dev-browser suite cannot run on stock GitHub"
+            echo "runners. It is enforced locally via the .githooks/pre-push hook."
+            echo
+            echo "This job verified that the test runner Python sources parse"
+            echo "without syntax errors."
+          } >> "$GITHUB_STEP_SUMMARY"
