@@ -1,36 +1,35 @@
 #!/usr/bin/env python3
-"""Pre-push quality gate for ai-maestro-visual-communicator.
+"""Pre-push hook for ai-maestro-visual-communicator.
 
-Runs the dev-browser test suite (tests/run-all-tests.py) before allowing a
-push. dev-browser is the only hard requirement — without it the suite cannot
-run, in which case the hook degrades to a soft-pass with a warning so a
-fresh clone is not blocked from pushing.
+Thin delegator to ``scripts/publish.py --gate``. The gate logic lives in
+``publish.py`` so the pre-push hook, the publish-mode S2-S4 stages, and any
+ad-hoc CI invocation all share **one** source of truth.
 
-To install:
+To install (idempotent — safe to re-run):
+  uv run python scripts/publish.py --install-hook
+
+Or, to wire it manually:
   git config core.hooksPath .githooks
-Or invoke directly:
-  .githooks/pre-push
-"""
 
+The 4 gates run in order; any failure blocks the push:
+  G1  Version-bump check (local plugin.json vs latest remote tag)
+  G2  Lint (`ruff check scripts/`)
+  G3  Validate plugin (cpv-remote-validate plugin . --strict)
+  G4  Dev-browser test suite (soft-pass on missing CLI)
+
+Bypass (only for emergency hotfixes — leaves a forensic trail):
+  git push --no-verify
+"""
 from __future__ import annotations
 
 import os
-import shutil
 import subprocess
+import sys
 from pathlib import Path
 
 
-def log(msg: str) -> None:
-    """Emit a tagged log line — matches the bash hook's `[pre-push] ...` format."""
-    print(f"[pre-push] {msg}")
-
-
-def repo_root() -> Path:
-    """Resolve the repo root via `git rev-parse --show-toplevel`.
-
-    We cd here so test-runner relative paths (`tests/run-all-tests.py`) resolve
-    regardless of which subdirectory git invoked the hook from.
-    """
+def _repo_root() -> Path:
+    """Resolve the repo root via ``git rev-parse --show-toplevel``."""
     result = subprocess.run(
         ["git", "rev-parse", "--show-toplevel"],
         capture_output=True,
@@ -41,45 +40,35 @@ def repo_root() -> Path:
 
 
 def main() -> int:
-    """Run the three quality gates; return a shell-style exit code."""
-    root = repo_root()
+    """Cd to repo root, then exec ``publish.py --gate``."""
+    root = _repo_root()
     os.chdir(root)
 
-    log("running ai-maestro-visual-communicator quality gate...")
+    publish = root / "scripts" / "publish.py"
+    if not publish.is_file():
+        # Fail safe — without publish.py we cannot enforce the canonical
+        # gate. Refuse the push so the user re-installs the script.
+        print("[pre-push] FATAL: scripts/publish.py is missing", file=sys.stderr)
+        return 1
 
-    # Gate 1 — dev-browser must be on PATH for the test suite to run.
-    # Soft-pass (exit 0) if missing so a fresh clone isn't blocked from pushing.
-    if shutil.which("dev-browser") is None:
-        log("WARNING: dev-browser not found on PATH; skipping test suite.")
-        log("Install with: npm install -g dev-browser && dev-browser install")
-        log("Push allowed (soft-pass) — install dev-browser to enable the gate.")
-        return 0
-
-    # Gate 2 — the dev-browser test suite must pass.
-    # We check both existence AND the executable bit because the suite is
-    # invoked as a script (./tests/run-all-tests.py), not via `python3 ...`.
-    test_runner = Path("tests/run-all-tests.py")
-    if test_runner.is_file() and os.access(test_runner, os.X_OK):
-        log("running tests/run-all-tests.py...")
-        result = subprocess.run([str(test_runner)], check=False)
-        if result.returncode != 0:
-            log("FAIL: tests/run-all-tests.py reported failures.")
-            log("Push aborted. Fix failing tests before pushing.")
-            return 1
+    # We delegate via the same interpreter that runs the hook. ``uv run``
+    # is preferred when available (matches CI); otherwise fall back to the
+    # current interpreter so the hook remains usable in vanilla Python
+    # environments (e.g. fresh clone with no uv installed).
+    cmd: list[str]
+    if _has_uv():
+        cmd = ["uv", "run", "--python", "3.12", "python", str(publish), "--gate"]
     else:
-        log("WARNING: tests/run-all-tests.py missing or not executable; skipping.")
+        cmd = [sys.executable, str(publish), "--gate"]
 
-    # Gate 3 — ruff lint on Python sources, if ruff is available.
-    # Skipped silently when ruff isn't installed (matches the bash hook's behavior).
-    if shutil.which("ruff") is not None:
-        log("running ruff check...")
-        result = subprocess.run(["ruff", "check", "."], check=False)
-        if result.returncode != 0:
-            log("FAIL: ruff reported lint errors.")
-            return 1
+    return subprocess.run(cmd, check=False).returncode
 
-    log("all gates passed.")
-    return 0
+
+def _has_uv() -> bool:
+    """Return True iff ``uv`` is on PATH."""
+    from shutil import which
+
+    return which("uv") is not None
 
 
 if __name__ == "__main__":
