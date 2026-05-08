@@ -34,7 +34,7 @@ Process pending user comments emitted by the v2 modal-comment box (TRDD-eff1aa87
    1. Load the source `idmap.json` to dereference `commentId` → `{kind, sectionId, text}`. **If you've already seen this commentId in the current conversation, skip the dereference and just refer to the id.** Saves tokens.
    2. Read the source `report.md` ONCE per session to load full context (when needed).
    3. Read all prior turns in the same JSONL — that's the conversation history.
-   4. **Check the `decision` field FIRST** (TRDD-7a2dab03 v3 — per-element decision pill). Each turn may carry a `decision` ∈ `{"approve","reject","skip"}` reflecting the radio state at the time the user submitted (or flipped the pill alone). The reply structure is:
+   4. **Check the `decision` field FIRST** (TRDD-7a2dab03 v3 — per-element decision toggles). Each turn may carry a `decision` ∈ `{"approve","reject","skip"}` reflecting the toggle-derived state (approve toggle ON, reject toggle ON, or both OFF) at the time the user submitted (or flipped a toggle alone). The reply structure is:
       - `decision == "approve"` → "Acknowledged: approving as-is. \<one-line confirmation that addresses any clarification text\>."
       - `decision == "reject"` → "Acknowledged: rejecting. \<one-line summary of what to do instead, drawn from the comment text if present\>."
       - `decision == "skip"` (or `decision` absent) → process the comment text only; do not infer approval either way.

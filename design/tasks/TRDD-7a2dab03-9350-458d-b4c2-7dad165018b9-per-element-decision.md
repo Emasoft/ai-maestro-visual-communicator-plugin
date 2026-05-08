@@ -203,6 +203,35 @@ The existing 28-test suite must continue to pass unchanged.
   already has the JSONL queue — same gitignored, same permissions, no
   new attack surface.
 
+## 6.5 v3.1 amendment — radios → toggle switches (2026-05-08)
+
+After the v3 segmented-control radios shipped in v1.1.4, the user asked
+for the toggle-switch UI from
+<https://raw.githubusercontent.com/ThariqS/html-effectiveness/refs/heads/main/19-editor-feature-flags.html>
+("Birchline feature flags"), with a different palette.
+
+**Mapping 2-state toggles to a 3-state decision:** **two toggles per
+finding** (approve + reject) with mutex enforced by the runtime. Both
+OFF = skip (default). Approve ON + reject OFF = approve. Approve OFF +
+reject ON = reject. Approve ON + reject ON is invalid; turning one ON
+auto-clears the other in `wireDecisionPills`.
+
+**Palette** (distinct from Birchline's olive/clay):
+
+- approve toggle ON: `#3a6b5c` (deep teal — go/trust, cooler than olive)
+- reject toggle ON: `#a84a32` (brick rust — stop, warm not electric)
+- track OFF: `#d6d1c5` (warm taupe)
+- thumb: `#fbfaf6` (warm off-white) with `0 1px 2px rgba(42,40,37,0.20)` shadow
+
+**Files touched:** `scripts/render-interactive-report.py` (fieldset
+swap to two `<label class="ve-toggle">`), `scripts/ve-runtime.js`
+(CSS rewrite + `wireDecisionPills` mutex + `currentDecisionFor`
+re-derive from checkboxes), `tests/scripts/test-decision-pills.js`
+(updated selectors + new `modal_decision_mutex` test = 4 tests now).
+Wire format and `/__ve-comment` payload schema unchanged — the toggle
+UI derives the same `approve`/`reject`/`skip` enum the JSONL has
+always carried.
+
 ## 7. Out of scope (deliberately)
 
 - **Per-paragraph decisions for v1 inline threads** (TRDD-eff1aa87 §3).

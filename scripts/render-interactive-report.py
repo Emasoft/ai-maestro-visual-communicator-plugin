@@ -551,26 +551,32 @@ def render_finding_html(f: Finding, prior_rounds: list[dict]) -> str:
         meta_text or f.title,
     )
 
-    # TRDD-7a2dab03 — per-finding decision pill (3-state: approve/reject/skip).
+    # TRDD-7a2dab03 v3.1 — per-finding decision toggles (two switches, mutex).
     # The fieldset's `data-anchor-id` is the canonical anchorId the runtime
-    # writes into every JSONL turn it emits for this finding. We prefix the
-    # findingId with `ve-` so the namespace matches TRDD-7a2dab03 §3.4
-    # (e.g. findingId `finding-3` → anchorId `ve-finding-3`).
+    # writes into every JSONL turn for this finding (anchorId namespace =
+    # `ve-` + findingId, e.g. `finding-3` → `ve-finding-3`).
+    #
+    # State model (3 effective states from 2 checkboxes):
+    #   approve OFF  + reject OFF  → "skip"  (default, no implicit approval)
+    #   approve ON   + reject OFF  → "approve"
+    #   approve OFF  + reject ON   → "reject"
+    #   approve ON   + reject ON   → invalid; runtime mutex auto-clears the prior
     fid_safe = html.escape(f.findingId)
     anchor_id = "ve-" + f.findingId
-    radio_name = "dec-" + f.findingId
+    aid_safe = html.escape(anchor_id)
     decision_fieldset = (
-        f'  <fieldset class="ve-decision" data-anchor-id="{html.escape(anchor_id)}">\n'
+        f'  <fieldset class="ve-decision" data-anchor-id="{aid_safe}">\n'
         f'    <legend class="ve-sr-only">Decision for {fid_safe}</legend>\n'
-        f'    <input type="radio" id="{html.escape(radio_name)}-approve" '
-        f'name="{html.escape(radio_name)}" value="approve">\n'
-        f'    <label for="{html.escape(radio_name)}-approve" class="ve-dec-approve">approve</label>\n'
-        f'    <input type="radio" id="{html.escape(radio_name)}-reject" '
-        f'name="{html.escape(radio_name)}" value="reject">\n'
-        f'    <label for="{html.escape(radio_name)}-reject" class="ve-dec-reject">reject</label>\n'
-        f'    <input type="radio" id="{html.escape(radio_name)}-skip" '
-        f'name="{html.escape(radio_name)}" value="skip" checked>\n'
-        f'    <label for="{html.escape(radio_name)}-skip" class="ve-dec-skip">skip</label>\n'
+        f'    <label class="ve-toggle ve-toggle-approve">\n'
+        f'      <input type="checkbox" data-decision="approve" data-anchor-id="{aid_safe}">\n'
+        f'      <span class="ve-toggle-track" aria-hidden="true"></span>\n'
+        f'      <span class="ve-toggle-label">approve</span>\n'
+        f'    </label>\n'
+        f'    <label class="ve-toggle ve-toggle-reject">\n'
+        f'      <input type="checkbox" data-decision="reject" data-anchor-id="{aid_safe}">\n'
+        f'      <span class="ve-toggle-track" aria-hidden="true"></span>\n'
+        f'      <span class="ve-toggle-label">reject</span>\n'
+        f'    </label>\n'
         f'  </fieldset>\n'
     )
 

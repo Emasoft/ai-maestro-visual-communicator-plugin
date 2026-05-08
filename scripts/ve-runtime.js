@@ -739,55 +739,69 @@
       '.ve-comment-done:hover {',
       '  background:color-mix(in srgb, var(--text, currentColor) 14%, transparent);',
       '}',
-      // ─── v3 — per-element decision pill (TRDD-7a2dab03 §3.1, §3.4) ──
-      // Segmented-control look: a pill row of three labels, only the
-      // checked one shows the accent fill. The radios themselves stay
-      // visually hidden but remain keyboard-focusable.
+      // ─── v3.1 — per-element decision toggles (TRDD-7a2dab03 §3.1, §3.4) ──
+      // Two pill-shaped toggle switches per finding (approve + reject), with
+      // mutex enforced by `wireDecisionPills`. Both off = skip (default).
+      // Inspired by Birchline's feature-flags toggle, repalette'd to a warm
+      // slate/teal/rust scheme so it stays visually distinct from existing
+      // visualisations (per browser-ui-test-techniques.md — vary palettes).
       '.ve-decision {',
       '  border:0; padding:0; margin:8px 0 12px;',
-      '  display:inline-flex; gap:0; align-items:center;',
-      '  border:1px solid color-mix(in srgb, var(--text, currentColor) 22%, transparent);',
-      '  border-radius:999px; overflow:hidden;',
-      '  background:color-mix(in srgb, var(--text, currentColor) 4%, transparent);',
+      '  display:inline-flex; gap:18px; align-items:center;',
       '}',
       '.ve-sr-only {',
       '  position:absolute; width:1px; height:1px;',
       '  padding:0; margin:-1px; overflow:hidden; clip:rect(0 0 0 0);',
       '  white-space:nowrap; border:0;',
       '}',
-      // Visually hide the radio inputs but keep them focusable.
-      '.ve-decision input[type="radio"] {',
+      // Toggle = label wrapper containing hidden checkbox + track + text label.
+      '.ve-toggle {',
+      '  display:inline-flex; align-items:center; gap:8px;',
+      '  cursor:pointer; user-select:none;',
+      '}',
+      '.ve-toggle input[type="checkbox"] {',
       '  position:absolute; opacity:0; pointer-events:none;',
       '  width:1px; height:1px; margin:-1px;',
       '}',
-      '.ve-decision label {',
-      '  cursor:pointer; user-select:none;',
-      '  padding:5px 14px;',
-      '  font:600 11px/1.2 ui-sans-serif,system-ui,sans-serif;',
-      '  letter-spacing:0.06em; text-transform:uppercase;',
-      '  color:color-mix(in srgb, var(--text, currentColor) 65%, transparent);',
-      '  transition:background 120ms, color 120ms;',
+      // Track: 38×22 pill with a 16px circular thumb that slides on check.
+      '.ve-toggle-track {',
+      '  position:relative; flex:none;',
+      '  width:38px; height:22px;',
+      '  background:#d6d1c5;', // warm taupe (off)
+      '  border-radius:999px;',
+      '  transition:background 160ms ease;',
       '}',
-      '.ve-decision label + input + label { /* divider before subsequent labels */',
-      '  border-left:1px solid color-mix(in srgb, var(--text, currentColor) 14%, transparent);',
-      '}',
-      '.ve-decision label:hover {',
-      '  background:color-mix(in srgb, var(--text, currentColor) 8%, transparent);',
-      '  color:var(--text, currentColor);',
+      '.ve-toggle-track::after {',
+      '  content:""; position:absolute;',
+      '  top:3px; left:3px;',
+      '  width:16px; height:16px;',
+      '  border-radius:50%;',
+      '  background:#fbfaf6;', // warm off-white thumb
+      '  box-shadow:0 1px 2px rgba(42,40,37,0.20);',
+      '  transition:transform 160ms ease;',
       '}',
       // Checked-state colours per choice.
-      '.ve-decision input[value="approve"]:checked + label.ve-dec-approve {',
-      '  background:#1e8a4f; color:#f8fbf6;',
+      '.ve-toggle-approve input:checked ~ .ve-toggle-track {',
+      '  background:#3a6b5c;', // deep teal (go/trust, cooler than reference olive)
       '}',
-      '.ve-decision input[value="reject"]:checked + label.ve-dec-reject {',
-      '  background:#b8331f; color:#fbf3f1;',
+      '.ve-toggle-reject input:checked ~ .ve-toggle-track {',
+      '  background:#a84a32;', // brick rust (stop, warm not electric)
       '}',
-      '.ve-decision input[value="skip"]:checked + label.ve-dec-skip {',
-      '  background:color-mix(in srgb, var(--text, currentColor) 18%, transparent);',
+      '.ve-toggle input:checked ~ .ve-toggle-track::after {',
+      '  transform:translateX(16px);',
+      '}',
+      // Text label next to the switch.
+      '.ve-toggle-label {',
+      '  font:600 11px/1.2 ui-sans-serif,system-ui,sans-serif;',
+      '  letter-spacing:0.06em; text-transform:uppercase;',
+      '  color:color-mix(in srgb, var(--text, currentColor) 60%, transparent);',
+      '  transition:color 120ms ease;',
+      '}',
+      '.ve-toggle input:checked ~ .ve-toggle-label {',
       '  color:var(--text, currentColor);',
       '}',
-      // Keyboard focus ring (Tab + arrow keys).
-      '.ve-decision input[type="radio"]:focus-visible + label {',
+      // Keyboard focus ring (Tab + Space).
+      '.ve-toggle input:focus-visible ~ .ve-toggle-track {',
       '  outline:2px solid var(--ve-accent, #b8861f); outline-offset:2px;',
       '}'
     ].join('\n');
@@ -5068,11 +5082,11 @@
   // See ~/.claude/rules/browser-ui-test-techniques.md §3 for the rule.
   // ─────────────────────────────────────────────────────────────────────
 
-  // anchorId → "approve"|"reject"|"skip" (current radio state).
+  // anchorId → "approve"|"reject"|"skip" (current toggle-derived state).
   var decisionState = new Map();
   // anchorId → "approve"|"reject"|"skip" — last decision actually written
   // to the queue. Used to suppress idempotent decision-only writes per
-  // TRDD-7a2dab03 §3.3 ("clicking the same radio twice is a no-op").
+  // TRDD-7a2dab03 §3.3 ("clicking the same toggle twice is a no-op").
   var lastWrittenDecision = new Map();
   // anchorId → threadId for decision-only turns. Each finding gets its
   // own thread so all of a finding's decision flips append to the same
@@ -5095,14 +5109,16 @@
   function currentDecisionFor(anchorId) {
     if (!anchorId) return 'skip';
     if (decisionState.has(anchorId)) return decisionState.get(anchorId);
-    // Read the DOM state if no explicit flip has been recorded yet — the
-    // renderer marks one radio as `checked` (default: skip).
+    // Derive from the two checkbox toggles' DOM state. Both unchecked = skip
+    // (the renderer's default — neither toggle has the `checked` attribute).
     var fs = document.querySelector(
       'fieldset.ve-decision[data-anchor-id="' + anchorId.replace(/"/g, '\\"') + '"]'
     );
     if (fs) {
-      var r = fs.querySelector('input[type="radio"]:checked');
-      if (r && r.value) return r.value;
+      var ap = fs.querySelector('input[type="checkbox"][data-decision="approve"]');
+      var rj = fs.querySelector('input[type="checkbox"][data-decision="reject"]');
+      if (ap && ap.checked) return 'approve';
+      if (rj && rj.checked) return 'reject';
     }
     return 'skip';
   }
@@ -5166,16 +5182,34 @@
 
   function wireDecisionPills() {
     // Single delegated listener — survives DOM changes and never
-    // double-binds. Listens for `change` on every radio inside a
-    // ve-decision fieldset.
+    // double-binds. Listens for `change` on every checkbox inside a
+    // ve-decision fieldset and enforces 2-toggle mutex (turning approve
+    // ON when reject is also ON auto-clears reject, and vice versa).
     document.addEventListener('change', function (ev) {
       var t = ev.target;
-      if (!t || t.type !== 'radio') return;
+      if (!t || t.type !== 'checkbox') return;
       var fs = t.closest && t.closest('fieldset.ve-decision');
       if (!fs) return;
       var anchorId = fs.getAttribute('data-anchor-id');
       if (!anchorId) return;
-      recordDecision(anchorId, t.value);
+      var which = t.getAttribute('data-decision');
+      if (which !== 'approve' && which !== 'reject') return;
+      // Mutex: if the user just turned ON one toggle, force the other OFF.
+      if (t.checked) {
+        var other = fs.querySelector(
+          'input[type="checkbox"][data-decision="' +
+            (which === 'approve' ? 'reject' : 'approve') +
+            '"]'
+        );
+        if (other && other.checked) other.checked = false;
+      }
+      // Derive the new tri-state from the two checkboxes' final state.
+      var ap = fs.querySelector('input[type="checkbox"][data-decision="approve"]');
+      var rj = fs.querySelector('input[type="checkbox"][data-decision="reject"]');
+      var newDecision = 'skip';
+      if (ap && ap.checked) newDecision = 'approve';
+      else if (rj && rj.checked) newDecision = 'reject';
+      recordDecision(anchorId, newDecision);
     });
   }
 

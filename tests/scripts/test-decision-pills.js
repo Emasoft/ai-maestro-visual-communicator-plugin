@@ -1,11 +1,12 @@
 // test-decision-pills.js
 //
-// Dev-browser script — exercises the v3 per-finding decision pills
+// Dev-browser script — exercises the v3.1 per-finding decision toggles
 // (TRDD-7a2dab03). Each finding section in the rendered report carries
-// a 3-state decision fieldset (approve / reject / skip) styled as a
-// segmented control. The pill is independent of the comment modal:
-// flipping the radio writes a JSONL turn with text:"" and decision set;
-// opening the modal does NOT change the decision.
+// a fieldset.ve-decision with TWO toggle switches (approve + reject).
+// Both off = "skip" (default). The runtime enforces mutex: turning one
+// ON automatically clears the other. The toggles are independent of
+// the comment modal: flipping a toggle writes a JSONL decision-only turn
+// with text:""; opening the modal does NOT change the decision.
 //
 // Each test prints exactly one line:
 //   TEST | <name> | PASS|FAIL|ERROR | <description> | <detail>
@@ -52,25 +53,43 @@ async function readQueueFile(page, name) {
   }, { url: QUEUE_READ, n: name });
 }
 
-async function clickDecisionRadio(page, findingId, value) {
-  // Set the radio's `checked` flag and dispatch a synthetic `change`
-  // event. We use this instead of label.click() because some headless
-  // engines (incl. the QuickJS-backed dev-browser) do not always
-  // synthesise the click→change sequence reliably from a label click.
-  // A direct `dispatchEvent('change', {bubbles:true})` matches the
-  // wire-protocol the production listener registers anyway (it listens
-  // for `change` on a `radio[type="radio"]`).
+async function setDecisionToggle(page, findingId, value) {
+  // Set the toggle checkboxes' `checked` flags directly and dispatch a
+  // synthetic `change` event. We use this instead of label.click()
+  // because the QuickJS-backed dev-browser does not always synthesise
+  // the click→change sequence reliably from a label click. A direct
+  // `dispatchEvent('change', {bubbles:true})` matches the wire-protocol
+  // the production listener registers anyway (delegated `change` on
+  // `input[type="checkbox"]` inside `fieldset.ve-decision`).
+  //
+  // value ∈ {"approve","reject","skip"}:
+  //   "approve" → check approve, uncheck reject, dispatch on approve
+  //   "reject"  → check reject,  uncheck approve, dispatch on reject
+  //   "skip"    → uncheck both, dispatch on whichever was previously on
   const ok = await page.evaluate((args) => {
     const fs = document.querySelector(
       'fieldset.ve-decision[data-anchor-id="ve-' + args.fid + '"]'
     );
     if (!fs) return false;
-    const inp = fs.querySelector('input[value="' + args.val + '"]');
-    if (!inp) return false;
+    const ap = fs.querySelector('input[type="checkbox"][data-decision="approve"]');
+    const rj = fs.querySelector('input[type="checkbox"][data-decision="reject"]');
+    if (!ap || !rj) return false;
     fs.scrollIntoView({ block: 'center' });
-    inp.checked = true;
-    inp.dispatchEvent(new Event('change', { bubbles: true }));
-    return !!inp.checked;
+    let dispatchOn = null;
+    if (args.val === 'approve') {
+      ap.checked = true; rj.checked = false; dispatchOn = ap;
+    } else if (args.val === 'reject') {
+      rj.checked = true; ap.checked = false; dispatchOn = rj;
+    } else { // skip
+      const wasApprove = ap.checked;
+      const wasReject = rj.checked;
+      ap.checked = false; rj.checked = false;
+      // Dispatch on whichever was previously ON so the listener has a
+      // legitimate `change` source. If neither was on, pick approve.
+      dispatchOn = wasApprove ? ap : (wasReject ? rj : ap);
+    }
+    dispatchOn.dispatchEvent(new Event('change', { bubbles: true }));
+    return true;
   }, { fid: findingId, val: value });
   // POST round-trip is async; give it time to land on disk before the
   // test reads the queue dir.
@@ -99,26 +118,30 @@ async function readJsonlLines(page) {
 
 async function testDecisionDefaultSkip(page) {
   // Open the report. Every finding must have a fieldset.ve-decision with
-  // its `skip` radio checked by default. Queue must be empty (loading the
-  // page does NOT emit any decision turn).
+  // BOTH toggles unchecked (the toggle-derived "skip" default). Queue
+  // must be empty (loading the page does NOT emit any decision turn).
   await setup(page);
   const findings = await page.evaluate(() => {
     return Array.from(document.querySelectorAll('fieldset.ve-decision')).map((fs) => {
-      const checked = fs.querySelector('input[type="radio"]:checked');
+      const ap = fs.querySelector('input[type="checkbox"][data-decision="approve"]');
+      const rj = fs.querySelector('input[type="checkbox"][data-decision="reject"]');
       return {
         anchorId: fs.getAttribute('data-anchor-id') || '',
-        checkedValue: checked ? checked.value : null,
+        approveChecked: !!(ap && ap.checked),
+        rejectChecked: !!(rj && rj.checked),
       };
     });
   });
-  const allSkip = findings.length === 4 && findings.every((f) => f.checkedValue === 'skip');
+  const allSkip = findings.length === 4 && findings.every(
+    (f) => f.approveChecked === false && f.rejectChecked === false
+  );
   const files = await listQueueFiles(page);
   const queueEmpty = files.filter((f) => /\.jsonl$/.test(f)).length === 0;
   const ok = allSkip && queueEmpty;
   record(
     'modal_decision_default_skip',
     ok ? 'PASS' : 'FAIL',
-    'every finding renders with skip checked; queue dir empty',
+    'every finding renders with both toggles off (skip); queue dir empty',
     JSON.stringify({ findings, files })
   );
 }
@@ -127,8 +150,8 @@ async function testDecisionChangesEmitTurn(page) {
   // Flip Finding 1 to approve, Finding 2 to reject. Verify the queue dir
   // gains exactly two JSONL lines, each with text:"" and decision set.
   await setup(page);
-  const okA = await clickDecisionRadio(page, 'finding-1', 'approve');
-  const okR = await clickDecisionRadio(page, 'finding-2', 'reject');
+  const okA = await setDecisionToggle(page, 'finding-1', 'approve');
+  const okR = await setDecisionToggle(page, 'finding-2', 'reject');
   await page.waitForTimeout(400);
   const lines = await readJsonlLines(page);
   const decisionLines = lines.filter((l) => l && typeof l.decision === 'string');
@@ -157,7 +180,7 @@ async function testDecisionWithComment(page) {
 
   // Step 1: flip Finding 3's pill to approve BEFORE opening the modal.
   // This emits one decision-only turn (text:"", decision:"approve").
-  const flipped = await clickDecisionRadio(page, 'finding-3', 'approve');
+  const flipped = await setDecisionToggle(page, 'finding-3', 'approve');
 
   // Step 2: open the comment modal on a paragraph inside Finding 3's
   // section. The simplest deterministic anchor is the "The driver
@@ -240,12 +263,55 @@ async function testDecisionWithComment(page) {
   );
 }
 
+async function testDecisionMutex(page) {
+  // First flip Finding 4 to "reject". Then DIRECTLY check the approve
+  // toggle without manually clearing reject, and dispatch change. The
+  // runtime listener (wireDecisionPills) must enforce 2-toggle mutex —
+  // turning approve ON auto-clears reject. Final DOM state: approve
+  // checked, reject NOT. Two decision turns emitted (reject, approve).
+  await setup(page);
+  await setDecisionToggle(page, 'finding-4', 'reject');
+  await page.evaluate(() => {
+    const fs = document.querySelector(
+      'fieldset.ve-decision[data-anchor-id="ve-finding-4"]'
+    );
+    if (!fs) return;
+    const ap = fs.querySelector('input[type="checkbox"][data-decision="approve"]');
+    if (!ap) return;
+    ap.checked = true; // approve ON; reject still ON — mutex must fire
+    ap.dispatchEvent(new Event('change', { bubbles: true }));
+  });
+  await page.waitForTimeout(400);
+  const final = await page.evaluate(() => {
+    const fs = document.querySelector(
+      'fieldset.ve-decision[data-anchor-id="ve-finding-4"]'
+    );
+    if (!fs) return null;
+    const ap = fs.querySelector('input[type="checkbox"][data-decision="approve"]');
+    const rj = fs.querySelector('input[type="checkbox"][data-decision="reject"]');
+    return { approve: !!(ap && ap.checked), reject: !!(rj && rj.checked) };
+  });
+  const lines = await readJsonlLines(page);
+  const f4 = lines.filter((l) => l && l.anchorId === 've-finding-4');
+  const ok = final && final.approve === true && final.reject === false
+    && f4.length === 2
+    && f4[0].decision === 'reject'
+    && f4[1].decision === 'approve';
+  record(
+    'modal_decision_mutex',
+    ok ? 'PASS' : 'FAIL',
+    'turning approve ON auto-clears reject (mutex); both transitions emit decision turns',
+    JSON.stringify({ final, count: f4.length, decisions: f4.map((l) => l.decision) })
+  );
+}
+
 // ── Runner ──────────────────────────────────────────────────────────
 
 const tests = [
   testDecisionDefaultSkip,
   testDecisionChangesEmitTurn,
   testDecisionWithComment,
+  testDecisionMutex,
 ];
 
 const page = await browser.getPage("decision-pill-tests");

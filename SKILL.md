@@ -261,12 +261,13 @@ The runtime (`ve-runtime.js`) handles these for you — do not try to recreate t
 - **Per-thread `localStorage` persistence** under key `ve-comment-thread:<commentId>`.
 - **Stale-state self-detection** — fetches that complete after the modal closes (or a different anchor's thread opens) bail without crashing.
 
-### v3 — per-element decision pill (approve / reject / skip)
+### v3 — per-element decision toggles (approve / reject — both off = skip)
 
-Each finding section also carries a 3-state decision pill (TRDD-7a2dab03). The pill is **independent** of the comment thread: the thread is for clarifications, the pill is the **outcome signal** Claude reads first.
+Each finding section also carries **two pill-shaped toggle switches** (approve + reject) styled in a warm slate/teal/rust palette (TRDD-7a2dab03). The toggles are **independent** of the comment thread: the thread is for clarifications, the toggle state is the **outcome signal** Claude reads first.
 
-- Default state: `skip` (no opinion). Loading the page does NOT emit any turn.
-- Flipping a pill writes a **decision-only turn** (`text: ""`, `decision: "..."`, `anchorId: "ve-finding-N"`) into a per-finding JSONL file (`<queue-dir>/decision-ve-finding-N-<ts>.jsonl`).
+- Default state: both toggles OFF → effective decision `skip` (no opinion). Loading the page does NOT emit any turn.
+- Mutex: turning one toggle ON automatically clears the other. There are 3 effective states (skip / approve / reject), not 4.
+- Flipping a toggle writes a **decision-only turn** (`text: ""`, `decision: "approve"|"reject"|"skip"`, `anchorId: "ve-finding-N"`) into a per-finding JSONL file (`<queue-dir>/decision-ve-finding-N-<ts>.jsonl`).
 - Submitting a comment from inside a finding ANSWERs with the current decision attached as an extra `decision` key on the comment turn.
 - Closing the modal POSTs an aggregate `<threadId>.summary.json` with `decisions`, `totals`, and `closedAt` so the responder can `cat` one file instead of replaying every turn.
 
