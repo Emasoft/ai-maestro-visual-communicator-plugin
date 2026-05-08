@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.1.1] — 2026-05-08
+
+### Bug Fixes
+
+- Pin astral-sh/setup-uv to v8.1.0
+
+### Chores
+
+- Sync to pyproject.toml v1.1.0
+
 ## [1.1.0] — 2026-05-08
 
 ### Bug Fixes
@@ -90,3 +100,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Release
 
 - V0.8.0 — interactive selection (default for every page)
+
+
