@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Code-gutter Test Fixture</title>
+<style>
+  body { margin: 0; padding: 32px; background: #faf6ee; color: #1f1a14;
+         font: 16px/1.5 system-ui, -apple-system, sans-serif; }
+  main { max-width: 86ch; margin: 0 auto; }
+  pre { background: rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.10);
+        border-radius: 6px; padding: 12px 14px;
+        font: 13px/1.55 ui-monospace, Menlo, Consolas, monospace;
+        overflow-x: auto; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Code with line gutter</h1>
+  <pre><code class="language-python">def hello(name):
+    return f"Hello, {name}!"
+
+print(hello("world"))
+print(hello("you"))</code></pre>
+</main>
+<script src="amvcp-runtime.js"></script>
+</body>
+</html>

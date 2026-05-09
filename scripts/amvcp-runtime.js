@@ -169,6 +169,13 @@
   var isInteractive =
     params.get('ve_select') === '1' ||
     /^https?:\/\/(127\.0\.0\.1|localhost)(:|$)/i.test(loc);
+  // A2 (TRDD-5f41ad36) — when the runner could not locate a Chromium
+  // binary it appends `&ve_mode=fallback` and opens the page in the
+  // user's default browser via webbrowser.open(). window.close() is
+  // denied for any tab not opened by JS, so we tell the server to
+  // respond with `thanks_url` and we navigate there instead of leaving
+  // the user staring at a stale report tab.
+  var isFallbackBrowser = params.get('ve_mode') === 'fallback';
 
   var sending = false;
 
@@ -823,14 +830,28 @@
   // sites — the modern equivalent of the dead function's fallback
   // page, single-source-of-truth.
 
-  function showCloseConfirmation() {
+  function showCloseConfirmation(mode) {
     // Replace the document body with the minimal "Selection sent — close
     // this tab" page. Used after sendBeacon/fetch keepalive when
     // window.close() is denied (which is the default for any tab the user
     // opened directly rather than via Chromium --app). Idempotent: bails
     // when the document is already hidden (window.close() succeeded).
+    //
+    // A2 (TRDD-5f41ad36): when called with mode === 'fallback', we adjust
+    // the displayed copy to "Selection received" + "The agent has your
+    // selection" — the same wording as the server-rendered /__ve-thanks
+    // page. This is the user-facing string for the case where the runtime
+    // is loaded inside the user's default browser (no Chromium app mode)
+    // and we lost the race with location.replace() to the thanks page —
+    // either way the message they see is consistent.
     if (document.visibilityState === 'hidden' || !document.body) return;
-    document.title = 'Selection sent — close this tab';
+    var isFallback = mode === 'fallback';
+    var title = isFallback ? 'Selection received — close this tab' : 'Selection sent — close this tab';
+    var heading = isFallback ? 'Selection received' : 'Selection sent';
+    var subtitle = isFallback
+      ? 'The agent has your selection. You can close this tab.'
+      : 'You can close this tab.';
+    document.title = title;
     document.body.innerHTML =
       '<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;'
       + 'background:#0f1115;color:#e8eaee;font:15px/1.5 system-ui,-apple-system,sans-serif;'
@@ -838,8 +859,8 @@
       + '<div>'
         + '<div style="font:500 11px/1 ui-monospace,Menlo,monospace;letter-spacing:0.12em;'
         + 'text-transform:uppercase;opacity:0.5;margin-bottom:14px;">ai-maestro-visual-communicator-plugin</div>'
-        + '<h1 style="font-weight:500;font-size:22px;margin:0 0 6px;">Selection sent</h1>'
-        + '<p style="opacity:0.6;margin:0;">You can close this tab.</p>'
+        + '<h1 style="font-weight:500;font-size:22px;margin:0 0 6px;">' + heading + '</h1>'
+        + '<p style="opacity:0.6;margin:0;">' + subtitle + '</p>'
       + '</div>'
       + '</div>';
   }
@@ -920,7 +941,41 @@
     // semantics — the browser keeps the request in flight even after the
     // document is gone. Falls back to fetch(keepalive:true) on the small
     // number of browsers that don't expose sendBeacon.
+    //
+    // A2 (TRDD-5f41ad36) — in fallback-browser mode (Chromium not found,
+    // launched via webbrowser.open() in the user's default browser), use
+    // fetch instead of sendBeacon. fetch lets us (a) send the
+    // X-Browser-Mode header so the server can echo back `thanks_url`,
+    // and (b) read the response so we can `location.replace()` to the
+    // thanks page — sendBeacon supports neither.
     var body = JSON.stringify(payload);
+    if (isFallbackBrowser) {
+      try {
+        fetch('/__ve-select', {
+          method: 'POST',
+          headers: {
+            'content-type': 'application/json',
+            'X-Browser-Mode': 'fallback'
+          },
+          body: body
+        }).then(function (r) {
+          if (!r) return null;
+          return r.json().catch(function () { return null; });
+        }).then(function (j) {
+          var thanks = j && typeof j.thanks_url === 'string' ? j.thanks_url : null;
+          if (thanks) {
+            try { location.replace(thanks); return; } catch (_) {}
+          }
+          showCloseConfirmation('fallback');
+        }).catch(function () {
+          showCloseConfirmation('fallback');
+        });
+      } catch (_) {
+        showCloseConfirmation('fallback');
+      }
+      return;
+    }
+
     var sent = false;
     if (navigator.sendBeacon) {
       try {
@@ -1063,7 +1118,40 @@
       showStaticFallback(payload, overlay);
       return;
     }
+    // A2 (TRDD-5f41ad36) — same fallback-browser handling as
+    // postSelection(). Use fetch (not sendBeacon) when ve_mode=fallback
+    // so we can send X-Browser-Mode and react to `thanks_url` in the
+    // response. Single-source-of-truth would have been nicer, but the
+    // two send-paths are different enough (overlay handling, payload
+    // shape) that a shared helper would obscure more than it shares.
     var body = JSON.stringify(payload);
+    if (isFallbackBrowser) {
+      try {
+        fetch('/__ve-select', {
+          method: 'POST',
+          headers: {
+            'content-type': 'application/json',
+            'X-Browser-Mode': 'fallback'
+          },
+          body: body
+        }).then(function (r) {
+          if (!r) return null;
+          return r.json().catch(function () { return null; });
+        }).then(function (j) {
+          var thanks = j && typeof j.thanks_url === 'string' ? j.thanks_url : null;
+          if (thanks) {
+            try { location.replace(thanks); return; } catch (_) {}
+          }
+          showCloseConfirmation('fallback');
+        }).catch(function () {
+          showCloseConfirmation('fallback');
+        });
+      } catch (_) {
+        showCloseConfirmation('fallback');
+      }
+      return;
+    }
+
     var sent = false;
     if (navigator.sendBeacon) {
       try {

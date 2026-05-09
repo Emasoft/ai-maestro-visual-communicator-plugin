@@ -281,6 +281,17 @@ async function testR16QuantifierKind(page) {
 
 async function testLiveValueEdit(page) {
   // R1: editing the Value field re-renders the graph live (abc→hello).
+  //
+  // C1 (TRDD-5f41ad36) — flake fix. The previous version used a fixed
+  // `await page.waitForTimeout(500)` after `keyboard.type('hello')`,
+  // which raced with the React re-render under load — when the test
+  // ran on a busy machine the labels still showed `["abc"]` and the
+  // assertion failed. Replaced with two poll loops:
+  //   (1) poll the input field's `.value` until it actually equals
+  //       'hello' (proves the keystrokes landed in the input).
+  //   (2) poll the rendered SVG labels until 'hello' appears (proves
+  //       the React state propagated to the graph).
+  // Each poll caps at 2.5s so a real failure still surfaces quickly.
   await setup(page);
   const pos = await clickRectAtIndex(page, 0, { kind: 'inner' });
   await page.mouse.click(pos.x, pos.y);
@@ -294,13 +305,39 @@ async function testLiveValueEdit(page) {
   await page.mouse.click(inpPos.x, inpPos.y);
   await page.keyboard.press('Meta+a');
   await page.keyboard.type('hello');
-  await page.waitForTimeout(500);
-  const labels = await page.evaluate(() => {
-    const wrap = document.querySelectorAll('.ve-regex')[0];
-    return Array.from(wrap.querySelectorAll('svg foreignObject')).map(f => f.textContent);
-  });
-  const ok = labels.some(l => /hello/.test(l));
-  record('regex_live_value_edit', ok ? 'PASS' : 'FAIL', 'live value edit re-renders graph', JSON.stringify(labels));
+  // (1) poll for input.value === 'hello'.
+  const inputDeadline = Date.now() + 2500;
+  let inputValue = null;
+  while (Date.now() < inputDeadline) {
+    inputValue = await page.evaluate(() => {
+      const wrap = document.querySelectorAll('.ve-regex')[0];
+      const inp = wrap.querySelector('[data-testid="edit-tab"] input');
+      return inp ? inp.value : null;
+    });
+    if (inputValue === 'hello') break;
+    await page.waitForTimeout(80);
+  }
+  // (2) poll for the SVG label text to include 'hello'. The React state
+  // tick + react-flow re-layout is normally <100ms after the input
+  // updates, but on a busy machine it can stretch to several hundred
+  // ms. 2.5s is well past the worst observed lag.
+  const labelDeadline = Date.now() + 2500;
+  let labels = [];
+  let ok = false;
+  while (Date.now() < labelDeadline) {
+    labels = await page.evaluate(() => {
+      const wrap = document.querySelectorAll('.ve-regex')[0];
+      return Array.from(wrap.querySelectorAll('svg foreignObject')).map(f => f.textContent);
+    });
+    if (labels.some(l => /hello/.test(l))) { ok = true; break; }
+    await page.waitForTimeout(80);
+  }
+  record(
+    'regex_live_value_edit',
+    ok ? 'PASS' : 'FAIL',
+    'live value edit re-renders graph',
+    JSON.stringify({ inputValue, labels })
+  );
 }
 
 async function testUndoRedoPerMount(page) {

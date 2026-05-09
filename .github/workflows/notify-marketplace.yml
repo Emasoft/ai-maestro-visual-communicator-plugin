@@ -47,7 +47,9 @@ jobs:
         # node16 actions are deprecation-pressured by GitHub. No
         # breaking input changes for the token/repository/event-type
         # /client-payload set used here.
-        uses: peter-evans/repository-dispatch@v4
+        # B4 (TRDD-5f41ad36) — upgraded from tag pin (`@v4`) to full
+        # commit-SHA pin per the project gh-actions.md rule.
+        uses: peter-evans/repository-dispatch@28959ce8df70de7be546dd1250a005dd32156697 # v4.0.1
         with:
           token: ${{ secrets.MARKETPLACE_PAT }}
           repository: ${{ env.MARKETPLACE_OWNER }}/${{ env.MARKETPLACE_REPO }}
@@ -61,10 +63,21 @@ jobs:
             }
 
       - name: summary
+        # B1 (TRDD-5f41ad36) — actionlint flagged these as SC2086 (unquoted
+        # variable expansion) and SC2129 (multiple redirects). Quoting
+        # `$GITHUB_STEP_SUMMARY` is harmless on GitHub runners (the var
+        # never contains spaces) but the linter is right to flag it as
+        # a foot-gun. Combining into a single brace-block also makes the
+        # diff easier to scan.
+        env:
+          PLUGIN_NAME: ${{ steps.plugin.outputs.name }}
+          PLUGIN_REF: ${{ steps.plugin.outputs.ref }}
         run: |
-          echo "## Marketplace Notification" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Triggered update in ${{ env.MARKETPLACE_OWNER }}/${{ env.MARKETPLACE_REPO }}" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "- Plugin: ${{ steps.plugin.outputs.name }}" >> $GITHUB_STEP_SUMMARY
-          echo "- Commit: ${{ steps.plugin.outputs.ref }}" >> $GITHUB_STEP_SUMMARY
+          {
+            echo "## Marketplace Notification"
+            echo
+            echo "Triggered update in ${{ env.MARKETPLACE_OWNER }}/${{ env.MARKETPLACE_REPO }}"
+            echo
+            echo "- Plugin: $PLUGIN_NAME"
+            echo "- Commit: $PLUGIN_REF"
+          } >> "$GITHUB_STEP_SUMMARY"

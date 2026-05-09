@@ -92,6 +92,39 @@ MANIFEST_BYTES = (
     b'"sizes":"any","type":"image/svg+xml"}]}'
 )
 
+
+# A1 (TRDD-5f41ad36) — content-length DoS bound. A hostile (or buggy)
+# client could otherwise stream gigabytes of body bytes into self.rfile.read()
+# and OOM the runner. Caps below are mirrored verbatim in tests/server.py
+# — keep the two in sync.
+MAX_BODY_SELECT = 2 * 1024 * 1024   # 2 MB for /__ve-select (multi-select payloads)
+MAX_BODY_COMMENT = 256 * 1024       # 256 KB for /__ve-comment* (one user turn)
+
+
+# A2 (TRDD-5f41ad36) — when the Chromium fallback could not be located
+# (find_chromium_binary() returned None) the runtime is loaded inside the
+# user's default browser via webbrowser.open(). window.close() is denied
+# there for any tab that wasn't opened by JS, so the runtime falls back
+# to its inline "Selection sent — close this tab" overlay. The X-Browser-Mode
+# header lets the runtime ask the server for a richer thanks-page response
+# when running in fallback mode (currently identical text — single source of
+# truth for the close-tab UI string).
+THANKS_PAGE_HTML = (
+    b'<!doctype html><html lang="en"><head><meta charset="utf-8">'
+    b'<title>Selection received \xe2\x80\x94 close this tab</title>'
+    b'<style>body{margin:0;min-height:100vh;display:flex;align-items:center;'
+    b'justify-content:center;background:#0f1115;color:#e8eaee;'
+    b'font:15px/1.5 system-ui,-apple-system,sans-serif;text-align:center;'
+    b'padding:24px}h1{font-weight:500;font-size:22px;margin:0 0 6px}'
+    b'p{opacity:0.6;margin:0}'
+    b'.tag{font:500 11px/1 ui-monospace,Menlo,monospace;letter-spacing:0.12em;'
+    b'text-transform:uppercase;opacity:0.5;margin-bottom:14px}</style></head>'
+    b'<body><div><div class="tag">ai-maestro-visual-communicator-plugin</div>'
+    b'<h1>Selection received</h1>'
+    b'<p>The agent has your selection. You can close this tab.</p>'
+    b'</div></body></html>'
+)
+
 # `<link rel="manifest">` tag we splice into served HTML pages. We add it
 # right after `<head>` so it's parsed before anything else, which is what
 # Chrome wants for app-mode detection. Idempotent: if the page already
@@ -463,6 +496,22 @@ def main(argv: list[str]) -> int:
                 self.end_headers()
                 self.wfile.write(MANIFEST_BYTES)
                 return
+            # A2 (TRDD-5f41ad36) — fallback-browser thanks page. When the
+            # Chromium binary could not be located the runtime is loaded
+            # via webbrowser.open() in the user's default browser, where
+            # window.close() is denied for any tab not opened by JS. The
+            # runtime POSTs the selection with `X-Browser-Mode: fallback`,
+            # the POST handler echoes back `{thanks_url}`, and the runtime
+            # `location.replace()`s to this route so the user sees a clear
+            # "selection received — close this tab" page rather than the
+            # original (now-stale) report tab.
+            if req_path == "/__ve-thanks":
+                self.send_response(200)
+                self.send_header("content-type", "text/html; charset=utf-8")
+                self.send_header("content-length", str(len(THANKS_PAGE_HTML)))
+                self.end_headers()
+                self.wfile.write(THANKS_PAGE_HTML)
+                return
             # Inject `<link rel="manifest">` and `<link rel="icon">` into the
             # served HTML page so Chrome treats it as a web app. We do this
             # at serve-time rather than asking the page authors to remember,
@@ -483,6 +532,29 @@ def main(argv: list[str]) -> int:
 
         def do_POST(self) -> None:
             url = urlparse(self.path)
+            # A1 (TRDD-5f41ad36) — pick the per-endpoint cap BEFORE reading
+            # bytes off the wire. /__ve-select carries a multi-select
+            # payload (potentially many entries) so it gets the larger
+            # ceiling; /__ve-comment* carries one user turn at a time so
+            # 256 KB is plenty. Unknown endpoints get the smaller cap
+            # (defence in depth — the request will 404 below regardless,
+            # but a hostile body sent to a typo'd path must not be allowed
+            # to OOM us before the 404 lands).
+            if url.path == "/__ve-select":
+                max_body = MAX_BODY_SELECT
+            else:
+                max_body = MAX_BODY_COMMENT
+            try:
+                declared_length = int(self.headers.get("content-length") or 0)
+            except (ValueError, TypeError):
+                declared_length = 0
+            if declared_length > max_body:
+                self.send_response(413)
+                self.send_header("content-type", "application/json")
+                self.send_header("access-control-allow-origin", "*")
+                self.end_headers()
+                self.wfile.write(b'{"error":"payload too large"}')
+                return
             # ── v2 — comment-thread queue endpoint ────────────────────
             # POST /__ve-comment {commentId, threadId, sourcePath, turn, text}
             # appends the user turn to <queue_dir>/<threadId>.jsonl. The
@@ -604,7 +676,18 @@ def main(argv: list[str]) -> int:
             selection.clear()
             selection.update(payload)
 
-            response = json.dumps({"ok": True}).encode("utf-8")
+            # A2 (TRDD-5f41ad36) — when the runtime POSTed with
+            # `X-Browser-Mode: fallback` (i.e. it's running in the user's
+            # default browser via webbrowser.open() because the Chromium
+            # binary was not found), include a `thanks_url` so the page
+            # can `location.replace()` to a clean close-tab view. Without
+            # this, the user is left staring at the (now-stale) report
+            # because window.close() is denied for opener-unattached tabs.
+            mode = (self.headers.get("X-Browser-Mode") or "").lower()
+            resp_obj: dict[str, object] = {"ok": True}
+            if mode == "fallback":
+                resp_obj["thanks_url"] = "/__ve-thanks"
+            response = json.dumps(resp_obj).encode("utf-8")
             self.send_response(200)
             self.send_header("content-type", "application/json")
             self.send_header("access-control-allow-origin", "*")
@@ -687,8 +770,13 @@ def main(argv: list[str]) -> int:
         # Fall back to the user's default browser. window.close() will be
         # blocked there, but the runtime has its own "you can close this
         # tab" overlay so the UX still terminates cleanly.
+        # A2 (TRDD-5f41ad36) — append `&ve_mode=fallback` so the runtime
+        # knows to send `X-Browser-Mode: fallback` on its POST. The server
+        # then echoes `thanks_url:/__ve-thanks` and the page navigates
+        # there instead of leaving the user on a stale report tab.
+        fallback_url = url + "&ve_mode=fallback"
         try:
-            webbrowser.open(url)
+            webbrowser.open(fallback_url)
         except Exception:
             launch_reason = "no-browser"
 

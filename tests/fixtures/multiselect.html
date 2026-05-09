@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Multi-select Test Fixture</title>
+<style>
+  body { margin: 0; padding: 32px; background: #faf6ee; color: #1f1a14;
+         font: 16px/1.5 system-ui, -apple-system, sans-serif; }
+  main { max-width: 86ch; margin: 0 auto; }
+  .card { background: #fff; border: 1px solid rgba(0,0,0,0.1);
+          border-radius: 8px; padding: 16px 20px; margin: 12px 0; }
+  .card h3 { margin: 0 0 6px; font-size: 16px; }
+  .card p  { margin: 0; opacity: 0.7; font-size: 14px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Multi-select Cards</h1>
+  <div class="card" data-ve-id="card-alpha" data-ve-type="card" data-ve-label="Alpha card">
+    <h3>Alpha</h3>
+    <p>The first card. Single-click toggles selection.</p>
+  </div>
+  <div class="card" data-ve-id="card-beta" data-ve-type="card" data-ve-label="Beta card">
+    <h3>Beta</h3>
+    <p>The second card. Ctrl-click adds to the existing selection.</p>
+  </div>
+  <div class="card" data-ve-id="card-gamma" data-ve-type="card" data-ve-label="Gamma card">
+    <h3>Gamma</h3>
+    <p>The third card. ESC clears all selections.</p>
+  </div>
+</main>
+<script src="amvcp-runtime.js"></script>
+</body>
+</html>

@@ -36,8 +36,22 @@ from urllib.parse import parse_qs, unquote, urlparse
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scripts"))
 from _ve_queue import atomic_write_json, queue_lock, safe_tid  # noqa: E402
 
+# A1 (TRDD-5f41ad36) — content-length DoS bound. A hostile (or buggy)
+# client could otherwise stream gigabytes of body bytes into self.rfile.read()
+# and OOM the server. Caps below match the production runner in
+# scripts/amvcp-select.py — keep the two in sync.
+MAX_BODY_SELECT = 2 * 1024 * 1024   # 2 MB for /__ve-select (multi-select payloads)
+MAX_BODY_COMMENT = 256 * 1024       # 256 KB for /__ve-comment* (one user turn)
+
 
 def make_handler(root: Path, queue_dir: Path) -> type:
+    # In-memory capture for the most recent /__ve-select POST payload.
+    # Tests for the multiselect / table-form / code-gutter overhauls
+    # (TRDD-5f41ad36 D1-D5) post to /__ve-select and then GET the
+    # /__ve-test-last-select endpoint to assert against the recorded
+    # payload. Plain dict so handlers can mutate it across requests.
+    last_select: dict[str, object] = {"payload": None}
+
     class H(http.server.SimpleHTTPRequestHandler):
         def __init__(self, *a, **kw):
             super().__init__(*a, directory=str(root), **kw)
@@ -111,6 +125,28 @@ def make_handler(root: Path, queue_dir: Path) -> type:
                 self.end_headers()
                 self.wfile.write(body)
                 return
+            if p == "/__ve-test-last-select":
+                # TEST-ONLY (TRDD-5f41ad36 D1-D5): return the most recent
+                # /__ve-select payload captured by the POST handler. The
+                # JS multi-select / table-form / code-gutter tests use
+                # this to assert against what the runtime actually sent.
+                # `null` if no /__ve-select POST has happened yet.
+                body = json.dumps({"payload": last_select.get("payload")}).encode("utf-8")
+                self.send_response(200)
+                self.send_header("content-type", "application/json")
+                self.send_header("content-length", str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
+                return
+            if p == "/__ve-test-reset-last-select":
+                # TEST-ONLY: clear the captured payload so a new test
+                # case starts from a known empty state.
+                last_select["payload"] = None
+                self.send_response(200)
+                self.send_header("content-type", "application/json")
+                self.end_headers()
+                self.wfile.write(b'{"ok":true}')
+                return
             if p == "/__ve-test-queue-read":
                 # TEST-ONLY: return the raw bytes of one queue file. The
                 # name parameter is checked separately because it may
@@ -143,7 +179,28 @@ def make_handler(root: Path, queue_dir: Path) -> type:
 
         def do_POST(self):
             p = urlparse(self.path).path
-            n = int(self.headers.get("content-length") or 0)
+            # A1 — pick the per-endpoint cap BEFORE reading bytes off the
+            # wire. /__ve-select carries a multi-select payload (potentially
+            # many entries) so it gets the larger ceiling; /__ve-comment*
+            # carries one user turn at a time so 256 KB is plenty. An
+            # unknown endpoint defaults to the smaller cap (defence in
+            # depth — the request will 404 below regardless, but a hostile
+            # body sent to a typo'd path must not be allowed to OOM us
+            # before the 404 lands).
+            if p == "/__ve-select":
+                max_body = MAX_BODY_SELECT
+            else:
+                max_body = MAX_BODY_COMMENT
+            try:
+                n = int(self.headers.get("content-length") or 0)
+            except (ValueError, TypeError):
+                n = 0
+            if n > max_body:
+                self.send_response(413)
+                self.send_header("content-type", "application/json")
+                self.end_headers()
+                self.wfile.write(b'{"error":"payload too large"}')
+                return
             body = self.rfile.read(n) if n else b""
             try:
                 payload = json.loads(body.decode("utf-8")) if body else {}
@@ -217,6 +274,29 @@ def make_handler(root: Path, queue_dir: Path) -> type:
                 self.send_header("content-type", "application/json")
                 self.end_headers()
                 self.wfile.write(b'{"ok":true}')
+                return
+
+            if p == "/__ve-select":
+                # TRDD-5f41ad36 D1-D5: capture the runtime's selection
+                # payload so the JS tests can assert against it. Production
+                # behaviour (scripts/amvcp-select.py) is to record the
+                # payload in `selection` then set `selection_event`; we
+                # just stash it for the next /__ve-test-last-select GET.
+                last_select["payload"] = payload
+                # A2 (TRDD-5f41ad36) — mirror the production server's
+                # X-Browser-Mode handling so the same runtime path works
+                # against the test server. The fallback-mode JS test
+                # asserts against `thanks_url` in the response.
+                mode = (self.headers.get("X-Browser-Mode") or "").lower()
+                resp_obj: dict[str, object] = {"ok": True}
+                if mode == "fallback":
+                    resp_obj["thanks_url"] = "/__ve-thanks"
+                resp = json.dumps(resp_obj).encode("utf-8")
+                self.send_response(200)
+                self.send_header("content-type", "application/json")
+                self.send_header("content-length", str(len(resp)))
+                self.end_headers()
+                self.wfile.write(resp)
                 return
 
             self.send_response(404)

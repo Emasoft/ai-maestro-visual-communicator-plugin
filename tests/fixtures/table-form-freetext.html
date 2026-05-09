@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Table-form (free-text) Test Fixture</title>
+<style>
+  body { margin: 0; padding: 32px; background: #faf6ee; color: #1f1a14;
+         font: 16px/1.5 system-ui, -apple-system, sans-serif; }
+  main { max-width: 86ch; margin: 0 auto; }
+  table { border-collapse: collapse; width: 100%; margin: 16px 0; }
+  th, td { border: 1px solid rgba(0,0,0,0.12); padding: 10px 14px; text-align: left; }
+  input[type="text"] { width: 100%; padding: 6px 8px; box-sizing: border-box;
+                       font: inherit; border: 1px solid rgba(0,0,0,0.18); border-radius: 4px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>What's your favourite editor?</h1>
+  <table data-ve-id="opts-freetext" data-ve-type="table-form" data-ve-mode="single"
+         data-ve-label="What's your favourite editor?">
+    <thead><tr><th>Editor</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr data-ve-row-id="opt-vim"  data-ve-row-label="Vim">
+        <td>Vim</td><td>Modal editing.</td>
+      </tr>
+      <tr data-ve-row-id="opt-vscode" data-ve-row-label="VSCode">
+        <td>VSCode</td><td>Extensible.</td>
+      </tr>
+      <tr data-ve-row-id="__text" data-ve-row-text="1" data-ve-row-label="Other">
+        <td colspan="2"><input type="text" placeholder="Write something else here:"></td>
+      </tr>
+    </tbody>
+  </table>
+</main>
+<script src="amvcp-runtime.js"></script>
+</body>
+</html>

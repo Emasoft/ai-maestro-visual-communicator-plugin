@@ -40,13 +40,21 @@ jobs:
           uv tool install ruff
           ruff check .
 
+      - name: actionlint
+        # B1 (TRDD-5f41ad36) — actionlint catches GitHub Actions schema
+        # bugs (the SCANDIR `env:` regression that slipped past code
+        # review last cycle would have been a one-line failure here).
+        # Pinned to commit SHA per the project gh-actions.md rule —
+        # tag-rewriting attacks on third-party actions are real.
+        uses: rhysd/actionlint@914e7df21a07ef503a81201c76d2b11c789d3fca # v1.7.12
+
       - name: shellcheck
         # E2 — pin to the latest stable tag instead of @master. The
         # action's own README recommends pinning so a tag-rewriting
-        # supply-chain attack can't slip in. Follow-up: pinact-style
-        # SHA pinning is the recommended next step but tag pinning
-        # already removes the @master moving-ref risk.
-        uses: ludeeus/action-shellcheck@2.0.0
+        # supply-chain attack can't slip in.
+        # B4 (TRDD-5f41ad36) — upgraded from tag pin (`@2.0.0`) to full
+        # commit-SHA pin per the project gh-actions.md rule.
+        uses: ludeeus/action-shellcheck@00cae500b08a931fb5698e11e79bfbd38e612a38 # 2.0.0
         with:
           severity: warning
           # E1 — the action reads `scandir` from its `inputs:` (i.e.
@@ -86,7 +94,7 @@ jobs:
   test:
     # IMPORTANT: display name must remain `Test` — see file header.
     #
-    # The 28-test dev-browser-driven suite (tests/run-all-tests.py) cannot
+    # The 46-test dev-browser-driven suite (tests/run-all-tests.py) cannot
     # run on stock GitHub runners: it needs the `dev-browser` CLI which
     # depends on a real Chrome instance and persistent state, neither of
     # which are available in headless ubuntu-latest. The suite is enforced
@@ -96,9 +104,19 @@ jobs:
     # syntactically valid Python — it parses run-all-tests.py, run-tests.py,
     # and server.py without executing them. Restore the full suite when a
     # hosted dev-browser runner becomes available.
+    #
+    # B3 (TRDD-5f41ad36) — runs on both ubuntu-latest AND macos-latest so
+    # path-handling differences (case-sensitivity, NamedTemporaryFile
+    # behaviour, signal/process group semantics) get caught before they
+    # break developers on macOS. The smoke check is just `python -m
+    # py_compile` so the macos run adds ~30s — well worth the early signal.
     name: Test
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
     steps:
       - uses: actions/checkout@v6
 
@@ -121,9 +139,35 @@ jobs:
           {
             echo "## Test job — note"
             echo
-            echo "The full 28-test dev-browser suite cannot run on stock GitHub"
+            echo "The full 46-test dev-browser suite cannot run on stock GitHub"
             echo "runners. It is enforced locally via the .githooks/pre-push hook."
             echo
             echo "This job verified that the test runner Python sources parse"
             echo "without syntax errors."
           } >> "$GITHUB_STEP_SUMMARY"
+
+  commitlint:
+    # B2 (TRDD-5f41ad36) — Conventional Commits gate. Fails the PR build
+    # if any commit on the PR does NOT match the Conventional Commits
+    # spec (feat: / fix: / chore: / docs: / refactor: / test: / ci: /
+    # build: / perf: / revert: / style: prefixes). PR-only — push events
+    # to main are merge commits authored by GitHub which are not
+    # conventional-format and would needlessly fail.
+    name: Commitlint
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: lint commit messages
+        # Pinned to commit SHA per the project gh-actions.md rule.
+        uses: wagoid/commitlint-github-action@b948419dd99f3fd78a6548d48f94e3df7f6bf3ed # v6.2.1
+        with:
+          # Conventional Commits ruleset — validates type, scope, subject
+          # length, body line wrap. Same ruleset cliff.toml uses to
+          # parse commit history into the changelog, so a commit that
+          # passes here will produce a clean CHANGELOG entry.
+          configFile: ${{ github.workspace }}/.commitlintrc.json

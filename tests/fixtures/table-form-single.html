@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Table-form (single) Test Fixture</title>
+<style>
+  body { margin: 0; padding: 32px; background: #faf6ee; color: #1f1a14;
+         font: 16px/1.5 system-ui, -apple-system, sans-serif; }
+  main { max-width: 86ch; margin: 0 auto; }
+  table { border-collapse: collapse; width: 100%; margin: 16px 0; }
+  th, td { border: 1px solid rgba(0,0,0,0.12); padding: 10px 14px; text-align: left; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Pick one framework</h1>
+  <table data-ve-id="opts-single" data-ve-type="table-form" data-ve-mode="single"
+         data-ve-label="Pick one framework">
+    <thead><tr><th>Framework</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr data-ve-row-id="opt-react"  data-ve-row-label="React">
+        <td>React</td><td>The original.</td>
+      </tr>
+      <tr data-ve-row-id="opt-svelte" data-ve-row-label="Svelte">
+        <td>Svelte</td><td>Compiles away.</td>
+      </tr>
+      <tr data-ve-row-id="opt-solid"  data-ve-row-label="Solid">
+        <td>Solid</td><td>Fine-grained reactivity.</td>
+      </tr>
+    </tbody>
+  </table>
+</main>
+<script src="amvcp-runtime.js"></script>
+</body>
+</html>
