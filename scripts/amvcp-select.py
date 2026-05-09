@@ -49,7 +49,15 @@ import threading
 import time
 import webbrowser
 from pathlib import Path
-from urllib.parse import urlparse
+from urllib.parse import parse_qs, urlparse
+
+# Shared queue helpers — single source of truth for safe-tid validation,
+# per-tid append serialisation, and atomic JSON writes. Both the test
+# server (tests/server.py) and this production runner import the SAME
+# functions so the two cannot drift. See scripts/_ve_queue.py for the
+# rationale (TRDD-1dcd0bd7 §A1/A2/A3).
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from _ve_queue import atomic_write_json, queue_lock, safe_tid  # noqa: E402
 
 
 # Minimal valid PWA manifest — Chrome's `--app=URL` mode silently refuses to
@@ -261,23 +269,47 @@ def kill_browser_tree(proc: subprocess.Popen) -> None:
     the process group (made unique by `start_new_session=True` at spawn
     time) so the whole tree dies together. SIGKILL is the fallback after
     a brief grace period.
+
+    Windows note: `os.killpg` and `os.getpgid` do not exist on Windows
+    (they raise `AttributeError`, not `ProcessLookupError`). On Windows
+    we fall back to `proc.terminate()` + `proc.wait(timeout=2)` — there
+    are no POSIX process groups, and Windows kills the parent's spawned
+    children automatically via job objects when the parent terminates.
+    The `AttributeError` catches are belt-and-braces in case a future
+    Python ever changes the platform shape mid-version.
     """
     if proc is None:
         return
+    if os.name == "nt":
+        # Windows: no process groups. terminate() signals the parent
+        # only; Chrome helpers are cleaned up by Chrome's own job-object
+        # plumbing once the parent exits.
+        try:
+            proc.terminate()
+        except (ProcessLookupError, PermissionError, AttributeError, OSError):
+            return
+        try:
+            proc.wait(timeout=2)
+        except (subprocess.TimeoutExpired, Exception):
+            try:
+                proc.kill()
+            except (ProcessLookupError, PermissionError, AttributeError, OSError):
+                pass
+        return
     try:
         pgid = os.getpgid(proc.pid)
-    except (ProcessLookupError, PermissionError):
+    except (ProcessLookupError, PermissionError, AttributeError):
         return
     try:
         os.killpg(pgid, signal.SIGTERM)
-    except (ProcessLookupError, PermissionError):
+    except (ProcessLookupError, PermissionError, AttributeError):
         return
     try:
         proc.wait(timeout=2)
     except (subprocess.TimeoutExpired, Exception):
         try:
             os.killpg(pgid, signal.SIGKILL)
-        except (ProcessLookupError, PermissionError):
+        except (ProcessLookupError, PermissionError, AttributeError):
             pass
 
 
@@ -349,9 +381,29 @@ def main(argv: list[str]) -> int:
             # Reply files live under <queue_dir>/<threadId>.reply.<turn>.json
             # and are polled by the page every 1.5 s.
             if req_path.startswith("/__ve-reply/"):
-                thread_id = req_path[len("/__ve-reply/"):]
-                qs = dict(p.split("=", 1) for p in (urlparse(self.path).query or "").split("&") if "=" in p)
-                since = int(qs.get("since", "0") or "0")
+                thread_id_raw = req_path[len("/__ve-reply/"):]
+                # A1 — sanitise threadId BEFORE it touches the filesystem.
+                # An unchecked `..` in the URL path would let a hostile
+                # local-network origin glob outside the queue dir.
+                thread_id = safe_tid(thread_id_raw)
+                if thread_id is None:
+                    self.send_response(400)
+                    self.send_header("access-control-allow-origin", "*")
+                    self.end_headers()
+                    self.wfile.write(b'{"error":"bad threadId"}')
+                    return
+                # B5 — parse_qs decodes URL-encoding correctly; bad
+                # `since` returns 400 instead of crashing the request
+                # with HTTP 500.
+                qs = parse_qs(urlparse(self.path).query or "")
+                try:
+                    since = int(qs.get("since", ["0"])[0] or "0")
+                except (ValueError, TypeError):
+                    self.send_response(400)
+                    self.send_header("access-control-allow-origin", "*")
+                    self.end_headers()
+                    self.wfile.write(b'{"error":"bad since"}')
+                    return
                 queue_dir = Path(_ve_comment_queue_dir())
                 # Look for reply files for turns > since.
                 candidates = sorted(
@@ -450,7 +502,16 @@ def main(argv: list[str]) -> int:
                     self.end_headers()
                     self.wfile.write(b'{"ok":false,"reason":"missing threadId"}')
                     return
-                tid = str(payload.get("threadId"))
+                # A1 — sanitise threadId BEFORE it becomes a filename.
+                # The same charset the test server enforces; rejects
+                # `../escape` and absolute paths.
+                tid = safe_tid(str(payload.get("threadId") or ""))
+                if tid is None:
+                    self.send_response(400)
+                    self.send_header("access-control-allow-origin", "*")
+                    self.end_headers()
+                    self.wfile.write(b'{"ok":false,"reason":"bad threadId"}')
+                    return
                 queue_dir = Path(_ve_comment_queue_dir())
                 queue_dir.mkdir(parents=True, exist_ok=True)
                 # Append-only JSONL — one line per user turn.
@@ -463,8 +524,12 @@ def main(argv: list[str]) -> int:
                     "text": payload.get("text") or "",
                     "at": time.time(),
                 }) + "\n"
-                with (queue_dir / f"{tid}.jsonl").open("a", encoding="utf-8") as fh:
-                    fh.write(line)
+                # A3 — per-tid lock so concurrent appends to the same
+                # threadId cannot interleave bytes past PIPE_BUF (4096
+                # on Linux, 512 on macOS). Different tids do not contend.
+                with queue_lock(tid):
+                    with (queue_dir / f"{tid}.jsonl").open("a", encoding="utf-8") as fh:
+                        fh.write(line)
                 resp = json.dumps({"ok": True, "threadId": tid, "queueDir": str(queue_dir)}).encode("utf-8")
                 self.send_response(200)
                 self.send_header("content-type", "application/json")
@@ -472,6 +537,43 @@ def main(argv: list[str]) -> int:
                 self.send_header("content-length", str(len(resp)))
                 self.end_headers()
                 self.wfile.write(resp)
+                return
+            # A2 — port the test server's /__ve-comment-summary endpoint
+            # (TRDD-7a2dab03 §3.7). The runtime POSTs an aggregate
+            # decision summary when the modal closes; without this
+            # branch every flip silently 404s and the orchestrator never
+            # gets <tid>.summary.json.
+            if url.path == "/__ve-comment-summary":
+                length = int(self.headers.get("content-length") or 0)
+                raw = self.rfile.read(length) if length else b""
+                try:
+                    payload = json.loads(raw.decode("utf-8") or "{}")
+                except Exception:
+                    payload = {}
+                if not isinstance(payload, dict):
+                    self.send_response(400)
+                    self.send_header("access-control-allow-origin", "*")
+                    self.end_headers()
+                    self.wfile.write(b'{"error":"bad payload"}')
+                    return
+                tid = safe_tid(str(payload.get("threadId") or ""))
+                if tid is None:
+                    self.send_response(400)
+                    self.send_header("access-control-allow-origin", "*")
+                    self.end_headers()
+                    self.wfile.write(b'{"error":"bad threadId"}')
+                    return
+                queue_dir = Path(_ve_comment_queue_dir())
+                queue_dir.mkdir(parents=True, exist_ok=True)
+                # Atomic write so a polling reader never sees a half-
+                # written summary file. Same shared helper the test
+                # server uses — they cannot drift.
+                atomic_write_json(queue_dir / f"{tid}.summary.json", payload)
+                self.send_response(200)
+                self.send_header("content-type", "application/json")
+                self.send_header("access-control-allow-origin", "*")
+                self.end_headers()
+                self.wfile.write(b'{"ok":true}')
                 return
             if url.path != "/__ve-select":
                 self.send_response(404)
@@ -522,6 +624,17 @@ def main(argv: list[str]) -> int:
 
     server_thread = threading.Thread(target=httpd.serve_forever, daemon=True)
     server_thread.start()
+
+    # C8 — print the absolute queue dir so the responder agent
+    # (/amvcp-respond-to-comment) knows exactly where to look for
+    # <threadId>.jsonl files. Without this line, renderer + responder
+    # launched from different cwds silently miss each other (the
+    # default queue dir is per-cwd unless VE_COMMENT_DIR is set).
+    print(
+        f"[amvcp-select] queue dir: {Path(_ve_comment_queue_dir()).resolve()}",
+        file=sys.stderr,
+        flush=True,
+    )
 
     url = f"http://127.0.0.1:{port}/{served_name}?ve_select=1"
 

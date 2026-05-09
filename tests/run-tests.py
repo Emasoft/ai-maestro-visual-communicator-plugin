@@ -22,6 +22,7 @@ import shutil
 import signal
 import subprocess
 import sys
+import tempfile
 import time
 import urllib.request
 from pathlib import Path
@@ -34,7 +35,9 @@ PLUGIN_ROOT = ROOT.parent
 PROJECT_ROOT = PLUGIN_ROOT
 FIXTURES = ROOT / "fixtures"
 SCRIPTS = ROOT / "scripts"
-QUEUE = Path("/tmp/ve-comments-tests")
+# B4 — tempfile.gettempdir() resolves to /tmp on POSIX and to the
+# user's TEMP/TMP dir on Windows (where /tmp does not exist).
+QUEUE = Path(tempfile.gettempdir()) / "ve-comments-tests"
 PORT = 8767
 
 
@@ -63,24 +66,48 @@ def regenerate_sample_report() -> None:
     md = FIXTURES / "sample-report.md"
     if not md.exists():
         return
-    subprocess.run(
-        [
-            "uv",
+    renderer = PLUGIN_ROOT / "scripts" / "render-interactive-report.py"
+    # B3 — prefer `uv run` when uv is on PATH (it manages the venv);
+    # otherwise fall back to the current Python interpreter so a fresh
+    # Windows clone or a tightly-scoped CI runner without uv still
+    # works. Same pattern as publish.py:_gate_tests already uses.
+    uv_bin = shutil.which("uv")
+    if uv_bin:
+        cmd = [
+            uv_bin,
             "run",
             "--quiet",
-            str(PLUGIN_ROOT / "scripts" / "render-interactive-report.py"),
-            "--report",
-            str(md),
-            "--out",
-            str(FIXTURES / "sample-report.html"),
-            "--mode",
-            "auto",
-            "--runtime-url",
-            "amvcp-runtime.js",
-        ],
-        check=True,
+            str(renderer),
+        ]
+    else:
+        cmd = [sys.executable, str(renderer)]
+    cmd += [
+        "--report",
+        str(md),
+        "--out",
+        str(FIXTURES / "sample-report.html"),
+        "--mode",
+        "auto",
+        "--runtime-url",
+        "amvcp-runtime.js",
+    ]
+    # F-13 (audit MAJOR follow-up touched here for clarity): capture
+    # stderr so a renderer crash gives a usable error instead of a
+    # bare "subprocess returned non-zero". check=False + manual exit
+    # for a clean message.
+    proc = subprocess.run(
+        cmd,
+        check=False,
+        capture_output=True,
+        text=True,
         cwd=str(PROJECT_ROOT),
     )
+    if proc.returncode != 0:
+        sys.stderr.write(
+            "[run-tests] regenerate_sample_report failed "
+            f"(exit {proc.returncode}). stderr:\n{proc.stderr}\n"
+        )
+        sys.exit(2)
 
 
 def clean_queue() -> None:
@@ -108,9 +135,14 @@ def wait_for_server(timeout_s: float = 10.0) -> bool:
 
 
 def start_server() -> subprocess.Popen:
+    # B3 — sys.executable is the SAME interpreter that's currently
+    # running, which is the only way to be sure the right Python is
+    # picked across platforms. Hard-coding `python3` fails on Windows
+    # (no python3 on PATH by default) and on systems where the dev
+    # uses a venv whose `python` is not on PATH.
     return subprocess.Popen(
         [
-            "python3",
+            sys.executable,
             str(ROOT / "server.py"),
             "--port",
             str(PORT),

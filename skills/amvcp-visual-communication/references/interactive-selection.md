@@ -1935,7 +1935,7 @@ That message means the manifest is missing — re-check the injection or the ser
 
 ## Inlining the runtime (single-file portability)
 
-When portability matters more than file size (e.g., the page is going to be shared via `/share-page`), inline the runtime instead of referencing it:
+When portability matters more than file size (e.g., the page is going to be shared via `/amvcp-share-page`), inline the runtime instead of referencing it:
 
 ```html
 <script>

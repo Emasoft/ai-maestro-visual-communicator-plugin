@@ -429,8 +429,40 @@ def _git_tag(new_version: str) -> None:
 
 
 def _git_push(new_version: str) -> None:
-    _run(["git", "push", "origin", "HEAD"])
-    _run(["git", "push", "origin", f"v{new_version}"])
+    """B2 — atomic push of HEAD + tag in a single transaction.
+
+    Previously this was two separate `git push` invocations; if the
+    first succeeded but the second failed (network blip mid-push, auth
+    re-prompt timeout), the user was left with a divergent local repo:
+    HEAD pushed but tag absent on remote, requiring manual recovery.
+    `--atomic` makes the remote accept either both refs or neither.
+
+    On total failure we roll back the local tag + commit so the user is
+    not stranded with a half-published state. The error is loud (a
+    full traceback message) so the user knows exactly what to do next.
+    """
+    tag = f"v{new_version}"
+    result = _run(
+        ["git", "push", "--atomic", "origin", "HEAD", tag],
+        check=False,
+    )
+    if result.returncode == 0:
+        return
+    # Push failed — roll back local commit + tag so the user can retry
+    # cleanly. We use `--soft` so the working-tree changes from S6/S8
+    # (manifest bumps, CHANGELOG regen) are preserved as staged
+    # modifications, not destroyed.
+    _log(
+        "  git push --atomic failed; rolling back local tag + commit "
+        f"so you can retry. Original exit code: {result.returncode}"
+    )
+    _run(["git", "tag", "-d", tag], check=False)
+    _run(["git", "reset", "--soft", "HEAD~1"], check=False)
+    sys.exit(
+        "publish: remote push failed. Local tag + commit have been "
+        "removed; staged changes preserved. Fix the network/auth "
+        "issue and re-run `python3 scripts/publish.py --patch --push`."
+    )
 
 
 # ---------------------------------------------------------------------------

@@ -808,45 +808,13 @@
     document.head.appendChild(s);
   }
 
-  function showSendingOverlay() {
-    var ov = buildOverlay();
-    ov.card.innerHTML =
-      '<div style="font:500 11px/1 ui-monospace,Menlo,monospace;letter-spacing:0.12em;text-transform:uppercase;opacity:0.55;margin-bottom:14px;">ai-maestro-visual-communicator-plugin</div>' +
-      '<div style="font-size:18px;font-weight:500;">Sending selection&hellip;</div>';
-    return ov;
-  }
-
-  function showSentThenClose(label, overlay) {
-    overlay.card.innerHTML =
-      '<div style="font:500 11px/1 ui-monospace,Menlo,monospace;letter-spacing:0.12em;text-transform:uppercase;opacity:0.55;margin-bottom:14px;">ai-maestro-visual-communicator-plugin</div>' +
-      '<div style="font-size:18px;font-weight:500;">Selection sent</div>' +
-      '<div style="opacity:0.7;margin-top:10px;">' +
-        escapeHtml(label || '(no label)') +
-      '</div>' +
-      '<div style="opacity:0.45;margin-top:18px;font-size:13px;">Returning to your agent&hellip;</div>';
-    setTimeout(function () {
-      try { window.close(); } catch (_) {}
-      // window.close() is denied for tabs not opened by JS — leave a clean
-      // "you can close this tab" page so the user is not staring at the
-      // sending overlay forever.
-      setTimeout(function () {
-        if (document.visibilityState !== 'hidden') {
-          document.title = 'Selection sent — you can close this tab';
-          document.body.innerHTML =
-            '<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#0f1115;color:#e8eaee;font:16px/1.5 system-ui,sans-serif;text-align:center;padding:24px;">' +
-              '<div>' +
-                '<div style="font:500 11px/1 ui-monospace,Menlo,monospace;letter-spacing:0.12em;text-transform:uppercase;opacity:0.5;margin-bottom:14px;">ai-maestro-visual-communicator-plugin</div>' +
-                '<h1 style="font-weight:500;font-size:24px;margin:0 0 10px;">Selection sent</h1>' +
-                '<p style="opacity:0.7;margin:0 0 16px;">You can close this tab.</p>' +
-                '<code style="background:#1a1d23;padding:8px 14px;border-radius:8px;font-size:13px;">' +
-                  escapeHtml(label || '') +
-                '</code>' +
-              '</div>' +
-            '</div>';
-        }
-      }, 150);
-    }, 220);
-  }
+  // F4 — deleted dead `showSendingOverlay` (~7 LOC) and
+  // `showSentThenClose` (~31 LOC) per js audit M1. Confirmed by
+  // grep at audit time: only the function definitions appeared in
+  // the file, no callers anywhere. The current send path uses
+  // sendBeacon/fetch keepalive and writes the inline "Selection
+  // sent — close this tab" HTML directly (see lines ~915-930 and
+  // ~1066-1080).
 
   function showStaticFallback(payload, overlay) {
     var json = JSON.stringify(payload, null, 2);
@@ -1403,7 +1371,14 @@
     if (!chartInstance) return;
     var chartId = (opts && opts.id) || 'chart';
     chartInstance.options = chartInstance.options || {};
-    chartInstance.options.onClick = function (_evt, elements, chart) {
+    // F6 — chain (don't replace) any pre-existing onClick. If the
+    // page set its own hover/zoom/highlight handler before calling
+    // veWireChart, blowing it away here silently broke that feature.
+    var prevOnClick = chartInstance.options.onClick;
+    chartInstance.options.onClick = function (evt, elements, chart) {
+      if (typeof prevOnClick === 'function') {
+        try { prevOnClick.call(chartInstance, evt, elements, chart); } catch (_) {}
+      }
       if (!elements || !elements.length) return;
       var el = elements[0];
       var ds = chart.data.datasets[el.datasetIndex] || {};
@@ -2709,17 +2684,12 @@
     var dragMoved = false;
     var sx = 0, sy = 0, spx = 0, spy = 0;
 
-    viewport.addEventListener('mousedown', function (ev) {
-      if (ev.button !== 0) return;
-      if (ev.target.closest('.ve-graph-controls, button, a[href]')) return;
-      dragging = true;
-      dragMoved = false;
-      sx = ev.clientX; sy = ev.clientY;
-      spx = panX; spy = panY;
-      svgEl.style.transition = 'none';
-    });
-
-    document.addEventListener('mousemove', function (ev) {
+    // A5 — drag handlers attach to `document` only WHILE dragging, then
+    // detach on mouseup. Previously these were attached unconditionally
+    // at viewport-init time, so a page with N graphs added 2N permanent
+    // document-level listeners that fired on every cursor move forever.
+    // Storing the bound functions so removeEventListener can find them.
+    var onDragMove = function (ev) {
       if (!dragging) return;
       var dx = ev.clientX - sx;
       var dy = ev.clientY - sy;
@@ -2733,16 +2703,35 @@
         panY = spy + dy;
         apply();
       }
-    });
-
-    document.addEventListener('mouseup', function () {
+    };
+    var onDragUp = function () {
       if (!dragging) return;
       dragging = false;
       viewport.style.cursor = 'grab';
       svgEl.style.transition = 'transform 80ms ease-out';
+      // Detach drag handlers so the document is clean again until the
+      // user starts a new drag. Otherwise N graphs leak 2N listeners.
+      document.removeEventListener('mousemove', onDragMove);
+      document.removeEventListener('mouseup', onDragUp);
       // Defer removing the panning class so the click event that fires
       // immediately after mouseup sees it (and is therefore ignored).
       setTimeout(function () { viewport.classList.remove('is-panning'); }, 50);
+    };
+
+    viewport.addEventListener('mousedown', function (ev) {
+      if (ev.button !== 0) return;
+      if (ev.target.closest('.ve-graph-controls, button, a[href]')) return;
+      dragging = true;
+      dragMoved = false;
+      sx = ev.clientX; sy = ev.clientY;
+      spx = panX; spy = panY;
+      svgEl.style.transition = 'none';
+      // Attach document-level listeners ONLY while a drag is active —
+      // see onDragUp for the matching detach. Document-bound (not
+      // viewport-bound) so the drag continues even if the cursor leaves
+      // the viewport rectangle, matching native drag UX.
+      document.addEventListener('mousemove', onDragMove);
+      document.addEventListener('mouseup', onDragUp);
     });
 
     // Double-click anywhere in the viewport background → fit.
@@ -2788,14 +2777,22 @@
 
     if (attempt()) return;
 
+    // F7 — capture the timeout handle so we can clearTimeout() it on
+    // observer success. Otherwise the 60 s timer keeps a closure
+    // referencing the wrapper element alive long after the SVG is
+    // already painted (minor memory pressure on TikZ-heavy pages).
+    var killTimer = 0;
     var observer = new MutationObserver(function () {
-      if (attempt()) observer.disconnect();
+      if (attempt()) {
+        observer.disconnect();
+        if (killTimer) clearTimeout(killTimer);
+      }
     });
     observer.observe(wrapperEl, { childList: true, subtree: true });
 
     // Hard timeout (TikZJax may fail to load or take a long time on cold
     // WASM fetch). Stop watching after 60 s so we don't leak observers.
-    setTimeout(function () { observer.disconnect(); }, 60000);
+    killTimer = setTimeout(function () { observer.disconnect(); }, 60000);
   }
 
   // ---------------------------------------------------------------------
@@ -3333,6 +3330,11 @@
   function codeLineRangeAt(x, y, preEl) {
     var pos = caretInfoAt(x, y);
     if (!pos || !pos.node || pos.node.nodeType !== 3) return null;
+    // F5 — actually use the preEl arg (per js audit M2). Without
+    // this guard a click in a paragraph that happened to land on a
+    // text node with newlines would still produce a "code line"
+    // range. preEl scopes the result to the intended <pre> block.
+    if (preEl && !preEl.contains(pos.node)) return null;
     var text = pos.node.textContent || '';
     var idx = pos.offset;
     var left = idx;
@@ -3555,7 +3557,9 @@
       // also auto-expire on its own (the proximity-and-time check above
       // already prunes stale chains, but resetting the entry helps tests).
       lastClickChain.depth = 1; // sentinel for "no paint yet"
-      lastClickChain.firstClickOnly = true;
+      // F4 — removed dead `lastClickChain.firstClickOnly = true;` per
+      // js audit M9. Field was assigned but never read anywhere; the
+      // `return` below already provides the "no paint" semantics.
       return; // no selection action on the very first click of a chain
     }
     // From the 2nd click onward, depth is (chainCount - 1) clamped to 7.
@@ -4558,14 +4562,9 @@
         pushOrUpdateFindingReply(fid, t.value);
       }, FINDING_REPLY_DEBOUNCE_MS);
     });
-    // Make ESC also clear the textarea contents that were captured into
-    // veSelection. The global ESC handler wipes veSelection; here we
-    // mirror that on the visible inputs so user typing is reset too.
-    document.addEventListener('keydown', function (ev) {
-      if (ev.key !== 'Escape') return;
-      if (veSelection.length !== 0) return; // ESC handler ran first and cleared
-      // (handler above already cleared; this is the post-clear pass)
-    });
+    // F4 — deleted no-op ESC handler per js audit M6. The body was
+    // empty (early-return then a comment) and the global ESC handler
+    // already does the clearing via clearAllFindingReplyTextareas().
   }
 
   // Phase 5 of TRDD-eff1aa87 hook — extend the global ESC handler that
@@ -4575,6 +4574,15 @@
   function clearAllFindingReplyTextareas() {
     var areas = document.querySelectorAll('textarea[data-ve-finding-reply]');
     for (var i = 0; i < areas.length; i++) areas[i].value = '';
+    // A4 — clear pending debounce timers BEFORE reassigning the map.
+    // Otherwise a debounced callback firing ~350ms after ESC would
+    // re-push a finding-reply entry into the just-cleared veSelection
+    // ("ghost" entry that breaks the submit-button count).
+    for (var k in findingReplyTimers) {
+      if (Object.prototype.hasOwnProperty.call(findingReplyTimers, k)) {
+        clearTimeout(findingReplyTimers[k]);
+      }
+    }
     findingReplyTimers = {};
   }
 
@@ -5000,14 +5008,39 @@
       payload.anchorId = findingAnchorId;
       payload.decision = currentDecisionFor(findingAnchorId);
     }
+    // A6 — bail out of polling if the POST itself failed, and surface
+    // the error in the pending agent turn so the user knows the
+    // comment never reached the server. Previously the .catch() ate
+    // the error and .then() kept polling forever, leaving the user
+    // staring at "Waiting for Claude to reply…" with no feedback.
     fetch('/__ve-comment', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify(payload)
+    }).then(function (r) {
+      if (!r || !r.ok) throw new Error('POST status ' + (r && r.status));
+      return true;
     }).catch(function (e) {
       console.warn('[ve-comment] POST failed:', e);
-    }).then(function () {
-      pollForCommentReply(pendingAgentTurn);
+      // Replace the pending placeholder with a visible failure so the
+      // user can retype/retry instead of waiting indefinitely.
+      if (commentModalState && pendingAgentTurn) {
+        var idx = commentModalState.turns.indexOf(pendingAgentTurn);
+        if (idx >= 0) {
+          commentModalState.turns[idx] = {
+            turn: pendingAgentTurn.turn,
+            role: 'agent',
+            text: '[Failed to send — check connection and try again]',
+            failed: true,
+            at: Date.now()
+          };
+          saveThreadToStorage(commentModalState);
+          renderCommentModal();
+        }
+      }
+      return false;
+    }).then(function (ok) {
+      if (ok) pollForCommentReply(pendingAgentTurn);
     });
   }
 
@@ -5020,6 +5053,39 @@
     // a stray agent reply slotted in. The threadId guard makes every
     // async continuation self-detect a stale closure and bail.
     var ownThreadId = commentModalState.threadId;
+    // F8 — exponential backoff. On consecutive 5xx / network failures
+    // the delay grows 1.5 → 3 → 6 → 12 → 24 → 30 (cap), so a permanently
+    // down server doesn't hammer 1.5 s polls forever. After
+    // MAX_FAILS consecutive failures we surface a visible error in
+    // the pending UI and stop polling. Successful responses (including
+    // 204 "no reply yet") reset the counter and the delay.
+    var POLL_MIN_MS = COMMENT_POLL_MS;
+    var POLL_MAX_MS = 30000;
+    var MAX_FAILS = 6;
+    var currentDelay = POLL_MIN_MS;
+    var consecutiveFails = 0;
+    function noteSuccess() {
+      consecutiveFails = 0;
+      currentDelay = POLL_MIN_MS;
+    }
+    function noteFailure() {
+      consecutiveFails++;
+      currentDelay = Math.min(Math.round(currentDelay * 2), POLL_MAX_MS);
+    }
+    function showPollFailure() {
+      if (!commentModalState || !pendingAgentTurn) return;
+      var idx = commentModalState.turns.indexOf(pendingAgentTurn);
+      if (idx < 0) return;
+      commentModalState.turns[idx] = {
+        turn: pendingAgentTurn.turn,
+        role: 'agent',
+        text: '[Polling failed after ' + MAX_FAILS + ' attempts — server unreachable]',
+        failed: true,
+        at: Date.now()
+      };
+      saveThreadToStorage(commentModalState);
+      renderCommentModal();
+    }
     function isStale() {
       return !commentModalState || commentModalState.threadId !== ownThreadId;
     }
@@ -5031,11 +5097,18 @@
         .then(function (r) {
           if (isStale()) return null;
           if (r.status === 204) {
+            // Server is alive but no reply yet — counts as success.
+            noteSuccess();
             schedule();
             return null;
           }
           if (!r.ok) {
             console.warn('[ve-comment] poll error', r.status);
+            noteFailure();
+            if (consecutiveFails >= MAX_FAILS) {
+              showPollFailure();
+              return null;
+            }
             schedule();
             return null;
           }
@@ -5056,12 +5129,26 @@
           commentModalState.activeTurn = commentModalState.turns[idx].turn;
           saveThreadToStorage(commentModalState);
           renderCommentModal();
+          noteSuccess();
         })
-        .catch(function () { if (!isStale()) schedule(); });
+        .catch(function () {
+          if (isStale()) return;
+          noteFailure();
+          if (consecutiveFails >= MAX_FAILS) {
+            showPollFailure();
+            return;
+          }
+          schedule();
+        });
     }
     function schedule() {
       if (isStale()) return;
-      commentModalState.pollHandle = setTimeout(once, COMMENT_POLL_MS);
+      // Defensive: clear any prior pending handle on this state field
+      // before reassigning so a re-entrant call cannot race two pollers.
+      if (commentModalState.pollHandle) {
+        try { clearTimeout(commentModalState.pollHandle); } catch (_) {}
+      }
+      commentModalState.pollHandle = setTimeout(once, currentDelay);
     }
     once();
   }

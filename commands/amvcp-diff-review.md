@@ -23,7 +23,7 @@ Follow the amvcp-visual-communication skill workflow. Read the reference templat
 - Read all changed files in full — include surrounding code paths needed to validate behavior
 - Check whether `CHANGELOG.md` has an entry for these changes
 - Check whether `README.md` or `docs/*.md` need updates given any new or changed features
-- Reconstruct decision rationale: if this work was done in the current session, mine the conversation for approaches discussed, alternatives rejected, and trade-offs made. Check for progress docs (`~/.agent/memory/{project}/progress.md`) or plan files that may contain reasoning. For committed changes, read commit messages and PR descriptions.
+- Reconstruct decision rationale: if this work was done in the current session, mine the conversation for approaches discussed, alternatives rejected, and trade-offs made. Read any harness-specific session memory if available (e.g., the AI Maestro inbox). For committed changes, read commit messages and PR descriptions.
 
 **Verification checkpoint** — before generating HTML, produce a structured fact sheet of every claim you will present in the review:
 - Every quantitative figure: line counts, file counts, function counts, test counts
@@ -64,9 +64,9 @@ Verify each claim against the code. If something cannot be verified, mark it as 
 
 Include responsive section navigation. Use diff-style visual language throughout: red for removed/before, green for added/after, yellow for modified, blue for neutral context.
 
-**Interactive selection:** every changed-file card, section/risk callout, and Mermaid node in the architecture diagram must carry `data-ve-id` / `data-ve-type` / `data-ve-label`. Add `click X call veSelectMermaid(...)` directives plus `securityLevel: 'loose'` to the Mermaid diagram. Embed `<script src="amvcp-runtime.js"></script>` at end of body. See `./references/interactive-selection.md`.
+**Interactive selection:** every changed-file card, section/risk callout, and Mermaid node in the architecture diagram must carry `data-ve-id` / `data-ve-type` / `data-ve-label`. Add `click X call veSelectMermaid(...)` directives plus `securityLevel: 'loose'` to the Mermaid diagram. Embed `<script src="amvcp-runtime.js"></script>` at end of body. See `../skills/amvcp-visual-communication/references/interactive-selection.md`.
 
-Write to `$CLAUDE_PROJECT_ROOT/reports/visual-communicator/diagrams/`. Open it via the interactive selection runner (`python3 <skill-dir>/scripts/amvcp-select.py $CLAUDE_PROJECT_ROOT/reports/visual-communicator/diagrams/<file>.html`) and respond to whatever the user clicks per the SKILL.md follow-up template — common follow-ups for diff review are "explain this change", "revert this file", or "expand this risk into a TODO".
+Write to `$CLAUDE_PROJECT_ROOT/reports/visual-communicator/diagrams/`. Open it via the interactive selection runner (`python3 $CLAUDE_PLUGIN_ROOT/scripts/amvcp-select.py $CLAUDE_PROJECT_ROOT/reports/visual-communicator/diagrams/<file>.html`) and respond to whatever the user clicks per the SKILL.md follow-up template — common follow-ups for diff review are "explain this change", "revert this file", or "expand this risk into a TODO".
 
 Ultrathink.
 

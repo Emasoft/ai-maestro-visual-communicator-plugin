@@ -25,6 +25,30 @@ The v2 flow has **two cooperating halves** — both must be running for ANSWER �
 
 If only the renderer runs, the user can post comments but never see a reply. If only the responder runs, there is nothing for it to read. Always start both — the renderer command auto-spawns the transport; the responder is a separate session (often a different Claude entirely).
 
+### Queue-dir contract — share the same path across both halves
+
+Both halves resolve the queue dir from the same logic:
+
+1. `--queue-dir <path>` (responder) / `VE_COMMENT_DIR` env var (both) wins.
+2. Otherwise the default is `<cwd>/.ve-comments/` — and `<cwd>` is whatever directory the process was started from.
+
+Failure mode: if the renderer runs from `/Users/me/proj-A` but the
+responder runs from `/Users/me`, the responder polls
+`/Users/me/.ve-comments/` and never sees the user's comments. The
+modal sits forever on "Waiting for Claude to reply…".
+
+To avoid this, either:
+
+- **Read the printed queue dir.** As of v1.1.7 `amvcp-select.py` (the
+  renderer's transport) prints `[amvcp-select] queue dir:
+  /absolute/path/.ve-comments` to stderr at startup. Pass that path
+  to the responder as `--queue-dir`.
+- **Set `VE_COMMENT_DIR` explicitly** in BOTH shells before launching
+  either half:
+  ```bash
+  export VE_COMMENT_DIR=/Users/me/work/proj-A/.ve-comments
+  ```
+
 ## Wire format (what lives on disk)
 
 ```

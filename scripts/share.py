@@ -97,6 +97,17 @@ def main(argv: list[str] | None = None) -> int:
         _eprint("Install it with: pi install npm:vercel-deploy")
         return 1
 
+    # F3 — bash is required to invoke the upstream vercel-deploy
+    # script. On a fresh Windows install (no Git-for-Windows, no WSL)
+    # `bash.exe` is not on PATH; the subprocess.run call would die
+    # with a `WinError 2` traceback. Pre-check + helpful message.
+    if not shutil.which("bash"):
+        _eprint(
+            f"{RED}Error: bash not on PATH; install Git-for-Windows "
+            f"or run inside WSL{NC}"
+        )
+        return 1
+
     # ``TemporaryDirectory`` mirrors the bash ``mktemp -d`` + ``trap rm -rf``
     # pair: cleanup happens on every exit path, including exceptions, without
     # us having to install signal handlers manually.

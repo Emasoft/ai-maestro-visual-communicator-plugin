@@ -1,13 +1,13 @@
 ---
-description: Use ai-maestro-visual-communicator to generate browser-ready technical diagrams and review pages
+description: Use the ai-maestro-visual-communicator-plugin to generate browser-ready technical diagrams and review pages
 globs: **/*
 alwaysApply: false
 ---
 
-Use the canonical `ai-maestro-visual-communicator` skill at the repo root. Cursor support is rules-based guidance, not native Agent Skills support.
+Use the canonical `amvcp-visual-communication` skill at `skills/amvcp-visual-communication/` in the repo. Cursor support is rules-based guidance, not native Agent Skills support.
 
-When the user asks for a diagram, architecture overview, diff review, plan review, project recap, slide deck, or complex comparison table, read `SKILL.md` and follow its workflow. Use the command markdown in `commands/` as templates when helpful.
+When the user asks for a diagram, architecture overview, diff review, plan review, project recap, slide deck, or complex comparison table, read `skills/amvcp-visual-communication/SKILL.md` and follow its workflow. Use the command markdown in `commands/amvcp-*.md` as templates when helpful.
 
-Write generated HTML to `~/.agent/diagrams/` unless the user asks for another path, then open it in a browser if Cursor permits shell/browser access. If browser access is blocked, report the file path.
+Write generated HTML to `$CLAUDE_PROJECT_ROOT/reports/visual-communicator/diagrams/` unless the user asks for another path, then open it in a browser if Cursor permits shell/browser access. If browser access is blocked, report the file path.
 
-Command palettes may not expose these templates directly in Cursor. `/share-page` requires the Pi-compatible `vercel-deploy` script, so treat sharing as optional and environment-dependent.
+Command palettes may not expose these `/amvcp-*` templates directly in Cursor. `/amvcp-share-page` requires the Pi-compatible `vercel-deploy` script, so treat sharing as optional and environment-dependent.

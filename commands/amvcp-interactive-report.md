@@ -29,7 +29,7 @@ Convert any agent's Markdown report (code-auditor finding, llm-externalizer scan
        --runtime-url amvcp-runtime.js
    ```
    — and copy `amvcp-runtime.js` next to the rendered HTML if it isn't there yet.
-4. Hand the HTML over to whatever browser-launch path the user prefers — most commonly the existing `/share-page` workflow that returns a Vercel URL, or a local `python -m http.server` for offline review.
+4. Hand the HTML over to whatever browser-launch path the user prefers — most commonly the existing `/amvcp-share-page` workflow that returns a Vercel URL, or a local `python -m http.server` for offline review.
 5. Wait for the user to click Submit (or Exit). The selection POST lands in the file/endpoint the launcher chose (typically `amvcp-select.py --out /tmp/ve-select-output.json`).
 6. Read the captured submission. For every `{kind:"finding-reply", findingId, text}` entry:
    1. Re-read the original finding text from `report.md`.
@@ -75,12 +75,48 @@ The user can also drag-select prose snippets, click code-line numbers, etc. — 
 
 The renderer reads this and emits one `<div class="ve-finding-round">` per `(findingId, round)` above the always-present new-reply textarea.
 
+## Queue-dir contract (v2 modal-comments)
+
+The v2 modal-comment flow stores user turns and decision summaries in
+JSONL/JSON files under a **queue directory**. The default is
+`<cwd>/.ve-comments/`, where `<cwd>` is whatever directory the
+**renderer process** (`amvcp-select.py`) was started from. This is the
+single most common silent-failure vector in the workflow:
+
+- **Failure mode** — if `/amvcp-interactive-report` runs from
+  `/Users/me/work/proj-A` but the agent that runs
+  `/amvcp-respond-to-comment` runs from `/Users/me`, the responder
+  polls `/Users/me/.ve-comments/` and never sees the user's comment.
+  The modal sits forever on "Waiting for Claude to reply…".
+
+- **The contract** — both halves of the flow MUST resolve to the SAME
+  absolute queue directory. There are two ways to enforce this:
+
+  1. **Read the printed queue dir.** As of v1.1.7 the renderer prints
+     `[amvcp-select] queue dir: /absolute/path/.ve-comments` to
+     stderr at startup. Capture that path and pass it to the
+     responder as `--queue-dir`.
+
+  2. **Set `VE_COMMENT_DIR` explicitly** in BOTH shells before
+     launching either half:
+     ```bash
+     export VE_COMMENT_DIR=/Users/me/work/proj-A/.ve-comments
+     ```
+     Both `amvcp-select.py` (renderer) and
+     `amvcp-respond-to-comment` (responder) honour this env var
+     unconditionally.
+
+The `<threadId>.summary.json` file (TRDD-7a2dab03 §3.7) lives in the
+same queue dir, so the same orphaning failure mode applies to the
+decision-summary path too.
+
 ## Don't forget
 
 - The runtime JS file (`amvcp-runtime.js`) MUST be co-located with the rendered HTML or reachable via the `--runtime-url` flag — otherwise the page loads but the textareas don't capture anything.
 - `# Finding N` (h1) is **not** detected — only `## Finding N:` (h2). Agents need to use the right level.
 - The `<!-- ve-finding ... -->` comment must be on its own line OR immediately after the `## Finding` heading. Comments embedded mid-paragraph aren't picked up.
 - When you regenerate `replies.json`, write the WHOLE file — there's no merge step in the renderer.
+- See "Queue-dir contract" above before launching `/amvcp-respond-to-comment` from a different shell — orphaned-queue is the most common workflow failure.
 
 ## See also
 

@@ -3,7 +3,7 @@
 **TRDD ID:** `7a980994-01f0-4e32-90a0-18dd261dcc09`
 **Filename:** `design/tasks/TRDD-7a980994-01f0-4e32-90a0-18dd261dcc09-multi-select-overhaul.md`
 **Tracked in:** this repo (design/tasks/ is git-tracked)
-**Status:** Not started — awaiting phase 1 approval
+**Status:** Phases 1-7 shipped (verified empirically through 2026-05-06)
 **Created:** 2026-05-04
 **Plugin:** visual-explainer
 

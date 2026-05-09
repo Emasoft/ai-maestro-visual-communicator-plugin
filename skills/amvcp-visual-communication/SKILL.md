@@ -2,7 +2,7 @@
 name: amvcp-visual-communication
 description: "Generate beautiful, self-contained interactive HTML pages — diagrams, diff reviews, plan reviews, slide decks, data tables, and modal-comment agent reports. Use when the user asks for a diagram, architecture overview, diff review, comparison, or any visual explanation, or proactively for ASCII tables with 4+ rows or 3+ columns. Trigger with /amvcp-generate-web-diagram, /amvcp-diff-review, /amvcp-generate-slides, or requests like \"make a diagram\" or \"render as HTML\"."
 license: MIT
-compatibility: "Requires a browser (Chromium-based browser strongly recommended for auto-close on click). Python 3 for the selection runner."
+compatibility: "Requires a browser (Chromium-based browser strongly recommended for auto-close on click). Python 3.12+ for the selection runner."
 metadata:
   author: Emasoft
 ---
@@ -24,11 +24,28 @@ Generate self-contained HTML files for technical diagrams, visualizations, and d
 
 ## Prerequisites
 
-- **Python 3** (for `scripts/amvcp-select.py`, the selection runner that serves the HTML and captures the click).
+- **Python 3.12+** (for `scripts/amvcp-select.py`, the selection runner that serves the HTML and captures the click).
 - **A Chromium-based browser** (Chrome, Chromium, Edge, Brave) is strongly recommended. The runner launches the browser in `--app=URL` mode so `window.close()` works after the click. If no Chromium browser is available the runner falls back to the system default; the runtime then shows a "selection sent — close this tab" overlay instead of auto-closing.
 - **The bundled runtime** (`scripts/amvcp-runtime.js`) is auto-copied next to the served HTML by `amvcp-select.py`. Do NOT try to recreate it.
 - **Optional:** a `surf` CLI for AI image generation in pages and slides. Always check `which surf` first and degrade gracefully if absent.
 - **Optional for `/amvcp-share-page`:** the `vercel-deploy` skill installed (`npm skills install vercel-deploy`).
+
+### Environment variables
+
+The selection runner (`scripts/amvcp-select.py`) honours these environment
+variables. None is required for default behaviour, but
+`VE_COMMENT_DIR` is critical for the v2/v3 modal-comment workflow when the
+renderer and responder run from different shells (see the modal-comments
+reference and the `/amvcp-interactive-report` command for the full
+queue-dir contract).
+
+| Variable | Default | Effect |
+|----------|---------|--------|
+| `VE_COMMENT_DIR` | `<cwd>/.ve-comments` | Absolute path of the v2/v3 comment-queue directory. Set this in BOTH the renderer's shell AND the responder's shell to a shared path so they never miss each other's files. |
+| `VE_SELECT_BROWSER` | (auto-detect) | Absolute path to a specific Chromium-based browser, overriding the auto-detection chain. Useful when multiple Chrome variants are installed. |
+| `VE_SELECT_NO_APP` | (unset) | Set to `1` to skip `--app=URL` mode and open in the user's default browser instead. Selection still works but the window will not auto-close (user dismisses the "Selection sent" overlay manually). |
+| `VE_SELECT_NO_BROWSER` | (unset) | Set to `1` to start the HTTP server only — never launch a browser. Designed for smoke tests where the test harness POSTs the selection itself. |
+| `VE_SELECT_TIMEOUT` | `600` | Seconds to wait for a selection before returning `{"id":null,"reason":"timeout"}`. Lower this for explanatory pages where no click is expected. |
 
 The full catalogue of reference files (with their tables of contents) lives in the Resources section at the bottom of this document. Read the relevant reference each time you generate a page — patterns evolve and memorising stale snippets produces broken output.
 

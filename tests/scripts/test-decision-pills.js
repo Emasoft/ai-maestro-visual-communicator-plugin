@@ -305,6 +305,112 @@ async function testDecisionMutex(page) {
   );
 }
 
+async function testDecisionSummaryPersisted(page) {
+  // TRDD-1dcd0bd7 §A2 — the runtime POSTs /__ve-comment-summary on
+  // modal close. The PRODUCTION server (scripts/amvcp-select.py) was
+  // missing the handler so every flip silently 404'd; this test
+  // proves both servers now write <threadId>.summary.json with the
+  // right `decisions` map and `totals` aggregate.
+  //
+  // Test plan:
+  //   1. Flip 2 toggles (finding-1 → approve, finding-2 → reject).
+  //   2. Open the modal on a paragraph inside finding-3.
+  //   3. Click DONE so the modal-close path POSTs the summary.
+  //   4. List queue files; assert exactly one *.summary.json appears.
+  //   5. Read it; assert decisions.{ve-finding-1=approve, ve-finding-2=reject}
+  //      and totals.approve === 1 && totals.reject === 1.
+  await setup(page);
+
+  // Step 1 — flip two pills BEFORE opening the modal (decision-only
+  // turns hit the JSONL queue, not the summary file yet).
+  await setDecisionToggle(page, 'finding-1', 'approve');
+  await setDecisionToggle(page, 'finding-2', 'reject');
+  await page.waitForTimeout(200);
+
+  // Step 2 — open the modal on a finding-3 paragraph (any anchor in
+  // the page does — the summary covers ALL findings on the page,
+  // not just the modal's anchor).
+  const t = await page.evaluate(() => {
+    const sec = document.querySelector('section[data-ve-finding-id="finding-3"]');
+    if (!sec) return null;
+    const p = sec.querySelector('p[data-ve-comment-id]');
+    if (!p) return null;
+    p.scrollIntoView({ block: 'center' });
+    const r = p.getBoundingClientRect();
+    return { px: r.x + 60, py: r.y + 8 };
+  });
+  if (!t) {
+    record('modal_decision_summary_persisted', 'FAIL', 'open modal in finding-3', 'anchor not found');
+    return;
+  }
+  await page.mouse.move(t.px, t.py);
+  await page.waitForTimeout(400);
+  const pill = await page.evaluate(() => {
+    const el = document.querySelector('.ve-comment-pill');
+    if (!el) return null;
+    const r = el.getBoundingClientRect();
+    return { cx: r.x + r.width / 2, cy: r.y + r.height / 2, opacity: el.style.opacity };
+  });
+  if (!pill || pill.opacity === '0') {
+    record('modal_decision_summary_persisted', 'FAIL', 'open modal in finding-3', 'pill missing');
+    return;
+  }
+  await page.mouse.move(pill.cx, pill.cy, { steps: 8 });
+  await page.waitForTimeout(150);
+  await page.mouse.down(); await page.mouse.up();
+  await page.waitForTimeout(400);
+
+  // Step 3 — click DONE. closeCommentModal() calls postPageSummary().
+  const done = await page.evaluate(() => {
+    const buttons = Array.from(document.querySelectorAll('.ve-comment-modal button'));
+    const b = buttons.find((x) => /^DONE$/i.test(x.textContent.trim()));
+    if (!b) return null;
+    const r = b.getBoundingClientRect();
+    return { x: r.x + r.width / 2, y: r.y + r.height / 2 };
+  });
+  if (!done) {
+    record('modal_decision_summary_persisted', 'FAIL', 'click DONE', 'DONE button missing');
+    return;
+  }
+  await page.mouse.click(done.x, done.y);
+  // Give the POST + atomic rename time to land on disk.
+  await page.waitForTimeout(600);
+
+  // Step 4 — assert exactly one *.summary.json file exists.
+  const files = await listQueueFiles(page);
+  const summaryFiles = files.filter((f) => /\.summary\.json$/.test(f));
+  if (summaryFiles.length !== 1) {
+    record(
+      'modal_decision_summary_persisted',
+      'FAIL',
+      'one summary file written on modal close',
+      JSON.stringify({ files, summaryFiles })
+    );
+    return;
+  }
+
+  // Step 5 — verify decisions + totals payload.
+  const body = (await readQueueFile(page, summaryFiles[0])) || '';
+  let parsed = null;
+  try { parsed = JSON.parse(body); } catch (_) { parsed = null; }
+  const decisions = parsed && parsed.decisions ? parsed.decisions : {};
+  const totals = parsed && parsed.totals ? parsed.totals : {};
+  const ok =
+    decisions['ve-finding-1'] === 'approve'
+    && decisions['ve-finding-2'] === 'reject'
+    && totals.approve === 1
+    && totals.reject === 1
+    && typeof parsed.threadId === 'string'
+    && parsed.threadId.length > 0;
+
+  record(
+    'modal_decision_summary_persisted',
+    ok ? 'PASS' : 'FAIL',
+    'closing modal writes <tid>.summary.json with decisions + totals',
+    JSON.stringify({ summaryFile: summaryFiles[0], decisions, totals, threadId: parsed && parsed.threadId })
+  );
+}
+
 // ── Runner ──────────────────────────────────────────────────────────
 
 const tests = [
@@ -312,6 +418,7 @@ const tests = [
   testDecisionChangesEmitTurn,
   testDecisionWithComment,
   testDecisionMutex,
+  testDecisionSummaryPersisted,
 ];
 
 const page = await browser.getPage("decision-pill-tests");

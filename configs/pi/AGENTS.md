@@ -6,4 +6,4 @@ Do not keep the old manual installer copies alongside a package install. If you 
 
 Activate with `$amvcp-visual-communication` or slash commands such as `/amvcp-diff-review`, `/amvcp-plan-review`, `/amvcp-generate-web-diagram`, `/amvcp-generate-slides`, and `/amvcp-share-page` after restarting Pi. Generated pages go to `$CLAUDE_PROJECT_ROOT/reports/visual-communicator/diagrams/` and should be opened in a browser when possible.
 
-Command templates are convenience prompts; the skill itself is the source of behavior. `/share-page` requires a Pi-compatible `vercel-deploy` skill, normally installed with `pi install npm:vercel-deploy`.
+Command templates are convenience prompts; the skill itself is the source of behavior. `/amvcp-share-page` requires a Pi-compatible `vercel-deploy` skill, normally installed with `pi install npm:vercel-deploy`.

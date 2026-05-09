@@ -41,14 +41,29 @@ jobs:
           ruff check .
 
       - name: shellcheck
-        uses: ludeeus/action-shellcheck@master
+        # E2 — pin to the latest stable tag instead of @master. The
+        # action's own README recommends pinning so a tag-rewriting
+        # supply-chain attack can't slip in. Follow-up: pinact-style
+        # SHA pinning is the recommended next step but tag pinning
+        # already removes the @master moving-ref risk.
+        uses: ludeeus/action-shellcheck@2.0.0
         with:
           severity: warning
+          # E1 — the action reads `scandir` from its `inputs:` (i.e.
+          # the `with:` block), NOT from the `env:` block. Setting it
+          # under `env:` was a silent no-op and the action defaulted
+          # to scanning the entire repo (including `vendor/`). Place
+          # it in `with:` and add `additional_files` for the two
+          # specific non-shell files we want checked, plus
+          # `ignore_paths: vendor` to belt-and-braces exclude vendored
+          # third-party shell code.
+          scandir: './scripts'
+          additional_files: 'tests/server.py .githooks/pre-push'
+          ignore_paths: vendor
         env:
           # The dev-browser test wrapper relies on bash arrays; we only
           # check our own shell scripts, not the vendored regex-vis sources.
           SHELLCHECK_OPTS: -e SC1091
-          SCANDIR: ./scripts ./tests ./.githooks
 
   validate:
     # IMPORTANT: display name must remain `Validate` — see file header.

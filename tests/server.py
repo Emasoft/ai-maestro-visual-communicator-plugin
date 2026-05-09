@@ -23,21 +23,18 @@ from __future__ import annotations
 import argparse
 import http.server
 import json
-import re
 import socketserver
 import sys
+import tempfile
 import time
 from pathlib import Path
-from urllib.parse import unquote, urlparse
+from urllib.parse import parse_qs, unquote, urlparse
 
-# threadId / commentId values are interpolated into queue filenames. Restrict
-# them to a charset that has no path-separator semantics on any platform so a
-# malformed (or hostile) test payload can never escape the queue dir.
-_TID_OK = re.compile(r"^[A-Za-z0-9._-]+$")
-
-
-def _safe_tid(s: str) -> str | None:
-    return s if s and _TID_OK.match(s) and ".." not in s else None
+# Reuse the same queue helpers the production runner uses. Single source of
+# truth for safe-tid validation, atomic JSON writes, and per-tid locking.
+# See scripts/_ve_queue.py for the rationale.
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scripts"))
+from _ve_queue import atomic_write_json, queue_lock, safe_tid  # noqa: E402
 
 
 def make_handler(root: Path, queue_dir: Path) -> type:
@@ -64,18 +61,23 @@ def make_handler(root: Path, queue_dir: Path) -> type:
             p = parsed.path
             if p.startswith("/__ve-reply/"):
                 tid_raw = p[len("/__ve-reply/") :]
-                tid = _safe_tid(tid_raw)
+                tid = safe_tid(tid_raw)
                 if tid is None:
                     self.send_response(400)
                     self.end_headers()
                     self.wfile.write(b'{"error":"bad threadId"}')
                     return
-                qs = dict(
-                    kv.split("=", 1)
-                    for kv in (parsed.query or "").split("&")
-                    if "=" in kv
-                )
-                since = int(qs.get("since", "0") or "0")
+                # parse_qs handles URL-encoding correctly (`+` → space,
+                # `%XX` → byte). Bad `since` falls back to 0 instead of
+                # crashing the request with HTTP 500.
+                qs = parse_qs(parsed.query or "")
+                try:
+                    since = int(qs.get("since", ["0"])[0] or "0")
+                except (ValueError, TypeError):
+                    self.send_response(400)
+                    self.end_headers()
+                    self.wfile.write(b'{"error":"bad since"}')
+                    return
                 cands = sorted(
                     queue_dir.glob(f"{tid}.reply.*.json"),
                     key=lambda x: int(x.stem.rsplit(".", 1)[-1])
@@ -111,14 +113,13 @@ def make_handler(root: Path, queue_dir: Path) -> type:
                 return
             if p == "/__ve-test-queue-read":
                 # TEST-ONLY: return the raw bytes of one queue file. The
-                # name parameter is passed through _safe_tid first so a
-                # malicious test cannot escape the queue dir via "..".
-                qs = dict(
-                    kv.split("=", 1)
-                    for kv in (parsed.query or "").split("&")
-                    if "=" in kv
-                )
-                raw_name = unquote(qs.get("name", ""))
+                # name parameter is checked separately because it may
+                # legitimately contain dots (e.g. `<tid>.summary.json`)
+                # — the safe_tid charset would reject the suffix; we
+                # accept dots here but explicitly reject `..` and any
+                # path separator.
+                qs = parse_qs(parsed.query or "")
+                raw_name = unquote(qs.get("name", [""])[0])
                 # Allow alphanumerics, dot, underscore, hyphen — same charset
                 # as _safe_tid plus dot for filename suffixes (.jsonl etc.).
                 if not raw_name or ".." in raw_name or "/" in raw_name or "\\" in raw_name:
@@ -150,7 +151,7 @@ def make_handler(root: Path, queue_dir: Path) -> type:
                 payload = {}
 
             if p == "/__ve-comment":
-                tid = _safe_tid(str(payload.get("threadId") or ""))
+                tid = safe_tid(str(payload.get("threadId") or ""))
                 if tid is None:
                     self.send_response(400)
                     self.end_headers()
@@ -159,8 +160,12 @@ def make_handler(root: Path, queue_dir: Path) -> type:
                 line = (
                     json.dumps({**payload, "role": "user", "at": time.time()}) + "\n"
                 )
-                with (queue_dir / f"{tid}.jsonl").open("a", encoding="utf-8") as fh:
-                    fh.write(line)
+                # Per-tid lock so concurrent POSTs to the same threadId
+                # cannot interleave bytes past PIPE_BUF (4096 on Linux,
+                # 512 on macOS). Different tids do not contend.
+                with queue_lock(tid):
+                    with (queue_dir / f"{tid}.jsonl").open("a", encoding="utf-8") as fh:
+                        fh.write(line)
                 resp = json.dumps(
                     {"ok": True, "threadId": tid, "queueDir": str(queue_dir)}
                 ).encode("utf-8")
@@ -176,18 +181,16 @@ def make_handler(root: Path, queue_dir: Path) -> type:
                 # (decisions + totals + closedAt) when the modal closes.
                 # The orchestrator can `cat <tid>.summary.json` to skip
                 # replaying every JSONL turn.
-                tid = _safe_tid(str(payload.get("threadId") or ""))
+                tid = safe_tid(str(payload.get("threadId") or ""))
                 if tid is None:
                     self.send_response(400)
                     self.end_headers()
                     self.wfile.write(b'{"error":"bad threadId"}')
                     return
-                # Atomic write: same dance as the renderer's idmap.json so
-                # a polling reader never sees a half-written file.
-                tmp = queue_dir / f"{tid}.summary.json.tmp"
-                final = queue_dir / f"{tid}.summary.json"
-                tmp.write_text(json.dumps(payload), encoding="utf-8")
-                tmp.replace(final)
+                # Atomic write: tmp + replace so a polling reader never
+                # sees a half-written summary file. Shared helper so the
+                # production server cannot drift from this pattern.
+                atomic_write_json(queue_dir / f"{tid}.summary.json", payload)
                 self.send_response(200)
                 self.send_header("content-type", "application/json")
                 self.end_headers()
@@ -195,7 +198,7 @@ def make_handler(root: Path, queue_dir: Path) -> type:
                 return
 
             if p == "/__ve-test-reply":
-                tid = _safe_tid(str(payload.get("threadId") or ""))
+                tid = safe_tid(str(payload.get("threadId") or ""))
                 turn = int(payload.get("turn") or 0)
                 if tid is None or turn <= 0:
                     self.send_response(400)
@@ -233,7 +236,7 @@ def main() -> int:
     ap.add_argument(
         "--queue",
         type=Path,
-        default=Path("/tmp/ve-comments-tests"),
+        default=Path(tempfile.gettempdir()) / "ve-comments-tests",
         help="queue directory for /__ve-comment and /__ve-reply",
     )
     ap.add_argument(

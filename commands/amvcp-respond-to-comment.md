@@ -65,7 +65,7 @@ Reply files are short JSON, one per turn:
 
 ## Idempotency
 
-Re-running `/respond-to-comment` is safe — it skips any turn that already has a reply file. Delete the reply file to force a regeneration.
+Re-running `/amvcp-respond-to-comment` is safe — it skips any turn that already has a reply file. Delete the reply file to force a regeneration.
 
 ## Token-efficiency note
 
@@ -90,8 +90,32 @@ When the user closes the modal (DONE button), the v3 runtime POSTs an aggregate 
 
 Read this file at the end of a review pass to get a clean machine-readable summary instead of replaying every JSONL turn. It is the canonical source for "how many findings did the user actually accept?".
 
+## Queue-dir contract
+
+The default queue dir is `<cwd>/.ve-comments/`, where `<cwd>` is whatever
+directory THIS command's process is started from. The renderer
+(`/amvcp-interactive-report`) defaults to its own cwd's `.ve-comments/` —
+which means if the two halves run from different directories they
+silently miss each other and the modal sits forever waiting.
+
+**Two ways to share the queue dir:**
+
+1. **Read the printed queue dir.** As of v1.1.7 the renderer prints
+   `[amvcp-select] queue dir: /absolute/path/.ve-comments` to stderr at
+   startup. Pass that path to this command as `--queue-dir`.
+
+2. **Set `VE_COMMENT_DIR` explicitly** in the shell that launches each
+   half:
+   ```bash
+   export VE_COMMENT_DIR=/Users/me/work/proj-A/.ve-comments
+   ```
+   Both `amvcp-select.py` and this command honour the env var
+   unconditionally.
+
+The same queue dir holds `<threadId>.jsonl` (user turns), `<threadId>.reply.<turn>.json` (your replies), and `<threadId>.summary.json` (decision summary on modal close).
+
 ## See also
 
-- `references/interactive-selection.md` — wire format for v2 modal comment threads.
+- `../skills/amvcp-visual-communication/references/interactive-selection.md` — wire format for v2 modal comment threads.
 - `design/tasks/TRDD-eff1aa87-cd78-4e0c-bf6c-644c419d65b3-interactive-agent-reports.md` §6 — full v2 design + decision log.
-- `commands/interactive-report.md` — v1 (textareas + Submit button) flow.
+- `commands/amvcp-interactive-report.md` — v2 modal-comment thread renderer (the page side of this responder).

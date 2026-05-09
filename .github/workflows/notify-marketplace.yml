@@ -30,12 +30,24 @@ jobs:
     steps:
       - name: get plugin info
         id: plugin
+        # E3 — lift `${{ github.event.repository.name }}` and
+        # `${{ github.sha }}` into a step `env:` block per the project
+        # gh-actions.md rule. These are GitHub-supplied values, not
+        # user input, so the actual injection risk is zero — but
+        # consistency with the project rule wins.
+        env:
+          NAME: ${{ github.event.repository.name }}
+          REF:  ${{ github.sha }}
         run: |
-          echo "name=${{ github.event.repository.name }}" >> $GITHUB_OUTPUT
-          echo "ref=${{ github.sha }}" >> $GITHUB_OUTPUT
+          echo "name=$NAME" >> "$GITHUB_OUTPUT"
+          echo "ref=$REF"   >> "$GITHUB_OUTPUT"
 
       - name: trigger marketplace update
-        uses: peter-evans/repository-dispatch@v3
+        # E2 — bump from v3 to v4. v4 moves to the node20 runner;
+        # node16 actions are deprecation-pressured by GitHub. No
+        # breaking input changes for the token/repository/event-type
+        # /client-payload set used here.
+        uses: peter-evans/repository-dispatch@v4
         with:
           token: ${{ secrets.MARKETPLACE_PAT }}
           repository: ${{ env.MARKETPLACE_OWNER }}/${{ env.MARKETPLACE_REPO }}

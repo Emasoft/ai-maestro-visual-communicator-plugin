@@ -4,7 +4,7 @@ description: Verify the factual accuracy of a document against the actual codeba
 ---
 Load the amvcp-visual-communication skill, then verify the factual accuracy of a document that makes claims about a codebase. Read the file, extract every verifiable claim, check each against the actual code and git history, correct inaccuracies in place, and add a verification summary.
 
-For HTML files: read `./references/css-patterns.md` to match the existing page's styling when inserting the verification summary.
+For HTML files: read `../skills/amvcp-visual-communication/references/css-patterns.md` to match the existing page's styling when inserting the verification summary.
 
 **Target file** — determine what to verify from `$1`:
 - Explicit path: verify that specific file (`.html`, `.md`, or any text document)
@@ -53,7 +53,7 @@ Include in the summary:
 - Corrections made (with brief list of what was fixed: "Changed `processCleanup` to `runCleanup` to match actual function name in `worker.ts:45`")
 - Unverifiable claims flagged (if any)
 
-**Phase 5: Report.** Tell the user what was checked and what was corrected. For an HTML file, re-open it via the interactive selection runner (`python3 <skill-dir>/scripts/amvcp-select.py <path>`) so the user can click any corrected element and ask follow-ups; respond per the SKILL.md follow-up template. For a markdown file, just print the path. If nothing needed correction, say so — the verification still has value as confirmation.
+**Phase 5: Report.** Tell the user what was checked and what was corrected. For an HTML file, re-open it via the interactive selection runner (`python3 $CLAUDE_PLUGIN_ROOT/scripts/amvcp-select.py <path>`) so the user can click any corrected element and ask follow-ups; respond per the SKILL.md follow-up template. For a markdown file, just print the path. If nothing needed correction, say so — the verification still has value as confirmation.
 
 This is not a re-review. It does not second-guess analysis, opinions, or design judgments. It does not change the document's structure or organization. It is a fact-checker — it verifies that the data presented matches reality, corrects what doesn't, and leaves everything else alone.
 

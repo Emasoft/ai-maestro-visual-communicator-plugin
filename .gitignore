@@ -47,6 +47,11 @@ env/
 # plugin's scripts/ folder).
 vendor/*/node_modules/
 vendor/*/dist/
+# Bare top-level node_modules/ in case a future tool runs `npm install`
+# at the repo root. Without this, the canonical `vendor/*/node_modules/`
+# above only catches subdirectories — a top-level node_modules would
+# slip past `git status`.
+node_modules/
 
 # ---------------------------------------------------------------------------
 # CPV-compatibility duplicates (DO NOT REMOVE)

@@ -158,7 +158,14 @@ def parse_report(md: str, *, mode: str = "finding") -> Report:
     for f in findings:
         m = META_COMMENT_RE.search(f.body_md)
         if m:
-            attrs = dict(ATTR_RE.findall(m.group("attrs")))
+            # F2 — META_COMMENT_RE is IGNORECASE, so an author may
+            # write `<!-- VE-FINDING Severity="major" -->`. The
+            # ATTR_RE regex preserves the original key casing
+            # ("Severity"), but downstream `if "severity" in f.meta`
+            # is case-sensitive. Lowercase the keys here so author
+            # casing never silently disables severity rendering.
+            raw_attrs = ATTR_RE.findall(m.group("attrs"))
+            attrs = {k.lower(): v for k, v in raw_attrs}
             sev = (attrs.get("severity") or "").lower()
             if sev and sev not in VALID_SEVERITY:
                 warnings.append(
@@ -700,10 +707,17 @@ def main(argv: list[str] | None = None) -> int:
     # commentIds. Path is alongside the report (NOT the html) so the
     # mapping survives re-renders to different output locations.
     idmap_path = report_path.with_suffix(".idmap.json")
-    idmap_path.write_text(
+    # F1 — atomic write: a crash mid-write previously left a half-
+    # parsed JSON file that the orchestrator could not load. tmp +
+    # replace makes the rename atomic on POSIX and on Windows
+    # (Python 3.3+); a polling reader sees either the previous
+    # content (or no file) or the fully-written new content.
+    idmap_tmp = idmap_path.with_suffix(".json.tmp")
+    idmap_tmp.write_text(
         json.dumps({"sourcePath": str(report_path), "ids": idmap}, indent=2),
         encoding="utf-8",
     )
+    idmap_tmp.replace(idmap_path)
     print(out_path)
     return 0
 
