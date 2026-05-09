@@ -4,5 +4,5 @@ requires-python = ">=3.12"
 
 [[package]]
 name = "ai-maestro-visual-communicator-plugin"
-version = "1.1.8"
+version = "1.1.9"
 source = { virtual = "." }

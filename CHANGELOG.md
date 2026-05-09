@@ -5,7 +5,21 @@ All notable changes to this project will be documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.1.9] — 2026-05-09
+
+### Bug Fixes
+
+- TRDD-5f41ad36 remaining deferred items — Phase A-D
+
+### Documentation
+
+- Add TRDD-5f41ad36 — remaining deferred items
+
 ## [1.1.8] — 2026-05-09
+
+### Chores
+
+- V1.1.8
 
 ### Refactoring
 
