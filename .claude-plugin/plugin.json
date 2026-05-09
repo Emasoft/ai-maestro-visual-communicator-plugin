@@ -24,7 +24,9 @@
     "mermaid",
     "regex-vis"
   ],
-  "skills": [
-    "./skills/amvcp-visual-communication"
-  ]
+  "cpv": {
+    "max_lines": 800,
+    "max_chars": 4000,
+    "skill_size_severity": "warning"
+  }
 }

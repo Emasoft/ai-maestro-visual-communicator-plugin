@@ -1,5 +1,28 @@
 # CSS Patterns for Diagrams
 
+## Table of contents
+
+- [Theme Setup](#theme-setup)
+- [Background Atmosphere](#background-atmosphere)
+- [Link Styling](#link-styling)
+- [Section / Card Components](#section--card-components)
+- [Code Blocks](#code-blocks)
+- [Directory Tree](#directory-tree)
+- [Overflow Protection](#overflow-protection)
+- [Mermaid Containers](#mermaid-containers)
+- [Grid Layouts](#grid-layouts)
+- [Connectors](#connectors)
+- [Animations](#animations)
+- [Sparklines and Simple Charts (Pure SVG)](#sparklines-and-simple-charts-pure-svg)
+- [Responsive Breakpoint](#responsive-breakpoint)
+- [Badges and Tags](#badges-and-tags)
+- [Lists Inside Nodes](#lists-inside-nodes)
+- [KPI / Metric Cards](#kpi--metric-cards)
+- [Before / After Panels](#before--after-panels)
+- [Collapsible Sections](#collapsible-sections)
+- [Prose Page Elements](#prose-page-elements)
+- [Generated Images](#generated-images)
+
 Reusable patterns for layout, connectors, theming, and visual effects in self-contained HTML diagrams.
 
 ## Theme Setup

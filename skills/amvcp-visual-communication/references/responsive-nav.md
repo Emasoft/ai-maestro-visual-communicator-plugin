@@ -1,5 +1,12 @@
 # Responsive Section Navigation
 
+## Table of contents
+
+- [Layout Structure](#layout-structure)
+- [CSS](#css)
+- [JavaScript — Scroll Spy](#javascript--scroll-spy)
+- [Adaptation Notes](#adaptation-notes)
+
 Navigation pattern for multi-section pages (reviews, recaps, dashboards). Provides a sticky sidebar TOC on desktop and a sticky horizontal scrollable bar on mobile.
 
 ## Layout Structure

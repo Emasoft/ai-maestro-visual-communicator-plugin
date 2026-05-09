@@ -14,7 +14,7 @@ Convert any agent's Markdown report (code-auditor finding, llm-externalizer scan
 
 **Arguments:**
 
-- `report-path` — Markdown report from any agent. The report must use `## Finding N: <title>` headings (optional `<!-- ve-finding severity="…" file="…" -->` comments for metadata) so the renderer knows where the per-finding boundaries are. See [the cookbook](../references/interactive-selection.md) for the full convention.
+- `report-path` — Markdown report from any agent. The report must use `## Finding N: <title>` headings (optional `<!-- ve-finding severity="…" file="…" -->` comments for metadata) so the renderer knows where the per-finding boundaries are. See [the cookbook](../skills/amvcp-visual-communication/references/interactive-selection.md) for the full convention.
 
 ## What this command does
 
@@ -84,5 +84,5 @@ The renderer reads this and emits one `<div class="ve-finding-round">` per `(fin
 
 ## See also
 
-- `references/interactive-selection.md` — full wire-format reference for every selection kind including `finding-reply`.
+- [interactive-selection](../skills/amvcp-visual-communication/references/interactive-selection.md) — full wire-format reference for every selection kind including `finding-reply`.
 - `design/tasks/TRDD-eff1aa87-cd78-4e0c-bf6c-644c419d65b3-interactive-agent-reports.md` — design rationale and phased plan.

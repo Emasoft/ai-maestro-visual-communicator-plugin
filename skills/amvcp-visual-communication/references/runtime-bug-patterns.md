@@ -1,5 +1,17 @@
 # amvcp-runtime + amvcp-regex bug patterns
 
+## Table of contents
+
+- [v2 modal — hover-bridge](#v2-modal--hover-bridge)
+- [v2 modal — resume polling on reopen](#v2-modal--resume-polling-on-reopen)
+- [v2 modal — atomic save of pending placeholder](#v2-modal--atomic-save-of-pending-placeholder)
+- [ve-regex — per-mount undo / redo history](#ve-regex--per-mount-undo--redo-history)
+- [ve-regex — case-insensitive Z for Cmd-Shift-Z](#ve-regex--case-insensitive-z-for-cmd-shift-z)
+- [ve-regex — shift+click extends selection](#ve-regex--shiftclick-extends-selection)
+- [ve-regex — wide regex per-graph horizontal scroll](#ve-regex--wide-regex-per-graph-horizontal-scroll)
+- [Common shape](#common-shape)
+- [Running the test suite](#running-the-test-suite)
+
 A catalogue of bug classes found in the ai-maestro-visual-communicator-plugin runtime,
 the v2 modal-comment flow, and the embedded amvcp-regex visualizer —
 each entry pairs the symptom with the fix and points at the

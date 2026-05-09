@@ -1,10 +1,28 @@
 # Slide Deck Patterns
 
+## Table of contents
+
+- [Planning a Deck from a Source Document](#planning-a-deck-from-a-source-document)
+- [Slide Engine Base](#slide-engine-base)
+- [Typography Scale](#typography-scale)
+- [Cinematic Transitions](#cinematic-transitions)
+- [Navigation Chrome](#navigation-chrome)
+- [SlideEngine JavaScript](#slideengine-javascript)
+- [Auto-Fit](#auto-fit)
+- [Slide Type Layouts](#slide-type-layouts)
+- [Decorative SVG Elements](#decorative-svg-elements)
+- [Proactive Imagery](#proactive-imagery)
+- [Compositional Variety](#compositional-variety)
+- [Presentation Readability](#presentation-readability)
+- [Content Density Limits](#content-density-limits)
+- [Responsive Height Breakpoints](#responsive-height-breakpoints)
+- [Curated Presets](#curated-presets)
+
 CSS patterns, JS engine, slide type layouts, transitions, navigation chrome, and curated presets for self-contained HTML slide presentations. All slides are viewport-fit (100dvh), single-file, same philosophy as scrollable pages.
 
 **When to use slides:** Only when the user explicitly requests them — `/generate-slides`, `--slides` flag on an existing prompt, or natural language like "as a slide deck." Never auto-select slide format.
 
-**Before generating**, also read `./css-patterns.md` for shared patterns (Mermaid zoom controls, overflow protection, depth tiers, status badges) and `./libraries.md` for Mermaid theming, Chart.js, and font pairings. Those patterns apply to slides too — this file adds slide-specific patterns on top.
+**Before generating**, also read [css-patterns](./css-patterns.md) for shared patterns (Mermaid zoom controls, overflow protection, depth tiers, status badges) and [libraries](./libraries.md) for Mermaid theming, Chart.js, and font pairings. Those patterns apply to slides too — this file adds slide-specific patterns on top.
 
 ## Planning a Deck from a Source Document
 
