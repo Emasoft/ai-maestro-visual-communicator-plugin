@@ -809,12 +809,40 @@
   }
 
   // F4 — deleted dead `showSendingOverlay` (~7 LOC) and
-  // `showSentThenClose` (~31 LOC) per js audit M1. Confirmed by
-  // grep at audit time: only the function definitions appeared in
-  // the file, no callers anywhere. The current send path uses
-  // sendBeacon/fetch keepalive and writes the inline "Selection
-  // sent — close this tab" HTML directly (see lines ~915-930 and
-  // ~1066-1080).
+  // `showSentThenClose` (~31 LOC) per js audit M1: both were tied
+  // to the synchronous-fetch + overlay flow that has been replaced
+  // by sendBeacon/fetch keepalive — they had no callers anywhere
+  // and the new flow doesn't need them. Confirmed via grep + git
+  // log -G at audit time.
+  //
+  // Audit-fix re-verification (TRDD-1dcd0bd7 followup): the
+  // "Selection sent — close this tab" body that USED TO live in
+  // showSentThenClose was duplicated INLINE at two send-path sites
+  // (after the original deletion). That duplicate is now extracted
+  // into `showCloseConfirmation()` below and called from both
+  // sites — the modern equivalent of the dead function's fallback
+  // page, single-source-of-truth.
+
+  function showCloseConfirmation() {
+    // Replace the document body with the minimal "Selection sent — close
+    // this tab" page. Used after sendBeacon/fetch keepalive when
+    // window.close() is denied (which is the default for any tab the user
+    // opened directly rather than via Chromium --app). Idempotent: bails
+    // when the document is already hidden (window.close() succeeded).
+    if (document.visibilityState === 'hidden' || !document.body) return;
+    document.title = 'Selection sent — close this tab';
+    document.body.innerHTML =
+      '<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;'
+      + 'background:#0f1115;color:#e8eaee;font:15px/1.5 system-ui,-apple-system,sans-serif;'
+      + 'text-align:center;padding:24px;">'
+      + '<div>'
+        + '<div style="font:500 11px/1 ui-monospace,Menlo,monospace;letter-spacing:0.12em;'
+        + 'text-transform:uppercase;opacity:0.5;margin-bottom:14px;">ai-maestro-visual-communicator-plugin</div>'
+        + '<h1 style="font-weight:500;font-size:22px;margin:0 0 6px;">Selection sent</h1>'
+        + '<p style="opacity:0.6;margin:0;">You can close this tab.</p>'
+      + '</div>'
+      + '</div>';
+  }
 
   function showStaticFallback(payload, overlay) {
     var json = JSON.stringify(payload, null, 2);
@@ -918,22 +946,7 @@
       // If close was denied (tab not opened by JS), show the minimal
       // close-confirmation. With Chromium --app this never runs because
       // window.close() succeeds and the document is gone.
-      setTimeout(function () {
-        if (document.visibilityState !== 'hidden' && document.body) {
-          document.title = 'Selection sent — close this tab';
-          document.body.innerHTML =
-            '<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;'
-            + 'background:#0f1115;color:#e8eaee;font:15px/1.5 system-ui,-apple-system,sans-serif;'
-            + 'text-align:center;padding:24px;">'
-            + '<div>'
-              + '<div style="font:500 11px/1 ui-monospace,Menlo,monospace;letter-spacing:0.12em;'
-              + 'text-transform:uppercase;opacity:0.5;margin-bottom:14px;">ai-maestro-visual-communicator-plugin</div>'
-              + '<h1 style="font-weight:500;font-size:22px;margin:0 0 6px;">Selection sent</h1>'
-              + '<p style="opacity:0.6;margin:0;">You can close this tab.</p>'
-            + '</div>'
-            + '</div>';
-        }
-      }, 120);
+      setTimeout(showCloseConfirmation, 120);
     }, 30);
   }
 
@@ -1069,22 +1082,7 @@
     }
     setTimeout(function () {
       try { window.close(); } catch (_) {}
-      setTimeout(function () {
-        if (document.visibilityState !== 'hidden' && document.body) {
-          document.title = 'Selection sent — close this tab';
-          document.body.innerHTML =
-            '<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;'
-            + 'background:#0f1115;color:#e8eaee;font:15px/1.5 system-ui,-apple-system,sans-serif;'
-            + 'text-align:center;padding:24px;">'
-            + '<div>'
-              + '<div style="font:500 11px/1 ui-monospace,Menlo,monospace;letter-spacing:0.12em;'
-              + 'text-transform:uppercase;opacity:0.5;margin-bottom:14px;">ai-maestro-visual-communicator-plugin</div>'
-              + '<h1 style="font-weight:500;font-size:22px;margin:0 0 6px;">Selection sent</h1>'
-              + '<p style="opacity:0.6;margin:0;">You can close this tab.</p>'
-            + '</div>'
-            + '</div>';
-        }
-      }, 120);
+      setTimeout(showCloseConfirmation, 120);
     }, 30);
   }
   window.veSubmit = function () { submitSelections('submit'); };
