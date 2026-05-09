@@ -5,11 +5,25 @@ All notable changes to this project will be documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.1.7] — 2026-05-09
+
+### Bug Fixes
+
+- TRDD-1dcd0bd7 comprehensive audit — Phase A-F
+
+### Documentation
+
+- Add TRDD-1dcd0bd7 — comprehensive audit fixes (v1.1.7 target)
+
 ## [1.1.6] — 2026-05-09
 
 ### Bug Fixes
 
 - Satisfy CPV strict-mode after plugin rename
+
+### Chores
+
+- V1.1.6
 
 ### Documentation
 
