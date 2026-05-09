@@ -5,7 +5,25 @@ All notable changes to this project will be documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.1.6] — 2026-05-09
+
+### Bug Fixes
+
+- Satisfy CPV strict-mode after plugin rename
+
+### Documentation
+
+- Add TRDD-6151a6a4 — plugin rename + structural cleanup
+
+### Refactoring
+
+- Plugin → ai-maestro-visual-communicator-plugin (TRDD-6151a6a4)
+
 ## [1.1.5] — 2026-05-08
+
+### Chores
+
+- V1.1.5
 
 ### Features
 
