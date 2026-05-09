@@ -5,11 +5,21 @@ All notable changes to this project will be documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.1.8] — 2026-05-09
+
+### Refactoring
+
+- Extract showCloseConfirmation() helper — dedupe inline
+
 ## [1.1.7] — 2026-05-09
 
 ### Bug Fixes
 
 - TRDD-1dcd0bd7 comprehensive audit — Phase A-F
+
+### Chores
+
+- V1.1.7
 
 ### Documentation
 
