@@ -1,87 +1,73 @@
 ---
 name: amvcp-visual-communication
-description: "Generate beautiful, self-contained interactive HTML pages — diagrams, diff reviews, plan reviews, slide decks, data tables, and modal-comment agent reports. Use when the user asks for a diagram, architecture overview, diff review, comparison, or any visual explanation, or proactively for ASCII tables with 4+ rows or 3+ columns. Trigger with /amvcp-generate-web-diagram, /amvcp-diff-review, /amvcp-generate-slides, or requests like \"make a diagram\" or \"render as HTML\"."
+description: "Coordinator skill that generates interactive HTML pages (diagrams, dashboards, slide decks, modal-comment reports) and dispatches to 9 sub-skills. Use when the user asks for a diagram, chart, slide deck, comparison, agent report, regex viz, or any visual explanation, or proactively for ASCII tables with 4+ rows or 3+ cols. Trigger with /amvcp-generate-web-diagram, /amvcp-diff-review, /amvcp-generate-slides, or phrases like \"make a diagram\"."
 license: MIT
-compatibility: "Requires a browser (Chromium-based browser strongly recommended for auto-close on click). Python 3.12+ for the selection runner."
+compatibility: "Chromium browser recommended; Python 3.12+ for runner; runtime auto-copied next to each HTML."
 metadata:
   author: Emasoft
 ---
 
-# Visual Communication
+# Visual Communication (Coordinator)
 
 ## Overview
 
-Generate self-contained interactive HTML pages — never ASCII art. User clicks an element, browser closes, selection returns, you ask what to do. **Proactive**: 4+ rows or 3+ columns auto-renders as HTML. Two flows: single-shot selection (default) and per-finding modal-comment threads (switch below).
+Generate self-contained interactive HTML — never ASCII art. Every page is interactive: the runner blocks until a click; the runtime is auto-copied next to the HTML. **Proactive**: 4+ rows or 3+ cols auto-renders. Two flows: single-shot select (default) and per-finding modal-comment (v2/v3).
+
+### Sub-skills
+
+- amvcp-graph-diagrams — Mermaid + Graphviz
+- amvcp-charts-and-dashboards — Chart.js
+- amvcp-math-and-latex — KaTeX, mhchem, TikZJax
+- amvcp-choice-tables — table-form Q&A
+- amvcp-modal-comments — v2/v3 agent-report flow
+- amvcp-slide-decks — slide decks
+- amvcp-share-pages — Vercel deploy
+- amvcp-prose-pages — article-style pages
+- amvcp-regex-vis — regex visualizer
 
 ## Prerequisites
 
-Python 3.12+, Chromium, runtime, 5 env vars, runner — `./references/environment-and-runner.md`.
+Chromium-based browser (recommended), Python 3.12+, runtime auto-copied. See environment-and-runner for prerequisites, env vars, runner CLI, timeout knob, optional deps, external libs.
 
 ## Instructions
 
-1. Pick direction (visual default, aesthetic + audience). → `./references/authoring-workflow.md`
-2. Read `${CLAUDE_PLUGIN_ROOT}/references/interactive-selection-base.md` always, plus per-engine cookbooks.
-3. Author one self-contained `.html` with the 6-item mandatory boilerplate.
-4. Open with runner: `python3 "$CLAUDE_PLUGIN_ROOT/scripts/amvcp-select.py" <file>.html`. Never `open`/`xdg-open`.
-5. React to selection — branch `selections[]` (new) vs `id` (legacy); recap labels, ask what to do.
-
-### Choosing a rendering approach
-
-| Content | Approach | Why |
-|---|---|---|
-| Architecture (text-heavy) | CSS Grid cards + arrows | Rich card content needs CSS |
-| Architecture (topology) | **Mermaid** | Edges need auto-routing |
-| Flowchart / pipeline | **Mermaid** | Auto node + edge routing |
-| Sequence diagram | **Mermaid** `sequenceDiagram` | Lifelines need auto-layout |
-| Data flow | **Mermaid** + edge labels | Connections + descriptions |
-| ER / schema | **Mermaid** `erDiagram` | Relationship lines |
-| State machine | **Mermaid** `stateDiagram-v2` | Labeled transitions |
-| Mind map | **Mermaid** `mindmap` | Hierarchical branching |
-| Class diagram | **Mermaid** `classDiagram` | Inheritance lines |
-| C4 architecture | **Mermaid** `graph TD` + `subgraph` | Native `C4Context` ignores themes |
-| Data table | HTML `<table>` | Semantics + accessibility |
-| Timeline | CSS (line + cards) | Linear, no engine needed |
-| Dashboard | CSS Grid + Chart.js | Cards with embedded charts |
-
-### Modal-comment switch (v2/v3)
-
-"Make commentable", "reply per finding", "interactive report", or an attached agent report → v2 flow. See `${CLAUDE_PLUGIN_ROOT}/skills/amvcp-modal-comments/SKILL.md` + `${CLAUDE_PLUGIN_ROOT}/references/comment-chat-box.md`.
-
-### Available commands
-
-| Command | What it does |
-|---|---|
-| `amvcp-generate-web-diagram` | HTML diagram for any topic |
-| `amvcp-generate-visual-plan` | Visual implementation plan |
-| `amvcp-generate-slides` | Magazine-quality slide deck |
-| `amvcp-diff-review` | Visual diff + architecture compare |
-| `amvcp-plan-review` | Plan vs codebase + risk assessment |
-| `amvcp-project-recap` | Mental-model snapshot for context-switch |
-| `amvcp-fact-check` | Verify document against actual code |
-| `amvcp-interactive-report` | Agent report → interactive HTML (v2 renderer) |
-| `amvcp-respond-to-comment` | Watch queue, write per-turn replies (v2 responder) |
-| `amvcp-share-page` | Deploy to Vercel for live URL |
+1. **Pick direction** — visual default + aesthetic + audience.
+2. **Read references** — always interactive-selection-base + per-engine cookbooks.
+3. **Author HTML** — one self-contained `.html` with the 6-item boilerplate. See authoring-workflow for steps 1–5.
+4. **Run** — `python3 "$CLAUDE_PLUGIN_ROOT/scripts/amvcp-select.py" <file>.html`. Never `open`/file://.
+5. **React** — branch `selections[]` (new) vs `id` (legacy); recap, ask what to do.
 
 ## Output
 
-See `./references/authoring-workflow.md` (file location, format, runner JSON).
+- **Location**: `$CLAUDE_PROJECT_ROOT/reports/visual-communicator/diagrams/`
+- **Format**: single self-contained HTML (CSS + JS + runtime inlined or sibling)
+- **Stdout**: one-line JSON `{selections:[...], id?, label?}` from runner
+- See authoring-workflow §Output and example-flows.
 
 ## Error Handling
 
-See `./references/troubleshooting.md` (8-case error matrix).
+- **No Chromium** — falls back to system default; auto-close may not fire.
+- **file:// direct open** — payload never returns; always use the runner.
+- **Timeout without click** — non-zero exit; rerun with `--timeout` raised.
+- Full matrix — see troubleshooting.
 
 ## Examples
 
-See `./references/example-flows.md` (4 worked end-to-end flows).
+1. *"Make me an architecture diagram"* → picks **amvcp-graph-diagrams** → Mermaid `graph TD` → runner opens → user clicks a node → label returned.
+2. *"Turn this agent report into a commentable page"* → picks **amvcp-modal-comments** → v2/v3 modal threads per finding → responder watches the queue.
 
-## Quality Checks
-
-See `./references/quality-checklist.md` (8-item pre-delivery checklist).
+Quality gate — see quality-checklist.
 
 ## Resources
 
-**Shared `${CLAUDE_PLUGIN_ROOT}/references/`:** `anti-patterns`, `comment-chat-box`, `css-patterns`, `diagram-types`, `interactive-selection-base`, `libraries`, `runtime-bug-patterns`, `styling-guide`.
-
-**Local `./references/`:** `authoring-workflow`, `environment-and-runner`, `example-flows`, `quality-checklist`, `troubleshooting`.
-
-**Sub-skills:** `amvcp-graph-diagrams`, `amvcp-charts-and-dashboards`, `amvcp-math-and-latex`, `amvcp-choice-tables`, `amvcp-modal-comments`, `amvcp-slide-decks`, `amvcp-share-pages`, `amvcp-prose-pages`, `amvcp-regex-vis`.
+- [interactive-selection-base](../../references/interactive-selection-base.md) — wire format
+- [diagram-types](../../references/diagram-types.md) — visual catalogue
+- [styling-guide](../../references/styling-guide.md) — aesthetics, palette
+- [anti-patterns](../../references/anti-patterns.md) — author-error catalogue
+- [css-patterns](../../references/css-patterns.md) — components, grids
+- [libraries](../../references/libraries.md) — CDN list, fonts
+- [authoring-workflow](./references/authoring-workflow.md) — 5-step flow
+- [environment-and-runner](./references/environment-and-runner.md) — runner CLI
+- [example-flows](./references/example-flows.md) — examples
+- [troubleshooting](./references/troubleshooting.md) — error matrix
+- [quality-checklist](./references/quality-checklist.md) — pre-ship gate

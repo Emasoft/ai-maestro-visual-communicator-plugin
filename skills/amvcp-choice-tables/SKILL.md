@@ -1,77 +1,63 @@
 ---
 name: amvcp-choice-tables
-description: "Render data tables that ask the user a question — radio (single-select) or checkbox (multi-select) controls per row, with a Submit button that returns the selection to the agent. Use when the user wants to pick from a list, choose between options, decide on a strategy, vote on alternatives, or answer a structured question. Trigger: 'let me pick', 'comparison table where I can choose', 'form to select from', 'radio/checkbox list', 'pick a strategy', 'choose between', 'vote on'."
+description: "Render data tables that ask the user a question — radio (single) or checkbox (multi) per row, Submit returns selection to the agent. Use when picking from a list, comparing strategies, voting, or answering a structured question. Trigger with 'let me pick', 'comparison table to choose from', 'form to select from', 'radio/checkbox list', 'pick a strategy', 'choose between', 'vote on'."
 license: MIT
-compatibility: "Browser + Python 3.12+ via amvcp-select.py. amvcp-runtime.js injects the radio/checkbox controls + Submit button."
 metadata:
   author: Emasoft
 ---
 
 # Choice Tables (Form Mode)
 
-Tables that ask a question. User picks rows via radio (one) or checkbox (many), hits Submit, and the structured answer returns to the agent — replacing "ask in chat" with a tactile in-page form.
+## Overview
 
-## When this skill loads
+Loads when the agent needs an enumerable answer as a table-form Q&A. Author a `<table>` whose `data-ve-label` IS the question and whose rows are answers; the runtime injects a radio/checkbox column plus a Submit in `<tfoot>`. The structured answer returns to the agent — replacing "ask in chat" with a tactile in-page form.
 
-Triggers: *"let me pick"*, *"comparison table where I can choose"*, *"form to select from"*, *"radio/checkbox list"*, *"vote on"*, *"pick a strategy"*, *"choose between"*, *"confirm the plan"*. Whenever the agent needs an enumerable answer (framework, file, scope, yes/no/with-changes), prefer a choice table.
+## Prerequisites
 
-Read `${CLAUDE_PLUGIN_ROOT}/references/interactive-selection-base.md` first — it defines the `{kind, count, selections[]}` payload and `amvcp-runtime.js` boilerplate. This skill adds only the form-mode layer.
+- Browser (Chromium via `--app=URL` preferred; default browser fallback works).
+- Python 3.12+ for `scripts/amvcp-select.py`.
+- `amvcp-runtime.js` colocated with the HTML — handles form-mode injection (controls, Submit, Enter-to-submit).
 
-## Quick decision: form vs passive vs single-row click
+## Instructions
 
-| Goal | Mode |
-|------|------|
-| Ask a question with N enumerated answers | **table-form** — radio/checkbox + Submit |
-| Display data the user might drill into | **passive** — `data-ve-id` on rows, single-click selects |
-| Pick one row to act on | **passive** — single-click is enough, no Submit |
+1. Design: put the question on `<table>` as `data-ve-label`; one `<tr>` per answer with `data-ve-row-id` + `data-ve-row-label`; optional last row `data-ve-row-text="1"` for a free-text "Other" `<input>`.
+2. Set form attrs on `<table>`: `data-ve-id="..."`, `data-ve-type="table-form"`, `data-ve-mode="single"` (radio) OR `"multi"` (checkbox).
+3. Run `python3 "$CLAUDE_PLUGIN_ROOT/scripts/amvcp-select.py" <file>.html`. The runtime injects controls and Submit; never hand-author them.
+4. Read JSON from stdout, branch on the `table-form` payload, recap: *"You answered «question» with **«labels»**. Proceeding."*
 
-Form mode is *interrogation*. Passive mode is *display*. Adding a Submit button to a passive table? Switch to form mode.
+## Output
 
-## How to author
-
-1. **Design**: question = `data-ve-label` on `<table>`; one row per answer; optional last row for free-text "Other".
-2. **Set form attrs** on `<table>`: `data-ve-type="table-form"` + `data-ve-mode="single"` (radio) or `"multi"` (checkbox). Add `data-ve-id`.
-3. **Run** `python3 "$CLAUDE_PLUGIN_ROOT/scripts/amvcp-select.py" <file>.html`. Runtime injects the control column + Submit button in `<tfoot>`.
-4. **React** to the `table-form` payload (below) — recap question + chosen labels, then act.
-
-Mode A/B/C examples + the `data-ve-row-text="1"` "Other" row pattern: `./references/table-form-schema.md`.
-
-## Mandatory wiring
-
-The two attributes that flip a passive table into a form:
-
-```html
-<table data-ve-id="stack-pick"
-       data-ve-type="table-form"
-       data-ve-mode="single"
-       data-ve-label="Which stack should we use?">
-  <thead><tr><th>Stack</th><th>Why</th></tr></thead>
-  <tbody>
-    <tr data-ve-row-id="opt-react" data-ve-row-label="React + TS"><td>React + TS</td><td>Mature</td></tr>
-    <tr data-ve-row-id="opt-svelte" data-ve-row-label="SvelteKit"><td>SvelteKit</td><td>Smaller</td></tr>
-  </tbody>
-</table>
+```json
+{"kind":"submit","count":1,"selections":[{
+  "kind":"element","type":"table-form","id":"ve-table-<id>-submit","label":"<first-label>",
+  "data":{"tableId":"<id>","question":"<data-ve-label>","mode":"single|multi",
+          "selected":[{"id":"<row-id>","label":"<row-label>","text":"<opt>"}],"text":null}}]}
 ```
 
-`data-ve-label` on `<table>` IS the question. `data-ve-row-id` + `data-ve-row-label` on each `<tr>` carry the answer. Never author radio/checkbox/Submit by hand — the runtime injects them.
+## Error Handling
 
-Submit emits `{kind: "element", count: 1, selections[0].type: "table-form"}`. Inside `data`: `question` (mirrors the table's `data-ve-label`), `mode` (`"single"`/`"multi"`), `selected[]` of `{id, label}` per chosen row (+ optional `text` for the free-text row). Recap: *"You answered «question» with **«labels»**. Proceeding."*
+- >7 single-select options: radio walls overwhelm — use a search field or filter→narrow→pick.
+- Missing `data-ve-type="table-form"`: rows fall back to plain `data-ve-id` clicks; no Submit injected; form silently degrades to passive single-row click.
+- Hand-authoring radio/checkbox/Submit: collides with runtime injection — duplicate columns, dead Submit. Let the runtime own it.
+- Emoji status indicators forbidden — inconsistent across platforms and screen readers. Use styled `<span>` chips (see css-patterns).
+
+## Examples
+
+- *"Compare 3 caching strategies, let me pick one."* → Mode B `<table>` with `data-ve-mode="single"`, rows LRU / LFU / TTL plus free-text "Other"; Submit returns one `selected[]` entry.
+- *"Which features should ship in v1?"* → Mode C with `data-ve-mode="multi"`, one row per feature plus free-text row; Submit returns every checked row in `selected[]`.
 
 ## Resources
 
-Plugin-shared (`${CLAUDE_PLUGIN_ROOT}/references/`):
-
-- **interactive-selection-base.md** — wire format, runtime boilerplate
-- **css-patterns.md** — sticky `<thead>`, alternating rows, status indicators
-- **styling-guide.md** — palette, typography
-- **diagram-types.md** — Data Tables / Comparisons section
-- **anti-patterns.md** — Slop Test
-
-Skill-local: **`./references/table-form-schema.md`** — Mode A/B/C, free-text row, payload spec.
-
-## Anti-patterns
-
-- **Single-select with >7 options** — radio walls overwhelm. Use a multi-step flow (filter → narrow → pick) or a search field.
-- **Forgetting `data-ve-type="table-form"`** — runtime treats rows as plain `data-ve-id` clicks; no Submit injected; form degrades.
-- **Hand-authoring radio/checkbox/Submit in the HTML** — collides with the runtime's injected controls. Duplicate columns, dead Submit. Let the runtime do it.
-- **Emoji status indicators in cells** — inconsistent across platforms and screen readers. Use styled `<span>` chips; see `css-patterns.md`.
+- [interactive-selection-base.md](../../references/interactive-selection-base.md) — payload contract, runtime boilerplate, marking elements
+  - How it works; Mandatory boilerplate; The selection payload
+  - What to make selectable; Marking elements; Engine routing
+  - Runner pitfalls; Anti-patterns; Inlining the runtime
+- [css-patterns.md](../../references/css-patterns.md) — sticky `<thead>`, alternating rows, status indicators
+  - Theme Setup; Section/Card Components; Grid Layouts (Data Tables)
+  - Badges/Tags; KPI Cards; Before/After Panels; Collapsible Sections
+- [diagram-types.md](../../references/diagram-types.md) — when a table beats other visuals
+  - Data Tables / Comparisons / Audits; Dashboard / Metrics
+  - Documentation; Prose Accent Elements
+- [table-form-schema.md](./references/table-form-schema.md) — Mode A/B/C, free-text row, payload spec
+  - Tables — three modes (passive / single / multi)
+  - Form-mode payload; When to use form mode vs. passive mode

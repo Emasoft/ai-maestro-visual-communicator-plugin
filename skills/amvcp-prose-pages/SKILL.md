@@ -1,63 +1,64 @@
 ---
 name: amvcp-prose-pages
-description: "Author article-style publishable HTML pages — long-form prose with paragraph numbering (1.2.1 etc.), text-snippet selection (user double-clicks to select a substring), pull quotes, callout boxes, lead paragraphs, and multi-section sticky-TOC navigation. Use when the user wants to publish an essay, blog post, long-form article, README rendered as a page, documentation, or any text-heavy publishable document with selectable snippets. Trigger: 'publishable article', 'blog post', 'essay with pull quotes', 'long-form article', 'render this README beautifully', 'publishable document', 'paragraph-numbered prose'."
+description: "Author article-style publishable HTML — long-form prose with auto paragraph numbering (1.2.1), text-snippet selection, pull quotes, callouts, lead paragraphs, sticky-TOC. Use when the user wants an essay, blog post, long-form article, README-as-page, or text-heavy doc with selectable snippets. Trigger with 'publishable article', 'blog post', 'essay with pull quotes', 'long-form article', 'render this README', 'paragraph-numbered prose'."
 license: MIT
-compatibility: "Browser + Python 3.12+ via amvcp-select.py. amvcp-runtime.js handles paragraph numbering + text-snippet selection when the article wrapper has data-ve-prose."
 metadata:
   author: Emasoft
 ---
 
 # Prose Pages
 
-Publishable article-style HTML — essays, blog posts, long-form docs — every paragraph auto-numbered, every text snippet selectable.
+## Overview
 
-## When this skill loads
+Loads when the page is text-led: essays, blog posts, articles, README-as-page, docs. `<article data-ve-prose>` enables auto paragraph numbering (`1.2.1`), text-snippet selection, pull quotes, callouts, lead paragraphs, sticky-TOC. Not the amvcp default — use only when content is genuinely text-led, not a diagram/table/dashboard.
 
-For **text-first publications**, not diagrams or tables. Triggers: *"publishable article"*, *"blog post"*, *"essay with pull quotes"*, *"render this README as a page"*, *"long-form documentation"*, *"paragraph-numbered prose"*. **Not** the amvcp default — switch in only when the page is genuinely text-led.
+## Prerequisites
 
-## Anatomy of a prose page
+Browser + Python 3.12+ runner (`scripts/amvcp-select.py`). `amvcp-runtime.js` auto-handles paragraph numbering and text-snippet selection when the wrapper carries `data-ve-prose`.
 
-- **Lead paragraph** — first `<p>` after the title; larger, lighter.
-- **Body paragraphs** — auto-numbered `1.2.1`, `1.2.2` by the runtime. Do NOT hand-number.
-- **Pull quote** — `<blockquote class="pullquote">`. One per page max.
-- **Callout box** — `<aside class="callout">` for tips / warnings / side-notes.
-- **Sticky TOC** — only when 4+ top-level sections.
+## Instructions
 
-## How to author
+1. Read [prose-mode](./references/prose-mode.md) + Prose Page Elements in [css-patterns](../../references/css-patterns.md).
+2. Pick a Voice from [styling-guide](../../references/styling-guide.md); typography from [libraries](../../references/libraries.md).
+3. Wrap article: `<article data-ve-prose>...</article>`. Real `<h1>`/`<h2>`/`<h3>`/`<p>`. Never hand-number.
+4. `<aside class="callout">` for tips; `<blockquote class="pullquote">` for one quote. Skip TOC under 4 sections; else copy [responsive-nav](./references/responsive-nav.md).
+5. Standard `<script src="amvcp-runtime.js"></script>` + `--ve-accent` on `:root` per [interactive-selection-base](../../references/interactive-selection-base.md).
+6. Open: `python3 "$CLAUDE_PLUGIN_ROOT/scripts/amvcp-select.py" page.html` (essays: `VE_SELECT_TIMEOUT=180`).
+7. React: branch on `kind`. Paragraph clicks → `kind:"element"`/`type:"paragraph"`. Highlights → `kind:"text"`.
 
-1. **Read references** — `./references/prose-mode.md` (wire format) + `${CLAUDE_PLUGIN_ROOT}/references/css-patterns.md` (Prose Page Elements).
-2. **Pick a Voice** — editorial aesthetic from `${CLAUDE_PLUGIN_ROOT}/references/styling-guide.md`; typography via `${CLAUDE_PLUGIN_ROOT}/references/libraries.md` Typography by Content Voice.
-3. **Wrap the article** — `<article data-ve-prose>...</article>` enables paragraph numbering + snippet popup. Use real `<h1>` / `<h2>` / `<h3>` / `<p>`.
-4. **Open with the runner** — `python3 "$CLAUDE_PLUGIN_ROOT/scripts/amvcp-select.py" <file>.html`. Explanatory pages: `VE_SELECT_TIMEOUT=180`.
-5. **React** — branch on `kind`. Paragraph clicks send `kind:"element"`, `type:"paragraph"`. Highlights send `kind:"text"` (below).
+## Output
 
-## Mandatory wiring
-
-- `<article data-ve-prose>` (or `<main data-ve-prose>`) — the only switch that turns on paragraph numbering + snippet popup. Without it the runtime treats the page like a selectable diagram.
-- `<aside class="callout">` for tips / warnings; `<blockquote class="pullquote">` for emphasis.
-- 4+ sections: copy the sticky-TOC pattern from `./references/responsive-nav.md` (sidebar desktop, horizontal bar mobile, IntersectionObserver scroll-spy). Below 4, skip the TOC.
-- Standard `<script src="amvcp-runtime.js"></script>` and `--ve-accent` on `:root` — same as every amvcp page (see `${CLAUDE_PLUGIN_ROOT}/references/interactive-selection-base.md`).
-
-## Selection payload — text snippets
-
-When the user **highlights text inside `[data-ve-prose]`**, an *"Ask about this snippet"* button appears. Clicking it sends:
+Text-snippet payload (highlight inside `[data-ve-prose]`, click "Ask about this snippet"):
 
 ```json
-{"kind":"text","text":"the highlighted phrase","depth":3,
- "paragraphId":"1.2.1","paragraphText":"…surrounding paragraph…"}
+{"kind":"text","text":"highlighted phrase","depth":3,
+ "paragraphId":"1.2.1","paragraphText":"…surrounding…"}
 ```
 
-Paragraph or marker clicks send `kind:"element"`, `type:"paragraph"`, `id:"ve-para-1.2.1"`. Recap (label + paragraph number), ask what to do — rewrite, move, expand, fact-check, translate, remove. Full schema, depth-grammar (1–7), popup behaviour: `./references/prose-mode.md`.
+Paragraph clicks: `kind:"element"`, `type:"paragraph"`, `id:"ve-para-1.2.1"`. Recap label + paragraph number, ask: rewrite, move, expand, fact-check, translate, remove. Depths 1–7: [prose-mode](./references/prose-mode.md).
+
+## Error Handling
+
+- Manual `data-ve-id` per paragraph collides with auto `ve-para-X.Y.Z` — doubles marker.
+- More than one pull quote per page loses impact. Cap at one.
+- TOC under 4 sections is needless chrome. Skip it.
+- Lead paragraph styled like body defeats its purpose. Use larger + lighter + different colour.
+
+## Examples
+
+1. Essay: `<article data-ve-prose>`, runtime auto-numbers; user double-clicks an insight; payload `kind:"text"`, `paragraphId:"2.1.3"`. Agent: "Rewrite, fact-check, or pull-quote?"
+2. README-as-page: `<main data-ve-prose>`, sticky-TOC for 5+ `<h2>`; user clicks marker `1.2.1` → `kind:"element"`. Agent: "Move, expand, or trim?"
 
 ## Resources
 
-**Plugin-shared (`${CLAUDE_PLUGIN_ROOT}/references/`):** **interactive-selection-base** (wire format + boilerplate), **css-patterns** (Prose Page Elements: lead, pull quote, callout, divider), **libraries** (Typography by Content Voice), **styling-guide** (Editorial / Paper-ink), **anti-patterns** (Slop Test), **diagram-types** (Prose Accent Elements).
-
-**Skill-local (`./references/`):** **prose-mode** (numbering algorithm, snippet wire format, payload schema), **responsive-nav** (sticky-TOC pattern, scroll-spy, mobile bar fallback).
-
-## Anti-patterns
-
-- **Manual `data-ve-id` on every paragraph.** `data-ve-prose` on the wrapper auto-numbers; manual ids collide with `ve-para-X.Y.Z` and double the marker.
-- **More than one pull quote per page.** They lose all impact when stacked. One maximum.
-- **Multi-section TOC with fewer than 4 sections.** Adds nav chrome with zero benefit.
-- **Lead paragraph styled identically to body.** Larger size + lighter weight + different colour — see Prose Page Elements in `css-patterns`.
+- [prose-mode](./references/prose-mode.md) — numbering, snippet wire format
+  - Paragraph numbering + text-snippet selection
+  - Why opt-in via `data-ve-prose`
+  - Authoring rules + response patterns
+- [responsive-nav](./references/responsive-nav.md) — sticky-TOC, scroll-spy, mobile bar
+  - Layout, CSS (sidebar + mobile), Scroll Spy JS, Adaptation
+- [interactive-selection-base](../../references/interactive-selection-base.md) — wire format, depths 1–7
+- [css-patterns](../../references/css-patterns.md) — Prose Page Elements (lead, pullquote, callout)
+- [styling-guide](../../references/styling-guide.md) — Editorial / Paper-ink directions
+- [libraries](../../references/libraries.md) — Typography by Voice
+- [diagram-types](../../references/diagram-types.md) — Prose Accent Elements

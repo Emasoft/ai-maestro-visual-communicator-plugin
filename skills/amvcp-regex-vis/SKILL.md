@@ -1,58 +1,68 @@
 ---
 name: amvcp-regex-vis
-description: "Render an interactive regex visualizer + editor (regex-vis vendored). Visualize a regex pattern as a tree of nodes/edges, edit inline with shift+click extend-select, undo/redo with Cmd-Z / Cmd-Shift-Z, and see the live live result. Use when the user asks to visualize, explain, debug, or interactively edit a regular expression. Trigger: 'visualize this regex', 'regex editor', 'regex tree', 'explain this regex', 'edit this pattern', 'regex visualizer'."
+description: "Render an interactive JS-regex visualizer + editor (vendored regex-vis): tree of nodes, inline edit, shift+click extend, Cmd-Z/Cmd-Shift-Z undo/redo, live result. Use when the user asks to visualize, explain, debug, or interactively edit a regex. Trigger with 'visualize this regex', 'regex editor', 'regex tree', 'explain this regex', 'edit this pattern', 'regex visualizer'."
 license: MIT
-compatibility: "regex-vis vendored bundle auto-loaded by amvcp-runtime.js when .ve-regex is present. Browser + Python 3.12+."
 metadata:
   author: Emasoft
 ---
 
 # Regex Visualizer + Editor
 
-Embed an interactive JS-flavour regex flow-graph + edit panel. The user reads the pattern as a tree, edits inline, and the agent receives original + edited + full AST.
+## Overview
 
-## When this skill loads
+Loads when the user wants to visualize, explain, debug, or edit a JS regex. Sub-skill of `amvcp-visual-communication`: vendored regex-vis renders the pattern as a tree with an Edit panel. The user mutates inline; the agent receives `original`, `edited`, and the full `AST.Regex`.
 
-Load when the user asks to visualize, explain, debug, or interactively edit a JS regex — phrases: "visualize this regex", "regex editor", "regex tree", "explain this regex", "edit this pattern", "regex visualizer".
+## Prerequisites
 
-Sub-skill of `amvcp-visual-communication`. The base contract `${CLAUDE_PLUGIN_ROOT}/references/interactive-selection-base.md` governs the wire format, runner, and mandatory page boilerplate (runtime script, `--ve-accent` on `:root`, `data-ve-id` per element). This skill only adds the regex element + payload.
+- Browser (Chromium preferred for `--app=URL`).
+- Python 3.12+ runner (`scripts/amvcp-select.py`).
+- `amvcp-runtime.js` injected — auto-detects `.ve-regex` and lazy-loads `amvcp-regex.umd.js` + `.css` (~150 KB gz, only when present).
+- `:root { --ve-accent: <colour>; }` set per the base contract.
+- JS regex only (NOT PCRE, RE2, Ruby, .NET).
 
-## How to author
+## Instructions
 
-1. **Wrap each pattern** in a `<div class="ve-regex">` with `data-regex` (and optional `data-flags`). Multiple blocks per page are fine — each gets its own isolated Jotai store.
-2. **Open with the bundled runner** (`scripts/amvcp-select.py`) — never `open` / `xdg-open`. The runtime auto-detects `.ve-regex` and lazy-loads `amvcp-regex.umd.js` + `amvcp-regex.css` (~150 KB gz, only when at least one block exists).
-3. **User edits inline** — shift+click extends node selection, Cmd-Z / Cmd-Shift-Z undo/redo (per-mount, scoped to the block's store).
-4. **React to the `regex-edit` payload** — compare `original` vs `edited`, walk `ast` for structured diffs, then ask what to do next.
+1. Wrap each pattern in `<div class="ve-regex" data-ve-id="rx1" data-regex="...">` (optional `data-flags="gi"`). Multiple blocks per page is fine — each gets its own Jotai store.
+2. Open with `scripts/amvcp-select.py <file.html>` — never `open` / `xdg-open`. The runner serves on a free localhost port and launches Chromium in `--app=URL` mode.
+3. The user explores the graph, shift+clicks to extend selection, edits via the Edit panel, undoes with Cmd-Z, redoes with Cmd-Shift-Z (per-mount).
+4. On Submit, read the `kind:"regex-edit"` entry from the multi-select payload; subsequent edits on the same wrapper REPLACE the prior entry (via `data-ve-regex-entry-id`).
+5. Compare `original` vs `edited`; walk `ast` for structured diffs; ask the user what to do next.
 
-## Mandatory wiring
+## Output
 
-```html
-<div class="ve-regex" data-ve-id="rx1" data-regex="^([a-z]+)@([a-z]+)\.com$"></div>
-<div class="ve-regex" data-ve-id="rx2" data-regex="\d{3}-\d{4}" data-flags="gi"></div>
+Per-edit entry pushed into `selections[]`:
+
+```json
+{"kind":"regex-edit","regexId":"ve-regex-8ksd42",
+ "original":"^([a-z]+)@([a-z]+)\\.com$",
+ "edited":"^([a-z]+)@([a-z]+)\\.(com|org|net)$",
+ "ast":{"type":"regex","body":[...],"flags":[],"literal":true}}
 ```
 
-`data-regex` is required. `data-flags` is optional (`g`, `i`, `m`, `s`, `u`, `y`). The runtime stamps `data-ve-type="regex"` and `data-ve-label="Regex: <first 60 chars>"` on mount. Background clicks still fire the standard element-toggle; Edit-tab interactions stay scoped inside the React mount.
+A click on the wrapper background still fires the Phase 1 element-toggle; Edit-tab clicks stay scoped inside the React mount.
 
-JS-flavour parser only — do NOT use for PCRE, RE2, Ruby, or .NET regex.
+## Error Handling
 
-## Selection payload shape
+- **Bundle fails to load** → wrapper falls back to plain text; check console for `[amvcp-runtime] regex bundle disabled: ...`.
+- **Multi-mount module-level state** → never regress to module-level `undoStack` arrays in `vendor/regex-vis/`; per-mount Jotai atoms are mandatory.
+- **Cmd-Shift-Z silently no-ops** → `KeyboardEvent.key` shifts to `'Z'` under Shift; compare case-insensitively or use `event.code === 'KeyZ'`.
+- **DOM mutation breaking state** → never `querySelector.setAttribute` on the rendered SVG; use the regex-vis API only.
 
-When the regenerated pattern differs from the original, the runtime pushes a `kind:"regex-edit"` entry into the multi-select list. Subsequent edits on the same wrapper REPLACE the prior entry (tracked via `data-ve-regex-entry-id`) so the agent only receives the latest version per block.
+## Examples
 
-Top-level fields: `kind:"regex-edit"`, `regexId`, `original`, `edited`, `ast`. The `ast` is the upstream `AST.Regex` node tree — no re-parsing needed. For the full schema, sub-node selection variants, and mount lifecycle, read `./references/regex-vis-cookbook.md`.
+Visualize `\d+(\.\d+)?` and let the user widen it to also match negatives:
 
-If the bundle fails to load, each wrapper falls back to plain text showing the regex source. Check the JS console for `[amvcp-runtime] regex bundle disabled: …`.
+```html
+<div class="ve-regex" data-ve-id="rx-num" data-regex="\d+(\.\d+)?"></div>
+```
+
+User opens Edit, prepends `-?`, presses Submit. Agent receives `kind:"regex-edit"`, `edited:"-?\d+(\.\d+)?"`, full AST — then offers to update surrounding test cases.
 
 ## Resources
 
-- `${CLAUDE_PLUGIN_ROOT}/references/interactive-selection-base.md` — universal wire format, mandatory boilerplate, runner pitfalls
-- `${CLAUDE_PLUGIN_ROOT}/references/runtime-bug-patterns.md` — regex sections (per-mount undo/redo, case-insensitive Z for Cmd-Shift-Z, shift+click extend-select, wide-regex per-graph scroll)
-- `${CLAUDE_PLUGIN_ROOT}/references/styling-guide.md` — palette + typography (bundle ships themed CSS; just set `--ve-accent`)
-- `${CLAUDE_PLUGIN_ROOT}/references/anti-patterns.md` — Slop Test
-- `./references/regex-vis-cookbook.md` — full payload schema, mount lifecycle, per-instance undo/redo
-
-## Anti-patterns
-
-- Multiple `.ve-regex` mounts sharing a module-level undo stack — fixed by per-Provider Jotai atoms in the bundled runtime; do NOT regress when editing `vendor/regex-vis/`.
-- Cmd-Shift-Z handler comparing strict-lowercase `'z'` — `KeyboardEvent.key` is the produced character, so Shift case-shifts to `'Z'`. Use case-insensitive comparison or `event.code === 'KeyZ'`.
-- Mutating the rendered SVG tree via `querySelector.setAttribute` — bypasses regex-vis state, AST diverges from DOM. Use the regex-vis API (atoms / Edit panel) only.
+- [interactive-selection-base.md](../../references/interactive-selection-base.md) — wire format + boilerplate
+  - How it works · Boilerplate · Payload · What to make selectable · Marking · Engine routing · Runner pitfalls · Anti-patterns · Inlining · Future
+- [runtime-bug-patterns.md](../../references/runtime-bug-patterns.md) — bug catalogue
+  - hover-bridge · resume polling · atomic pending save · per-mount undo/redo · case-insensitive Z · shift+click extend · wide-regex scroll · Common shape · Test suite
+- [regex-vis-cookbook.md](./references/regex-vis-cookbook.md) — payload schema
+  - What `.ve-regex` does · Auto-stamped attributes · `kind:"regex-edit"` · Authoring · Failure handling

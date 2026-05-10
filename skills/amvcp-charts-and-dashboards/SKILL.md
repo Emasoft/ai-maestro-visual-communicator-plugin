@@ -1,6 +1,6 @@
 ---
 name: amvcp-charts-and-dashboards
-description: "Author Chart.js dashboards and metric grids — bar, line, pie, area, doughnut, radar charts and KPI cards as self-contained interactive HTML. Use when the user asks for a chart, dashboard, metrics overview, KPI grid, sparkline, trend visualization, or any data-over-time/data-by-category visualization. Trigger: 'chart', 'dashboard', 'bar chart', 'line chart', 'pie chart', 'metrics', 'KPI grid', 'sparkline', 'metric trend'."
+description: "Author Chart.js dashboards and KPI grids — bar, line, pie, area, doughnut, radar charts plus metric cards as self-contained interactive HTML. Use when the user asks for a chart, dashboard, metrics overview, KPI grid, sparkline, or trend visualization. Trigger with: 'chart', 'dashboard', 'bar/line/pie chart', 'metrics', 'KPI grid', 'sparkline'."
 license: MIT
 compatibility: "Chart.js v4+ via CDN. Browser + Python 3.12+ via amvcp-select.py."
 metadata:
@@ -9,60 +9,49 @@ metadata:
 
 # Charts and Dashboards
 
-Self-contained Chart.js dashboards and KPI grids where every datapoint and card is clickable.
+## Overview
 
-## When this skill loads
+Loads on requests for a chart, dashboard, KPI grid, sparkline, or metrics overview. Produces one self-contained `.html` with Chart.js v4 plus the selection runtime — every datapoint and card posts back as JSON.
 
-Triggers: "chart", "dashboard", "bar/line/pie/area/doughnut/radar chart", "metrics overview", "KPI grid", "sparkline", "metric trend", "data by category", "data over time", "stats page".
+## Prerequisites
 
-Sits on top of the universal selection contract in `${CLAUDE_PLUGIN_ROOT}/references/interactive-selection-base.md`. Read that first — every page must wire the runtime, set `data-ve-id`, declare `--ve-accent`, and open via `scripts/amvcp-select.py`. Don't duplicate that boilerplate here.
+- Chart.js v4+ from CDN.
+- Chromium browser (falls back to default).
+- Python 3.12+ for `scripts/amvcp-select.py`.
+- Page MUST wire the runtime, set `data-ve-id`, declare `--ve-accent`, open via runner. See Resources for the base contract.
 
-## Quick decision: chart type → use case
+## Instructions
 
-| Chart type | Use when | Avoid when |
-|---|---|---|
-| **Bar** | Categorical comparison (revenue by region, errors by service) | Time series with >12 buckets |
-| **Line** | Time series, trends, multi-series over a continuous axis | Categorical data with no order |
-| **Pie / Doughnut** | Parts of a whole, ≤6 slices; single-KPI in the doughnut hole | >6 slices; non-additive data |
-| **Area (stacked)** | Composition over time, cumulative contributions | Series that aren't additive |
-| **Radar** | Multi-dimensional profile on 5–8 axes | More than 8 axes (unreadable) |
+1. **Pick chart type.** Bar = categorical compare; Line = trend; Pie/Doughnut = parts of whole, ≤6 slices; Area = stacked over time; Radar = 5–8 axes. Sparklines and progress bars use inline SVG. See css-patterns for sparklines, KPI cards, grid layouts, overflow protection.
+2. **Design KPI cards** with varied weight: 1–2 hero metrics (large number, accent border, sparkline) plus 4–6 supporting. Never uniform grids.
+3. **Wire Chart.js.** Build the `Chart`, then `veWireChart(chart, { id })`. CDN + theming in libraries; click payload in chartjs-integration.
+4. **Layout.** CSS Grid with `min-width: 0` on every child wrapping a canvas. Read `prefers-color-scheme` once; pass light/dark hex for bg, borders, text, grid. See diagram-types for dashboard/metrics overview.
+5. **Run:** `python3 $CLAUDE_PLUGIN_ROOT/scripts/amvcp-select.py file.html`
+6. **React.** Click returns `{chartId, datasetLabel, xLabel, value}`. Acknowledge by label and value, then ask what to do.
 
-For simple sparklines or progress bars skip Chart.js — inline SVG `<polyline>` or CSS `linear-gradient` per `${CLAUDE_PLUGIN_ROOT}/references/css-patterns.md`.
+## Output
 
-## How to author
+Self-contained HTML: inline CSS, Chart.js CDN, selection runtime, `data-ve-id` on every canvas and card. Runner serves locally, opens Chrome `--app=URL`, prints JSON on click — `{kind, count, selections:[{id, type:"chart-point", label, data:{...}}]}`.
 
-1. **Pick chart types** from the table. Mix multiple blocks freely; don't force one type to do two jobs.
-2. **Design KPI cards** with varied visual weight — 1–2 hero metrics (large number, accent, sparkline) plus 4–6 supporting cards. See "KPI/metric cards" in `css-patterns.md`.
-3. **Wire Chart.js + selection.** Build the `Chart` (config in `libraries.md` Chart.js section), then `veWireChart(chart, { id })`. Clicks become a `chart-point` selection. Payload schema: `./references/chartjs-integration.md`.
-4. **Open with the runner:** `python3 "$CLAUDE_PLUGIN_ROOT/scripts/amvcp-select.py" <file>.html`.
-5. **React to the selection** — click returns `{ chartId, datasetLabel, xLabel, value }`. Acknowledge the datapoint by label and value, then ask what to do.
+## Error Handling
 
-## Mandatory wiring
+- **Chart overflows viewport** → grid child missing `min-width: 0`.
+- **Hover halo grey, not accent** → set `--ve-accent` on `:root` (light + dark).
+- **Pie unreadable / slices collide** → >6 slices. Use horizontal bar.
+- **KPI grid AI-templated** → uniform cards. Promote 1–2 to hero, demote rest.
+- **Selection low-contrast** → set `--ve-sel-text` on `:root`.
+- **No click fires** → custom `onClick` instead of `veWireChart`. Remove it.
 
-- **`veWireChart(chart, { id })`** — never roll your own `onClick`. Manual handlers break multi-select and hover-glow.
-- **CSS Grid with `min-width: 0`** on every grid child wrapping a canvas — without it charts overflow narrow viewports. See "Overflow Protection" + "Grid layouts" in `css-patterns.md`.
-- **Theme-aware colours.** Read `prefers-color-scheme` once at script start; pass distinct light/dark hex for backgrounds, borders, text, grid lines (pattern in `libraries.md`).
-- **Palette + typography** from `styling-guide.md` — never violet/cyan/magenta accents.
+## Examples
+
+**1. Dashboard with 3 KPIs + revenue trend.** CSS Grid: one hero KPI (large number + sparkline), two supporting cards, wider Chart.js `line` of monthly revenue. `data-ve-id` on cards; `veWireChart(chart, { id: 'revenue' })`. Clicking March posts `{type:"chart-point", label:"Revenue · Mar", data:{xLabel:"Mar", value:45200}}`. Agent: "Mar revenue $45.2k — break it down by region?"
+
+**2. Error counts by service.** Chart.js `bar` (>12 services → horizontal bar). Theme colours from `prefers-color-scheme`. `veWireChart(chart, { id: 'errors' })`. User clicks `auth-svc` → agent gets `xLabel:"auth-svc", value:148` and asks whether to pull the log slice.
 
 ## Resources
 
-Plugin-level (`${CLAUDE_PLUGIN_ROOT}/references/`):
-
-- `interactive-selection-base.md` — wire format + boilerplate.
-- `libraries.md` — Chart.js CDN + theming.
-- `css-patterns.md` — KPI cards, dashboard grids, sparkline SVG, overflow.
-- `styling-guide.md` — palette, typography, hierarchy.
-- `diagram-types.md` — Dashboard / Metrics Overview section.
-- `anti-patterns.md` — slop test.
-
-Skill-local (`./references/`):
-
-- `chartjs-integration.md` — `veWireChart` contract + click payload.
-
-## Anti-patterns
-
-- **Pie chart with >6 slices** — angles below ~15° collide. Use a horizontal bar chart.
-- **Identically-styled KPI cards** — uniform grids signal AI-template output. Vary weight: hero (large number, accent border, sparkline) vs supporting (smaller, muted).
-- **Animated glowing box-shadows** (`@keyframes glow`, pulsing `box-shadow`) — slop tell. Use static borders.
-- **Gradient text on KPI numbers** (`background-clip: text` on `linear-gradient`) — slop tell, fails contrast. Solid accent colour, bold weight.
-- **Charts without `min-width: 0`** on the grid child — canvas overflows the viewport on narrow widths.
+- [interactive-selection-base.md](../../references/interactive-selection-base.md) — runtime contract, payload, marking
+- [css-patterns.md](../../references/css-patterns.md) — sparklines, KPI cards, grids, overflow
+- [libraries.md](../../references/libraries.md) — Chart.js CDN, Google Fonts
+- [diagram-types.md](../../references/diagram-types.md) — dashboard/metrics overview
+- [chartjs-integration.md](./references/chartjs-integration.md) — datapoint click wiring

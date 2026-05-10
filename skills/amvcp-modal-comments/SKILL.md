@@ -1,57 +1,82 @@
 ---
 name: amvcp-modal-comments
-description: "Render an agent report (audit, findings list, scan output) as an interactive HTML page with per-element comment threads and v3 approve/reject decision toggles. Use when the user wants to comment inline on each finding, reply per-paragraph, accept/reject items individually, or have a back-and-forth with Claude on each section. Trigger: 'make commentable', 'interactive report', 'reply to each finding', 'approve/reject per finding', '/amvcp-interactive-report', '/amvcp-respond-to-comment'."
+description: "Render an agent report as interactive HTML with per-element comment threads and v3 approve/reject toggles. Use when the user wants to comment inline on each finding, reply per-paragraph, or accept/reject items individually. Trigger with 'make commentable', 'interactive report', '/amvcp-interactive-report', or '/amvcp-respond-to-comment'."
 license: MIT
-compatibility: "Two cooperating processes (renderer + responder). Browser + Python 3.12+ via amvcp-select.py. Comment queue dir defaults to <cwd>/.ve-comments/, override with VE_COMMENT_DIR."
 metadata:
   author: Emasoft
 ---
 
 # Modal-Comment Agent Reports (v2/v3)
 
-Turn a markdown report (audit, findings, scan output, comparison) into an HTML page where every paragraph, list item, table row, and code block carries a "Comment this" pill — and (v3) approve/reject toggles. The user replies inline; a separate Claude session writes per-turn replies that appear in the modal without a page reload.
+## Overview
 
-## When this skill loads
+Loads on the v2/v3 agent-report flow: render a markdown report (audit, findings, scan output) as interactive HTML where every paragraph, list item, table row, and code block carries a "Comment this" pill plus (v3) approve/reject toggles. User replies inline; a separate Claude session writes per-turn replies that appear in the modal without page reload.
 
-Triggers: "make commentable", "interactive report", "reply to each finding", "approve/reject per finding", attaching an agent report for a clickable HTML version, or the slash commands.
+## Prerequisites
 
-Read first — this sub-skill sits on two reusable contracts:
+- Browser (Chromium-class for `--app=URL`; falls back to default).
+- Python 3.12+ runner (`scripts/amvcp-select.py`).
+- Responder loop MUST run alongside renderer; without it the modal sits forever on "Waiting for Claude to reply...".
+- For shipping a public link, pair with `vercel-deploy`.
 
-- `${CLAUDE_PLUGIN_ROOT}/references/comment-chat-box.md` — modal UI, wire format, atomic-write, polling, page-side guarantees (hover-bridge, polling resume, atomic save of pending placeholder).
-- `${CLAUDE_PLUGIN_ROOT}/references/interactive-selection-base.md` — `kind:"submit"` / `kind:"exit"` / `selections[]` payload; selection coexists with comments on the same page.
+## Instructions
 
-## Two halves of the round-trip
+1. Start renderer: `/amvcp-interactive-report report.md` — stamps `data-ve-comment-id`, ships `*.idmap.json`, boots `amvcp-select.py`.
+2. Capture the `[amvcp-select] queue dir: ...` line from stderr.
+3. Start responder in a separate shell: `/amvcp-respond-to-comment --queue-dir <path> --watch --source report.md`.
+4. Both halves required. Either set `VE_COMMENT_DIR=/abs/.ve-comments` in BOTH shells OR pass `--queue-dir`.
 
-Both must run for ANSWER → reply to work end-to-end:
+## Output
 
-| Half | Command | Role |
-|------|---------|------|
-| Renderer | `/amvcp-interactive-report report.md` | Stamps `data-ve-comment-id`, ships `*.idmap.json`, boots `amvcp-select.py`. |
-| Responder | `/amvcp-respond-to-comment --queue-dir <q> --watch --source report.md` | Polls queue, dereferences `commentId`, writes `<threadId>.reply.<turn+1>.json` atomically. |
+- `<queue-dir>/<threadId>.jsonl` — append-only, one user turn per line.
+- `<queue-dir>/<threadId>.reply.<turn>.json` — one file per agent reply (atomic).
+- `<queue-dir>/<threadId>.summary.json` — aggregate decisions + totals on close.
+- v3: `<queue-dir>/decision-ve-finding-N-<ts>.jsonl` — per-finding decision JSONLs.
 
-Renderer alone → no replies. Responder alone → nothing to read. Always start both; responder is typically a different Claude session.
+## Error Handling
 
-## Queue-dir contract (CRITICAL)
+- Renderer + responder pointing at different `.ve-comments/` dirs → modal stuck on "Waiting for Claude". Fix: same `VE_COMMENT_DIR` in both shells or pass `--queue-dir`.
+- Non-atomic reply write (`> file.json`) → page reads half-written file and crashes. Fix: write `<file>.tmp.$$` then `mv -f`.
+- v2 for a single-click interaction → wasted overhead. Use `/amvcp-generate-web-diagram`.
 
-Both halves MUST resolve to the same on-disk path or the modal sits forever on "Waiting for Claude to reply…". Either set `VE_COMMENT_DIR=/abs/path/.ve-comments` in BOTH shells, OR pass the `[amvcp-select] queue dir: ...` line `amvcp-select.py` prints to stderr to the responder as `--queue-dir <path>`. Full rules in `${CLAUDE_PLUGIN_ROOT}/references/comment-chat-box.md`.
+## Examples
 
-## v3 decision toggles
-
-Each finding carries two pill switches (approve + reject) in a slate/teal/rust palette. Default: both OFF → `skip` (no opinion, no turn). Mutex: turning one ON clears the other (3 effective states). Flipping writes a decision-only turn (`text:""`, `decision:"approve"|"reject"|"skip"`, `anchorId:"ve-finding-N"`) into a per-finding JSONL. Submitting a comment from inside a finding attaches the decision as a key on the user turn. Closing the modal POSTs `<threadId>.summary.json` with `decisions`, `totals`, `closedAt`. Full schema in `./references/v3-decision-toggles.md`.
+1. `/amvcp-interactive-report audit.md`; user hovers Finding 3, clicks pill, types a clarifying question, clicks ANSWER. Responder (`--watch` on same queue dir) dereferences `commentId` via `audit.idmap.json`, atomically writes `reply.2.json`; page polls and renders within ~2s.
+2. v3: user toggles "reject" on Finding 1, closes modal — `summary.json` records `{"ve-finding-1":"reject"}`; responder replies one-line "Acknowledged: rejecting. <alternative>".
 
 ## Resources
 
-- `./references/agent-report-flow.md` — v2/v3 flow, when to use / NOT, responding workflow.
-- `./references/v3-decision-toggles.md` — toggles, decision payload, summary file, dispatch.
-- `${CLAUDE_PLUGIN_ROOT}/references/comment-chat-box.md` — modal UI, queue-dir, wire format, atomic-write, polling, page-side guarantees.
-- `${CLAUDE_PLUGIN_ROOT}/references/interactive-selection-base.md` — universal selection wire format.
-- `${CLAUDE_PLUGIN_ROOT}/references/runtime-bug-patterns.md` — hover-bridge, polling-resume, atomic-save.
-- `${CLAUDE_PLUGIN_ROOT}/references/styling-guide.md` — pill palette and decision-toggle tokens.
-- `${CLAUDE_PLUGIN_ROOT}/references/anti-patterns.md` — visual slop test; run before delivering.
-
-## Anti-patterns
-
-- Renderer and responder in different working directories without `VE_COMMENT_DIR` set in both shells — responder polls a different `.ve-comments/` and the modal hangs on "Waiting for Claude to reply…".
-- Non-atomic reply writes (`> file.json`) — polling page reads a half-written file and crashes; write to `<file>.tmp.$$` then `mv -f`.
-- v2 modal-comments for a single-click interaction — use `/amvcp-generate-web-diagram` instead.
-- v2 for slide decks or pages with no per-element commentables — use `/amvcp-generate-slides` or `/amvcp-generate-web-diagram`.
+- [comment-chat-box](../../references/comment-chat-box.md) — modal UI, wire format.
+  - What this is
+  - Queue-dir contract
+  - Wire format
+  - Modal layout
+  - Polling cycle
+  - Atomic-write pattern
+  - Page-side guarantees
+- [interactive-selection-base](../../references/interactive-selection-base.md) — `submit`/`exit`/`selections[]`.
+  - How it works
+  - Boilerplate
+  - Selection payload
+  - Marking elements
+  - Engine routing
+  - Runner pitfalls
+- [runtime-bug-patterns](../../references/runtime-bug-patterns.md) — hover-bridge, polling-resume.
+  - v2 hover-bridge
+  - v2 resume polling
+  - v2 atomic save
+  - ve-regex per-mount history
+  - ve-regex case-insensitive Z
+  - ve-regex wide overflow
+- [agent-report-flow](./references/agent-report-flow.md) — v2/v3 flow, responder.
+  - When to use
+  - Two halves
+  - Responding to comments
+  - v3 decision toggles
+  - When NOT to use
+- [v3-decision-toggles](./references/v3-decision-toggles.md) — state, payload, summary.
+  - State model
+  - Decision payload
+  - Aggregate summary
+  - Responder behaviour
+  - When toggles do NOT fire
