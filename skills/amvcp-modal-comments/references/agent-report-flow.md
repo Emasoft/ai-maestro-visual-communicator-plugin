@@ -45,18 +45,7 @@ When invoked as a responder (whether via the slash command or because the user a
 
 ## v3 — per-element decision toggles (approve / reject — both off = skip)
 
-Each finding section also carries **two pill-shaped toggle switches** (approve + reject) styled in a warm slate/teal/rust palette (TRDD-7a2dab03). The toggles are **independent** of the comment thread: the thread is for clarifications, the toggle state is the **outcome signal** Claude reads first.
-
-- Default state: both toggles OFF → effective decision `skip` (no opinion). Loading the page does NOT emit any turn.
-- Mutex: turning one toggle ON automatically clears the other. There are 3 effective states (skip / approve / reject), not 4.
-- Flipping a toggle writes a **decision-only turn** (`text: ""`, `decision: "approve"|"reject"|"skip"`, `anchorId: "ve-finding-N"`) into a per-finding JSONL file (`<queue-dir>/decision-ve-finding-N-<ts>.jsonl`).
-- Submitting a comment from inside a finding ANSWERs with the current decision attached as an extra `decision` key on the comment turn.
-- Closing the modal POSTs an aggregate `<threadId>.summary.json` with `decisions`, `totals`, and `closedAt` so the responder can `cat` one file instead of replaying every turn.
-
-When responding, **read the `decision` field first**:
-- `approve` → "Acknowledged: approving as-is."
-- `reject` → "Acknowledged: rejecting. \<one-line summary of what to do instead\>."
-- `skip` (or absent) → process the comment text only.
+Each finding section also carries **two pill-shaped toggle switches** (approve + reject) for an outcome signal independent of the comment thread. Read responses with `decision` first; full state model, on-disk payload, aggregate-summary file, and responder behaviour are documented in `./v3-decision-toggles.md`.
 
 ## When NOT to use v2 modal comments
 
