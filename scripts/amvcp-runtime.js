@@ -214,6 +214,31 @@
     s.textContent = [
       '@keyframes veFadeIn { from {opacity:0} to {opacity:1} }',
       '@keyframes veSlideUp { from {opacity:0;transform:translateY(4px)} to {opacity:1;transform:translateY(0)} }',
+      // ─── Runtime-injected control palette (themable) ─────────────────
+      // Every runtime-injected button, control, glyph, toolbar, pill, and
+      // modal chrome reads its colour, surface, border, radius, shadow,
+      // and font from this namespace. The fallbacks reach into the host
+      // page palette FIRST (--surface, --text, --border, --bg, --accent)
+      // and only fall back to neutral grey defaults when the host did not
+      // expose a palette at all. Set any of these on :root in the host
+      // page to brand the runtime UI; set --ve-control-bg:transparent to
+      // suppress runtime backgrounds entirely.
+      ':root {',
+      '  --ve-control-bg: var(--surface, #ffffff);',
+      '  --ve-control-bg-hover: color-mix(in srgb, var(--ve-control-bg, #fff) 88%, var(--ve-accent, var(--accent, #555)) 12%);',
+      '  --ve-control-fg: var(--text, #14110b);',
+      '  --ve-control-fg-dim: var(--text-dim, color-mix(in srgb, var(--ve-control-fg, #14110b) 60%, transparent));',
+      '  --ve-control-border: var(--border, rgba(0,0,0,0.12));',
+      '  --ve-control-border-strong: var(--border-bright, color-mix(in srgb, var(--ve-control-border, rgba(0,0,0,0.12)) 100%, var(--ve-control-fg, #14110b) 18%));',
+      '  --ve-control-radius: 8px;',
+      '  --ve-control-radius-sm: 6px;',
+      '  --ve-control-font: inherit;',
+      '  --ve-control-shadow: 0 6px 22px rgba(0,0,0,0.16), 0 1px 2px rgba(0,0,0,0.08);',
+      '  --ve-control-shadow-soft: 0 2px 8px rgba(0,0,0,0.10);',
+      '  --ve-control-overlay-bg: color-mix(in srgb, var(--bg, #ffffff) 82%, transparent);',
+      '  --ve-control-overlay-blur: blur(10px);',
+      '  --ve-control-accent-fg: var(--ve-sel-text, #14110b);',
+      '}',
       '[data-ve-id] { cursor:pointer; transition:outline-color 120ms ease, box-shadow 120ms ease, filter 120ms ease; }',
       // HTML elements with [data-ve-id]: rectangular outline on hover —
       // matches their bbox geometry (cards, table rows, divs, etc.).
@@ -771,10 +796,15 @@
       '  width:1px; height:1px; margin:-1px;',
       '}',
       // Track: 38×22 pill with a 16px circular thumb that slides on check.
+      // Track + thumb fall back to the host palette via
+      // --ve-control-border / --ve-control-bg so the toggle tints
+      // itself to the page theme; the original warm-taupe / warm-off-
+      // white defaults remain when the host page does not expose any
+      // palette at all.
       '.ve-toggle-track {',
       '  position:relative; flex:none;',
       '  width:38px; height:22px;',
-      '  background:#d6d1c5;', // warm taupe (off)
+      '  background:color-mix(in srgb, var(--ve-control-border-strong, #d6d1c5) 100%, transparent);',
       '  border-radius:999px;',
       '  transition:background 160ms ease;',
       '}',
@@ -783,8 +813,8 @@
       '  top:3px; left:3px;',
       '  width:16px; height:16px;',
       '  border-radius:50%;',
-      '  background:#fbfaf6;', // warm off-white thumb
-      '  box-shadow:0 1px 2px rgba(42,40,37,0.20);',
+      '  background:var(--ve-control-bg, #fbfaf6);',
+      '  box-shadow:0 1px 2px rgba(0,0,0,0.18);',
       '  transition:transform 160ms ease;',
       '}',
       // Checked-state colours per choice.
@@ -810,6 +840,253 @@
       // Keyboard focus ring (Tab + Space).
       '.ve-toggle input:focus-visible ~ .ve-toggle-track {',
       '  outline:2px solid var(--ve-accent, #b8861f); outline-offset:2px;',
+      '}',
+      // ─── Floating Submit/Exit bar (bottom-right macOS-overlay style) ──
+      // The .ve-floating-bar is a single semi-translucent backdrop-blur
+      // container that holds both buttons. It replaces the previous pair
+      // of physically-mirrored corner buttons that ignored the host
+      // palette and looked jarring on every theme that wasn\'t white.
+      // The bar reads its surface from --ve-control-overlay-bg so it
+      // tints itself to the host \'s --bg (warm cream → warm cream tint;
+      // cool slate → cool slate tint). The two button positions
+      // (top-right and bottom-left) survive only as logical hooks for
+      // existing tests (#ve-submit-tr / #ve-submit-bl) — visually they
+      // are now collapsed into one shared bar bottom-right.
+      '.ve-floating-bar {',
+      '  position:fixed; bottom:18px; right:18px;',
+      '  z-index:2147483646;',
+      '  display:inline-flex; align-items:center; gap:8px;',
+      '  padding:8px;',
+      '  background:var(--ve-control-overlay-bg);',
+      '  -webkit-backdrop-filter:var(--ve-control-overlay-blur);',
+      '  backdrop-filter:var(--ve-control-overlay-blur);',
+      '  border:1px solid var(--ve-control-border);',
+      '  border-radius:calc(var(--ve-control-radius) + 4px);',
+      '  box-shadow:var(--ve-control-shadow);',
+      '  font:var(--ve-control-font);',
+      '}',
+      // Buttons inside the bar AND any standalone runtime button. They
+      // both use the shared --ve-control-* palette so a host-page
+      // override re-themes the whole runtime UI in one place.
+      '.ve-floating-btn {',
+      '  appearance:none; -webkit-appearance:none;',
+      '  display:inline-flex; align-items:center; justify-content:center;',
+      '  min-width:84px; padding:9px 16px;',
+      '  border-radius:var(--ve-control-radius);',
+      '  border:1px solid var(--ve-control-border);',
+      '  font:600 13px/1.2 var(--ve-control-font);',
+      '  letter-spacing:0.02em;',
+      '  background:var(--ve-control-bg);',
+      '  color:var(--ve-control-fg);',
+      '  cursor:pointer;',
+      '  transition:background 120ms ease, color 120ms ease,',
+      '              border-color 120ms ease, box-shadow 120ms ease,',
+      '              transform 120ms ease;',
+      '}',
+      '.ve-floating-btn:hover { background:var(--ve-control-bg-hover); border-color:var(--ve-control-border-strong); }',
+      '.ve-floating-btn:active { transform:translateY(1px); }',
+      '.ve-floating-btn:focus-visible {',
+      '  outline:2px solid var(--ve-accent, var(--accent, #b8861f));',
+      '  outline-offset:2px;',
+      '}',
+      // Primary variant — used for Submit when at least one selection
+      // exists. Reads --ve-accent (already shipped by the runtime for
+      // the hover glow). Falls back to host --accent then to the gold
+      // default. The text colour is forced to --ve-control-accent-fg
+      // (default near-black via --ve-sel-text) so it stays readable on
+      // every accent hue.
+      '.ve-floating-btn--primary {',
+      '  background:var(--ve-accent, var(--accent, #b8861f));',
+      '  color:var(--ve-control-accent-fg);',
+      '  border-color:transparent;',
+      '  box-shadow:var(--ve-control-shadow-soft);',
+      '}',
+      '.ve-floating-btn--primary:hover {',
+      '  background:color-mix(in srgb, var(--ve-accent, var(--accent, #b8861f)) 88%, black 12%);',
+      '  border-color:transparent;',
+      '}',
+      // Tertiary variant for Clear-all (touch-only). Same chrome as the
+      // secondary variant but explicitly muted so it does not compete
+      // with Exit/Submit visually.
+      '.ve-floating-btn--ghost {',
+      '  background:transparent;',
+      '  color:var(--ve-control-fg-dim);',
+      '  border-color:var(--ve-control-border);',
+      '}',
+      '.ve-floating-btn--ghost:hover {',
+      '  background:var(--ve-control-bg-hover);',
+      '  color:var(--ve-control-fg);',
+      '}',
+      // ─── Form-mode custom radio / checkbox glyphs ─────────────────────
+      // The runtime still injects a real <input type="radio"> /
+      // <input type="checkbox"> (so existing tests selecting on
+      // input[data-ve-control] keep working and screen readers still see
+      // a native control), but the input is visually hidden via the
+      // sr-only pattern and a styled <span class="ve-form-glyph"> is
+      // rendered alongside it. The glyph picks its colour from the host
+      // accent so the control sits inside the page palette instead of
+      // exposing the OS\'s native chrome.
+      '.ve-form-cell { position:relative; display:inline-block; }',
+      '.ve-form-cell input[data-ve-control] {',
+      // Standard sr-only / visually-hidden pattern — fully removes the
+      // native <input> chrome from rendering on every browser/zoom level
+      // (the previous opacity:0 + inset:0 trick still painted faint
+      // native borders on some Chromium/WebKit revisions, which leaked
+      // through next to the .ve-form-glyph). The input remains
+      // focusable, Tab-reachable, Space-toggleable, and exposed to
+      // assistive tech — only its pixel chrome is gone. The visible
+      // affordance is the .ve-form-glyph sibling, and clicks land on
+      // the row-level click handler installed in initTableForm().
+      '  position:absolute;',
+      '  width:1px; height:1px;',
+      '  padding:0; margin:-1px;',
+      '  overflow:hidden; clip:rect(0,0,0,0);',
+      '  white-space:nowrap; border:0;',
+      '}',
+      '.ve-form-glyph {',
+      '  display:inline-flex; align-items:center; justify-content:center;',
+      '  width:18px; height:18px;',
+      '  background:var(--ve-control-bg);',
+      '  border:1.5px solid var(--ve-control-border-strong);',
+      '  color:transparent;',
+      '  transition:all 120ms ease-out;',
+      '  cursor:pointer;', // glyph is now the visible click target
+      '}',
+      '.ve-form-glyph--radio { border-radius:50%; }',
+      '.ve-form-glyph--check { border-radius:4px; }',
+      // Hover (cell-level so the user gets feedback the moment the
+      // pointer lands anywhere in the leading column).
+      '.ve-form-cell:hover .ve-form-glyph {',
+      '  border-color:var(--ve-accent, var(--accent, #b8861f));',
+      '  background:color-mix(in srgb, var(--ve-accent, var(--accent, #b8861f)) 8%, var(--ve-control-bg) 92%);',
+      '}',
+      // Focus ring on the (invisible) input lights the glyph instead.
+      // Outline + box-shadow both — outline guarantees a visible ring on
+      // every renderer (spec-compliant a11y affordance for keyboard
+      // users), box-shadow softens the edge so it reads as a glow rather
+      // than a hard system rectangle.
+      '.ve-form-cell input[data-ve-control]:focus-visible ~ .ve-form-glyph {',
+      '  outline:2px solid var(--ve-accent, var(--accent, #b8861f));',
+      '  outline-offset:2px;',
+      '  border-color:var(--ve-accent, var(--accent, #b8861f));',
+      '  box-shadow:0 0 0 3px color-mix(in srgb, var(--ve-accent, var(--accent, #b8861f)) 28%, transparent);',
+      '}',
+      // Checked state — fill the glyph with the accent and reveal the
+      // inner mark (radio dot or check mark drawn by ::after).
+      '.ve-form-cell input[data-ve-control]:checked ~ .ve-form-glyph {',
+      '  background:var(--ve-accent, var(--accent, #b8861f));',
+      '  border-color:var(--ve-accent, var(--accent, #b8861f));',
+      '  color:var(--ve-control-accent-fg);',
+      '}',
+      // Radio dot.
+      '.ve-form-glyph--radio::after {',
+      '  content:""; width:8px; height:8px; border-radius:50%;',
+      '  background:currentColor;',
+      '  transform:scale(0); transition:transform 140ms ease;',
+      '}',
+      '.ve-form-cell input[data-ve-control]:checked ~ .ve-form-glyph--radio::after {',
+      '  transform:scale(1);',
+      '}',
+      // Checkbox tick — drawn via two thin pseudo-element borders that
+      // form an inverted-L. Rendered with currentColor so it inherits
+      // the contrast colour set by the checked-state rule above.
+      '.ve-form-glyph--check::after {',
+      '  content:""; width:5px; height:9px;',
+      '  border:solid currentColor; border-width:0 2px 2px 0;',
+      '  transform:rotate(45deg) scale(0); margin-top:-2px;',
+      '  transition:transform 140ms ease;',
+      '}',
+      '.ve-form-cell input[data-ve-control]:checked ~ .ve-form-glyph--check::after {',
+      '  transform:rotate(45deg) scale(1);',
+      '}',
+      // Free-text wrapper — sits inline with the row label so the
+      // <input type="text"> picks up the host palette instead of the
+      // browser-default white-on-system-grey.
+      '.ve-form-text-wrap input[type="text"], .ve-form-text-wrap textarea {',
+      '  width:100%; box-sizing:border-box;',
+      '  padding:7px 11px;',
+      '  background:var(--ve-control-bg);',
+      '  color:var(--ve-control-fg);',
+      '  border:1px solid var(--ve-control-border);',
+      '  border-radius:var(--ve-control-radius-sm);',
+      '  font:var(--ve-control-font);',
+      '  transition:border-color 120ms ease, box-shadow 120ms ease;',
+      '}',
+      '.ve-form-text-wrap input[type="text"]:focus, .ve-form-text-wrap textarea:focus {',
+      '  outline:none;',
+      '  border-color:var(--ve-accent, var(--accent, #b8861f));',
+      '  box-shadow:0 0 0 3px color-mix(in srgb, var(--ve-accent, var(--accent, #b8861f)) 22%, transparent);',
+      '}',
+      // Submit button at the bottom of a table-form. Same chrome as the
+      // floating primary button so the page reads as one design system.
+      '.ve-form-submit-row { background:transparent; }',
+      '.ve-form-submit-row td { background:transparent; }',
+      '.ve-form-status {',
+      '  opacity:0.65; font-size:13px; margin-right:14px;',
+      '  color:var(--ve-control-fg-dim);',
+      '}',
+      '.ve-form-submit {',
+      '  appearance:none; -webkit-appearance:none;',
+      '  display:inline-flex; align-items:center; justify-content:center;',
+      '  min-width:104px; padding:9px 18px;',
+      '  border-radius:var(--ve-control-radius);',
+      '  border:1px solid transparent;',
+      '  font:600 13px/1.2 var(--ve-control-font); letter-spacing:0.04em;',
+      '  background:var(--ve-accent, var(--accent, #b8861f));',
+      '  color:var(--ve-control-accent-fg);',
+      '  cursor:pointer;',
+      '  box-shadow:var(--ve-control-shadow-soft);',
+      '  transition:background 120ms ease, transform 120ms ease,',
+      '              opacity 120ms ease, box-shadow 120ms ease;',
+      '}',
+      '.ve-form-submit:hover:not(:disabled) {',
+      '  background:color-mix(in srgb, var(--ve-accent, var(--accent, #b8861f)) 88%, black 12%);',
+      '}',
+      '.ve-form-submit:active:not(:disabled) { transform:translateY(1px); }',
+      '.ve-form-submit:focus-visible {',
+      '  outline:2px solid var(--ve-accent, var(--accent, #b8861f));',
+      '  outline-offset:3px;',
+      '}',
+      '.ve-form-submit:disabled {',
+      '  background:color-mix(in srgb, var(--ve-control-fg-dim, currentColor) 22%, transparent);',
+      '  color:var(--ve-control-fg-dim);',
+      '  cursor:not-allowed; box-shadow:none;',
+      '}',
+      // ─── Mermaid / Graphviz zoom controls (themable) ──────────────────
+      // Replaces the previous hardcoded dark-translucent toolbar (which
+      // looked great on dark themes but jarring on every warm/light page)
+      // with one that reads its surface and text from --ve-control-* so
+      // it sits inside the host palette automatically.
+      '.ve-graph-controls {',
+      '  background:var(--ve-control-overlay-bg);',
+      '  -webkit-backdrop-filter:var(--ve-control-overlay-blur);',
+      '  backdrop-filter:var(--ve-control-overlay-blur);',
+      '  border:1px solid var(--ve-control-border);',
+      '  color:var(--ve-control-fg);',
+      '  box-shadow:var(--ve-control-shadow-soft);',
+      '}',
+      '.ve-graph-btn {',
+      '  background:transparent; border:0; color:var(--ve-control-fg);',
+      '  width:30px; height:30px; cursor:pointer;',
+      '  border-radius:var(--ve-control-radius-sm);',
+      '  font:600 14px/1 var(--ve-control-font);',
+      '  display:inline-flex; align-items:center; justify-content:center;',
+      '  transition:background 120ms ease, color 120ms ease;',
+      '}',
+      '.ve-graph-btn:hover {',
+      '  background:color-mix(in srgb, var(--ve-accent, var(--accent, #b8861f)) 18%, transparent);',
+      '  color:var(--ve-control-fg);',
+      '}',
+      '.ve-graph-btn:focus-visible {',
+      '  outline:2px solid var(--ve-accent, var(--accent, #b8861f));',
+      '  outline-offset:2px;',
+      '}',
+      '.ve-graph-zoom-label {',
+      '  color:var(--ve-control-fg-dim);',
+      '  padding:0 8px;',
+      '  display:inline-flex; align-items:center;',
+      '  font:11px/1 var(--ve-control-font);',
+      '  letter-spacing:0.04em;',
       '}'
     ].join('\n');
     document.head.appendChild(s);
@@ -1189,26 +1466,21 @@
     return _isTouch;
   }
 
-  function injectClearAllButton() {
+  function injectClearAllButton(parent) {
+    // The Clear-all button is touch-only (mouse users have ESC). It now
+    // lives inside the floating bar instead of as a separate fixed-pos
+    // element, so the parent is the bar itself; the function still
+    // tolerates a missing parent for legacy callers.
     if (!document.body) return;
     if (!isTouchDevice()) return;
     if (document.getElementById('ve-clear-all')) return;
     var btn = document.createElement('button');
     btn.id = 've-clear-all';
     btn.type = 'button';
-    btn.textContent = 'Clear all';
+    btn.className = 've-floating-btn ve-floating-btn--ghost';
+    btn.textContent = 'Clear';
     btn.setAttribute('data-ve-overlay', '1');
-    btn.style.cssText =
-      'position:fixed;bottom:14px;left:120px;'
-      + 'z-index:2147483646;'
-      + 'min-width:84px;padding:9px 14px;'
-      + 'border-radius:8px;border:1px solid rgba(0,0,0,0.18);'
-      + 'font:600 13px/1.2 system-ui,-apple-system,sans-serif;'
-      + 'cursor:pointer;'
-      + 'box-shadow:0 2px 8px rgba(0,0,0,0.28);'
-      + 'background:rgba(255,255,255,0.92);color:#1f1a14;'
-      + 'transition:opacity 120ms;'
-      + 'display:none;'; // shown on demand by updateSubmitButtonsState
+    btn.style.display = 'none'; // shown on demand by updateSubmitButtonsState
     btn.addEventListener('click', function () {
       // Mirror what ESC does — wipe all selections + repaint surfaces.
       if (veSelection.length === 0) return;
@@ -1219,34 +1491,36 @@
       if (typeof repaintCodeGutters === 'function') repaintCodeGutters();
       updateSubmitButtonsState();
     });
-    document.body.appendChild(btn);
+    (parent || document.body).appendChild(btn);
   }
 
   function injectSubmitButtons() {
     if (!document.body) return;
     if (document.getElementById('ve-submit-tr')) return; // idempotent
-    // Two physically mirrored buttons (top-right + bottom-left) so the
-    // user can reach Submit/Exit without traversing the whole viewport
-    // — important on large pages and on touch devices.
-    var positions = [
-      { id: 've-submit-tr', cssText: 'position:fixed;top:14px;right:14px;' },
-      { id: 've-submit-bl', cssText: 'position:fixed;bottom:14px;left:14px;' }
-    ];
-    for (var i = 0; i < positions.length; i++) {
-      var pos = positions[i];
+    // Single floating bar bottom-right — semi-translucent backdrop-blur
+    // surface that reads its colour from the host palette via
+    // --ve-control-overlay-bg. The pair of buttons inside (Exit on the
+    // left, Submit on the right) replaces the previous physically-
+    // mirrored corner buttons that ignored the host theme entirely.
+    //
+    // The IDs ve-submit-tr (now leftmost) and ve-submit-bl (now
+    // rightmost) are PRESERVED for backwards-compat with existing test
+    // selectors — they no longer carry positional meaning, but the
+    // tests use them as logical hooks so renaming them would require a
+    // coordinated test-suite update.
+    var bar = document.createElement('div');
+    bar.id = 've-floating-bar';
+    bar.className = 've-floating-bar';
+    bar.setAttribute('data-ve-overlay', '1');
+    document.body.appendChild(bar);
+
+    var ids = ['ve-submit-tr', 've-submit-bl'];
+    for (var i = 0; i < ids.length; i++) {
       var btn = document.createElement('button');
-      btn.id = pos.id;
+      btn.id = ids[i];
       btn.type = 'button';
+      btn.className = 've-floating-btn';
       btn.setAttribute('data-ve-overlay', '1');
-      btn.style.cssText =
-        pos.cssText
-        + 'z-index:2147483646;'
-        + 'min-width:84px;padding:9px 14px;'
-        + 'border-radius:8px;border:1px solid rgba(0,0,0,0.18);'
-        + 'font:600 13px/1.2 system-ui,-apple-system,sans-serif;'
-        + 'cursor:pointer;'
-        + 'box-shadow:0 2px 8px rgba(0,0,0,0.28);'
-        + 'transition:background 120ms,color 120ms,box-shadow 120ms;';
       (function (b) {
         // Auto-derive kind from current selection size: empty → "exit",
         // any items → "submit". Calling veSubmit() / veExit() bypasses
@@ -1256,31 +1530,52 @@
         // function name we wired up.
         b.addEventListener('click', function () { submitSelections(); });
       })(btn);
-      document.body.appendChild(btn);
+      bar.appendChild(btn);
     }
-    injectClearAllButton(); // Phase 7: touch-only Clear-all button next to BL Submit
+    injectClearAllButton(bar); // Phase 7: touch-only Clear button inside the bar
     updateSubmitButtonsState();
   }
 
   function updateSubmitButtonsState() {
+    // Both buttons are kept in the DOM for test compatibility. Visually
+    // the bar collapses to a single Exit button when no selections exist
+    // (so the page does not show two identical buttons), and expands to
+    // an Exit + primary Submit pair the moment the user picks anything.
+    // Both buttons still POST through submitSelections() with auto-
+    // derived kind, so the existing tests can click either ID and get
+    // the right wire payload.
     var n = veSelection.length;
-    var btns = [document.getElementById('ve-submit-tr'), document.getElementById('ve-submit-bl')];
-    for (var i = 0; i < btns.length; i++) {
-      var b = btns[i];
-      if (!b) continue;
+    var exitBtn = document.getElementById('ve-submit-tr');     // leftmost
+    var submitBtn = document.getElementById('ve-submit-bl');   // rightmost (primary when n>0)
+    if (exitBtn) {
+      // The leftmost slot is always the "cancel/back-out" affordance.
+      // It uses ghost styling so it never visually competes with the
+      // primary Submit when both are visible.
+      exitBtn.textContent = 'Exit';
+      exitBtn.className = 've-floating-btn ve-floating-btn--ghost';
+      exitBtn.style.display = 'inline-flex';
+    }
+    if (submitBtn) {
       if (n === 0) {
-        b.textContent = 'Exit';
-        b.style.background = 'rgba(255,255,255,0.92)';
-        b.style.color = '#1f1a14';
+        // Hide the secondary slot entirely — a duplicate Exit button
+        // would be confusing. The primary remains in the DOM (and
+        // clickable via test selector) but visually the bar is just
+        // [Exit].
+        submitBtn.textContent = 'Exit';
+        submitBtn.className = 've-floating-btn ve-floating-btn--ghost';
+        submitBtn.style.display = 'none';
       } else {
-        b.textContent = 'Submit (' + n + ')';
-        b.style.background = '#b8861f';   // accent gold (page can override via CSS)
-        b.style.color = '#1f1a14';
+        // n>0 → bar shows [Exit] [Submit(N)] with Submit as the primary
+        // accent-coloured button.
+        submitBtn.textContent = 'Submit (' + n + ')';
+        submitBtn.className = 've-floating-btn ve-floating-btn--primary';
+        submitBtn.style.display = 'inline-flex';
       }
     }
-    // Phase 7: Clear-all is touch-only, visible only when there's something to clear.
+    // Phase 7: Clear-all is touch-only, visible only when there's
+    // something to clear. Lives inside the bar between Exit and Submit.
     var clearBtn = document.getElementById('ve-clear-all');
-    if (clearBtn) clearBtn.style.display = (isTouchDevice() && n > 0) ? 'inline-block' : 'none';
+    if (clearBtn) clearBtn.style.display = (isTouchDevice() && n > 0) ? 'inline-flex' : 'none';
   }
 
   // ESC clears multi-select; Enter triggers global Submit/Exit. Both
@@ -1541,12 +1836,33 @@
       var isText = row.getAttribute('data-ve-row-text') === '1';
 
       // Insert leading cell with the form control.
+      // The native <input> still ships (so screen readers see a real
+      // control, Tab/Space keyboard accessibility works, and tests
+      // selecting on input[data-ve-control] keep working) but it is
+      // VISUALLY HIDDEN via the standard sr-only pattern (1×1px clipped
+      // absolute positioning) — guarantees zero native chrome paints on
+      // every browser/zoom level. A styled <span class="ve-form-glyph">
+      // renders the visible radio dot or checkbox tick using --ve-accent
+      // — so the control inherits the host palette instead of exposing
+      // native browser chrome that looks Mac/Win/Linux-default and
+      // out-of-theme everywhere. Clicks on the row toggle via the
+      // row-level click handler installed below; the manual toggleRow()
+      // dispatches a synthetic 'change' event so the :checked sibling
+      // selector lights the glyph.
       var cell = document.createElement('td');
       cell.setAttribute('data-ve-form-cell', '');
       cell.style.width = '1%';
       cell.style.whiteSpace = 'nowrap';
       cell.style.verticalAlign = 'middle';
       cell.style.textAlign = 'center';
+
+      var glyphWrap = document.createElement('span');
+      glyphWrap.className = 've-form-cell';
+      glyphWrap.style.display = 'inline-block';
+      glyphWrap.style.position = 'relative';
+      glyphWrap.style.width = '18px';
+      glyphWrap.style.height = '18px';
+      glyphWrap.style.verticalAlign = 'middle';
 
       var input = document.createElement('input');
       input.type = inputType;
@@ -1556,8 +1872,30 @@
       if (isText) input.setAttribute('data-ve-text-control', '');
       input.setAttribute('aria-label', rowLabel);
 
-      cell.appendChild(input);
+      var glyph = document.createElement('span');
+      glyph.className = 've-form-glyph ' + (inputType === 'radio'
+        ? 've-form-glyph--radio'
+        : 've-form-glyph--check');
+      glyph.setAttribute('aria-hidden', 'true');
+
+      glyphWrap.appendChild(input);
+      glyphWrap.appendChild(glyph);
+      cell.appendChild(glyphWrap);
       row.insertBefore(cell, row.firstChild);
+
+      // Free-text rows: add the .ve-form-text-wrap class to the row so
+      // the existing <input type="text"> picks up the host palette via
+      // CSS custom properties instead of exposing the native white-on-
+      // grey browser default.
+      if (isText) {
+        var textCells = row.querySelectorAll('td');
+        for (var ti = 0; ti < textCells.length; ti++) {
+          var tc = textCells[ti];
+          if (tc.querySelector('input[type="text"], textarea')) {
+            tc.classList.add('ve-form-text-wrap');
+          }
+        }
+      }
 
       // Make the whole row toggle the control (except clicks on the text
       // input itself, which should focus & not toggle).
@@ -1603,18 +1941,21 @@
     var colCount = (firstRow.children.length) || 2;
     var submitTr = document.createElement('tr');
     submitTr.setAttribute('data-ve-form-footer', '');
+    submitTr.className = 've-form-submit-row';
     var submitTd = document.createElement('td');
     submitTd.colSpan = colCount;
     submitTd.style.textAlign = 'right';
     submitTd.style.padding = '14px 12px';
+    // The previous implementation used `background:currentColor` +
+    // `color:#fff;mix-blend-mode:difference` to invert text against the
+    // page accent — clever, but unreadable on every palette where the
+    // accent had low luminance contrast against white. The new button
+    // uses the shared --ve-control-* palette so the Submit button reads
+    // as the same primary affordance as the floating Submit, themed by
+    // the host page automatically.
     submitTd.innerHTML =
-      '<span data-ve-form-status style="opacity:0.6;font-size:13px;margin-right:12px;">No selection yet</span>' +
-      '<button type="button" data-ve-form-submit ' +
-      'style="font:600 14px/1 inherit;background:currentColor;color:transparent;'
-        + 'border:0;padding:9px 18px;border-radius:8px;cursor:pointer;'
-        + 'box-shadow:inset 0 0 0 9999px rgba(0,0,0,0);">'
-      + '<span style="color:#fff;mix-blend-mode:difference;">Submit</span>'
-      + '</button>';
+      '<span data-ve-form-status class="ve-form-status">No selection yet</span>' +
+      '<button type="button" data-ve-form-submit class="ve-form-submit">Submit</button>';
     submitTr.appendChild(submitTd);
     tfoot.appendChild(submitTr);
 
@@ -1658,9 +1999,9 @@
       }
     }
     if (btn) {
+      // The `.ve-form-submit:disabled` CSS rule handles the visual
+      // dim/cursor state — no inline-style overrides needed here.
       btn.disabled = checked.length === 0;
-      btn.style.opacity = checked.length === 0 ? '0.5' : '1';
-      btn.style.cursor = checked.length === 0 ? 'not-allowed' : 'pointer';
     }
   }
 
@@ -2692,7 +3033,13 @@
       apply();
     }
 
-    // Controls overlay (top-right corner of the viewport).
+    // Controls overlay (top-right corner of the viewport). Layout
+    // (position, top, right, z-index, padding, gap) is set inline
+    // because it is positional, not chromatic. Colour, surface, blur,
+    // border, font, shadow all read from --ve-control-* via the
+    // .ve-graph-controls CSS class so the toolbar tints to the host
+    // palette instead of shipping a hardcoded dark-translucent surface
+    // that looked wrong on every warm/light page.
     var controls = document.createElement('div');
     controls.className = 've-graph-controls';
     controls.style.cssText = [
@@ -2703,20 +3050,10 @@
       'display:flex',
       'align-items:center',
       'gap:2px',
-      'background:rgba(15,17,21,0.82)',
-      'backdrop-filter:blur(8px)',
-      '-webkit-backdrop-filter:blur(8px)',
-      'border:1px solid rgba(255,255,255,0.08)',
-      'border-radius:8px',
+      'border-radius:var(--ve-control-radius, 8px)',
       'padding:4px',
-      'font:600 12px/1 ui-monospace,Menlo,monospace',
       'pointer-events:auto'
     ].join(';');
-
-    var btnBaseStyle =
-      'background:transparent;border:0;color:#fff;width:30px;height:30px;'
-      + 'cursor:pointer;border-radius:5px;font:inherit;font-size:14px;'
-      + 'display:inline-flex;align-items:center;justify-content:center;';
 
     function makeBtn(label, title, onClick) {
       var b = document.createElement('button');
@@ -2725,9 +3062,9 @@
       b.textContent = label;
       b.title = title;
       b.setAttribute('aria-label', title);
-      b.style.cssText = btnBaseStyle;
-      b.addEventListener('mouseenter', function () { b.style.background = 'rgba(255,255,255,0.14)'; });
-      b.addEventListener('mouseleave', function () { b.style.background = 'transparent'; });
+      // Class-based styling — colour/hover/focus all come from
+      // .ve-graph-btn (themed via --ve-control-* and --ve-accent).
+      b.className = 've-graph-btn';
       b.addEventListener('click', function (ev) {
         ev.preventDefault();
         ev.stopPropagation();
@@ -2737,10 +3074,8 @@
     }
 
     var zoomLabel = document.createElement('span');
+    zoomLabel.className = 've-graph-zoom-label';
     zoomLabel.textContent = '100%';
-    zoomLabel.style.cssText =
-      'color:rgba(255,255,255,0.7);padding:0 8px;display:inline-flex;'
-      + 'align-items:center;font-size:11px;letter-spacing:0.04em;';
 
     controls.appendChild(makeBtn('+', 'Zoom in (Ctrl+wheel up)',
       function () { zoomAtPoint(1.18, viewport.clientWidth / 2, viewport.clientHeight / 2); }));
@@ -4814,8 +5149,42 @@
     // mouseleave doesn't bubble; capture-phase + the deferred hide gives
     // the pointer 180 ms to cross the 4 px gap onto the pill.
     document.addEventListener('mouseleave', scheduleHideCommentHoverPill, true);
-    // Hide on scroll (the pill is absolute-positioned so it would drift).
-    window.addEventListener('scroll', hideCommentHoverPill, { passive: true });
+    // Reposition the pill on scroll instead of hiding it.
+    //
+    // We previously hid the pill on every scroll event with the rationale
+    // that an absolute-positioned pill would otherwise drift. That is not
+    // actually true — the pill's `top:` is set to `rect.top + scrollY`
+    // which is a DOCUMENT-relative coordinate, so an absolute-positioned
+    // element with that top stays glued to its anchor as the page scrolls.
+    //
+    // The hide-on-scroll caused a hard race (browser-ui-test-techniques.md
+    // rule 1): a programmatic `scrollIntoView()` queues a scroll event
+    // that fires AFTER the synchronous `mouse.move()` event sequence has
+    // run. So the test would: scrollIntoView → mouse.move → mouseover P
+    // → showCommentHoverPill (opacity:1) → queued scroll fires → hide
+    // (opacity:0). The pill flashed visible then disappeared before the
+    // test could read it. Real users hit the same race after any
+    // programmatic scroll (anchor focus, smooth-scroll link, in-page
+    // jumps from the agent-report nav) — the pill they were about to
+    // click vanished underneath them.
+    //
+    // The new behaviour repositions the pill if it is currently visible.
+    // For body-positioned bodies the recompute is a no-op (top stays the
+    // same in document coords) but it correctly handles non-trivial
+    // layouts where scroll changes the anchor's document position
+    // (positioned ancestors, sticky containers, etc.).
+    window.addEventListener('scroll', function () {
+      if (
+        commentHoverTarget
+        && commentHoverPill
+        && commentHoverPill.style.opacity === '1'
+      ) {
+        var rect = commentHoverTarget.getBoundingClientRect();
+        commentHoverPill.style.top = (rect.top + window.scrollY + 4) + 'px';
+        commentHoverPill.style.left =
+          (rect.right + window.scrollX - 130) + 'px';
+      }
+    }, { passive: true });
   }
 
   // ── Modal ───────────────────────────────────────────────────────────

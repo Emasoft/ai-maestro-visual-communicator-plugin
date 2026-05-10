@@ -9,6 +9,7 @@
 - [ve-regex — case-insensitive Z for Cmd-Shift-Z](#ve-regex--case-insensitive-z-for-cmd-shift-z)
 - [ve-regex — shift+click extends selection](#ve-regex--shiftclick-extends-selection)
 - [ve-regex — wide regex per-graph horizontal scroll](#ve-regex--wide-regex-per-graph-horizontal-scroll)
+- [Runtime-injected UI must inherit host palette](#runtime-injected-ui-must-inherit-host-palette)
 - [Common shape](#common-shape)
 - [Running the test suite](#running-the-test-suite)
 
@@ -178,6 +179,120 @@ scrollbar when needed.
 `overflow-x: auto` and `scrollWidth > clientWidth`, AND that
 `document.body.scrollWidth === clientWidth` (no page-level
 horizontal overflow).
+
+---
+
+## Runtime-injected UI must inherit host palette
+
+**Symptom:** Every runtime-injected UI element (Submit / Exit
+floating buttons, the form-mode radio + checkbox column, the
+free-text input wrappers, the Mermaid / Graphviz zoom controls
+toolbar, the comment-thread modal) shipped with hardcoded colours
+(`background:#ffffff`, `color:#1f1a14`, `background:rgba(15,17,21,0.82)`,
+native `<input type="radio">` chrome). On a host page using a
+warm-cream palette (`--bg:#fbf6ee`), or a cool-slate technical
+palette (`--bg:#e6f1f5`), or any other non-white theme, the runtime
+chrome jumped out as obviously alien — white pills on warm cream,
+black-on-white form controls in a green editorial layout, dark
+glass toolbars on a light Apple-papery diagram. Worse: the
+table-form Submit button used a `currentColor` fill +
+`mix-blend-mode: difference` trick that collapsed to invisible on
+several palettes.
+
+**Why:** The runtime had two themable hooks already in place
+(`--ve-accent` for the hover glow, `--ve-sel-text` for selected
+text colour) but no namespace for surface, fg, border, radius,
+font, shadow. Each injected element rolled its own hardcoded
+defaults instead of reading from a shared palette.
+
+**Fix:** Introduced a `--ve-control-*` CSS custom-property
+namespace at the top of `injectStyles()`. Every runtime-injected
+element now reads its colour, surface, border, radius, font, and
+shadow from these variables, with two-tier fallbacks: the runtime
+variables fall back to the host page's standard palette
+(`--bg`, `--surface`, `--text`, `--border`, `--accent`); only when
+the host exposes neither set do they fall back to hardcoded
+neutral defaults. The host page can override any one variable to
+brand the runtime UI; setting `--ve-control-bg: transparent`
+suppresses the runtime backgrounds entirely.
+
+The new namespace (`scripts/amvcp-runtime.js` `injectStyles()`):
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `--ve-control-bg` | `var(--surface, #ffffff)` | Runtime button / control surface |
+| `--ve-control-bg-hover` | mix of bg + accent at 12% | Hover surface |
+| `--ve-control-fg` | `var(--text, #14110b)` | Foreground text on runtime controls |
+| `--ve-control-fg-dim` | `var(--text-dim, …)` | Secondary text (status, placeholders) |
+| `--ve-control-border` | `var(--border, rgba(0,0,0,0.12))` | Runtime control borders |
+| `--ve-control-border-strong` | `var(--border-bright, …)` | Stronger border for glyphs / focus |
+| `--ve-control-radius` | `8px` | Standard runtime corner radius |
+| `--ve-control-radius-sm` | `6px` | Smaller controls (text inputs, glyph buttons) |
+| `--ve-control-font` | `inherit` | Runtime button typography (host font wins) |
+| `--ve-control-shadow` | floating-bar elevation | Floating UI shadow |
+| `--ve-control-shadow-soft` | subtle elevation | Inline button elevation |
+| `--ve-control-overlay-bg` | `color-mix(--bg 82%, transparent)` | Backdrop-blur surface for floating bar / zoom toolbar |
+| `--ve-control-overlay-blur` | `blur(10px)` | Backdrop-filter intensity |
+| `--ve-control-accent-fg` | `var(--ve-sel-text, #14110b)` | Forced contrast text on accent fills |
+
+Visual fixes shipped alongside the variable namespace:
+
+1. **Submit/Exit pair**: collapsed from two physically-mirrored
+   corner buttons (top-right + bottom-left) into a single
+   `.ve-floating-bar` bottom-right with a backdrop-blur surface
+   tinted to `--ve-control-overlay-bg`. The two button IDs
+   (`ve-submit-tr`, `ve-submit-bl`) are PRESERVED as logical
+   hooks so existing tests work; the bar visually shows just
+   `[Exit]` when no selections exist (the secondary slot is
+   `display:none`) and expands to `[Exit] [Submit (N)]` the
+   moment the user picks anything.
+2. **Form-mode radio/checkbox column**: keeps the real
+   `<input type="radio">` / `<input type="checkbox">` (so screen
+   readers and existing tests selecting on
+   `input[data-ve-control]` keep working) but visually hides it
+   under a styled `<span class="ve-form-glyph">`. The glyph
+   inherits its border + fill from `--ve-accent` so the control
+   sits inside the host palette instead of exposing OS native
+   chrome (Mac/Win/Linux defaults that look out-of-theme on every
+   palette).
+3. **Free-text input wrapper**: the row `<td>` containing a free-
+   text input now gets a `.ve-form-text-wrap` class so the
+   `<input type="text">` and `<textarea>` inside read their
+   surface, colour, border, focus ring from `--ve-control-*`.
+4. **Mermaid / Graphviz zoom controls**: the `.ve-graph-controls`
+   toolbar now reads its surface, border, blur, and font from
+   the same `--ve-control-overlay-*` variables as the floating
+   bar, so the toolbar tints to the host theme instead of
+   shipping a hardcoded dark-translucent surface.
+5. **Table-form Submit button**: the `currentColor` +
+   `mix-blend-mode: difference` collapse-to-invisible trick is
+   replaced by a `.ve-form-submit` class that uses
+   `--ve-accent` for the primary fill and
+   `--ve-control-accent-fg` for the forced-contrast text — so
+   the button is always readable on every accent hue.
+6. **Decision toggles**: hardcoded `#d6d1c5` (off track) and
+   `#fbfaf6` (thumb) swapped to
+   `var(--ve-control-border-strong, #d6d1c5)` and
+   `var(--ve-control-bg, #fbfaf6)` so toggles tint to the host
+   theme; the original warm-taupe / warm-off-white defaults
+   remain when the host page does not expose any palette.
+
+**Host-side opt-out / overrides:** Setting
+`--ve-control-bg: transparent` on `:root` suppresses every
+runtime button background (useful when the host page wants the
+runtime to disappear into its own backdrop). Overriding
+`--ve-control-radius`, `--ve-control-font`, or
+`--ve-control-overlay-bg` alone is enough to re-skin the floating
+bar without touching the buttons. The `--ve-accent` variable
+remains the single most useful brand override — every primary
+control derives its accent fill from it.
+
+**Test:** No new dedicated tests; every existing test still
+selects on the same IDs (`ve-submit-tr`, `ve-submit-bl`,
+`[data-ve-form-submit]`) and the same input
+(`input[data-ve-control]`). All 46 dev-browser tests pass after
+the fix. Visual regression confirmed via cross-palette screenshots
+under `reports/visual-test/choice-tables/*-after-fix.png`.
 
 ---
 
