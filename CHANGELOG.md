@@ -5,11 +5,42 @@ All notable changes to this project will be documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Documentation
+
+- Add TRDD-5c230516 for 10-skill multi-split
+
+### Features
+
+- Add amvcp-modal-comments sub-skill (v2/v3 agent-report flow)
+- Add amvcp-prose-pages sub-skill (article-style publishable pages)
+- Add amvcp-slide-decks sub-skill (magazine-quality slide decks)
+- Add amvcp-share-pages sub-skill (Vercel deploy)
+- Add amvcp-math-and-latex sub-skill (KaTeX, mhchem, TikZJax)
+- Add amvcp-charts-and-dashboards sub-skill (Chart.js)
+- Add amvcp-regex-vis sub-skill (regex visualizer + editor)
+- Add amvcp-choice-tables sub-skill (table-form Q&A)
+- Add amvcp-graph-diagrams sub-skill (Mermaid + Graphviz)
+
+### Refactoring
+
+- Restructure all 10 SKILL.md files for CPV 2.80.1 strict mode
+- Slim main SKILL.md to <=4000 chars + 5 main-only refs
+- Extract comment-chat-box.md from modal-comments.md
+- Split interactive-selection.md into 8 topic files
+- Update plugin-ref-internal cross-references to use ${CLAUDE_PLUGIN_ROOT}
+- Move 6 cross-cutting refs to plugin-level references/
+
 ## [1.1.9] — 2026-05-09
 
 ### Bug Fixes
 
 - TRDD-5f41ad36 remaining deferred items — Phase A-D
+
+### Chores
+
+- V1.1.9
 
 ### Documentation
 
