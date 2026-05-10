@@ -64,7 +64,7 @@ Verify each claim against the code. If something cannot be verified, mark it as 
 
 Include responsive section navigation. Use diff-style visual language throughout: red for removed/before, green for added/after, yellow for modified, blue for neutral context.
 
-**Interactive selection:** every changed-file card, section/risk callout, and Mermaid node in the architecture diagram must carry `data-ve-id` / `data-ve-type` / `data-ve-label`. Add `click X call veSelectMermaid(...)` directives plus `securityLevel: 'loose'` to the Mermaid diagram. Embed `<script src="amvcp-runtime.js"></script>` at end of body. See `../skills/amvcp-visual-communication/references/interactive-selection.md`.
+**Interactive selection:** every changed-file card, section/risk callout, and Mermaid node in the architecture diagram must carry `data-ve-id` / `data-ve-type` / `data-ve-label`. Add `click X call veSelectMermaid(...)` directives plus `securityLevel: 'loose'` to the Mermaid diagram. Embed `<script src="amvcp-runtime.js"></script>` at end of body. See `${CLAUDE_PLUGIN_ROOT}/references/interactive-selection-base.md` for the wire format and `${CLAUDE_PLUGIN_ROOT}/skills/amvcp-graph-diagrams/references/mermaid-integration.md` for `veSelectMermaid` details.
 
 Write to `$CLAUDE_PROJECT_ROOT/reports/visual-communicator/diagrams/`. Open it via the interactive selection runner (`python3 $CLAUDE_PLUGIN_ROOT/scripts/amvcp-select.py $CLAUDE_PROJECT_ROOT/reports/visual-communicator/diagrams/<file>.html`) and respond to whatever the user clicks per the SKILL.md follow-up template — common follow-ups for diff review are "explain this change", "revert this file", or "expand this risk into a TODO".
 

@@ -1422,3 +1422,24 @@ White, geometric sans, single bold accent, visible grid. Minimal and precise. Li
 ```
 
 Background: clean white or near-black, no gradients. Visible grid lines (the `--with-grid` pattern). Tight geometric layouts. Single accent color used sparingly for emphasis. Data-heavy and analytical content shines here.
+
+---
+
+## Slide selection wiring
+
+(Originally part of `interactive-selection.md` — moved here when that file was split into per-engine topic files. For the cross-cutting selection wire format, see `${CLAUDE_PLUGIN_ROOT}/references/interactive-selection-base.md`.)
+
+Each slide in a slide deck must carry a `data-ve-id` so the user can click an empty area of a slide to select that whole slide:
+
+```html
+<section class="slide"
+         data-ve-id="slide-3-revenue"
+         data-ve-type="slide"
+         data-ve-label="Slide 3: Revenue trend">
+  <!-- slide content; inner [data-ve-id] elements still work and take precedence -->
+</section>
+```
+
+Inner elements (Mermaid nodes, table rows, KPI cards) keep working — the runtime resolves the *innermost* `[data-ve-id]` ancestor of the click target. So clicking a Mermaid node inside a slide returns the node, not the slide; clicking the slide background returns the slide.
+
+Slide-deck navigation controls (Prev/Next, slide counter, fullscreen toggle) are wrapped in `<button>` / `<a>` elements and are excluded from selection automatically.

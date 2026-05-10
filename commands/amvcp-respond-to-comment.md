@@ -116,6 +116,6 @@ The same queue dir holds `<threadId>.jsonl` (user turns), `<threadId>.reply.<tur
 
 ## See also
 
-- `../skills/amvcp-visual-communication/references/interactive-selection.md` — wire format for v2 modal comment threads.
+- `${CLAUDE_PLUGIN_ROOT}/references/interactive-selection-base.md` — wire format for v2 modal comment threads (the v2-specific section will move to `${CLAUDE_PLUGIN_ROOT}/references/comment-chat-box.md` in a follow-up commit).
 - `design/tasks/TRDD-eff1aa87-cd78-4e0c-bf6c-644c419d65b3-interactive-agent-reports.md` §6 — full v2 design + decision log.
 - `commands/amvcp-interactive-report.md` — v2 modal-comment thread renderer (the page side of this responder).

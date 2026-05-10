@@ -64,7 +64,7 @@ Before writing HTML, commit to a direction. Don't default to "dark theme with bl
 
 Read the references each time — don't memorize.
 
-- **Always** read the interactive-selection reference — every page must wire up element selection.
+- **Always** read the interactive-selection-base reference (`${CLAUDE_PLUGIN_ROOT}/references/interactive-selection-base.md`) — every page must wire up element selection. For per-engine specifics see the sub-skill cookbooks (Mermaid, Graphviz, Chart.js, math/LaTeX, TikZ, regex, prose, choice-tables).
 - For text-heavy architecture overviews: open `templates/architecture.html`.
 - For flowcharts, sequence diagrams, ER, state machines, mind maps, class diagrams, C4: open `templates/mermaid-flowchart.html`.
 - For data tables (passive or form): open `templates/data-table.html`.
@@ -94,7 +94,7 @@ Build a single self-contained `.html` file. Inline the CSS and any minor JS in `
 </html>
 ```
 
-**Mandatory boilerplate** (full details in the interactive-selection reference):
+**Mandatory boilerplate** (full details in `${CLAUDE_PLUGIN_ROOT}/references/interactive-selection-base.md`):
 
 1. The `<script src="amvcp-runtime.js"></script>` tag at the end of `<body>`. The selection runner auto-copies the runtime into the same directory as the served HTML so a relative `src` always resolves.
 2. `data-ve-id` on every meaningful element, with optional `data-ve-type` and `data-ve-label`.
@@ -130,7 +130,7 @@ The runner returns either the legacy single-shot shape or the new multi-select s
 - `kind: "submit"` with count 1 — *"You selected the element «label» (`«type»: «id»`). What do you want me to do about it?"*
 - `kind: "submit"` with count ≥ 2 — recap each selection (label + type) and ask what to do with them.
 
-For the full payload schema (text snippets, math snippets, regex edits, finding-reply turns, etc.) read the interactive-selection reference.
+For the full payload schema (text snippets, math snippets, regex edits, finding-reply turns, etc.) read `${CLAUDE_PLUGIN_ROOT}/references/interactive-selection-base.md`.
 
 ### Choosing a rendering approach (quick reference)
 
@@ -206,7 +206,7 @@ For the v2 modal-comment flow, the queue dir, sidecar files, and atomic-write pa
 - **Timeout without a click.** The runner returns `{"id":null,"reason":"timeout"}`. For purely explanatory pages, this is fine — open your reply with "I generated the page; let me know what you want to do" instead of asking about a phantom selection.
 - **`surf` CLI missing.** Skip image generation; the page must stand on its own with CSS and typography. Never let an absent `surf` block page generation.
 - **Mermaid render failure.** Inspect the JS console for `Syntax error in text` (typically a `stateDiagram-v2` label with parens/colons/`<br/>`) — switch to `flowchart TD` for richer label support. See the `stateDiagram-v2` notes in the diagram-types reference.
-- **TikZ/MathJax silent failures.** A single LaTeX error inside any `.ve-tikz` block crashes the WASM runtime and silently blocks every later diagram on the same page. If the user reports "I see only the title and the legend", inspect the JS console for `! LaTeX Error` lines and identify which diagram crashed the run. See "TikZJax limitations & substitutions" in the interactive-selection reference.
+- **TikZ/MathJax silent failures.** A single LaTeX error inside any `.ve-tikz` block crashes the WASM runtime and silently blocks every later diagram on the same page. If the user reports "I see only the title and the legend", inspect the JS console for `! LaTeX Error` lines and identify which diagram crashed the run. See `${CLAUDE_PLUGIN_ROOT}/skills/amvcp-math-and-latex/references/tikz-substitutions.md`.
 - **Vercel deploy errors (`/amvcp-share-page`).** Confirm the `vercel-deploy` skill is installed (`npm skills install vercel-deploy`). Other harnesses can generate and open HTML normally without it.
 - **Always check the browser console first** when something visible is missing — most failures (Mermaid, TikZ, regex panel, snippet popup) emit a console message identifying which block crashed.
 
@@ -258,6 +258,7 @@ Plugin-level shared references live at `${CLAUDE_PLUGIN_ROOT}/references/` (used
 
 **Plugin-level shared (`${CLAUDE_PLUGIN_ROOT}/references/`):**
 
+- **interactive-selection-base** — cross-cutting selection wire format used by every sub-skill: how the runtime works, mandatory boilerplate, the multi-select payload, what to make selectable, marking elements, the engine-routing decision table, runner-process pitfalls (Chrome --app=URL mode), selection-system author anti-patterns, inlining the runtime, future extensions. Read every time you generate HTML — the per-engine cookbooks (Mermaid, Graphviz, Chart.js, math, TikZ, regex, prose, tables) all sit on top of this contract.
 - **css-patterns** — theme setup, background atmosphere, link styling, card components, code blocks, directory tree, overflow protection, Mermaid container chrome, grid layouts, connectors, animations, sparklines, responsive breakpoints, badges, lists, KPI/metric cards, before/after panels, collapsible sections, prose elements, generated images.
 - **libraries** — Mermaid.js (themed diagrams), Chart.js (bar/line/pie/area), anime.js (orchestrated animations), Google Fonts pairings.
 - **styling-guide** — aesthetic directions, typography, colour and palette, surfaces and depth, background atmosphere, visual weight and hierarchy, animation rules, Mermaid theming and containers, AI-generated illustrations.
@@ -267,7 +268,6 @@ Plugin-level shared references live at `${CLAUDE_PLUGIN_ROOT}/references/` (used
 
 **This skill (`./references/`):**
 
-- **interactive-selection** — selection wire format, payload schemas, Mermaid/Chart.js wiring, table-form mode, prose mode (paragraph numbering, text snippets), math/LaTeX with KaTeX + mhchem, the Graphviz cookbook, TikZJax limitations and substitutions, runner-process pitfalls, inlining the runtime for single-file portability, future extensions. Read this every time you generate HTML.
 - **responsive-nav** — layout structure, CSS, scroll-spy JavaScript, adaptation notes for multi-section pages.
 - **slide-patterns** — planning a deck from a source document, slide engine base, typography scale, cinematic transitions, navigation chrome, SlideEngine JavaScript, auto-fit, slide type layouts, decorative SVG, proactive imagery, compositional variety, presentation readability, content density limits, responsive height breakpoints, curated presets.
 - **slide-deck-mode** — when to switch into slide-deck mode, content completeness, slide types and visual richness, compositional variety, curated presets, the `--slides` flag on existing prompts.

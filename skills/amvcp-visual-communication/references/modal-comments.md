@@ -118,6 +118,6 @@ When responding, **read the `decision` field first**:
 
 ## When NOT to use v2 modal comments
 
-- The user just wants a **single click → return one selection** (use the v1 Interactive Selection flow described in [interactive-selection](./interactive-selection.md); that is what `/amvcp-diff-review`, `/amvcp-plan-review`, etc. already do).
+- The user just wants a **single click → return one selection** (use the v1 Interactive Selection flow described in [interactive-selection-base](${CLAUDE_PLUGIN_ROOT}/references/interactive-selection-base.md); that is what `/amvcp-diff-review`, `/amvcp-plan-review`, etc. already do).
 - The page has no per-element commentables (a single diagram, a slide deck) — render with `/amvcp-generate-web-diagram` or `/amvcp-generate-slides` and skip v2.
 - One-shot HTML the user will only read offline — no transport, no comments, no responder.
