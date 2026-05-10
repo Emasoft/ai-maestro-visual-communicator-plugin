@@ -18,7 +18,7 @@
 - [Documentation (READMEs, Library Docs, API References)](#documentation-readmes-library-docs-api-references)
 - [Prose Accent Elements](#prose-accent-elements)
 
-Catalogue of diagram types with rendering-approach guidance. See [css-patterns](./css-patterns.md), [libraries](./libraries.md), and [interactive-selection](./interactive-selection.md) for the patterns each type relies on.
+Catalogue of diagram types with rendering-approach guidance. See [css-patterns](./css-patterns.md), [libraries](./libraries.md), and [interactive-selection](${CLAUDE_PLUGIN_ROOT}/skills/amvcp-visual-communication/references/interactive-selection.md) for the patterns each type relies on.
 
 ## Architecture / System Diagrams
 Three approaches depending on complexity:
