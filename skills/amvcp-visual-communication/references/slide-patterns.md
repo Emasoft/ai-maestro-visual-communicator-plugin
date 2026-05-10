@@ -22,7 +22,7 @@ CSS patterns, JS engine, slide type layouts, transitions, navigation chrome, and
 
 **When to use slides:** Only when the user explicitly requests them — `/generate-slides`, `--slides` flag on an existing prompt, or natural language like "as a slide deck." Never auto-select slide format.
 
-**Before generating**, also read [css-patterns](./css-patterns.md) for shared patterns (Mermaid zoom controls, overflow protection, depth tiers, status badges) and [libraries](./libraries.md) for Mermaid theming, Chart.js, and font pairings. Those patterns apply to slides too — this file adds slide-specific patterns on top.
+**Before generating**, also read [css-patterns](${CLAUDE_PLUGIN_ROOT}/references/css-patterns.md) for shared patterns (Mermaid zoom controls, overflow protection, depth tiers, status badges) and [libraries](${CLAUDE_PLUGIN_ROOT}/references/libraries.md) for Mermaid theming, Chart.js, and font pairings. Those patterns apply to slides too — this file adds slide-specific patterns on top.
 
 ## Planning a Deck from a Source Document
 
@@ -641,7 +641,7 @@ Asymmetric two-panel (60/40 or 70/30). Before/after, text+diagram, text+image. E
 
 ### Diagram Slide
 
-Full-viewport Mermaid diagram. Max 8–10 nodes (presentation scale — fewer, larger than page diagrams). Node labels at 18px+, edges at 2px+. Zoom controls from `css-patterns.md` apply here.
+Full-viewport Mermaid diagram. Max 8–10 nodes (presentation scale — fewer, larger than page diagrams). Node labels at 18px+, edges at 2px+. Zoom controls from `${CLAUDE_PLUGIN_ROOT}/references/css-patterns.md` apply here.
 
 **When to use Mermaid vs CSS in slides.** Mermaid renders SVGs at a fixed size the agent can't control — node dimensions are set by the library, not by CSS. This creates a recurring problem: small diagrams (fewer than ~7 nodes, no branching) render as tiny elements floating in a huge viewport with acres of dead space. The rule:
 
@@ -703,7 +703,7 @@ Full-viewport Mermaid diagram. Max 8–10 nodes (presentation scale — fewer, l
 }
 ```
 
-**Mermaid overrides for presentation scale** (add alongside the standard Mermaid CSS overrides from `libraries.md`):
+**Mermaid overrides for presentation scale** (add alongside the standard Mermaid CSS overrides from `${CLAUDE_PLUGIN_ROOT}/references/libraries.md`):
 
 ```css
 .slide--diagram .mermaid .nodeLabel {

@@ -1876,7 +1876,7 @@ Math labels in the TikZ source render natively (TikZ *is* LaTeX). Each grid inte
 | Physics equation                                   | `.ve-math`  |
 | Physics diagram (free body, circuit, optics)       | `.ve-tikz`  |
 | Thermodynamic cycle (PV, TS, hS)                   | `.ve-tikz` (pgfplots) |
-| Statistical chart (histogram, scatter)             | Chart.js (existing pattern, see `libraries.md`) — but pgfplots in `.ve-tikz` is also fine for static publication-quality charts |
+| Statistical chart (histogram, scatter)             | Chart.js (existing pattern, see `${CLAUDE_PLUGIN_ROOT}/references/libraries.md`) — but pgfplots in `.ve-tikz` is also fine for static publication-quality charts |
 | Venn diagram                                       | `.ve-tikz`  |
 | Geometry construction                              | `.ve-tikz`  |
 | Feynman diagram                                    | `.ve-tikz` (`tikz-feynman` package, available in TikZJax) |

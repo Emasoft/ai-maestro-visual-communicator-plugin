@@ -252,18 +252,23 @@ User: *"Turn this implementation plan into a slide deck."*
 
 ## Resources
 
-### Reference files (in this skill)
+### Reference files
 
-All reference files live in `./references/` next to this SKILL.md. Each ships with its own complete table of contents at the top — open the file and read the relevant section. Names below are the kebab-case file stems (the file name minus `.md`).
+Plugin-level shared references live at `${CLAUDE_PLUGIN_ROOT}/references/` (used by every sub-skill). Skill-specific references live in `./references/` next to this SKILL.md. Each ships with its own complete table of contents at the top — open the file and read the relevant section.
 
-- **interactive-selection** — selection wire format, payload schemas, Mermaid/Chart.js wiring, table-form mode, prose mode (paragraph numbering, text snippets), math/LaTeX with KaTeX + mhchem, the Graphviz cookbook, TikZJax limitations and substitutions, runner-process pitfalls, inlining the runtime for single-file portability, future extensions. Read this every time you generate HTML.
+**Plugin-level shared (`${CLAUDE_PLUGIN_ROOT}/references/`):**
+
 - **css-patterns** — theme setup, background atmosphere, link styling, card components, code blocks, directory tree, overflow protection, Mermaid container chrome, grid layouts, connectors, animations, sparklines, responsive breakpoints, badges, lists, KPI/metric cards, before/after panels, collapsible sections, prose elements, generated images.
 - **libraries** — Mermaid.js (themed diagrams), Chart.js (bar/line/pie/area), anime.js (orchestrated animations), Google Fonts pairings.
 - **styling-guide** — aesthetic directions, typography, colour and palette, surfaces and depth, background atmosphere, visual weight and hierarchy, animation rules, Mermaid theming and containers, AI-generated illustrations.
 - **diagram-types** — when to use each approach: Architecture (text-heavy/topology/hybrid), flowcharts, sequence, data flow, schema/ER, state machines, mind maps, class diagrams, C4 (flowchart pattern), data tables, timeline/roadmap, dashboard, implementation plans, documentation, prose accents.
 - **anti-patterns** — AI-slop tells to avoid: typography (Inter/Roboto), colour palette (violet/cyan/magenta accents, gradient text, glowing shadows), section headers (emoji icons), layout/hierarchy (uniform card grids), template patterns (three-dot chrome, KPI gradients), and the Slop Test.
-- **responsive-nav** — layout structure, CSS, scroll-spy JavaScript, adaptation notes for multi-section pages.
 - **runtime-bug-patterns** — v2 modal (hover-bridge, resume polling on reopen, atomic save of pending placeholder), ve-regex (per-mount undo/redo history, case-insensitive Z for Cmd-Shift-Z, shift+click extends selection, wide regex per-graph horizontal scroll), the common shape, running the test suite. Read before editing the runtime.
+
+**This skill (`./references/`):**
+
+- **interactive-selection** — selection wire format, payload schemas, Mermaid/Chart.js wiring, table-form mode, prose mode (paragraph numbering, text snippets), math/LaTeX with KaTeX + mhchem, the Graphviz cookbook, TikZJax limitations and substitutions, runner-process pitfalls, inlining the runtime for single-file portability, future extensions. Read this every time you generate HTML.
+- **responsive-nav** — layout structure, CSS, scroll-spy JavaScript, adaptation notes for multi-section pages.
 - **slide-patterns** — planning a deck from a source document, slide engine base, typography scale, cinematic transitions, navigation chrome, SlideEngine JavaScript, auto-fit, slide type layouts, decorative SVG, proactive imagery, compositional variety, presentation readability, content density limits, responsive height breakpoints, curated presets.
 - **slide-deck-mode** — when to switch into slide-deck mode, content completeness, slide types and visual richness, compositional variety, curated presets, the `--slides` flag on existing prompts.
 - **modal-comments** — when to use, two halves of the round-trip (renderer + responder), wire format on disk, responding to comments, page-side guarantees, v3 per-element decision toggles (approve/reject — both off = skip), when NOT to use v2 modal comments.

@@ -13,7 +13,7 @@ An alternative output format for presenting content as a magazine-quality slide 
 
 ## When to use slide deck mode
 
-**Before generating slides**, read [slide-patterns](./slide-patterns.md) (engine CSS, slide types, transitions, nav chrome, presets) and `templates/slide-deck.html` (reference template showing all 10 types). Also read [css-patterns](./css-patterns.md) for shared patterns and [libraries](./libraries.md) for Mermaid/Chart.js theming.
+**Before generating slides**, read [slide-patterns](./slide-patterns.md) (engine CSS, slide types, transitions, nav chrome, presets) and `templates/slide-deck.html` (reference template showing all 10 types). Also read [css-patterns](${CLAUDE_PLUGIN_ROOT}/references/css-patterns.md) for shared patterns and [libraries](${CLAUDE_PLUGIN_ROOT}/references/libraries.md) for Mermaid/Chart.js theming.
 
 **Slides are not pages reformatted.** They're a different medium. Each slide is exactly one viewport tall (100dvh) with no scrolling. Typography is 2–3× larger. Compositions are bolder. The agent composes a narrative arc (impact → context → deep dive → resolution) rather than mechanically paginating the source.
 
