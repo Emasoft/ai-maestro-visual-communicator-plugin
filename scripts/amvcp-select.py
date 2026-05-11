@@ -29,6 +29,11 @@ Environment:
     VE_SELECT_NO_BROWSER  if "1", do not launch any browser. The server still
                           listens — meant for smoke tests where the test
                           harness POSTs the selection itself.
+    VE_SELECT_NO_ITERM    if "1", skip the iTerm2 split-pane preference even
+                          when the host shell is real iTerm2. Falls through to
+                          Chrome `--app=URL` (or the user's default browser)
+                          as before. Useful when the user wants the page in a
+                          standalone window rather than next to the terminal.
 
 Usage:
     python3 amvcp-select.py /absolute/path/to/page.html
@@ -235,6 +240,80 @@ def find_chromium_binary() -> str | None:
             if found:
                 return found
     return None
+
+
+def _plugin_root() -> Path:
+    """Resolve the plugin root directory.
+
+    Honours `$CLAUDE_PLUGIN_ROOT` when set (Claude Code wires this for every
+    plugin invocation); otherwise walks one level up from this script
+    (which lives at `<plugin-root>/scripts/amvcp-select.py`).
+    """
+    env = os.environ.get("CLAUDE_PLUGIN_ROOT")
+    if env:
+        return Path(env)
+    return Path(__file__).resolve().parent.parent
+
+
+def detect_iterm2() -> bool:
+    """Return True iff the current shell is a real native iTerm2 session.
+
+    Defers to the canonical detector at
+    `skills/amvcp-iterm2-preview/scripts/detect_iterm2.py`. The detector
+    runs 8 checks (macOS, TTY, tmux/screen, SSH, VS Code/Cursor, web/cloud
+    terminal env vars, the `$TERM_PROGRAM`/`$LC_TERMINAL`/`$ITERM_SESSION_ID`
+    triple, and a live `osascript` probe of iTerm2.app's process). Exit 0
+    means iTerm2; any non-zero exit (including the detector script being
+    missing) means we should fall through to the Chrome path.
+
+    Fail-closed semantics: any error here returns False so the runner
+    silently falls back to the existing browser-launch flow rather than
+    crashing the whole `amvcp-select` invocation.
+    """
+    detector = _plugin_root() / "skills/amvcp-iterm2-preview/scripts/detect_iterm2.py"
+    if not detector.is_file():
+        return False
+    try:
+        result = subprocess.run(
+            [sys.executable, str(detector)],
+            capture_output=True,
+            text=True,
+            timeout=10,
+            check=False,
+        )
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        return False
+    return result.returncode == 0
+
+
+def launch_iterm2_split(url: str) -> bool:
+    """Open a vertical split pane in the current iTerm2 tab pointing at `url`.
+
+    Defers to the canonical AppleScript at
+    `skills/amvcp-iterm2-preview/scripts/open_preview.applescript`. Returns
+    True on osascript exit 0, False otherwise (so the caller can fall
+    through to Chrome). Does NOT raise — the worst case is iTerm2 mode is
+    unreachable and the user gets the legacy Chrome flow.
+
+    The pane is the user's terminal pane: we do NOT track its lifetime
+    or auto-close it on runner exit. The runtime navigates the page to
+    `/__ve-thanks` after a selection is received, telling the user to
+    close the pane manually (or via `close_preview.applescript`).
+    """
+    script = _plugin_root() / "skills/amvcp-iterm2-preview/scripts/open_preview.applescript"
+    if not script.is_file():
+        return False
+    try:
+        result = subprocess.run(
+            ["osascript", str(script), url],
+            capture_output=True,
+            text=True,
+            timeout=10,
+            check=False,
+        )
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        return False
+    return result.returncode == 0
 
 
 def launch_app_window(binary: str, url: str, profile_dir: str) -> subprocess.Popen | None:
@@ -752,6 +831,8 @@ def main(argv: list[str]) -> int:
     launch_reason = "ok"
     no_browser = os.environ.get("VE_SELECT_NO_BROWSER") == "1"
     no_app = os.environ.get("VE_SELECT_NO_APP") == "1"
+    no_iterm = os.environ.get("VE_SELECT_NO_ITERM") == "1"
+    iterm_used = False
     binary = None if (no_app or no_browser) else find_chromium_binary()
 
     if no_browser:
@@ -759,6 +840,15 @@ def main(argv: list[str]) -> int:
         # Print URL to stderr so a manual tester / smoke-test harness can
         # find the served page without scraping logs.
         print(f"[amvcp-select] listening at {url}", file=sys.stderr)
+    elif (not no_iterm) and detect_iterm2() and launch_iterm2_split(url):
+        # Real iTerm2 host detected (8-check guard via detect_iterm2.py)
+        # AND osascript split-pane launch succeeded. The page now lives
+        # in a "Web Browser" profile pane to the right of the user's
+        # terminal session. Skip Chrome entirely; no browser_proc to
+        # track because the pane is owned by the user's iTerm2.app.
+        iterm_used = True
+        launch_reason = "iterm2-split"
+        print(f"[amvcp-select] iTerm2 split-pane opened at {url}", file=sys.stderr)
     elif binary:
         browser_proc = launch_app_window(binary, url, profile_dir)
         if browser_proc is None:
@@ -766,7 +856,7 @@ def main(argv: list[str]) -> int:
     else:
         launch_reason = "no-chromium-fallback" if not no_app else "no-app-requested"
 
-    if not no_browser and browser_proc is None:
+    if not no_browser and browser_proc is None and not iterm_used:
         # Fall back to the user's default browser. window.close() will be
         # blocked there, but the runtime has its own "you can close this
         # tab" overlay so the UX still terminates cleanly.
