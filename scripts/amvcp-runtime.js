@@ -685,9 +685,16 @@
       // Default-position JS (positionCommentModalDefault) sets top/left in
       // the absence of a stored position — we don't anchor it via CSS so
       // the JS is the single source of truth for placement.
+      // Responsive sizing: width is the lesser of 460px and (viewport - 16px)
+      // so on a 375px-wide viewport (iPhone SE) the modal fits with an 8px
+      // gutter on each side instead of overflowing by 85px. The CSS
+      // calc(100vw - 16px) handles the *initial* paint width; JS clamping in
+      // applyCommentModalPosition / positionCommentModalDefault then keeps
+      // the modal's left/top inside the viewport on every open and drag.
       '.ve-comment-modal {',
       '  position:fixed; top:24px; left:auto; right:24px;',
-      '  width:460px; max-height:calc(100vh - 48px); height:auto;',
+      '  width:min(460px, calc(100vw - 16px));',
+      '  max-height:calc(100vh - 48px); height:auto;',
       '  z-index:2147483646;',
       '  display:flex; flex-direction:column;',
       '  background:var(--bg, #faf6ee); color:var(--text, #1f1a14);',
@@ -808,6 +815,35 @@
       '.ve-comment-answer:disabled { opacity:0.45; cursor:not-allowed; }',
       '.ve-comment-done:hover {',
       '  background:color-mix(in srgb, var(--text, currentColor) 14%, transparent);',
+      '}',
+      // ─── Narrow-viewport responsive layout (≤480 px) ─────────────────
+      // On phones the modal is at most calc(100vw - 16px), so 360-465 px
+      // wide. Keeping the 120-px-wide thread index sidebar would leave
+      // ~240 px for the active-pane content — too cramped for the
+      // textarea + the comment text. Stack the body vertically (index
+      // ABOVE active pane), shrink padding, and force the index to
+      // a flat horizontal scroll strip so it occupies just 1-2 rows
+      // instead of an always-visible left rail. Also shrink the footer
+      // padding and tighten the buttons so ANSWER + DONE both fit on
+      // a single row of a 359-px-wide modal.
+      '@media (max-width: 480px) {',
+      '  .ve-comment-modal-body { flex-direction:column; }',
+      '  .ve-comment-thread-index {',
+      '    width:auto; min-width:0; max-height:96px;',
+      '    border-right:0;',
+      '    border-bottom:1px solid color-mix(in srgb, var(--text, currentColor) 12%, transparent);',
+      '  }',
+      '  .ve-comment-thread-row { border-left:0; border-top:2px solid transparent; }',
+      '  .ve-comment-thread-row[data-active] {',
+      '    border-left-color:transparent; border-top-color:var(--ve-accent, #b8861f);',
+      '  }',
+      '  .ve-comment-active-pane { padding:12px 14px; }',
+      '  .ve-comment-modal-header { padding:10px 12px; }',
+      '  .ve-comment-modal-footer { padding:10px 12px; gap:8px; }',
+      '  .ve-comment-answer, .ve-comment-done {',
+      '    padding:8px 12px; flex:1 1 0; min-width:0;',
+      '  }',
+      '  .ve-comment-active-textarea { min-height:96px; }',
       '}',
       // ─── v3.2 — per-element decision segmented control (TRDD-7a2dab03 §3.1, §3.4)
       // ONE 3-segment control per finding: [Skip] [Approve] [Reject]. Mutex is
@@ -5344,6 +5380,15 @@
     connectorLineEl.setAttribute('y1', String(ay));
     connectorLineEl.setAttribute('x2', String(mx));
     connectorLineEl.setAttribute('y2', String(my));
+    // Responsive stroke: the design width is 44 px (≈ modal header
+    // height), but on narrow viewports the modal header collapses
+    // (padding shrinks from 12px to 10px) and a 44-px stroke would
+    // visually exceed the header band, painting over the title text.
+    // Read the actual header height and clamp stroke to it.
+    var headerEl = commentModalEl.querySelector('.ve-comment-modal-header');
+    var headerH = headerEl ? headerEl.getBoundingClientRect().height : 44;
+    var stroke = Math.min(44, Math.max(8, headerH));
+    connectorLineEl.setAttribute('stroke-width', String(stroke));
     // Keep the viewBox in sync with the actual viewport so the line
     // never gets clipped after a resize.
     if (connectorOverlayEl) {
@@ -5353,18 +5398,35 @@
   }
 
   // ── Modal-position helpers ───────────────────────────────────────────
+  // Minimum gap between the modal and any viewport edge. Used by both the
+  // drag clamp (applyCommentModalPosition) and the initial-open clamp
+  // (positionCommentModalDefault) so a narrow viewport — e.g. 375 px on
+  // iPhone SE — never sees the modal overflow the screen and clip the
+  // DONE button. 8 px matches the CSS gutter in the .ve-comment-modal
+  // width:min(460px, calc(100vw - 16px)) rule (16 px = 8 px on each side).
+  var MODAL_VIEWPORT_GUTTER = 8;
+
   // Apply a viewport-px (left, top) position to the modal. Clamps so the
   // modal never lands off-screen — the user is dragging from the header,
-  // so we keep at least the full modal visible (no off-screen drag).
+  // so we keep at least the full modal visible (no off-screen drag) AND
+  // we keep an 8 px gutter on every edge so the modal corners aren't
+  // flush against the viewport.
   function applyCommentModalPosition(left, top) {
     if (!commentModalEl) return;
     var rect = commentModalEl.getBoundingClientRect();
     var w = rect.width || 460;
     var h = rect.height || 200;
-    var maxLeft = Math.max(0, window.innerWidth - w);
-    var maxTop = Math.max(0, window.innerHeight - h);
-    var clampedLeft = Math.min(Math.max(0, left), maxLeft);
-    var clampedTop = Math.min(Math.max(0, top), maxTop);
+    var g = MODAL_VIEWPORT_GUTTER;
+    // maxLeft/maxTop can go negative on viewports SMALLER than the modal —
+    // in that case clamping to a negative value would push the modal
+    // partially off-screen on the LEFT/TOP edge. Math.max(g, ...) keeps
+    // the modal pinned to the gutter on the leading edge instead. The
+    // CSS width:min(460px, calc(100vw - 16px)) rule guarantees the modal
+    // is never wider than the viewport, so this clamp can always succeed.
+    var maxLeft = Math.max(g, window.innerWidth - w - g);
+    var maxTop = Math.max(g, window.innerHeight - h - g);
+    var clampedLeft = Math.min(Math.max(g, left), maxLeft);
+    var clampedTop = Math.min(Math.max(g, top), maxTop);
     commentModalEl.style.left = clampedLeft + 'px';
     commentModalEl.style.top = clampedTop + 'px';
     commentModalEl.style.right = 'auto';
@@ -5373,8 +5435,9 @@
   // Default-position the modal next to its anchor on first open.
   // We prefer the right side of the anchor (vertical center) so the
   // connector line is short, but fall back to the left or top if the
-  // anchor is near the viewport edge — clamping in applyCommentModalPosition
-  // would also handle this, but a hand-picked default looks tidier.
+  // anchor is near the viewport edge. The final applyCommentModalPosition
+  // call clamps left/top into [gutter, viewport - size - gutter] so even
+  // pathologically narrow viewports (375 px) never see the modal overflow.
   function positionCommentModalDefault(anchor) {
     if (!commentModalEl || !anchor) return;
     var aRect = anchor.getBoundingClientRect();
@@ -5384,15 +5447,22 @@
     var w = mRect.width || 460;
     var h = mRect.height || Math.min(window.innerHeight - 48, 600);
     var gap = 24;
+    var g = MODAL_VIEWPORT_GUTTER;
     // Try right of anchor.
     var left = aRect.right + gap;
     // If that goes off-screen, try left of anchor; if that's also off,
-    // pin to the right viewport edge with a 24px gutter.
-    if (left + w > window.innerWidth - 8) {
+    // pin to the right viewport edge with a 24px gap from the edge (the
+    // applyCommentModalPosition clamp below enforces the 8px hard gutter
+    // if even the 24px gap can't be honoured on a tiny viewport).
+    if (left + w > window.innerWidth - g) {
       left = aRect.left - w - gap;
-      if (left < 8) left = Math.max(8, window.innerWidth - w - 24);
+      if (left < g) left = Math.max(g, window.innerWidth - w - 24);
     }
     var top = aRect.top + aRect.height / 2 - h / 2;
+    // applyCommentModalPosition is the single source of truth for the
+    // clamping math — it enforces left ∈ [g, viewportW - w - g] and
+    // top ∈ [g, viewportH - h - g] with a graceful fallback when the
+    // viewport is smaller than the modal.
     applyCommentModalPosition(left, top);
   }
 
