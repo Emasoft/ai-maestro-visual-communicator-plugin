@@ -10,54 +10,75 @@ metadata:
 
 ## Overview
 
-Opt-in slide deck mode. Activate only on explicit request (`/amvcp-generate-slides`, `--slides`, or "slide deck"/"pitch deck"). Each slide is exactly `100dvh`, no inner scroll, typography 2-3x larger than pages. 10 slide types: cover, section divider, content, split, diagram, dashboard, table, code, quote, full-bleed. Pick ONE of 4 curated presets per deck - mixing breaks the feel.
-
-| Preset | Fit |
-|--------|-----|
-| Midnight Editorial | Investor: dark navy + gold serif |
-| Warm Signal | Workshops: terracotta + sage on cream |
-| Terminal Mono | Technical: green on near-black mono |
-| Swiss Clean | Design / data: high-contrast B/W sans |
+Opt-in slide deck mode. Activate only on explicit request. Each slide exactly `100dvh`, no inner scroll, typography 2-3x larger. 10 slide types: cover, divider, content, split, diagram, dashboard, table, code, quote, full-bleed. Pick ONE of 4 curated presets: Midnight Editorial (investor), Warm Signal (workshop), Terminal Mono (technical), Swiss Clean (design/data).
 
 ## Prerequisites
 
-- Browser (Chromium for `--app=URL`) and Python 3.12+ for `scripts/amvcp-select.py`.
-- `SlideEngine` JS already vendored in `scripts/amvcp-runtime.js`.
-- Optional: `surf` CLI (`which surf`) for AI illustrations and full-bleed backgrounds.
+Chromium + Python 3.12+; `SlideEngine` vendored in runtime; optional `surf` CLI.
 
 ## Instructions
 
-1. Read [slide-deck-mode](./references/slide-deck-mode.md) and [slide-patterns](./references/slide-patterns.md) before any HTML.
-2. Inventory the source: every section, decision, row, spec, collapsible. Map each to one or more slides; never drop content to fit a slide budget.
-3. Pick ONE preset and commit.
-4. Author every section as a slide from `templates/slide-deck.html`. Vary spatial composition across consecutive slides. Stamp `data-ve-id`, `data-ve-type="slide"`, `data-ve-label` on each `<section class="slide">`.
-5. Set `--ve-accent` on `:root`. Add `<script src="amvcp-runtime.js"></script>` at end of `<body>`. On `DOMContentLoaded` (after Mermaid/Chart.js render): `autoFit()` then `new SlideEngine()`.
-6. Run with `python3 "$CLAUDE_PLUGIN_ROOT/scripts/amvcp-select.py" <deck>.html`.
+1. Read slide-deck-mode + slide-patterns first.
+2. Inventory source: never drop content to fit slide budget.
+3. Pick ONE preset, commit.
+4. Author each section as `<section class="slide">` with `data-ve-id`, `data-ve-type="slide"`, `data-ve-label`. Vary composition.
+5. `--ve-accent` on `:root`. On `DOMContentLoaded`: `autoFit()` then `new SlideEngine()`.
+6. Run: `python3 "$CLAUDE_PLUGIN_ROOT/scripts/amvcp-select.py" <deck>.html`.
 
 ## Output
 
-A single `.html` file with all slides inline and the runtime referenced (or inlined for portability). When opened by the runner, clicking any element emits a JSON selection payload to stdout and closes the window.
+Single `.html` with all slides inline + runtime. Click emits JSON payload.
 
 ## Error Handling
 
-- Use `100dvh`, never `100vh`: mobile address bars resize `vh` and break slides.
-- Mixing 2+ presets reads as indecision. Pick one.
-- Reserve cinematic transitions (anime.js) for 1-2 emphasis slides; default fade-in is enough.
+- `100dvh` not `100vh`: mobile address bars break vh.
+- Mixing presets reads as indecision.
+- Reserve anime.js transitions for 1-2 emphasis slides.
 
 ## Examples
 
-1. Turn a 12-section plan into a 22-slide Midnight Editorial deck: cover + 12 dividers + 1-2 content/diagram slides per section + closing summary.
-2. Convert a 6-decision PR review into a Swiss Clean deck where every decision is its own split slide (rationale left, diff right).
+**Input:** Turn a 12-section plan into a 22-slide Midnight Editorial deck.
+**Output:** cover + 12 dividers + 1-2 content/diagram slides per section + closing summary, all in one self-contained `.html`.
 
 ## Resources
 
 - [interactive-selection-base](../../references/interactive-selection-base.md): selection wire format
-  - boilerplate; payload; selectable; routing; runner; anti-patterns; inlining
+  - How it works & Page Setup
+  - The selection payload
+  - Selectable Elements
+  - Engine routing — read this BEFORE generating a graph
+  - Runtime & Process Caveats
 - [styling-guide](../../references/styling-guide.md): palette + typography
-  - aesthetics; typography; palette; surfaces; backgrounds; animation; Mermaid; AI images
+  - Aesthetic directions
+  - Typography & Color
+  - Surfaces, Hierarchy & Animation
+  - Engines & Illustrations
 - [css-patterns](../../references/css-patterns.md): Mermaid, overflow, components
-  - theme; cards; code; trees; overflow; Mermaid; grids; connectors; KPI; diff; collapsibles; prose; images
+  - Theme & Atmosphere
+  - Layout & Containers
+  - Content Blocks
+  - Visual Components
+  - Prose Page Elements
 - [slide-deck-mode](./references/slide-deck-mode.md): when to switch, completeness, `--slides`
-  - when to use; completeness; slide types; variety; presets; --slides flag
+  - When to use slide deck mode
+  - Content completeness
+  - Slide types and visual richness
+  - Compositional variety
+  - Curated presets
+  - The --slides flag on existing prompts
 - [slide-patterns](./references/slide-patterns.md): engine, 10 types, transitions, nav, presets
-  - planning; engine; typography; transitions; nav; SlideEngine; auto-fit; layouts; SVG; imagery; readability; density; breakpoints; presets
+  - Planning a Deck from a Source Document
+  - Slide Engine Base
+  - Typography Scale
+  - Cinematic Transitions
+  - Navigation Chrome
+  - SlideEngine JavaScript
+  - Auto-Fit
+  - Slide Type Layouts
+  - Decorative SVG Elements
+  - Proactive Imagery
+  - Compositional Variety
+  - Presentation Readability
+  - Content Density Limits
+  - Responsive Height Breakpoints
+  - Curated Presets

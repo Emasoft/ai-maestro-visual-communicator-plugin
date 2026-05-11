@@ -4,6 +4,18 @@ Each finding section in a v3 interactive agent report carries **one 3-segment ra
 
 This file documents the control behaviour, the on-disk decision payload, the responder workflow when decisions are present, and the aggregate summary written when the modal closes.
 
+## Table of contents
+
+- [Visual model](#visual-model)
+- [State model](#state-model)
+- [Keyboard](#keyboard)
+- [DOM contract](#dom-contract)
+- [Theming hooks](#theming-hooks)
+- [On-disk decision payload](#on-disk-decision-payload)
+- [Aggregate summary on close](#aggregate-summary-on-close)
+- [Responder behaviour when decisions are present](#responder-behaviour-when-decisions-are-present)
+- [When the control does NOT fire](#when-the-control-does-not-fire)
+
 ## Visual model
 
 ```

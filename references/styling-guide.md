@@ -3,14 +3,9 @@
 ## Table of contents
 
 - [Aesthetic directions](#aesthetic-directions)
-- [Typography](#typography)
-- [Color and palette](#color-and-palette)
-- [Surfaces and depth](#surfaces-and-depth)
-- [Background atmosphere](#background-atmosphere)
-- [Visual weight and hierarchy](#visual-weight-and-hierarchy)
-- [Animation rules](#animation-rules)
-- [Mermaid theming and containers](#mermaid-theming-and-containers)
-- [AI-generated illustrations (optional)](#ai-generated-illustrations-optional)
+- [Typography & Color](#typography--color)
+- [Surfaces, Hierarchy & Animation](#surfaces-hierarchy--animation)
+- [Engines & Illustrations](#engines--illustrations)
 
 Apply these principles to every diagram. They sit on top of the patterns documented in [css-patterns](./css-patterns.md) and [libraries](./libraries.md).
 
@@ -35,7 +30,9 @@ Pick one direction and commit. The constrained aesthetics (Blueprint, Editorial,
 
 Vary the choice each time. If the last diagram was dark and technical, make the next one light and editorial. The swap test: if you replaced your styling with a generic dark theme and nobody would notice the difference, you haven't designed anything.
 
-## Typography
+## Typography & Color
+
+### Typography
 
 **Typography is the diagram.** Pick a distinctive font pairing from the list in [libraries](./libraries.md). Every page should use a different pairing from recent generations.
 
@@ -50,7 +47,7 @@ Vary the choice each time. If the last diagram was dark and technical, make the 
 
 Load via `<link>` in `<head>`. Include a system font fallback in the `font-family` stack for offline resilience.
 
-## Color and palette
+### Color and palette
 
 **Color tells a story.** Use CSS custom properties for the full palette. Define at minimum: `--bg`, `--surface`, `--border`, `--text`, `--text-dim`, and 3-5 accent colors. Each accent should have a full and a dim variant (for backgrounds). Name variables semantically when possible (`--pipeline-step` not `--blue-3`). Support both themes.
 
@@ -75,21 +72,23 @@ Put your primary aesthetic in `:root` and the alternate in the media query:
 @media (prefers-color-scheme: light) { :root { /* light values */ } }
 ```
 
-## Surfaces and depth
+## Surfaces, Hierarchy & Animation
+
+### Surfaces and depth
 
 **Surfaces whisper, they don't shout.** Build depth through subtle lightness shifts (2-4% between levels), not dramatic color changes. Borders should be low-opacity rgba (`rgba(255,255,255,0.08)` in dark mode, `rgba(0,0,0,0.08)` in light) — visible when you look, invisible when you don't.
 
 **Surface depth creates hierarchy.** Vary card depth to signal what matters. Hero sections get elevated shadows and accent-tinted backgrounds (`ve-card--hero` pattern). Body content stays flat (default `.ve-card`). Code blocks and secondary content feel recessed (`ve-card--recessed`). See the depth tiers in [css-patterns](./css-patterns.md). Don't make everything elevated — when everything pops, nothing does.
 
-## Background atmosphere
+### Background atmosphere
 
 **Backgrounds create atmosphere.** Don't use flat solid colors for the page background. Subtle gradients, faint grid patterns via CSS, or gentle radial glows behind focal areas. The background should feel like a space, not a void.
 
-## Visual weight and hierarchy
+### Visual weight and hierarchy
 
 **Visual weight signals importance.** Not every section deserves equal visual treatment. Executive summaries and key metrics should dominate the viewport on load (larger type, more padding, subtle accent-tinted background zone). Reference sections (file maps, dependency lists, decision logs) should be compact and stay out of the way. Use `<details>/<summary>` for sections that are useful but not primary — the collapsible pattern is in [css-patterns](./css-patterns.md).
 
-## Animation rules
+### Animation rules
 
 **Animation earns its place.** Staggered fade-ins on page load are almost always worth it — they guide the eye through the diagram's hierarchy. Mix animation types by role: `fadeUp` for cards, `fadeScale` for KPIs and badges, `drawIn` for SVG connectors, `countUp` for hero numbers. Hover transitions on interactive-feeling elements make the diagram feel alive. Always respect `prefers-reduced-motion`. CSS transitions and keyframes handle most cases. For orchestrated multi-element sequences, anime.js via CDN is available (see [libraries](./libraries.md)).
 
@@ -100,7 +99,9 @@ Put your primary aesthetic in `:root` and the alternate in the media query:
 
 Keep animations purposeful: entrance reveals, hover feedback, and user-initiated interactions. Nothing should glow or pulse on its own.
 
-## Mermaid theming and containers
+## Engines & Illustrations
+
+### Mermaid theming and containers
 
 **Mermaid theming:** Always use `theme: 'base'` with custom `themeVariables` so colors match your page palette. Use `layout: 'elk'` for complex graphs (requires the `@mermaid-js/layout-elk` package — see [libraries](./libraries.md) for the CDN import). Override Mermaid's SVG classes with CSS for pixel-perfect control.
 
@@ -116,7 +117,7 @@ Keep animations purposeful: entrance reveals, hover feedback, and user-initiated
 
 **Mermaid CSS class collision constraint:** Never define `.node` as a page-level CSS class. Mermaid.js uses `.node` internally on SVG `<g>` elements with `transform: translate(x, y)` for positioning. Page-level `.node` styles (hover transforms, box-shadows) leak into diagrams and break layout. Use the namespaced `.ve-card` class for card components instead. The only safe way to style Mermaid's `.node` is scoped under `.mermaid` (e.g., `.mermaid .node rect`).
 
-## AI-generated illustrations (optional)
+### AI-generated illustrations (optional)
 
 If a `surf` CLI tool is available, you can generate images via Gemini and embed them in the page for creative, illustrative, explanatory, educational, or decorative purposes. Check availability with `which surf`. If available:
 

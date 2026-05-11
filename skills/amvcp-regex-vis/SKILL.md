@@ -44,25 +44,36 @@ A click on the wrapper background still fires the Phase 1 element-toggle; Edit-t
 ## Error Handling
 
 - **Bundle fails to load** → wrapper falls back to plain text; check console for `[amvcp-runtime] regex bundle disabled: ...`.
-- **Multi-mount module-level state** → never regress to module-level `undoStack` arrays in `vendor/regex-vis/`; per-mount Jotai atoms are mandatory.
+- **Multi-mount module-level state** → never regress to module-level `undoStack` arrays in vendor folder; per-mount Jotai atoms are mandatory.
 - **Cmd-Shift-Z silently no-ops** → `KeyboardEvent.key` shifts to `'Z'` under Shift; compare case-insensitively or use `event.code === 'KeyZ'`.
 - **DOM mutation breaking state** → never `querySelector.setAttribute` on the rendered SVG; use the regex-vis API only.
 
 ## Examples
 
-Visualize `\d+(\.\d+)?` and let the user widen it to also match negatives:
+**Input:** A numeric regex pattern (see code block) lets the user widen it to also match negatives.
 
 ```html
 <div class="ve-regex" data-ve-id="rx-num" data-regex="\d+(\.\d+)?"></div>
 ```
 
-User opens Edit, prepends `-?`, presses Submit. Agent receives `kind:"regex-edit"`, `edited:"-?\d+(\.\d+)?"`, full AST — then offers to update surrounding test cases.
+**Output:** User opens Edit, prepends `-?`, presses Submit. Agent receives `kind:"regex-edit"` with the edited pattern and full AST.
 
 ## Resources
 
 - [interactive-selection-base.md](../../references/interactive-selection-base.md) — wire format + boilerplate
-  - How it works · Boilerplate · Payload · What to make selectable · Marking · Engine routing · Runner pitfalls · Anti-patterns · Inlining · Future
+  - How it works & Page Setup
+  - The selection payload
+  - Selectable Elements
+  - Engine routing — read this BEFORE generating a graph
+  - Runtime & Process Caveats
 - [runtime-bug-patterns.md](../../references/runtime-bug-patterns.md) — bug catalogue
-  - hover-bridge · resume polling · atomic pending save · per-mount undo/redo · case-insensitive Z · shift+click extend · wide-regex scroll · Common shape · Test suite
+  - v2 modal bugs
+  - ve-regex bugs
+  - Runtime-injected UI must inherit host palette
+  - Common shape & Running tests
 - [regex-vis-cookbook.md](./references/regex-vis-cookbook.md) — payload schema
-  - What `.ve-regex` does · Auto-stamped attributes · `kind:"regex-edit"` · Authoring · Failure handling
+  - What `.ve-regex` does
+  - Auto-stamped attributes
+  - Wire-format payload — `kind:"regex-edit"`
+  - Authoring guidance
+  - Failure handling

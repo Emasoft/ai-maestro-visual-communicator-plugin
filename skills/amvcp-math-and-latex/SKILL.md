@@ -10,56 +10,76 @@ metadata:
 
 ## Overview
 
-Loads for math, chemistry, or LaTeX figures in an amvcp HTML page. KaTeX handles equations and mhchem chemistry; TikZJax handles standalone figures (binary trees, FSMs, DAGs, Karnaugh maps, geometric proofs). Every formula/figure is clickable.
+KaTeX (`.ve-math`) for equations + mhchem chemistry; TikZJax (`.ve-tikz`) for figures (trees, FSMs, DAGs, Karnaugh, geometry). Every formula/figure is clickable.
 
 ## Prerequisites
 
-amvcp-runtime.js auto-loads KaTeX+mhchem on first `.ve-math` and lazy-loads TikZJax WASM (~3 MB) on first `.ve-tikz`. No manual script tags. See Resources for wire format, palette, and CDN list.
+The runtime auto-loads KaTeX with mhchem on first ve-math element and lazy-loads TikZJax WASM on first ve-tikz element. No manual script tags.
 
 ## Instructions
 
-1. Pick engine: KaTeX (`.ve-math`) for equations/chemistry, TikZJax (`.ve-tikz`) for figures.
-2. Wrap: inline `<span class="ve-math">E = mc^2</span>`; display `<div class="ve-math ve-math--block">...</div>`; chemistry `<span class="ve-math ve-math--chem">H2O -> H+</span>`; figure `<div class="ve-tikz">...</div>`.
-3. Tag sub-elements with `\vecell`, `\veidx`, `\vebound`, `\veterm`, `\veop`; tag figure parts via `data-ve-tikz-regions` JSON.
-4. Open with `python3 "$CLAUDE_PLUGIN_ROOT/scripts/amvcp-select.py" page.html`.
-5. React to `math-formula`, `math-snippet`, `tikz-diagram`, or `geometric-region`. TikZ doubles as paper LaTeX; `\veid` tags strip via regex.
+1. Pick engine: KaTeX for equations/chemistry, TikZJax for figures.
+2. Wrap: inline `<span class="ve-math">`; display `ve-math--block`; chemistry `ve-math--chem`; figure `<div class="ve-tikz">`.
+3. Tag sub-elements with the `vecell`, `veidx`, `vebound`, `veterm`, `veop` LaTeX macros; figure parts via `data-ve-tikz-regions` JSON.
+4. Open: `python3 "$CLAUDE_PLUGIN_ROOT/scripts/amvcp-select.py" page.html`.
+5. React to `math-formula`, `math-snippet`, `tikz-diagram`, `geometric-region`.
 
 ## Output
 
-Self-contained HTML with `.ve-math` / `.ve-tikz` wrappers. Runner emits a JSON envelope on submit/exit. Math snippets are text-only (visible text + `fullFormulaLatex`); TikZ emits full-block payloads with `regionId` or `fullDiagramLatex`.
-
-- `kind:"submit"` carrying `kind:"element"` (whole formula/figure), `kind:"math"` (depths 1-3), `kind:"text"` (depths 4-7).
-- TikZ region: `type:"geometric-region"` with `regionId`, `regionLabel`, `fullDiagramLatex` for `% ve-region:` lookup. Highlight returns `math-snippet` or `chem-snippet`.
+`kind:"submit"` carrying `kind:"element"` (whole), `kind:"math"` (depths 1-3), `kind:"text"` (depths 4-7). TikZ region: `type:"geometric-region"` with `regionId`, `fullDiagramLatex`.
 
 ## Error Handling
 
-- CRITICAL — one TikZ error crashes EVERY later diagram on the page. TikZJax WASM panics on the first LaTeX error and silently turns every later `.ve-tikz` into a blank box. No event fires. Test each block in isolation; if diagrams stop appearing, open the JS console — the first `! LaTeX Error` line names the offender.
-- Unsupported TikZ packages crash: `pgfplots`, `chemfig`, `circuitikz`, `automata`, `shapes.gates.logic.US`, `tkz-euclide`, `tikz-feynman`, mhchem-in-TikZ.
-- KaTeX: don't override `color:` on `.ve-math` — runtime forces `color: inherit` on `[data-ve-math-sel]`.
-- TikZ source pure ASCII; put unicode in surrounding HTML. If CDN fails, raw source stays visible.
+- CRITICAL — one TikZ error crashes EVERY later diagram. WASM panics on first LaTeX error, silently blanks rest. Test in isolation.
+- Unsupported: `pgfplots`, `chemfig`, `circuitikz`, `automata`, `tikz-feynman`, mhchem-in-TikZ.
+- KaTeX: don't override `color:`; runtime forces `color: inherit`.
+- TikZ source ASCII only; unicode in surrounding HTML.
 
 ## Examples
 
-Balanced chemistry:
 ```html
 <span class="ve-math ve-math--chem">CH4 + 2 O2 -> CO2 + 2 H2O</span>
 ```
 
-TikZ binary tree:
-```html
-<div class="ve-tikz">
-\begin{tikzpicture}[level distance=12mm, sibling distance=18mm]
-  \node {root}
-    child {node {L} child {node {LL}} child {node {LR}}}
-    child {node {R} child {node {RL}} child {node {RR}}};
-\end{tikzpicture}
-</div>
-```
-
 ## Resources
 
-- [interactive-selection-base.md](../../references/interactive-selection-base.md) — wire format, boilerplate, payload, marking, engine routing
+- [interactive-selection-base.md](../../references/interactive-selection-base.md) — wire format, boilerplate, payload, marking
+  - How it works & Page Setup
+  - The selection payload
+  - Selectable Elements
+  - Engine routing — read this BEFORE generating a graph
+  - Runtime & Process Caveats
 - [libraries.md](../../references/libraries.md) — CDN (Mermaid, Chart.js, anime, fonts)
+  - Mermaid.js — Diagramming Engine
+  - Chart.js — Data Visualizations
+  - anime.js — Orchestrated Animations
+  - Google Fonts — Typography
 - [styling-guide.md](../../references/styling-guide.md) — palette, aesthetic, typography
-- [math-cookbook.md](./references/math-cookbook.md) — flavours, macros, figures, regions, 24 sub-selection macros
-- [tikz-substitutions.md](./references/tikz-substitutions.md) — preload audit, WASM crash, substitutes (tree, DAG, FSM, Karnaugh, OBDD, logic)
+  - Aesthetic directions
+  - Typography & Color
+  - Surfaces, Hierarchy & Animation
+  - Engines & Illustrations
+- [math-cookbook.md](./references/math-cookbook.md) — flavours, macros, figures, regions
+  - Three flavours
+  - Notation coverage
+  - Granular sub-selection inside math
+  - Adding more macros
+  - Copy-tex
+  - What's selectable
+  - Sub-element selection (variables, terms, operators)
+  - Math in tables
+  - TikZ diagrams (binary trees, FSMs, DAGs, Karnaugh maps, OBDDs, geometry, free-body diagrams)
+  - What's selectable in TikZ diagrams
+  - Semantic geometric regions
+  - Region shapes
+  - Calibrating regions
+  - Workflow: iterate on a LaTeX-paper figure by clicking elements
+  - Pattern: chemistry molecule with selectable atoms and bonds
+  - When to use named regions vs. mouse-highlight snippets vs. whole-diagram click
+  - Choosing between `.ve-math` and `.ve-tikz`
+- [tikz-substitutions.md](./references/tikz-substitutions.md) — preload audit, WASM crash, substitutes
+  - TikZJax preload audit (verified empirically 2026-05-05)
+  - CRITICAL — WASM crash on first error blocks every subsequent diagram
+  - Working substitutes by diagram category
+  - Detecting silent failure during development
+  - Detecting silent failure

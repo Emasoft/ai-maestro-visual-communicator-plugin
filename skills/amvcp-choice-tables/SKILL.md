@@ -49,15 +49,23 @@ Loads when the agent needs an enumerable answer as a table-form Q&A. Author a `<
 ## Resources
 
 - [interactive-selection-base.md](../../references/interactive-selection-base.md) — payload contract, runtime boilerplate, marking elements
-  - How it works; Mandatory boilerplate; The selection payload
-  - What to make selectable; Marking elements; Engine routing
-  - Runner pitfalls; Anti-patterns; Inlining the runtime
+  - How it works & Page Setup
+  - The selection payload
+  - Selectable Elements
+  - Engine routing — read this BEFORE generating a graph
+  - Runtime & Process Caveats
 - [css-patterns.md](../../references/css-patterns.md) — sticky `<thead>`, alternating rows, status indicators
-  - Theme Setup; Section/Card Components; Grid Layouts (Data Tables)
-  - Badges/Tags; KPI Cards; Before/After Panels; Collapsible Sections
+  - Theme & Atmosphere
+  - Layout & Containers
+  - Content Blocks
+  - Visual Components
+  - Prose Page Elements
 - [diagram-types.md](../../references/diagram-types.md) — when a table beats other visuals
-  - Data Tables / Comparisons / Audits; Dashboard / Metrics
-  - Documentation; Prose Accent Elements
+  - Diagrams (Mermaid + CSS)
+  - Data Visualizations
+  - Documentation Layouts
+  - Prose Accent Elements
 - [table-form-schema.md](./references/table-form-schema.md) — Mode A/B/C, free-text row, payload spec
-  - Tables — three modes (passive / single / multi)
-  - Form-mode payload; When to use form mode vs. passive mode
+  - Tables — three modes
+  - Form-mode payload
+  - When to use form mode vs. passive mode

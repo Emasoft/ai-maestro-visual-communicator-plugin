@@ -51,22 +51,12 @@ Returns `Live URL: https://skill-deploy-abc123.vercel.app` + a claim URL. User p
 
 ## Resources
 
-Plugin-level shared:
-
 - [interactive-selection-base.md](../../references/interactive-selection-base.md) — wire format + runtime contract; selection pages lose interactivity on Vercel.
-  - How it works (one paragraph)
-  - Mandatory boilerplate
+  - How it works & Page Setup
   - The selection payload
-  - What to make selectable
-  - Marking elements
-  - Engine routing — read BEFORE generating a graph
-  - Runner-process pitfalls (Chrome --app=URL mode)
-  - Anti-patterns (selection-system author errors)
-  - Inlining the runtime (single-file portability)
-  - Future extensions (not yet implemented)
-
-Skill-local:
-
+  - Selectable Elements
+  - Engine routing — read this BEFORE generating a graph
+  - Runtime & Process Caveats
 - [sharing-pages.md](./references/sharing-pages.md) — full deploy workflow, `share.py`, `vercel-deploy` API, error modes, retention.
   - Overview
   - Usage

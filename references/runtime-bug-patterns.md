@@ -2,16 +2,10 @@
 
 ## Table of contents
 
-- [v2 modal — hover-bridge](#v2-modal--hover-bridge)
-- [v2 modal — resume polling on reopen](#v2-modal--resume-polling-on-reopen)
-- [v2 modal — atomic save of pending placeholder](#v2-modal--atomic-save-of-pending-placeholder)
-- [ve-regex — per-mount undo / redo history](#ve-regex--per-mount-undo--redo-history)
-- [ve-regex — case-insensitive Z for Cmd-Shift-Z](#ve-regex--case-insensitive-z-for-cmd-shift-z)
-- [ve-regex — shift+click extends selection](#ve-regex--shiftclick-extends-selection)
-- [ve-regex — wide regex per-graph horizontal scroll](#ve-regex--wide-regex-per-graph-horizontal-scroll)
+- [v2 modal bugs](#v2-modal-bugs)
+- [ve-regex bugs](#ve-regex-bugs)
 - [Runtime-injected UI must inherit host palette](#runtime-injected-ui-must-inherit-host-palette)
-- [Common shape](#common-shape)
-- [Running the test suite](#running-the-test-suite)
+- [Common shape & Running tests](#common-shape--running-tests)
 
 A catalogue of bug classes found in the ai-maestro-visual-communicator-plugin runtime,
 the v2 modal-comment flow, and the embedded amvcp-regex visualizer —
@@ -24,7 +18,9 @@ or anything that posts to the comment queue.
 
 ---
 
-## v2 modal — hover-bridge
+## v2 modal bugs
+
+### v2 modal — hover-bridge
 
 **Symptom:** Clicking the hover pill never opens the modal under a
 real mouse. The pill is visible the moment you stop moving, but by
@@ -49,7 +45,7 @@ modal opens.
 
 ---
 
-## v2 modal — resume polling on reopen
+### v2 modal — resume polling on reopen
 
 **Symptom:** User clicks ANSWER, closes the modal before the agent
 reply arrives, the orchestrator writes the reply file to disk later.
@@ -70,7 +66,7 @@ within 2.2 s (one poll cycle + margin).
 
 ---
 
-## v2 modal — atomic save of pending placeholder
+### v2 modal — atomic save of pending placeholder
 
 **Symptom:** Page refresh between ANSWER and reply arrival drops
 the pending placeholder from `localStorage`, defeating the
@@ -90,7 +86,9 @@ both turn 1 (committed user) and turn 2 (pending agent) are present.
 
 ---
 
-## ve-regex — per-mount undo / redo history
+## ve-regex bugs
+
+### ve-regex — per-mount undo / redo history
 
 **Symptom:** Pressing ⌘Z on regex graph A pops history pushed by
 graph B. Both graphs end up displaying the wrong AST.
@@ -112,7 +110,7 @@ without disturbing other mounts.
 
 ---
 
-## ve-regex — case-insensitive Z for Cmd-Shift-Z
+### ve-regex — case-insensitive Z for Cmd-Shift-Z
 
 **Symptom:** ⌘⇧Z silently no-ops. Undo works (`⌘Z` → revert), but
 redo never restores the undone state.
@@ -128,7 +126,7 @@ the redoOk branch.
 
 ---
 
-## ve-regex — shift+click extends selection
+### ve-regex — shift+click extends selection
 
 **Symptom:** The empty-state placeholder advertised "Hold shift
 while clicking to extend the selection," but shift-click replaced
@@ -147,7 +145,7 @@ class.
 
 ---
 
-## ve-regex — wide regex per-graph horizontal scroll
+### ve-regex — wide regex per-graph horizontal scroll
 
 **Symptom:** Stress regexes (R20–R22) with SVG widths 1150–1580 px
 push the page width past the viewport, producing a window-level
@@ -296,7 +294,9 @@ under `reports/visual-test/choice-tables/*-after-fix.png`.
 
 ---
 
-## Common shape
+## Common shape & Running tests
+
+### Common shape
 
 Every bug above shares one structure:
 
@@ -312,7 +312,7 @@ because a Playwright test exposed timing the manual-click test
 hid. See `~/.claude/rules/browser-ui-test-techniques.md` for the
 generalised techniques.
 
-## Running the test suite
+### Running the test suite
 
 ```bash
 tests/run-all-tests.py

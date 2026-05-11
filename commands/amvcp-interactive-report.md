@@ -14,7 +14,7 @@ Convert any agent's Markdown report (code-auditor finding, llm-externalizer scan
 
 **Arguments:**
 
-- `report-path` — Markdown report from any agent. The report must use `## Finding N: <title>` headings (optional `<!-- ve-finding severity="…" file="…" -->` comments for metadata) so the renderer knows where the per-finding boundaries are. See [the v2 modal-comment-thread cookbook](../skills/amvcp-visual-communication/references/modal-comments.md) for the full convention.
+- `report-path` — Markdown report from any agent. The report must use `## Finding N: <title>` headings (optional `<!-- ve-finding severity="…" file="…" -->` comments for metadata) so the renderer knows where the per-finding boundaries are. See [the v2 modal-comment-thread cookbook](../skills/amvcp-modal-comments/references/agent-report-flow.md) for the full convention.
 
 ## What this command does
 

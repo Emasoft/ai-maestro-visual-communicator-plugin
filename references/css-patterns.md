@@ -2,30 +2,17 @@
 
 ## Table of contents
 
-- [Theme Setup](#theme-setup)
-- [Background Atmosphere](#background-atmosphere)
-- [Link Styling](#link-styling)
-- [Section / Card Components](#section--card-components)
-- [Code Blocks](#code-blocks)
-- [Directory Tree](#directory-tree)
-- [Overflow Protection](#overflow-protection)
-- [Mermaid Containers](#mermaid-containers)
-- [Grid Layouts](#grid-layouts)
-- [Connectors](#connectors)
-- [Animations](#animations)
-- [Sparklines and Simple Charts (Pure SVG)](#sparklines-and-simple-charts-pure-svg)
-- [Responsive Breakpoint](#responsive-breakpoint)
-- [Badges and Tags](#badges-and-tags)
-- [Lists Inside Nodes](#lists-inside-nodes)
-- [KPI / Metric Cards](#kpi--metric-cards)
-- [Before / After Panels](#before--after-panels)
-- [Collapsible Sections](#collapsible-sections)
+- [Theme & Atmosphere](#theme--atmosphere)
+- [Layout & Containers](#layout--containers)
+- [Content Blocks](#content-blocks)
+- [Visual Components](#visual-components)
 - [Prose Page Elements](#prose-page-elements)
-- [Generated Images](#generated-images)
 
 Reusable patterns for layout, connectors, theming, and visual effects in self-contained HTML diagrams.
 
-## Theme Setup
+## Theme & Atmosphere
+
+### Theme Setup
 
 Always define both light and dark palettes via custom properties. Start with whichever fits the chosen aesthetic, ensure both work.
 
@@ -73,7 +60,7 @@ Always define both light and dark palettes via custom properties. Start with whi
 }
 ```
 
-## Background Atmosphere
+### Background Atmosphere
 
 Flat backgrounds feel dead. Use subtle gradients or patterns.
 
@@ -109,11 +96,13 @@ body {
 }
 ```
 
-## Link Styling
+### Link Styling
 
 **Never rely on browser default link colors.** The default blue (`#0000EE`) has poor contrast on dark backgrounds. Style links with `color: var(--accent)` and keep underlines for discoverability. On dark backgrounds, use bright accents (`#22d3ee`, `#34d399`, `#fbbf24`). On light backgrounds, use deeper tones (`#0891b2`, `#059669`, `#d97706`).
 
-## Section / Card Components
+## Layout & Containers
+
+### Section / Card Components
 
 The fundamental building block. A colored card representing a system component, pipeline step, or data entity.
 
@@ -187,11 +176,11 @@ The fundamental building block. A colored card representing a system component, 
 }
 ```
 
-## Code Blocks
+### Code Blocks
 
 Code blocks need explicit whitespace preservation and a max-height constraint. Without these, code runs together and long files overwhelm the page.
 
-### Basic Pattern
+#### Basic Pattern
 
 ```css
 .code-block {
@@ -222,7 +211,7 @@ function example() {
 }</code></pre>
 ```
 
-### With File Header
+#### With File Header
 
 ```css
 .code-file {
@@ -267,7 +256,7 @@ function example() {
 </div>
 ```
 
-### Implementation Plans: Don't Dump Full Files
+#### Implementation Plans: Don't Dump Full Files
 
 For implementation plans and architecture docs, **don't display entire source files inline**. Instead:
 
@@ -311,7 +300,7 @@ For implementation plans and architecture docs, **don't display entire source fi
 
 If someone needs the full file, put it in a collapsible section or link to it.
 
-## Directory Tree
+### Directory Tree
 
 For file structures, use `<pre>` with monospace + `white-space: pre`. Tree connectors (`├──`, `└──`, `│`) only work when vertically aligned — they become noise if text wraps.
 
@@ -362,11 +351,11 @@ For labeled trees, wrap in a card. For side-by-side comparisons, put two cards i
 
 **Never** render tree connectors inside wrapping text (`white-space: normal`), flex children, or grid items — the vertical pipes lose alignment and the hierarchy becomes unreadable.
 
-## Overflow Protection
+### Overflow Protection
 
 Grid and flex children default to `min-width: auto`, which prevents them from shrinking below their content width. Long text, inline code badges, and non-wrapping elements will blow out containers.
 
-### Global rules
+#### Global rules
 
 ```css
 /* Every grid/flex child must be able to shrink */
@@ -382,7 +371,7 @@ body {
 }
 ```
 
-### Side-by-side comparison panels
+#### Side-by-side comparison panels
 
 ```css
 .comparison {
@@ -401,7 +390,7 @@ body {
 }
 ```
 
-### Never use `display: flex` on `<li>` for marker characters
+#### Never use `display: flex` on `<li>` for marker characters
 
 Using `display: flex` on a list item to position a `::before` marker creates an anonymous flex item for the remaining text content. That anonymous flex item gets `min-width: auto` and you **cannot** set `min-width: 0` on anonymous boxes. Lines with many inline `<code>` badges will overflow their container with no CSS fix possible.
 
@@ -431,7 +420,7 @@ li::before {
 }
 ```
 
-### List markers overlapping container borders
+#### List markers overlapping container borders
 
 By default, `list-style-position: outside` places list markers (bullets, numbers) outside the content box. When lists are inside bordered containers (cards, callout boxes), the markers can overlap or extend beyond the border.
 
@@ -473,11 +462,11 @@ By default, `list-style-position: outside` places list markers (bullets, numbers
 
 **Rule of thumb:** Any `<ol>` or `<ul>` inside a bordered container needs either `list-style-position: inside` or `padding-left: 2em` minimum. The default 20px padding is not enough for outside-positioned markers.
 
-## Mermaid Containers
+### Mermaid Containers
 
 Mermaid diagrams have two common layout issues: they render too small to read, and they left-align in their container leaving awkward dead space (especially for narrow vertical flowcharts).
 
-### Centering (Required)
+#### Centering (Required)
 
 Mermaid SVGs render at a fixed size based on content. Without explicit centering, they default to top-left alignment. **Always center Mermaid diagrams** — narrow vertical flowcharts look particularly bad when left-aligned in a wide container.
 
@@ -498,7 +487,7 @@ Mermaid SVGs render at a fixed size based on content. Without explicit centering
 }
 ```
 
-### Scaling Small Diagrams
+#### Scaling Small Diagrams
 
 Mermaid sizes diagrams based on content, not container. Complex diagrams with many nodes render small to fit everything, leaving the text nearly unreadable. Three fixes:
 
@@ -529,13 +518,13 @@ mermaid.initialize({
 
 **Rule of thumb:** If the diagram has 10+ nodes or the text is smaller than 12px rendered, increase fontSize to 18-20px or apply CSS zoom.
 
-### Zoom Controls
+#### Zoom Controls
 
 Add zoom controls to every `.mermaid-wrap` container for complex diagrams.
 
 **Small diagrams in slides.** If a diagram has fewer than ~7 nodes with no branching, it will render tiny in a full-viewport slide container. For simple linear flows (A → B → C → D), use CSS pipeline cards instead of Mermaid — see `${CLAUDE_PLUGIN_ROOT}/skills/amvcp-visual-communication/references/slide-patterns.md` "CSS Pipeline Slide." Reserve Mermaid for complex graphs where automatic edge routing is actually needed.
 
-### Full Pattern
+#### Full Pattern
 
 ```css
 .mermaid-wrap {
@@ -636,7 +625,7 @@ Add zoom controls to every `.mermaid-wrap` container for complex diagrams.
 
 The SVG is rendered into `.mermaid-canvas` which is absolutely positioned inside `.mermaid-viewport`. Zooming sets the SVG's `width` and `height` styles directly. Panning applies `transform: translate()` to the canvas. The viewport has `overflow: hidden` to clip the panned content. This approach avoids CSS `zoom` (which had cross-browser quirks) and gives precise control over the diagram's size and position.
 
-### HTML
+#### HTML
 
 ```html
 <section class="diagram-shell">
@@ -665,7 +654,7 @@ The SVG is rendered into `.mermaid-canvas` which is absolutely positioned inside
 
 Use one `.diagram-shell` per diagram. The source Mermaid text lives in `<script type="text/plain" class="diagram-source">`, so multiple diagrams can coexist on a page without ID collisions.
 
-### JavaScript
+#### JavaScript
 
 Use a closure-based initializer. Per-diagram state lives inside `initDiagram(shell)`, while shared drag listeners stay at module scope:
 
@@ -726,9 +715,9 @@ document.querySelectorAll('.diagram-shell').forEach(initDiagram);
 
 This pattern removes all hardcoded IDs and supports unlimited diagrams per page. For the full implementation (including smart fit, pinch zoom, and shared drag state), use `templates/mermaid-flowchart.html` as the canonical source.
 
-## Grid Layouts
+### Grid Layouts
 
-### Architecture Diagram (2-column with sidebar)
+#### Architecture Diagram (2-column with sidebar)
 ```css
 .arch-grid {
   display: grid;
@@ -744,7 +733,7 @@ This pattern removes all hardcoded IDs and supports unlimited diagrams per page.
 .arch-grid__full { grid-column: 1 / -1; }
 ```
 
-### Pipeline (horizontal steps)
+#### Pipeline (horizontal steps)
 ```css
 .pipeline {
   display: flex;
@@ -776,7 +765,7 @@ This pattern removes all hardcoded IDs and supports unlimited diagrams per page.
 }
 ```
 
-### Card Grid (dashboard / metrics)
+#### Card Grid (dashboard / metrics)
 ```css
 .card-grid {
   display: grid;
@@ -785,7 +774,7 @@ This pattern removes all hardcoded IDs and supports unlimited diagrams per page.
 }
 ```
 
-### Data Tables
+#### Data Tables
 
 Use real `<table>` elements for tabular data. Wrap in a scrollable container for wide tables.
 
@@ -892,7 +881,7 @@ Use real `<table>` elements for tabular data. Wrap in a scrollable container for
 }
 ```
 
-#### Status Indicators
+##### Status Indicators
 
 Styled spans for match/gap/warning states. Never use emoji.
 
@@ -949,7 +938,7 @@ Usage in table cells:
 <td><span class="status status--warn">Partial</span></td>
 ```
 
-#### Table Summary Row
+##### Table Summary Row
 
 For totals, counts, or aggregate status at the bottom:
 
@@ -964,7 +953,7 @@ For totals, counts, or aggregate status at the bottom:
 }
 ```
 
-#### Sticky First Column (for very wide tables)
+##### Sticky First Column (for very wide tables)
 
 ```css
 .data-table th:first-child,
@@ -980,9 +969,11 @@ For totals, counts, or aggregate status at the bottom:
 }
 ```
 
-## Connectors
+## Visual Components
 
-### CSS Arrow (vertical, between stacked sections)
+### Connectors
+
+#### CSS Arrow (vertical, between stacked sections)
 ```css
 .flow-arrow {
   display: flex;
@@ -1012,7 +1003,7 @@ Down arrow SVG (reuse inline):
 <svg viewBox="0 0 20 20"><path d="M10 4 L10 16 M6 12 L10 16 L14 12"/></svg>
 ```
 
-### CSS Arrow (horizontal, between inline steps)
+#### CSS Arrow (horizontal, between inline steps)
 Use `::after` or a literal arrow character:
 ```css
 .h-arrow::after {
@@ -1023,7 +1014,7 @@ Use `::after` or a literal arrow character:
 }
 ```
 
-### SVG Curved Connector (between arbitrary nodes)
+#### SVG Curved Connector (between arbitrary nodes)
 For connections that aren't simple vertical/horizontal, use an absolutely positioned SVG overlay:
 ```html
 <svg class="connectors" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;">
@@ -1035,9 +1026,9 @@ For connections that aren't simple vertical/horizontal, use an absolutely positi
 
 Position the parent container as `position: relative` to scope the SVG overlay.
 
-## Animations
+### Animations
 
-### Staggered Fade-In on Load
+#### Staggered Fade-In on Load
 
 Define the keyframe once, then stagger via a `--i` CSS variable set per element. This approach works regardless of DOM nesting or interleaved non-animated elements (unlike `nth-child` which breaks when siblings aren't all the same type).
 
@@ -1063,7 +1054,7 @@ Set `--i` per element in the HTML to control stagger order:
 <div class="ve-card" style="--i: 2">Third</div>
 ```
 
-### Hover Lift
+#### Hover Lift
 ```css
 .ve-card {
   transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -1075,7 +1066,7 @@ Set `--i` per element in the HTML to control stagger order:
 }
 ```
 
-### Scale-Fade (for KPI cards, badges, status indicators)
+#### Scale-Fade (for KPI cards, badges, status indicators)
 
 ```css
 @keyframes fadeScale {
@@ -1089,7 +1080,7 @@ Set `--i` per element in the HTML to control stagger order:
 }
 ```
 
-### SVG Draw-In (for connectors, progress rings, path elements)
+#### SVG Draw-In (for connectors, progress rings, path elements)
 
 ```css
 @keyframes drawIn {
@@ -1105,7 +1096,7 @@ Set `--i` per element in the HTML to control stagger order:
 }
 ```
 
-### CSS Counter (for hero numbers without JS)
+#### CSS Counter (for hero numbers without JS)
 
 Uses `@property` to animate a custom property as an integer, then display it via `counter()`. No JS required. Falls back to showing the final value immediately in browsers without `@property` support.
 
@@ -1131,7 +1122,7 @@ Uses `@property` to animate a custom property as an integer, then display it via
 }
 ```
 
-### Choreography
+#### Choreography
 
 Don't use the same animation for everything. Mix types by element role, with easing stagger (fast-then-slow, not linear):
 
@@ -1141,7 +1132,7 @@ Don't use the same animation for everything. Mix types by element role, with eas
 - **Hero numbers**: `countUp` — counting motion signals "this number matters"
 - **Stagger timing**: `calc(var(--i) * 0.06s)` with lower `--i` values on important elements so they appear first
 
-### Respect Reduced Motion
+#### Respect Reduced Motion
 ```css
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
@@ -1152,7 +1143,7 @@ Don't use the same animation for everything. Mix types by element role, with eas
 }
 ```
 
-## Sparklines and Simple Charts (Pure SVG)
+### Sparklines and Simple Charts (Pure SVG)
 
 For simple inline visualizations without a library:
 
@@ -1169,7 +1160,7 @@ For simple inline visualizations without a library:
 </div>
 ```
 
-## Responsive Breakpoint
+### Responsive Breakpoint
 
 Include a single breakpoint for narrow viewports:
 
@@ -1182,7 +1173,7 @@ Include a single breakpoint for narrow viewports:
 }
 ```
 
-## Badges and Tags
+### Badges and Tags
 
 Small inline labels for categorizing elements:
 
@@ -1198,7 +1189,7 @@ Small inline labels for categorizing elements:
 }
 ```
 
-## Lists Inside Nodes
+### Lists Inside Nodes
 
 For tool listings, feature lists, table columns:
 
@@ -1234,7 +1225,7 @@ For tool listings, feature lists, table columns:
 }
 ```
 
-## KPI / Metric Cards
+### KPI / Metric Cards
 
 Large hero number with trend indicator and label. For dashboards, review summaries, and impact sections.
 
@@ -1292,7 +1283,7 @@ Large hero number with trend indicator and label. For dashboards, review summari
 </div>
 ```
 
-## Before / After Panels
+### Before / After Panels
 
 Two-column comparison with diff-colored headers. For review pages, migration docs, and feature comparisons.
 
@@ -1357,7 +1348,7 @@ Two-column comparison with diff-colored headers. For review pages, migration doc
 </div>
 ```
 
-## Collapsible Sections
+### Collapsible Sections
 
 Native `<details>/<summary>` with styled disclosure. Zero JS, accessible. For lower-priority content: file maps, decision logs, reference sections.
 

@@ -8,7 +8,7 @@
 
 ## Plan content
 
-# Plan: 10-skill multi-split for ai-maestro-visual-communicator-plugin
+## Plan: 10-skill multi-split for ai-maestro-visual-communicator-plugin
 
 ## Context
 
