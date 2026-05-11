@@ -286,34 +286,81 @@ def detect_iterm2() -> bool:
     return result.returncode == 0
 
 
-def launch_iterm2_split(url: str) -> bool:
+def launch_iterm2_split(url: str) -> str | None:
     """Open a vertical split pane in the current iTerm2 tab pointing at `url`.
 
     Defers to the canonical AppleScript at
     `skills/amvcp-iterm2-preview/scripts/open_preview.applescript`. Returns
-    True on osascript exit 0, False otherwise (so the caller can fall
-    through to Chrome). Does NOT raise — the worst case is iTerm2 mode is
-    unreachable and the user gets the legacy Chrome flow.
+    the new session's UUID on success (so the caller can later close that
+    specific pane on selection received) or None on any failure (so the
+    caller can fall through to Chrome). Does NOT raise — the worst case
+    is iTerm2 mode is unreachable and the user gets the legacy Chrome flow.
 
-    The pane is the user's terminal pane: we do NOT track its lifetime
-    or auto-close it on runner exit. The runtime navigates the page to
-    `/__ve-thanks` after a selection is received, telling the user to
-    close the pane manually (or via `close_preview.applescript`).
+    The applescript prints the new session UUID as the last line of stdout
+    after navigation completes. We parse that line and return it; the
+    runner's exit path uses it to close the specific pane via
+    close_iterm2_pane(), so the user does not have to close the preview
+    manually after a selection is received (mirror of how Chrome --app
+    mode kills its process tree on exit).
     """
     script = _plugin_root() / "skills/amvcp-iterm2-preview/scripts/open_preview.applescript"
     if not script.is_file():
-        return False
+        return None
     try:
         result = subprocess.run(
             ["osascript", str(script), url],
             capture_output=True,
             text=True,
-            timeout=10,
+            timeout=15,
             check=False,
         )
     except (FileNotFoundError, subprocess.TimeoutExpired):
-        return False
-    return result.returncode == 0
+        return None
+    if result.returncode != 0:
+        return None
+    # The applescript's last stdout line is the new session UUID. Strip
+    # whitespace; if empty, treat as failure (we still opened the pane,
+    # but we can't close it later — better to fall through to Chrome).
+    last_line = result.stdout.strip().splitlines()[-1] if result.stdout.strip() else ""
+    return last_line or None
+
+
+def close_iterm2_pane(session_id: str) -> None:
+    """Close one specific iTerm2 session by its UUID.
+
+    Used by the runner's exit path on selection received, so the preview
+    pane goes away cleanly. Best-effort: failures are swallowed (the
+    pane is owned by the user's iTerm2 and we never want to crash the
+    runner because of a cleanup hiccup).
+
+    We target the session by exact UUID — NOT via close_preview.applescript
+    (which closes EVERY tty=missing-value session in the current tab,
+    which would over-reach if the user has other Browser panes open).
+    """
+    applescript = (
+        'tell application id "com.googlecode.iterm2"\n'
+        '    repeat with w in windows\n'
+        '        repeat with t in tabs of w\n'
+        '            repeat with s in sessions of t\n'
+        f'                if (id of s as text) is {json.dumps(session_id)} then\n'
+        '                    tell s to close\n'
+        '                    return\n'
+        '                end if\n'
+        '            end repeat\n'
+        '        end repeat\n'
+        '    end repeat\n'
+        'end tell\n'
+    )
+    try:
+        subprocess.run(
+            ["osascript", "-e", applescript],
+            capture_output=True,
+            text=True,
+            timeout=5,
+            check=False,
+        )
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        pass
 
 
 def launch_app_window(binary: str, url: str, profile_dir: str) -> subprocess.Popen | None:
@@ -832,7 +879,7 @@ def main(argv: list[str]) -> int:
     no_browser = os.environ.get("VE_SELECT_NO_BROWSER") == "1"
     no_app = os.environ.get("VE_SELECT_NO_APP") == "1"
     no_iterm = os.environ.get("VE_SELECT_NO_ITERM") == "1"
-    iterm_used = False
+    iterm_session_id: str | None = None
     binary = None if (no_app or no_browser) else find_chromium_binary()
 
     if no_browser:
@@ -840,13 +887,14 @@ def main(argv: list[str]) -> int:
         # Print URL to stderr so a manual tester / smoke-test harness can
         # find the served page without scraping logs.
         print(f"[amvcp-select] listening at {url}", file=sys.stderr)
-    elif (not no_iterm) and detect_iterm2() and launch_iterm2_split(url):
+    elif (not no_iterm) and detect_iterm2() and (iterm_session_id := launch_iterm2_split(url)):
         # Real iTerm2 host detected (8-check guard via detect_iterm2.py)
-        # AND osascript split-pane launch succeeded. The page now lives
-        # in a "Web Browser" profile pane to the right of the user's
-        # terminal session. Skip Chrome entirely; no browser_proc to
-        # track because the pane is owned by the user's iTerm2.app.
-        iterm_used = True
+        # AND osascript split-pane launch succeeded AND we captured the
+        # new session UUID for later cleanup. The page now lives in a
+        # "Web Browser" profile pane to the right of the user's terminal
+        # session. Skip Chrome entirely; iterm_session_id is used in the
+        # exit path to close THAT specific pane via close_iterm2_pane()
+        # (mirror of kill_browser_tree for Chrome mode).
         launch_reason = "iterm2-split"
         print(f"[amvcp-select] iTerm2 split-pane opened at {url}", file=sys.stderr)
     elif binary:
@@ -856,7 +904,7 @@ def main(argv: list[str]) -> int:
     else:
         launch_reason = "no-chromium-fallback" if not no_app else "no-app-requested"
 
-    if not no_browser and browser_proc is None and not iterm_used:
+    if not no_browser and browser_proc is None and iterm_session_id is None:
         # Fall back to the user's default browser. window.close() will be
         # blocked there, but the runtime has its own "you can close this
         # tab" overlay so the UX still terminates cleanly.
@@ -892,6 +940,13 @@ def main(argv: list[str]) -> int:
             # zombie helpers per launch, which surface as "extra empty
             # windows" once their localhost backing-server dies.
             kill_browser_tree(browser_proc)
+        if iterm_session_id is not None:
+            # Mirror of Chrome's kill_browser_tree for the iTerm2 path:
+            # close the specific Browser pane we created so the user
+            # doesn't have to close it manually after selection received.
+            # Targets the session by exact UUID so it never over-reaches
+            # to other Browser panes the user may have open.
+            close_iterm2_pane(iterm_session_id)
         # Best-effort profile cleanup (the browser may still hold a lock
         # for a moment; ignore failures so we don't crash the agent loop).
         try:

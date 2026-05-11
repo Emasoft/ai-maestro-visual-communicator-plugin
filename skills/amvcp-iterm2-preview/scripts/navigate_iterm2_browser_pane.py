@@ -133,12 +133,31 @@ async def _navigate(connection: iterm2.Connection, session_id: str,
     except Exception as exc:  # noqa: BLE001 — best-effort cosmetic
         print(f"iterm2-nav: set_name warning ({exc!r}) — proceeding",
               file=sys.stderr)
-    # Try the primary navigation method. On AppVersionTooOld (iTerm2
-    # protocol < 1.12, e.g. iTerm2 v3.6.10), fall back to keystroke +
-    # clipboard. Any other error is fatal.
+    # Try the primary navigation method. Two failure modes need the
+    # keystroke fallback:
+    #   1. AppVersionTooOld — iTerm2 protocol < 1.12 (e.g. v3.6.10).
+    #   2. RPCException "Invalid URL" — iTerm2's Browser API enforces a
+    #      WebKit security policy that rejects `file://` (and probably
+    #      other non-http(s)) URLs even though they're valid URLs.
+    #      The keystroke path bypasses the API and pastes directly into
+    #      the URL bar, where WebKit happily loads file:// URLs.
+    # Any other RPC error (e.g. genuine network failure) is surfaced.
+    fallback_reason: str | None = None
     try:
         await session.async_load_url(url)
     except iterm2.capabilities.AppVersionTooOld:
+        fallback_reason = (
+            "iTerm2 too old for async_load_url (needs protocol ≥ 1.12)"
+        )
+    except iterm2.rpc.RPCException as exc:
+        msg = str(exc)
+        if "Invalid URL" in msg:
+            # file:// URLs and similar — Browser API security policy.
+            fallback_reason = f"async_load_url rejected URL ({msg})"
+        else:
+            # Other RPC errors (e.g. session vanished) — fatal.
+            _fail(f"async_load_url RPC error: {msg}")
+    if fallback_reason is not None:
         # Activate the pane first so the keystrokes definitely go to it.
         # split-vertically auto-focuses the new pane in iTerm2 by default,
         # but make it explicit in case the user has changed that.
@@ -148,12 +167,10 @@ async def _navigate(connection: iterm2.Connection, session_id: str,
             pass
         if not _keystroke_navigate(url):
             _fail(
-                "iTerm2 v3.6.10 is too old for the Python load_url API "
-                "(needs protocol ≥ 1.12, you have ≤ 1.11) AND the "
-                "keystroke fallback also failed — upgrade iTerm2 to "
-                "v3.6.11+ (or a nightly) for clean navigation, or grant "
-                "osascript Accessibility permission so the fallback "
-                "keystrokes can land",
+                f"{fallback_reason} AND keystroke fallback also failed — "
+                "grant osascript Accessibility permission so the "
+                "fallback keystrokes can reach iTerm2, or use an http "
+                "URL (serve the file locally) instead of file://",
             )
 
 

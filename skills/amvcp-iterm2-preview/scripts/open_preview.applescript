@@ -94,4 +94,12 @@ on run argv
         -- usable; user can navigate manually if Python API setup is missing.
         log "open_preview.applescript: navigation failed (" & errMsg & ") — pane open, navigate manually via URL bar"
     end try
+
+    -- Return the new session UUID as the script's stdout. The runner
+    -- (`scripts/amvcp-select.py:launch_iterm2_split`) captures this and
+    -- passes it to `close_iterm2_pane()` on selection received, so the
+    -- preview pane auto-closes when the user clicks Submit/Exit (mirror
+    -- of how Chrome --app=URL mode kills its window on selection).
+    -- Manual ad-hoc users can ignore the trailing UUID line.
+    return newSessionId
 end run
