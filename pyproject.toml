@@ -1,6 +1,6 @@
 [project]
 name = "ai-maestro-visual-communicator-plugin"
-version = "1.2.2"
+version = "1.2.3"
 description = "Generate interactive HTML pages — diagrams, diff reviews, plan reviews, slide decks, data tables, and v2 modal-comment agent reports. Every page sends the user's selection (or per-element comment thread) back to the agent."
 readme = "README.md"
 requires-python = ">=3.12"
