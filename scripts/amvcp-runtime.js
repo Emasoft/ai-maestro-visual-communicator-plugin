@@ -916,30 +916,41 @@
       '  background:var(--ve-decision-reject-bg, #a84a32);', // brick rust
       '  color:var(--ve-decision-reject-fg, #fbfaf6);',
       '}',
-      // ─── Floating Submit/Exit bar (bottom-right macOS-overlay style) ──
-      // The .ve-floating-bar is a single semi-translucent backdrop-blur
-      // container that holds both buttons. It replaces the previous pair
-      // of physically-mirrored corner buttons that ignored the host
-      // palette and looked jarring on every theme that wasn\'t white.
-      // The bar reads its surface from --ve-control-overlay-bg so it
-      // tints itself to the host \'s --bg (warm cream → warm cream tint;
-      // cool slate → cool slate tint). The two button positions
-      // (top-right and bottom-left) survive only as logical hooks for
-      // existing tests (#ve-submit-tr / #ve-submit-bl) — visually they
-      // are now collapsed into one shared bar bottom-right.
-      '.ve-floating-bar {',
-      '  position:fixed; bottom:18px; right:18px;',
+      // ─── Two standalone action buttons (top-right + bottom-(left|right)) ──
+      // Y-anchored to the PAGE (position:absolute on body, so they live in
+      // the document flow and are reachable only by scrolling to the top
+      // or bottom of the page — they NEVER overlap mid-page content),
+      // X-anchored to the VIEWPORT (a scroll-listener updates `left` on
+      // every horizontal scroll so they stay at the visible right/left
+      // edge regardless of how wide the page is).
+      //
+      // Per the user-stated design contract:
+      //  - "if there is a horizontal scrollbar … the button is still
+      //     visible on the bottom right (if the scroll reached the bottom)"
+      //  - "if the scroll did not reach the bottom, the button is not
+      //     visible since it is anchored to the y of the page"
+      //  - "no matter the position of the horizontal scrollbar, the top
+      //     button is always at the extreme right of the viewport, and
+      //     the bottom button is always at either the extreme left or
+      //     the right of the viewport"
+      //
+      // The IDs ve-submit-tr / ve-submit-bl are PRESERVED for backwards-
+      // compat with existing test selectors. They now also correspond to
+      // their actual physical positions again (TR = top-right, BL =
+      // bottom-(left|right)).
+      //
+      // Theme: each button uses --ve-control-* CSS variables so it
+      // inherits the host page palette. No backdrop-blur container —
+      // the user explicitly asked for two clean floating buttons, not a
+      // single glass bar.
+      '.ve-action-btn {',
+      '  position:absolute;',  // Y-anchored to document flow
       '  z-index:2147483646;',
-      '  display:inline-flex; align-items:center; gap:8px;',
-      '  padding:8px;',
-      '  background:var(--ve-control-overlay-bg);',
-      '  -webkit-backdrop-filter:var(--ve-control-overlay-blur);',
-      '  backdrop-filter:var(--ve-control-overlay-blur);',
-      '  border:1px solid var(--ve-control-border);',
-      '  border-radius:calc(var(--ve-control-radius) + 4px);',
-      '  box-shadow:var(--ve-control-shadow);',
-      '  font:var(--ve-control-font);',
+      // X (left) is computed by JS — see pinActionButtonsToViewport().
+      // Y is fixed via top/bottom on the per-position class below.
       '}',
+      '.ve-action-btn--top { top:24px; }',
+      '.ve-action-btn--bottom { bottom:24px; }',
       // Buttons inside the bar AND any standalone runtime button. They
       // both use the shared --ve-control-* palette so a host-page
       // override re-themes the whole runtime UI in one place.
@@ -1572,85 +1583,136 @@
   function injectSubmitButtons() {
     if (!document.body) return;
     if (document.getElementById('ve-submit-tr')) return; // idempotent
-    // Single floating bar bottom-right — semi-translucent backdrop-blur
-    // surface that reads its colour from the host palette via
-    // --ve-control-overlay-bg. The pair of buttons inside (Exit on the
-    // left, Submit on the right) replaces the previous physically-
-    // mirrored corner buttons that ignored the host theme entirely.
+    // Two standalone floating buttons per the design contract:
+    //   ve-submit-tr  → top-right of viewport, top of page (scroll up to see)
+    //   ve-submit-bl  → bottom-(left|right) of viewport, bottom of page (scroll
+    //                   down to see)
+    // Both are position:absolute on body so the Y anchors to the document
+    // (not the viewport): they NEVER overlap mid-page content. The X is
+    // tracked by pinActionButtonsToViewport() below so each button stays
+    // at the visible edge of the viewport regardless of horizontal scroll.
+    // The bottom button's horizontal side is decided by a host-page hint
+    // (`<body data-ve-bottom-button-position="left|right">`) — defaults
+    // to right.
     //
-    // The IDs ve-submit-tr (now leftmost) and ve-submit-bl (now
-    // rightmost) are PRESERVED for backwards-compat with existing test
-    // selectors — they no longer carry positional meaning, but the
-    // tests use them as logical hooks so renaming them would require a
-    // coordinated test-suite update.
-    var bar = document.createElement('div');
-    bar.id = 've-floating-bar';
-    bar.className = 've-floating-bar';
-    bar.setAttribute('data-ve-overlay', '1');
-    document.body.appendChild(bar);
+    // IDs preserved for test back-compat (#ve-submit-tr / #ve-submit-bl)
+    // AND now also reflect actual physical positions (top-right / bottom-
+    // anchored).
+    var bottomSide = (document.body.getAttribute('data-ve-bottom-button-position') || 'right').toLowerCase();
+    if (bottomSide !== 'left' && bottomSide !== 'right') bottomSide = 'right';
 
-    var ids = ['ve-submit-tr', 've-submit-bl'];
-    for (var i = 0; i < ids.length; i++) {
+    var specs = [
+      { id: 've-submit-tr', positionClass: 've-action-btn--top',    side: 'right'    },
+      { id: 've-submit-bl', positionClass: 've-action-btn--bottom', side: bottomSide },
+    ];
+    for (var i = 0; i < specs.length; i++) {
       var btn = document.createElement('button');
-      btn.id = ids[i];
+      btn.id = specs[i].id;
       btn.type = 'button';
-      btn.className = 've-floating-btn';
+      btn.className = 've-floating-btn ve-action-btn ' + specs[i].positionClass;
       btn.setAttribute('data-ve-overlay', '1');
+      btn.setAttribute('data-ve-action-side', specs[i].side);
       (function (b) {
-        // Auto-derive kind from current selection size: empty → "exit",
-        // any items → "submit". Calling veSubmit() / veExit() bypasses
-        // this auto-derivation by forcing the kind, which is wrong for
-        // the button click — the button is a single physical element,
-        // its meaning depends on what's currently selected, not on which
-        // function name we wired up.
+        // Auto-derive kind from current selection size — see comment in
+        // updateSubmitButtonsState for label semantics.
         b.addEventListener('click', function () { submitSelections(); });
       })(btn);
-      bar.appendChild(btn);
+      document.body.appendChild(btn);
     }
-    injectClearAllButton(bar); // Phase 7: touch-only Clear button inside the bar
+    // The Clear-all (touch-only) needs a home now that the wrapping bar
+    // is gone. Put it next to the bottom button on the SAME viewport side
+    // so the two touch-targets are visually grouped. We re-use the same
+    // pin-to-viewport mechanism, with a per-element offset.
+    injectClearAllButton(document.body);
     updateSubmitButtonsState();
+    pinActionButtonsToViewport();
   }
 
   function updateSubmitButtonsState() {
-    // Both buttons are kept in the DOM for test compatibility. Visually
-    // the bar collapses to a single Exit button when no selections exist
-    // (so the page does not show two identical buttons), and expands to
-    // an Exit + primary Submit pair the moment the user picks anything.
-    // Both buttons still POST through submitSelections() with auto-
-    // derived kind, so the existing tests can click either ID and get
-    // the right wire payload.
+    // The two buttons each have a content-adaptive label:
+    //   - n === 0  → both show "Exit"   (ghost styling — quiet, dismissive)
+    //   - n  >  0  → top-right shows "Exit", bottom shows "Submit (N)"
+    //                (primary styling — accent fill, the action button)
+    // Both POST through submitSelections() with the auto-derived kind,
+    // so the existing tests click either ID and get the right wire payload.
+    // The single-direct-select case where a click already auto-submits
+    // gets the same chrome (two Exit buttons) — the page just never
+    // reaches n>0 because the runtime collapses to submit on first click.
     var n = veSelection.length;
-    var exitBtn = document.getElementById('ve-submit-tr');     // leftmost
-    var submitBtn = document.getElementById('ve-submit-bl');   // rightmost (primary when n>0)
+    var exitBtn = document.getElementById('ve-submit-tr');     // top-right
+    var submitBtn = document.getElementById('ve-submit-bl');   // bottom
     if (exitBtn) {
-      // The leftmost slot is always the "cancel/back-out" affordance.
-      // It uses ghost styling so it never visually competes with the
-      // primary Submit when both are visible.
       exitBtn.textContent = 'Exit';
-      exitBtn.className = 've-floating-btn ve-floating-btn--ghost';
+      exitBtn.className = 've-floating-btn ve-action-btn ve-action-btn--top ve-floating-btn--ghost';
       exitBtn.style.display = 'inline-flex';
     }
     if (submitBtn) {
+      var bottomPosClass = 've-action-btn--bottom';
       if (n === 0) {
-        // Hide the secondary slot entirely — a duplicate Exit button
-        // would be confusing. The primary remains in the DOM (and
-        // clickable via test selector) but visually the bar is just
-        // [Exit].
         submitBtn.textContent = 'Exit';
-        submitBtn.className = 've-floating-btn ve-floating-btn--ghost';
-        submitBtn.style.display = 'none';
+        submitBtn.className = 've-floating-btn ve-action-btn ' + bottomPosClass + ' ve-floating-btn--ghost';
       } else {
-        // n>0 → bar shows [Exit] [Submit(N)] with Submit as the primary
-        // accent-coloured button.
         submitBtn.textContent = 'Submit (' + n + ')';
-        submitBtn.className = 've-floating-btn ve-floating-btn--primary';
-        submitBtn.style.display = 'inline-flex';
+        submitBtn.className = 've-floating-btn ve-action-btn ' + bottomPosClass + ' ve-floating-btn--primary';
       }
+      submitBtn.style.display = 'inline-flex';
     }
     // Phase 7: Clear-all is touch-only, visible only when there's
-    // something to clear. Lives inside the bar between Exit and Submit.
+    // something to clear. Floats near the bottom button — see
+    // pinActionButtonsToViewport().
     var clearBtn = document.getElementById('ve-clear-all');
     if (clearBtn) clearBtn.style.display = (isTouchDevice() && n > 0) ? 'inline-flex' : 'none';
+    // Re-pin after any geometry change so the buttons stay on the
+    // viewport edge even if their width changed (e.g. "Exit" → "Submit (12)").
+    pinActionButtonsToViewport();
+  }
+
+  // X-anchor the two floating action buttons to the VIEWPORT edge while
+  // their Y stays anchored to the document (top of page / bottom of page
+  // via position:absolute + top/bottom). The user explicitly asked for
+  // this behaviour: as the user scrolls horizontally, each button must
+  // stay at the extreme right (top button) / extreme left-or-right (bottom
+  // button) of the visible viewport. They are NOT position:fixed because
+  // fixed would also pin them to the Y of the viewport, which the design
+  // contract forbids — the buttons must hide until the user scrolls to
+  // top/bottom of the page.
+  function pinActionButtonsToViewport() {
+    if (!document.body) return;
+    var margin = 24;
+    var buttons = document.querySelectorAll('.ve-action-btn');
+    function update() {
+      var visibleLeft = window.scrollX;
+      var visibleRight = window.scrollX + window.innerWidth;
+      for (var i = 0; i < buttons.length; i++) {
+        var btn = buttons[i];
+        // offsetWidth is 0 until the button is in the DOM AND laid out.
+        // On the first call from within injectSubmitButtons() the layout
+        // may not have flushed yet — guard so we don't compute negative
+        // positions. The next scroll/resize event will re-pin correctly.
+        if (!btn.offsetWidth) continue;
+        var side = btn.getAttribute('data-ve-action-side') || 'right';
+        var x = (side === 'left')
+          ? visibleLeft + margin
+          : visibleRight - btn.offsetWidth - margin;
+        btn.style.left = x + 'px';
+      }
+    }
+    update();
+    // Avoid stacking multiple listeners across re-injections (e.g. if
+    // injectSubmitButtons runs more than once because of script re-load).
+    if (!window.__veActionButtonsPinned) {
+      window.__veActionButtonsPinned = true;
+      window.addEventListener('scroll', update, { passive: true });
+      window.addEventListener('resize', update, { passive: true });
+      // Some pages dynamically inject content that changes layout AFTER
+      // load — re-pin on a short debounced raf so we don't miss those.
+      var raf = null;
+      var observer = new MutationObserver(function () {
+        if (raf) cancelAnimationFrame(raf);
+        raf = requestAnimationFrame(function () { raf = null; update(); });
+      });
+      observer.observe(document.body, { childList: true, subtree: false });
+    }
   }
 
   // ESC clears multi-select; Enter triggers global Submit/Exit. Both
