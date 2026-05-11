@@ -145,3 +145,49 @@ osascript "$CLAUDE_PLUGIN_ROOT/skills/amvcp-iterm2-preview/scripts/close_preview
 Closes every non-active session in the current tab — collapses back to a
 single terminal pane. Or the user can just type `exit` inside the right
 pane. Both have the same effect.
+
+## Side effects of opening a preview
+
+`open_preview.applescript` mutates iTerm2 state so the preview is readable.
+None are destructive; all are documented + reversible:
+
+| Mutation | Why | How to revert |
+|----------|-----|---------------|
+| `defaults write com.googlecode.iterm2 DimInactiveSplitPanes -bool false` | Stops iTerm2 from graying out the Web Browser pane when terminal pane has focus. iTerm2's dim control is global — no per-pane override. | Settings → Appearance → Dimming → toggle "Dim inactive split panes" back on. |
+| `defaults write com.googlecode.iterm2 SplitPaneDimmingAmount -float 0.0` | Belt-and-braces companion to the bool. iTerm2 sometimes dims even when the bool is false because the *amount* is non-zero. | Settings → Appearance → Dimming → drag "Amount" slider back up. |
+| `set name to "amvcp Preview"` on the new pane | Friendly title bar text so you can identify the preview pane at a glance. | Per-pane runtime state; vanishes when the pane closes. |
+| `set use tab color to true` + `set tab color to {53456, 53456, 53456}` (≈ #D0D0D0) on the new pane | Bright-gray tab/title-bar tint so the preview pane is visually distinct from the terminal pane regardless of focus. | Per-pane runtime state; vanishes when the pane closes. |
+
+The two `defaults write` mutations persist across iTerm2 restarts (they're
+genuine global preferences). The two AppleScript mutations are per-pane
+runtime state — they're re-applied every time `open_preview.applescript`
+runs, so the effect is "permanent" from the user's perspective even though
+nothing is stored in the profile.
+
+## Recommended one-time profile setup
+
+For the bright-gray tab color to be visible, enable per-pane title bars on
+the Web Browser profile (one-time UI step):
+
+1. Settings → Profiles → **Web Browser** → General → "Title settings"
+2. Tick **"Show Title Bar"**
+3. Optional: do the same for your default Profile so the terminal pane also
+   has a title bar (then both panes show focus state via title-bar contrast)
+
+Without this, the `set name` and `set tab color` calls succeed but the
+title bar isn't rendered — there's nothing to colour.
+
+## Why focused/unfocused title bars sometimes look the same
+
+iTerm2's "Theme" setting (Settings → Appearance → General → Theme) controls
+how strongly focus state is rendered:
+
+- **Light** / **Dark** / **Regular** — focused pane title bar is brightly
+  coloured, unfocused ones are dimmed. Strong visible distinction.
+- **Compact** / **Minimal** / **Automatic** — focus indicators are
+  intentionally desaturated for a "clean" look. Title bars look almost the
+  same in both states; the bright-gray tab color we set helps but won't
+  fully restore focus contrast.
+
+If focus contrast is important and you don't mind the chrome change, switch
+to Light or Dark in Settings → Appearance → General → Theme.

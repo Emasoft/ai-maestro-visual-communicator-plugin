@@ -11,9 +11,9 @@ metadata:
 
 ## Overview
 
-Splits the current iTerm2 tab vertically and opens an HTML/SVG file in the right-hand pane via a "Web Browser" profile. **Refuses on every non-iTerm2 host** (Claude Desktop, Terminal.app, WezTerm/Alacritty/Kitty, VS Code, Cursor, tmux/screen, SSH, Codespaces/Gitpod/Replit/Jupyter/xterm.js) — all fail Step 0 and abort cleanly.
+Splits the current iTerm2 tab vertically and opens an HTML/SVG file in the right-hand pane via a "Web Browser" profile. **Refuses on every non-iTerm2 host** (Claude Desktop, Terminal.app, WezTerm/Alacritty/Kitty, VS Code, Cursor, tmux/screen, SSH, Codespaces/Gitpod/Replit/Jupyter/xterm.js) — Step 0 aborts cleanly.
 
-Also auto-invoked by `scripts/amvcp-select.py` (runner): on iTerm2 it opens generated pages in a split-pane instead of Chrome; otherwise the existing browser flow runs unchanged. Opt-out via `VE_SELECT_NO_ITERM=1`.
+Auto-invoked by `scripts/amvcp-select.py`: opens generated pages in a split-pane instead of Chrome on iTerm2; otherwise existing browser flow runs unchanged. Opt-out via `VE_SELECT_NO_ITERM=1`.
 
 ## Prerequisites
 
@@ -36,17 +36,19 @@ Also auto-invoked by `scripts/amvcp-select.py` (runner): on iTerm2 it opens gene
 
 ## Output
 
-Vertical split-pane in the user's current iTerm2 tab, right side ~50% width, "Web Browser" profile pointing at the URL. Original terminal session preserved on the left. Mermaid mode writes SVG + HTML to `/tmp` only.
+Vertical split-pane in the current iTerm2 tab, right ~50%, "Web Browser" profile pointing at the URL. Terminal session preserved on the left. Mermaid mode writes to `/tmp`.
+
+**Side effects:** disables iTerm2 pane dimming globally + names the preview pane "amvcp Preview" + tints its tab color bright gray (#D0D0D0) for visual distinction. Enable Settings → Profiles → Web Browser → "Show Title Bar" to see both cues. See cookbook for details.
 
 ## Error Handling
 
 | Symptom | Fix |
 |---|---|
-| `NOT-iTerm2: …` from Step 0 | Read stderr — names which check failed. Do NOT bypass. |
-| `"Web Browser" profile not found` | Create it in iTerm2 Preferences → Profiles → "+". |
+| `NOT-iTerm2: …` from Step 0 | stderr names which check failed. Do NOT bypass. |
+| `"Web Browser" profile not found` | Create in Preferences → Profiles → "+". |
 | `mmdc: command not found` | `npm i -g @mermaid-js/mermaid-cli`. |
-| Pane opens but blank | URL must be complete; re-run with `$(realpath ...)` for files. |
-| Split lands in wrong window | AppleScript uses `current window`; bring desired window to front first. |
+| Pane blank | URL must be complete; use `$(realpath ...)` for files. |
+| Wrong window | AppleScript uses `current window`; bring target to front. |
 
 ## Examples
 
