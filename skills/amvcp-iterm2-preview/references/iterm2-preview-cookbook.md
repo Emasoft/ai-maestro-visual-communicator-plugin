@@ -155,27 +155,52 @@ None are destructive; all are documented + reversible:
 |----------|-----|---------------|
 | `defaults write com.googlecode.iterm2 DimInactiveSplitPanes -bool false` | Stops iTerm2 from graying out the Web Browser pane when terminal pane has focus. iTerm2's dim control is global — no per-pane override. | Settings → Appearance → Dimming → toggle "Dim inactive split panes" back on. |
 | `defaults write com.googlecode.iterm2 SplitPaneDimmingAmount -float 0.0` | Belt-and-braces companion to the bool. iTerm2 sometimes dims even when the bool is false because the *amount* is non-zero. | Settings → Appearance → Dimming → drag "Amount" slider back up. |
-| `set name to "amvcp Preview"` on the new pane | Friendly title bar text so you can identify the preview pane at a glance. | Per-pane runtime state; vanishes when the pane closes. |
-| `set use tab color to true` + `set tab color to {53456, 53456, 53456}` (≈ #D0D0D0) on the new pane | Bright-gray tab/title-bar tint so the preview pane is visually distinct from the terminal pane regardless of focus. | Per-pane runtime state; vanishes when the pane closes. |
+| Set pane name to "amvcp Preview" via Python API (`session.async_set_name`) | Friendly title bar text so you can identify the preview pane at a glance. The page's `<title>` later overwrites this when navigation completes. | Per-pane runtime state; vanishes when the pane closes. |
 
-The two `defaults write` mutations persist across iTerm2 restarts (they're
-genuine global preferences). The two AppleScript mutations are per-pane
-runtime state — they're re-applied every time `open_preview.applescript`
-runs, so the effect is "permanent" from the user's perspective even though
-nothing is stored in the profile.
+Tab-color tinting was attempted in earlier drafts but **iTerm2's AppleScript
+sdef has no `tab color` property on session** (verified against
+`/Applications/iTerm.app/Contents/Resources/iTerm2.sdef`) — `set tab color`
+errors with `-1728`. The friendly pane name + the dim-disable are the only
+working visual cues.
+
+## Page navigation — Python API + keystroke fallback
+
+iTerm2's AppleScript surface has **no command to navigate a Web-Browser
+session**. The original `downloads_dev/iterm2-preview` skill used
+`write text URL` — that only writes to a SHELL session and silently no-ops
+on Browser sessions, which is why the original never actually loaded the
+page.
+
+The fix is `scripts/navigate_iterm2_browser_pane.py`, invoked from
+`open_preview.applescript` with the new session's UUID. It tries two paths:
+
+1. **Primary** — `Session.async_load_url(url)` via the iTerm2 Python API.
+   Requires iTerm2 protocol ≥ 1.12 (typically iTerm2 ≥ 3.6.11 or any
+   nightly build).
+
+2. **Fallback** — clipboard + keystroke. Stashes the user's clipboard,
+   puts the URL on the clipboard, sends Cmd+L (focus URL bar), Cmd+V
+   (paste), Enter, then restores the clipboard. Works on any iTerm2
+   version. Brief (~200 ms) clipboard clobber is unavoidable. Verified
+   working on iTerm2 v3.6.10 / protocol 1.11.
+
+Both paths require:
+- iTerm2's "Allow Python API" enabled (Settings → General → Magic).
+- Bundle id `com.googlecode.iterm2` (vanilla iTerm.app), NOT
+  `com.googlecode.iterm2.iTermAI` (which is a separate fork that
+  intercepts plain `tell application "iTerm"` AppleScript calls if
+  iTermAI is also installed). The applescript uses `tell application id
+  "com.googlecode.iterm2"` to disambiguate.
 
 ## Recommended one-time profile setup
 
-For the bright-gray tab color to be visible, enable per-pane title bars on
-the Web Browser profile (one-time UI step):
+For the friendly pane name to be visible, enable per-pane title bars on the
+Web Browser profile (one-time UI step):
 
 1. Settings → Profiles → **Web Browser** → General → "Title settings"
 2. Tick **"Show Title Bar"**
 3. Optional: do the same for your default Profile so the terminal pane also
    has a title bar (then both panes show focus state via title-bar contrast)
-
-Without this, the `set name` and `set tab color` calls succeed but the
-title bar isn't rendered — there's nothing to colour.
 
 ## Why focused/unfocused title bars sometimes look the same
 
@@ -186,8 +211,21 @@ how strongly focus state is rendered:
   coloured, unfocused ones are dimmed. Strong visible distinction.
 - **Compact** / **Minimal** / **Automatic** — focus indicators are
   intentionally desaturated for a "clean" look. Title bars look almost the
-  same in both states; the bright-gray tab color we set helps but won't
-  fully restore focus contrast.
+  same in both states.
 
-If focus contrast is important and you don't mind the chrome change, switch
-to Light or Dark in Settings → Appearance → General → Theme.
+If focus contrast is important, switch to Light or Dark in Settings →
+Appearance → General → Theme.
+
+## close_preview.applescript safety
+
+The original `downloads_dev` close script ran "close every session that
+isn't `current session`" — but iTerm2 auto-focuses the new split-pane, so
+"current session" = the just-created Web Browser pane and the loop tried
+to close the user's terminal (with Claude Code in it). Confirmed by user
+report.
+
+The current `close_preview.applescript` instead targets sessions where
+`tty is missing value` — Web Browser sessions return missing value (no
+pty), shell sessions return `/dev/ttys{NN}`. Only Browser panes (and
+exited shell-orphans whose tty has been released) are closed; the user's
+real terminal session is always preserved.
