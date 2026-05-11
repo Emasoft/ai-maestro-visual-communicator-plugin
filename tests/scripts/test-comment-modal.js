@@ -303,15 +303,29 @@ async function testCodeBlockAnchor(page) {
 
 async function testPageScrollsWhileModalOpen(page) {
   // Page can still scroll while the modal is open.
+  //
+  // Older revisions of the runtime pushed `main` 480 px to the right
+  // (margin-right reflow) so the sidebar-style modal didn't cover the
+  // page content. The modal is now draggable to any position on the
+  // page and is no longer pinned to the right edge — pushing main
+  // would be incorrect once the user drags the modal somewhere else.
+  // What we DO still guarantee:
+  //   1. wheel scroll under the modal continues to scroll the page
+  //   2. the connector overlay <svg> appears next to the modal
+  //   3. the modal element is positioned (left/top set inline by JS)
   await setup(page);
   await hoverThenClickPill(page, 'p[data-ve-comment-id]');
   const before = await page.evaluate(() => window.scrollY);
   await page.mouse.wheel(0, 400);
   await page.waitForTimeout(300);
   const after = await page.evaluate(() => window.scrollY);
-  const layoutOk = await page.evaluate(() => getComputedStyle(document.querySelector('main')).marginRight === '480px');
-  const ok = after > before && layoutOk;
-  record('modal_page_scrolls_while_open', ok ? 'PASS' : 'FAIL', 'wheel scroll under modal works + reflow margin survives', `scrollY ${before}→${after}, marginRight=${layoutOk ? '480px' : '?'}`);
+  const overlayPresent = await page.evaluate(() => !!document.querySelector('svg.ve-connector-overlay line.ve-connector-line'));
+  const modalPositioned = await page.evaluate(() => {
+    const m = document.querySelector('.ve-comment-modal');
+    return !!(m && m.style.left && m.style.top);
+  });
+  const ok = after > before && overlayPresent && modalPositioned;
+  record('modal_page_scrolls_while_open', ok ? 'PASS' : 'FAIL', 'wheel scroll under modal + connector overlay + modal positioned', `scrollY ${before}→${after}, overlay=${overlayPresent}, positioned=${modalPositioned}`);
 }
 
 // ── Runner ──────────────────────────────────────────────────────────

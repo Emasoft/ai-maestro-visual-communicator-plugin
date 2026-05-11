@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Visual-test — paragraph numbering at depth 3-4</title>
+<style>
+  :root {
+    --bg:#faf6ee; --text:#1f1a14; --gold:#b8861f;
+    --ve-accent:var(--gold); --rule:rgba(0,0,0,0.10);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg:#14110b; --text:#ede5dd; --gold:#e0bf5b;
+      --ve-accent:var(--gold); --rule:rgba(255,255,255,0.10);
+    }
+  }
+  body {
+    margin:0; background:var(--bg); color:var(--text);
+    font:18px/1.6 'Crimson Pro', Georgia, serif;
+    padding:32px 24px;
+  }
+  main { max-width: 80ch; margin: 0 auto; }
+  /* Make the .ve-pnum marker easy to see in screenshots — give it
+     a small bordered chip look against the page background.
+     The runtime injects the marker as an <a class="ve-pnum">. */
+  .ve-pnum {
+    display:inline-block;
+    background:color-mix(in srgb, var(--gold) 22%, transparent);
+    color:var(--gold);
+    border:1px solid color-mix(in srgb, var(--gold) 55%, transparent);
+    border-radius:4px;
+    padding:1px 6px;
+    margin-right:0.55ch;
+    font:600 0.7em ui-monospace, Menlo, monospace;
+    text-decoration:none;
+    vertical-align:baseline;
+    line-height:1.4;
+  }
+  .ve-pnum:hover {
+    background:color-mix(in srgb, var(--gold) 35%, transparent);
+    text-decoration:none;
+  }
+  /* Runtime stamps data-ve-pdepth alongside data-ve-pnum and applies
+     left-margin per depth — the rules below are stronger so the depth
+     ladder is unmistakable in the screenshot. */
+  [data-ve-prose] [data-ve-pdepth="1"] { margin-left: 0; }
+  [data-ve-prose] [data-ve-pdepth="2"] { margin-left: 1.5ch; }
+  [data-ve-prose] [data-ve-pdepth="3"] { margin-left: 3ch; }
+  [data-ve-prose] [data-ve-pdepth="4"] { margin-left: 4.5ch; }
+  [data-ve-prose] [data-ve-pdepth="5"] { margin-left: 6ch; }
+</style>
+</head>
+<body>
+<main>
+  <article data-ve-prose>
+    <h1>Chapter 1 — Surface findings</h1>
+    <p>Paragraph at depth 2 (h1 + 1) — should be numbered 1.1.</p>
+    <p>Second paragraph still under chapter 1 — expected 1.2.</p>
+
+    <h2>1.1 Sub-section near the surface</h2>
+    <p>Paragraph at depth 3 — expected 1.1.1.</p>
+    <p>Second paragraph under 1.1 — expected 1.1.2.</p>
+
+    <h3>1.1.1 Deep level — three segments</h3>
+    <p>Paragraph at depth 4 — expected 1.1.1.1.</p>
+    <p>Second paragraph at depth 4 — expected 1.1.1.2.</p>
+
+    <h3>1.1.2 Sibling deep level</h3>
+    <p>Paragraph at depth 4 — expected 1.1.2.1.</p>
+
+    <h4>1.1.2.1 Four-segment heading</h4>
+    <p>Paragraph at depth 5 — expected 1.1.2.1.1.</p>
+    <p>Second paragraph at depth 5 — expected 1.1.2.1.2.</p>
+
+    <h2>1.2 Another sub-section</h2>
+    <p>Paragraph under 1.2 — expected 1.2.1.</p>
+
+    <h3>1.2.1 Yet another deep level</h3>
+    <p>Paragraph under 1.2.1 — expected 1.2.1.1.</p>
+
+    <h1>Chapter 2 — Counter resets</h1>
+    <p>First paragraph in chapter 2 — expected 2.1.</p>
+
+    <h2>2.1 Section under chapter 2</h2>
+    <p>Paragraph here — expected 2.1.1.</p>
+
+    <h3>2.1.1 Deep section under chapter 2</h3>
+    <p>Paragraph at depth 4 in chapter 2 — expected 2.1.1.1.</p>
+
+    <h4>2.1.1.1 Four-segment heading in chapter 2</h4>
+    <p>Paragraph at depth 5 in chapter 2 — expected 2.1.1.1.1.</p>
+    <p>Second one — expected 2.1.1.1.2.</p>
+  </article>
+</main>
+<script src="amvcp-runtime.js"></script>
+</body>
+</html>

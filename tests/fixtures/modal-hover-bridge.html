@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Visual-test — modal hover-bridge (180ms grace)</title>
+<style>
+  :root {
+    --bg:#faf6ee; --text:#1f1a14; --gold:#b8861f;
+    --ve-accent:var(--gold); --rule:rgba(0,0,0,0.10);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg:#14110b; --text:#ede5dd; --gold:#e0bf5b;
+      --ve-accent:var(--gold); --rule:rgba(255,255,255,0.10);
+    }
+  }
+  body {
+    margin:0; background:var(--bg); color:var(--text);
+    font:18px/1.6 'Crimson Pro', Georgia, serif;
+    padding:96px 24px 200px;
+  }
+  main { max-width: 70ch; margin: 0 auto; }
+  /* The "finding" paragraph that owns the comment-id. Padding +
+     visible border make the anchor easy to spot in the screenshot
+     and give the hover-bridge a real ~4 px gap to traverse on the
+     way to the absolutely-positioned pill. */
+  .ve-finding-body {
+    border:1px solid var(--rule);
+    background:color-mix(in srgb, var(--gold) 4%, transparent);
+    border-radius:6px;
+    padding:14px 18px;
+    margin:24px 0;
+  }
+  .ve-finding-body p { margin: 0 0 0.8em; }
+  .ve-finding-body p:last-child { margin-bottom: 0; }
+  /* Override the runtime's pill opacity transition with a no-op so
+     the screenshots are deterministic — the test waits 200 ms after
+     each mouse move before snapping, which is more than 120 ms of
+     fade-in, but a missed fade-in step still causes flake on slower
+     machines. With transition:none the pill is visible the moment
+     opacity flips to 1. */
+  .ve-comment-pill { transition: none !important; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Comment hover-bridge test</h1>
+  <p>Hover the highlighted finding below — a "💬 Comment this" pill should appear.
+  Move the cursor onto the pill: it must remain visible throughout the trip
+  (180 ms grace window per <code>references/runtime-bug-patterns.md</code>).
+  If the pill disappears the moment the cursor leaves the anchor, the bridge
+  is broken.</p>
+
+  <section data-ve-finding-id="finding-1">
+    <h2 id="hover-anchor-section">Finding 1 — hover bridge target</h2>
+    <div class="ve-finding-body">
+      <p id="hover-anchor"
+         data-ve-comment-id="hover-bridge-anchor-001">
+        This paragraph is the comment anchor. Real users approach the pill by
+        sliding the mouse off the right edge of this box, which fires
+        <code>mouseleave</code> on the anchor before <code>mouseover</code>
+        fires on the pill — the 180 ms timer must keep the pill alive
+        across that ~4 px gap.
+      </p>
+    </div>
+  </section>
+
+  <p>Spacer paragraph — present so the anchored finding is comfortably
+  away from page edges, giving the absolute-positioned pill room to render
+  without overlapping the viewport border.</p>
+</main>
+<script src="amvcp-runtime.js"></script>
+</body>
+</html>
