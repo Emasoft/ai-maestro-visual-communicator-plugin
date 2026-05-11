@@ -648,36 +648,74 @@
       '  background:color-mix(in srgb, var(--ve-accent, #b8861f) 8%, transparent);',
       '}',
       // Page reflow when modal open.
+      // The modal is now draggable so it can land anywhere on the page;
+      // page-wide reflow (margin-right:480px) would be wrong once the user
+      // drags the modal off the right edge. We still want the page to be
+      // INERT while the modal is open (blocks accidental clicks on
+      // non-comment elements behind the modal), so we keep pointer-events
+      // disabled, but we no longer push main to the side.
       'body[data-ve-comment-modal-open="1"] { overflow-x:hidden; }',
-      'body[data-ve-comment-modal-open="1"] main {',
-      '  margin-right:480px; transition: margin 240ms ease;',
-      '}',
       'body[data-ve-comment-modal-open="1"] main * {',
       '  pointer-events:none;', // page becomes inert
       '}',
       'body[data-ve-comment-modal-open="1"] main [data-ve-comment-active] {',
       '  pointer-events:auto;', // but the active anchor stays selectable
       '}',
+      // ─── Connector overlay (z-index just BELOW the modal) ───────────────
+      // SVG layer drawn full-viewport. The wide semi-transparent line goes
+      // from the anchor's center to the modal's center; the modal's higher
+      // z-index visually "covers" the line where they overlap, so the line
+      // looks like it terminates inside the modal — preserving the visual
+      // tether without getting in the way of reading the modal contents.
+      '.ve-connector-overlay {',
+      '  position:fixed; left:0; top:0; width:100vw; height:100vh;',
+      '  pointer-events:none;', // line is decoration, never intercepts clicks
+      '  z-index:2147483645;',  // ONE less than the modal (2147483646)
+      '  overflow:visible;',
+      '}',
+      '.ve-connector-line {',
+      // Stroke width >= modal header height (44px). Round linecaps make
+      // the anchor-end look like a soft pin rather than a hard slab.
+      '  stroke:color-mix(in srgb, var(--ve-accent, #b8861f) 30%, transparent);',
+      '  stroke-width:44; stroke-linecap:round;',
+      '  fill:none;',
+      '}',
       // Modal box.
+      // Now positioned absolute (top/left) so JS drag can move it freely.
+      // Default-position JS (positionCommentModalDefault) sets top/left in
+      // the absence of a stored position — we don't anchor it via CSS so
+      // the JS is the single source of truth for placement.
       '.ve-comment-modal {',
-      '  position:fixed; top:0; right:0; width:460px; height:100vh;',
+      '  position:fixed; top:24px; left:auto; right:24px;',
+      '  width:460px; max-height:calc(100vh - 48px); height:auto;',
       '  z-index:2147483646;',
       '  display:flex; flex-direction:column;',
       '  background:var(--bg, #faf6ee); color:var(--text, #1f1a14);',
-      '  border-left:1px solid color-mix(in srgb, var(--ve-accent, #b8861f) 40%, transparent);',
-      '  box-shadow:-12px 0 28px rgba(0,0,0,0.18);',
+      '  border:1px solid color-mix(in srgb, var(--ve-accent, #b8861f) 40%, transparent);',
+      '  border-radius:8px;',
+      '  box-shadow:0 18px 48px rgba(0,0,0,0.28);',
       '  font:14px/1.5 ui-sans-serif,system-ui,-apple-system,sans-serif;',
       '  animation:veFadeIn 160ms ease-out both;',
       '}',
       '.ve-comment-modal-inner {',
       '  display:flex; flex-direction:column; flex:1; min-height:0;',
       '}',
+      // The header is the drag handle. cursor:grab signals the affordance,
+      // cursor:grabbing flips during the actual drag (set inline by JS).
+      // user-select:none prevents accidental text selection while dragging.
       '.ve-comment-modal-header {',
       '  display:flex; align-items:center; justify-content:space-between;',
       '  padding:12px 16px;',
       '  border-bottom:1px solid color-mix(in srgb, var(--text, currentColor) 12%, transparent);',
       '  background:color-mix(in srgb, var(--ve-accent, #b8861f) 8%, transparent);',
+      '  cursor:grab; user-select:none;',
+      '  border-top-left-radius:8px; border-top-right-radius:8px;',
       '}',
+      '.ve-comment-modal-header:active { cursor:grabbing; }',
+      // Children of the header (title text, close button) should NOT inherit
+      // the grab cursor or the drag-trigger; we set them back to default so
+      // clicking the [×] close button doesn't initiate a drag.
+      '.ve-comment-modal-header .ve-comment-modal-close { cursor:pointer; }',
       '.ve-comment-modal-title {',
       '  font:600 13px/1.4 ui-monospace,Menlo,monospace;',
       '  letter-spacing:0.04em; opacity:0.85;',
@@ -771,75 +809,76 @@
       '.ve-comment-done:hover {',
       '  background:color-mix(in srgb, var(--text, currentColor) 14%, transparent);',
       '}',
-      // ─── v3.1 — per-element decision toggles (TRDD-7a2dab03 §3.1, §3.4) ──
-      // Two pill-shaped toggle switches per finding (approve + reject), with
-      // mutex enforced by `wireDecisionPills`. Both off = skip (default).
-      // Inspired by Birchline's feature-flags toggle, repalette'd to a warm
-      // slate/teal/rust scheme so it stays visually distinct from existing
-      // visualisations (per browser-ui-test-techniques.md — vary palettes).
+      // ─── v3.2 — per-element decision segmented control (TRDD-7a2dab03 §3.1, §3.4)
+      // ONE 3-segment control per finding: [Skip] [Approve] [Reject]. Mutex is
+      // visual + ARIA-enforced (radiogroup semantics) — clicking a segment
+      // activates that one and deactivates the others. Default = "skip".
+      //
+      // Why segmented (not 2 toggles): a switch is conventionally a binary
+      // INDEPENDENT setting. Two switches side-by-side imply 4 states
+      // (approve on/off × reject on/off), but the actual state space is 3
+      // mutex options. A segmented control makes the mutex visible at a
+      // glance and matches the semantics (`role="radiogroup"`).
+      //
+      // Hidden inputs preserved: each of the approve/reject segments still
+      // wraps an sr-only `<input type="checkbox" data-decision="...">` so
+      // existing tests + DOM consumers continue to work. The skip segment
+      // has no input — its "active" state is the absence of checked inputs.
       '.ve-decision {',
       '  border:0; padding:0; margin:8px 0 12px;',
-      '  display:inline-flex; gap:18px; align-items:center;',
+      '  display:inline-flex; align-items:center;',
+      '  border-radius:calc(var(--ve-control-radius, 6px) + 2px);',
+      '  background:color-mix(in srgb, var(--ve-control-border, #d6d1c5) 28%, transparent);',
+      '  padding:3px;',
+      '  gap:0;',
       '}',
       '.ve-sr-only {',
       '  position:absolute; width:1px; height:1px;',
       '  padding:0; margin:-1px; overflow:hidden; clip:rect(0 0 0 0);',
       '  white-space:nowrap; border:0;',
       '}',
-      // Toggle = label wrapper containing hidden checkbox + track + text label.
-      '.ve-toggle {',
-      '  display:inline-flex; align-items:center; gap:8px;',
-      '  cursor:pointer; user-select:none;',
-      '}',
-      '.ve-toggle input[type="checkbox"] {',
+      // Hidden inputs (kept for test selectors + a11y).
+      '.ve-decision input[type="checkbox"] {',
       '  position:absolute; opacity:0; pointer-events:none;',
       '  width:1px; height:1px; margin:-1px;',
       '}',
-      // Track: 38×22 pill with a 16px circular thumb that slides on check.
-      // Track + thumb fall back to the host palette via
-      // --ve-control-border / --ve-control-bg so the toggle tints
-      // itself to the page theme; the original warm-taupe / warm-off-
-      // white defaults remain when the host page does not expose any
-      // palette at all.
-      '.ve-toggle-track {',
-      '  position:relative; flex:none;',
-      '  width:38px; height:22px;',
-      '  background:color-mix(in srgb, var(--ve-control-border-strong, #d6d1c5) 100%, transparent);',
-      '  border-radius:999px;',
-      '  transition:background 160ms ease;',
-      '}',
-      '.ve-toggle-track::after {',
-      '  content:""; position:absolute;',
-      '  top:3px; left:3px;',
-      '  width:16px; height:16px;',
-      '  border-radius:50%;',
-      '  background:var(--ve-control-bg, #fbfaf6);',
-      '  box-shadow:0 1px 2px rgba(0,0,0,0.18);',
-      '  transition:transform 160ms ease;',
-      '}',
-      // Checked-state colours per choice.
-      '.ve-toggle-approve input:checked ~ .ve-toggle-track {',
-      '  background:#3a6b5c;', // deep teal (go/trust, cooler than reference olive)
-      '}',
-      '.ve-toggle-reject input:checked ~ .ve-toggle-track {',
-      '  background:#a84a32;', // brick rust (stop, warm not electric)
-      '}',
-      '.ve-toggle input:checked ~ .ve-toggle-track::after {',
-      '  transform:translateX(16px);',
-      '}',
-      // Text label next to the switch.
-      '.ve-toggle-label {',
+      // Each segment is the visible click target. Inactive = transparent
+      // background + dim text. Active = filled with the per-choice colour
+      // and high-contrast text. Keyboard focus ring uses --ve-accent.
+      '.ve-segment {',
+      '  display:inline-flex; align-items:center; justify-content:center;',
+      '  min-width:64px; padding:6px 14px;',
+      '  border:0; outline:0;',
+      '  background:transparent;',
+      '  color:color-mix(in srgb, var(--text, currentColor) 55%, transparent);',
+      '  border-radius:calc(var(--ve-control-radius, 6px) - 1px);',
       '  font:600 11px/1.2 ui-sans-serif,system-ui,sans-serif;',
-      '  letter-spacing:0.06em; text-transform:uppercase;',
-      '  color:color-mix(in srgb, var(--text, currentColor) 60%, transparent);',
-      '  transition:color 120ms ease;',
+      '  letter-spacing:0.08em; text-transform:uppercase;',
+      '  cursor:pointer; user-select:none;',
+      '  transition:background 140ms ease, color 140ms ease, box-shadow 140ms ease;',
       '}',
-      '.ve-toggle input:checked ~ .ve-toggle-label {',
+      '.ve-segment:hover:not([aria-checked="true"]) {',
+      '  background:color-mix(in srgb, var(--text, currentColor) 8%, transparent);',
       '  color:var(--text, currentColor);',
       '}',
-      // Keyboard focus ring (Tab + Space).
-      '.ve-toggle input:focus-visible ~ .ve-toggle-track {',
+      '.ve-segment:focus-visible {',
       '  outline:2px solid var(--ve-accent, #b8861f); outline-offset:2px;',
+      '}',
+      // Active state per segment — pulled from CSS variables so host pages
+      // can override (--ve-decision-skip-bg / -approve-bg / -reject-bg).
+      // Defaults: skip = neutral surface; approve = teal-ish; reject = rust.
+      '.ve-segment[aria-checked="true"] {',
+      '  background:var(--ve-decision-skip-bg, var(--ve-control-bg, #fbfaf6));',
+      '  color:var(--ve-control-fg, var(--text, currentColor));',
+      '  box-shadow:0 1px 2px rgba(0,0,0,0.14);',
+      '}',
+      '.ve-segment-approve[aria-checked="true"] {',
+      '  background:var(--ve-decision-approve-bg, #3a6b5c);', // deep teal
+      '  color:var(--ve-decision-approve-fg, #fbfaf6);',
+      '}',
+      '.ve-segment-reject[aria-checked="true"] {',
+      '  background:var(--ve-decision-reject-bg, #a84a32);', // brick rust
+      '  color:var(--ve-decision-reject-fg, #fbfaf6);',
       '}',
       // ─── Floating Submit/Exit bar (bottom-right macOS-overlay style) ──
       // The .ve-floating-bar is a single semi-translucent backdrop-blur
@@ -5028,8 +5067,17 @@
 
   var COMMENT_POLL_MS = 1500;
   var COMMENT_LS_PREFIX = 've-comment-thread:';
+  var COMMENT_POS_PREFIX = 've-comment-modal-pos:'; // per-anchor drag persistence
   var commentModalEl = null;
   var commentModalState = null; // {commentId, threadId, anchorEl, turns:[], activeTurn:N, polling:boolean, pollHandle:any}
+  // ── Drag + connector state ───────────────────────────────────────────
+  // Connector overlay is a single SVG appended to <body> when the modal
+  // opens; the line inside is updated on every drag move + scroll +
+  // resize. We cache references so updateConnectorLine() doesn't re-query
+  // the DOM on every call (drag fires at the rate of mousemove).
+  var connectorOverlayEl = null;
+  var connectorLineEl = null;
+  var commentModalDragState = null; // {startX, startY, startLeft, startTop} during drag
 
   function commentSourcePath() {
     // The original source markdown path is recorded in the page's
@@ -5063,6 +5111,29 @@
           turns: state.turns,
           updatedAt: Date.now()
         })
+      );
+    } catch (_) {}
+  }
+
+  // ── Modal-position persistence (per anchor) ───────────────────────────
+  // Stored as {left:px, top:px} in viewport coordinates because the modal
+  // is `position:fixed`. We persist on every drag-end and load on every
+  // openCommentModal so the user's last placement for THIS specific
+  // comment is the placement they get on reopen.
+  function loadCommentModalPos(commentId) {
+    try {
+      var raw = localStorage.getItem(COMMENT_POS_PREFIX + commentId);
+      if (!raw) return null;
+      var pos = JSON.parse(raw);
+      if (typeof pos.left !== 'number' || typeof pos.top !== 'number') return null;
+      return pos;
+    } catch (_) { return null; }
+  }
+  function saveCommentModalPos(commentId, left, top) {
+    try {
+      localStorage.setItem(
+        COMMENT_POS_PREFIX + commentId,
+        JSON.stringify({ left: left, top: top })
       );
     } catch (_) {}
   }
@@ -5184,7 +5255,196 @@
         commentHoverPill.style.left =
           (rect.right + window.scrollX - 130) + 'px';
       }
+      // The anchor's viewport coords change on every scroll, so the
+      // connector line's anchor end has to follow it. Modal end is
+      // unchanged (modal is position:fixed) but we recompute both for
+      // simplicity — single function, single source of truth.
+      updateConnectorLine();
     }, { passive: true });
+    // Resize changes the viewport size, which both clamps the modal
+    // (we re-apply its current position so any off-screen overflow is
+    // corrected) and changes the SVG viewBox. We do this in capture phase
+    // to beat any per-component resize handler that might rely on the
+    // modal being already clamped.
+    window.addEventListener('resize', function () {
+      if (commentModalEl && commentModalState) {
+        var r = commentModalEl.getBoundingClientRect();
+        applyCommentModalPosition(r.left, r.top);
+      }
+      updateConnectorLine();
+    }, { passive: true });
+  }
+
+  // ── Connector overlay (SVG line from anchor to modal center) ─────────
+  // Pure decoration: a wide semi-transparent line drawn UNDER the modal
+  // (z-index just below it) so the modal visually "covers" the segment
+  // of the line that intersects it. The line is updated on every drag
+  // move, scroll, and resize so it always points at the right spot.
+  //
+  // We use a single <svg> overlay attached to <body> (not inside the
+  // modal) because:
+  //   1) the modal has its own animation/transform stack — putting the
+  //      SVG inside it would force the line to inherit those transforms;
+  //   2) overflow:visible on the SVG and a fixed-position viewport-sized
+  //      overlay let the line draw freely across the whole page without
+  //      any clipping;
+  //   3) pointer-events:none on the overlay means the line never
+  //      intercepts clicks even where it overlaps interactive content.
+  var SVG_NS = 'http://www.w3.org/2000/svg';
+
+  function buildConnectorOverlay() {
+    if (connectorOverlayEl) return connectorOverlayEl;
+    var svg = document.createElementNS(SVG_NS, 'svg');
+    svg.setAttribute('class', 've-connector-overlay');
+    svg.setAttribute('data-ve-overlay', '1');
+    // viewBox uses pixel units so SVG line coordinates equal viewport px.
+    // We resize the viewBox on window resize to keep that invariant.
+    svg.setAttribute('viewBox',
+      '0 0 ' + window.innerWidth + ' ' + window.innerHeight);
+    svg.setAttribute('preserveAspectRatio', 'none');
+    var line = document.createElementNS(SVG_NS, 'line');
+    line.setAttribute('class', 've-connector-line');
+    // Initial coords are zero — updateConnectorLine() overwrites them
+    // before the overlay is ever painted, so this is just placeholder.
+    line.setAttribute('x1', '0'); line.setAttribute('y1', '0');
+    line.setAttribute('x2', '0'); line.setAttribute('y2', '0');
+    svg.appendChild(line);
+    document.body.appendChild(svg);
+    connectorOverlayEl = svg;
+    connectorLineEl = line;
+    return svg;
+  }
+
+  function teardownConnectorOverlay() {
+    if (connectorOverlayEl && connectorOverlayEl.parentNode) {
+      connectorOverlayEl.parentNode.removeChild(connectorOverlayEl);
+    }
+    connectorOverlayEl = null;
+    connectorLineEl = null;
+  }
+
+  // Recompute and apply the line's endpoints using the current anchor
+  // and modal positions in viewport coordinates. Safe to call when the
+  // modal is closed (no-op) — that simplifies the scroll/resize
+  // listeners which fire regardless of modal state.
+  function updateConnectorLine() {
+    if (!commentModalState || !commentModalEl || !connectorLineEl) return;
+    var anchor = commentModalState.anchorEl;
+    if (!anchor) return;
+    var aRect = anchor.getBoundingClientRect();
+    var mRect = commentModalEl.getBoundingClientRect();
+    // Viewport-px centers. getBoundingClientRect already returns viewport
+    // coords for a position:fixed element AND for any in-flow element,
+    // so we don't need to add/subtract window.scrollX/Y here.
+    var ax = aRect.left + aRect.width / 2;
+    var ay = aRect.top + aRect.height / 2;
+    var mx = mRect.left + mRect.width / 2;
+    var my = mRect.top + mRect.height / 2;
+    connectorLineEl.setAttribute('x1', String(ax));
+    connectorLineEl.setAttribute('y1', String(ay));
+    connectorLineEl.setAttribute('x2', String(mx));
+    connectorLineEl.setAttribute('y2', String(my));
+    // Keep the viewBox in sync with the actual viewport so the line
+    // never gets clipped after a resize.
+    if (connectorOverlayEl) {
+      connectorOverlayEl.setAttribute('viewBox',
+        '0 0 ' + window.innerWidth + ' ' + window.innerHeight);
+    }
+  }
+
+  // ── Modal-position helpers ───────────────────────────────────────────
+  // Apply a viewport-px (left, top) position to the modal. Clamps so the
+  // modal never lands off-screen — the user is dragging from the header,
+  // so we keep at least the full modal visible (no off-screen drag).
+  function applyCommentModalPosition(left, top) {
+    if (!commentModalEl) return;
+    var rect = commentModalEl.getBoundingClientRect();
+    var w = rect.width || 460;
+    var h = rect.height || 200;
+    var maxLeft = Math.max(0, window.innerWidth - w);
+    var maxTop = Math.max(0, window.innerHeight - h);
+    var clampedLeft = Math.min(Math.max(0, left), maxLeft);
+    var clampedTop = Math.min(Math.max(0, top), maxTop);
+    commentModalEl.style.left = clampedLeft + 'px';
+    commentModalEl.style.top = clampedTop + 'px';
+    commentModalEl.style.right = 'auto';
+  }
+
+  // Default-position the modal next to its anchor on first open.
+  // We prefer the right side of the anchor (vertical center) so the
+  // connector line is short, but fall back to the left or top if the
+  // anchor is near the viewport edge — clamping in applyCommentModalPosition
+  // would also handle this, but a hand-picked default looks tidier.
+  function positionCommentModalDefault(anchor) {
+    if (!commentModalEl || !anchor) return;
+    var aRect = anchor.getBoundingClientRect();
+    // Force a layout pass so the modal has a real width/height before
+    // we read it (the modal was just toggled to display:flex).
+    var mRect = commentModalEl.getBoundingClientRect();
+    var w = mRect.width || 460;
+    var h = mRect.height || Math.min(window.innerHeight - 48, 600);
+    var gap = 24;
+    // Try right of anchor.
+    var left = aRect.right + gap;
+    // If that goes off-screen, try left of anchor; if that's also off,
+    // pin to the right viewport edge with a 24px gutter.
+    if (left + w > window.innerWidth - 8) {
+      left = aRect.left - w - gap;
+      if (left < 8) left = Math.max(8, window.innerWidth - w - 24);
+    }
+    var top = aRect.top + aRect.height / 2 - h / 2;
+    applyCommentModalPosition(left, top);
+  }
+
+  // ── Drag handlers ────────────────────────────────────────────────────
+  // mousedown on the header starts a drag; we attach mousemove/mouseup
+  // to the document (not the header) so the drag continues even when the
+  // pointer briefly leaves the header during a fast drag.
+  function handleHeaderMouseDown(ev) {
+    // Only start a drag on a primary-button press. Right-click and
+    // middle-click are ignored so context menu still works.
+    if (ev.button !== 0) return;
+    // Don't start a drag if the user clicked the close button — let the
+    // button's click handler run untouched.
+    if (ev.target && ev.target.closest && ev.target.closest('.ve-comment-modal-close')) return;
+    if (!commentModalEl) return;
+    var rect = commentModalEl.getBoundingClientRect();
+    commentModalDragState = {
+      startX: ev.clientX,
+      startY: ev.clientY,
+      startLeft: rect.left,
+      startTop: rect.top
+    };
+    document.addEventListener('mousemove', handleDocumentMouseMove, true);
+    document.addEventListener('mouseup', handleDocumentMouseUp, true);
+    // Prevent text-selection while dragging (the user-select:none on
+    // the header takes care of header text, but a fast drag can drift
+    // outside the header before we cancel selection).
+    ev.preventDefault();
+  }
+
+  function handleDocumentMouseMove(ev) {
+    if (!commentModalDragState) return;
+    var dx = ev.clientX - commentModalDragState.startX;
+    var dy = ev.clientY - commentModalDragState.startY;
+    applyCommentModalPosition(
+      commentModalDragState.startLeft + dx,
+      commentModalDragState.startTop + dy
+    );
+    updateConnectorLine();
+  }
+
+  function handleDocumentMouseUp() {
+    if (!commentModalDragState) return;
+    commentModalDragState = null;
+    document.removeEventListener('mousemove', handleDocumentMouseMove, true);
+    document.removeEventListener('mouseup', handleDocumentMouseUp, true);
+    // Persist the new position keyed by THIS comment's id so reopening
+    // the same comment lands the modal where the user left it.
+    if (commentModalEl && commentModalState) {
+      var r = commentModalEl.getBoundingClientRect();
+      saveCommentModalPos(commentModalState.commentId, r.left, r.top);
+    }
   }
 
   // ── Modal ───────────────────────────────────────────────────────────
@@ -5215,6 +5475,10 @@
     m.querySelector('.ve-comment-modal-close').addEventListener('click', closeCommentModal);
     m.querySelector('.ve-comment-done').addEventListener('click', closeCommentModal);
     m.querySelector('.ve-comment-answer').addEventListener('click', handleAnswerButton);
+    // Wire the drag handle. We attach to the header (not the title span)
+    // so the entire header strip — including padding — acts as the
+    // grab affordance.
+    m.querySelector('.ve-comment-modal-header').addEventListener('mousedown', handleHeaderMouseDown);
     return m;
   }
 
@@ -5254,6 +5518,23 @@
     anchor.setAttribute('data-ve-comment-active', '1');
     commentModalEl.style.display = 'flex';
     renderCommentModal();
+    // Position the modal: a stored per-anchor position wins; otherwise
+    // the default-position helper places it next to the anchor. We do
+    // this in a microtask to give the renderer one tick to apply the
+    // display:flex flip so getBoundingClientRect returns real numbers.
+    requestAnimationFrame(function () {
+      var stored = loadCommentModalPos(commentId);
+      if (stored) {
+        applyCommentModalPosition(stored.left, stored.top);
+      } else {
+        positionCommentModalDefault(anchor);
+      }
+      // Build the connector overlay and draw the initial line. We do
+      // this AFTER positioning the modal so the line endpoints are
+      // already correct on first paint (no visible "snap" frame).
+      buildConnectorOverlay();
+      updateConnectorLine();
+    });
     // If the user closed the modal while an agent reply was still
     // outstanding, the pending placeholder is now in storage but the
     // poll loop was torn down on close. Restart it for the first
@@ -5267,8 +5548,15 @@
       }
     }
     // Scroll the anchor into view if the reflow would push it off-screen.
+    // After scroll completes, the anchor's viewport coords change, so
+    // we re-draw the connector — otherwise it would point at the
+    // anchor's old position until the next mouse move.
     requestAnimationFrame(function () {
       anchor.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      // The smooth scroll dispatches scroll events as it animates, and
+      // our scroll listener (registered in setupCommentHoverHandlers)
+      // calls updateConnectorLine on every one — so the line tracks
+      // the anchor across the whole scroll animation.
     });
   }
 
@@ -5281,6 +5569,16 @@
       commentModalState.pollHandle = null;
     }
     if (commentModalState.anchorEl) commentModalState.anchorEl.removeAttribute('data-ve-comment-active');
+    // If a drag was in progress when the close was triggered (e.g. user
+    // clicked × mid-drag), tear it down explicitly — otherwise the
+    // document-level mousemove/mouseup listeners would leak and the
+    // next mousedown on the page would re-arm a phantom drag.
+    if (commentModalDragState) {
+      commentModalDragState = null;
+      document.removeEventListener('mousemove', handleDocumentMouseMove, true);
+      document.removeEventListener('mouseup', handleDocumentMouseUp, true);
+    }
+    teardownConnectorOverlay();
     var threadIdAtClose = commentModalState.threadId;
     commentModalState = null;
     document.body.removeAttribute('data-ve-comment-modal-open');
@@ -5651,8 +5949,10 @@
   function currentDecisionFor(anchorId) {
     if (!anchorId) return 'skip';
     if (decisionState.has(anchorId)) return decisionState.get(anchorId);
-    // Derive from the two checkbox toggles' DOM state. Both unchecked = skip
-    // (the renderer's default — neither toggle has the `checked` attribute).
+    // Derive from the two hidden checkbox inputs' DOM state — these are
+    // sr-only inside the v3.2 segmented control but kept so existing
+    // tests + DOM consumers (e.g. /amvcp-respond-to-comment) can read
+    // the decision exactly the way they used to.
     var fs = document.querySelector(
       'fieldset.ve-decision[data-anchor-id="' + anchorId.replace(/"/g, '\\"') + '"]'
     );
@@ -5722,11 +6022,108 @@
     postDecisionTurn(anchorId, decision, '');
   }
 
+  // ── v3.2 segmented control (TRDD-7a2dab03) ───────────────────────
+  //
+  // Apply a decision to a fieldset: sync the hidden checkbox inputs (so
+  // currentDecisionFor + existing test selectors still observe the right
+  // state) AND repaint the three .ve-segment buttons' aria-checked. This
+  // is the single place that mutates DOM — every code path (segment
+  // click, keyboard arrow, legacy checkbox-change dispatched by tests)
+  // funnels through here so the visual + ARIA + hidden-input states can
+  // never disagree.
+  function applyDecisionToFieldset(fs, decision) {
+    if (!fs) return;
+    var ap = fs.querySelector('input[type="checkbox"][data-decision="approve"]');
+    var rj = fs.querySelector('input[type="checkbox"][data-decision="reject"]');
+    if (ap) ap.checked = (decision === 'approve');
+    if (rj) rj.checked = (decision === 'reject');
+    var segs = fs.querySelectorAll('.ve-segment[data-decision]');
+    for (var i = 0; i < segs.length; i++) {
+      var seg = segs[i];
+      var v = seg.getAttribute('data-decision');
+      var on = (v === decision);
+      seg.setAttribute('aria-checked', on ? 'true' : 'false');
+      // Roving tabindex: only the active segment is in the tab order
+      // (standard radiogroup pattern — Tab enters the group on the
+      // selected option, then Arrow keys move between segments).
+      seg.setAttribute('tabindex', on ? '0' : '-1');
+    }
+  }
+
   function wireDecisionPills() {
-    // Single delegated listener — survives DOM changes and never
-    // double-binds. Listens for `change` on every checkbox inside a
-    // ve-decision fieldset and enforces 2-toggle mutex (turning approve
-    // ON when reject is also ON auto-clears reject, and vice versa).
+    // Three delegated listeners on document so we survive DOM changes
+    // and never double-bind:
+    //
+    //   click  → segment-button click (the visible affordance)
+    //   keydown → ArrowLeft/Right (cycle), Home/End (jump), Space/Enter
+    //             (activate focused segment)
+    //   change → legacy hidden-checkbox change events. Tests synthesise
+    //             these directly to bypass label-click flakiness in the
+    //             dev-browser sandbox; we honour them by deriving the
+    //             new tri-state from the post-change checkbox values
+    //             and re-applying via applyDecisionToFieldset() so the
+    //             visible segments + ARIA stay in sync.
+    document.addEventListener('click', function (ev) {
+      var t = ev.target;
+      if (!t || !t.closest) return;
+      var seg = t.closest('.ve-segment[data-decision]');
+      if (!seg) return;
+      var fs = seg.closest('fieldset.ve-decision');
+      if (!fs) return;
+      var anchorId = fs.getAttribute('data-anchor-id');
+      if (!anchorId) return;
+      var which = seg.getAttribute('data-decision');
+      if (which !== 'skip' && which !== 'approve' && which !== 'reject') return;
+      ev.preventDefault();
+      applyDecisionToFieldset(fs, which);
+      seg.focus();
+      recordDecision(anchorId, which);
+    });
+
+    document.addEventListener('keydown', function (ev) {
+      var t = ev.target;
+      if (!t || !t.classList || !t.classList.contains('ve-segment')) return;
+      var fs = t.closest('fieldset.ve-decision');
+      if (!fs) return;
+      var anchorId = fs.getAttribute('data-anchor-id');
+      if (!anchorId) return;
+      var segs = Array.prototype.slice.call(fs.querySelectorAll('.ve-segment[data-decision]'));
+      var idx = segs.indexOf(t);
+      if (idx < 0) return;
+      var nextIdx = -1;
+      if (ev.key === 'ArrowRight' || ev.key === 'ArrowDown') {
+        nextIdx = (idx + 1) % segs.length;
+      } else if (ev.key === 'ArrowLeft' || ev.key === 'ArrowUp') {
+        nextIdx = (idx - 1 + segs.length) % segs.length;
+      } else if (ev.key === 'Home') {
+        nextIdx = 0;
+      } else if (ev.key === 'End') {
+        nextIdx = segs.length - 1;
+      } else if (ev.key === ' ' || ev.key === 'Enter') {
+        // Activate the focused segment (no movement). Standard radiogroup
+        // pattern — focus alone does not commit the choice; activation does.
+        var which = t.getAttribute('data-decision');
+        if (which === 'skip' || which === 'approve' || which === 'reject') {
+          ev.preventDefault();
+          applyDecisionToFieldset(fs, which);
+          recordDecision(anchorId, which);
+        }
+        return;
+      } else {
+        return;
+      }
+      ev.preventDefault();
+      var nextSeg = segs[nextIdx];
+      var nextDecision = nextSeg.getAttribute('data-decision');
+      // Standard radiogroup behaviour: arrow-key navigation MOVES the
+      // selection (commit-on-move), not just focus. Both screen readers
+      // and the wire format end up consistent because applyDecision
+      // mutates the hidden inputs too.
+      applyDecisionToFieldset(fs, nextDecision);
+      nextSeg.focus();
+      recordDecision(anchorId, nextDecision);
+    });
+
     document.addEventListener('change', function (ev) {
       var t = ev.target;
       if (!t || t.type !== 'checkbox') return;
@@ -5736,23 +6133,44 @@
       if (!anchorId) return;
       var which = t.getAttribute('data-decision');
       if (which !== 'approve' && which !== 'reject') return;
-      // Mutex: if the user just turned ON one toggle, force the other OFF.
+      // Tests synthesise change events that may leave both inputs checked
+      // (the test wants to prove the runtime ENFORCES mutex). Derive the
+      // intended new state from `which` + `t.checked` and let
+      // applyDecisionToFieldset() repair both inputs + the visible segments.
+      var newDecision;
       if (t.checked) {
+        // Whichever checkbox just became checked wins; the other is cleared.
+        newDecision = which;
+      } else {
+        // The user cleared this one — fall back to whatever the other
+        // input still says (covers tests that explicitly clear one to
+        // reach "skip"). If both are now off, decision = skip.
         var other = fs.querySelector(
           'input[type="checkbox"][data-decision="' +
             (which === 'approve' ? 'reject' : 'approve') +
             '"]'
         );
-        if (other && other.checked) other.checked = false;
+        if (other && other.checked) newDecision = (which === 'approve' ? 'reject' : 'approve');
+        else newDecision = 'skip';
       }
-      // Derive the new tri-state from the two checkboxes' final state.
-      var ap = fs.querySelector('input[type="checkbox"][data-decision="approve"]');
-      var rj = fs.querySelector('input[type="checkbox"][data-decision="reject"]');
-      var newDecision = 'skip';
-      if (ap && ap.checked) newDecision = 'approve';
-      else if (rj && rj.checked) newDecision = 'reject';
+      applyDecisionToFieldset(fs, newDecision);
       recordDecision(anchorId, newDecision);
     });
+
+    // Initial paint — set aria-checked + roving tabindex on every
+    // pre-existing fieldset so the keyboard story works on first load
+    // even before any user interaction. Honours pre-checked inputs
+    // (e.g. demo HTML files that hand-author `<input ... checked>`).
+    var fieldsets = document.querySelectorAll('fieldset.ve-decision[data-anchor-id]');
+    for (var i = 0; i < fieldsets.length; i++) {
+      var fs = fieldsets[i];
+      var ap = fs.querySelector('input[type="checkbox"][data-decision="approve"]');
+      var rj = fs.querySelector('input[type="checkbox"][data-decision="reject"]');
+      var initial = 'skip';
+      if (ap && ap.checked) initial = 'approve';
+      else if (rj && rj.checked) initial = 'reject';
+      applyDecisionToFieldset(fs, initial);
+    }
   }
 
   function buildSummaryPayload() {

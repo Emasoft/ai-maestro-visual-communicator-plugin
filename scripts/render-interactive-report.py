@@ -558,32 +558,50 @@ def render_finding_html(f: Finding, prior_rounds: list[dict]) -> str:
         meta_text or f.title,
     )
 
-    # TRDD-7a2dab03 v3.1 — per-finding decision toggles (two switches, mutex).
+    # TRDD-7a2dab03 v3.2 — per-finding decision SEGMENTED CONTROL.
+    # ONE 3-segment radiogroup per finding: [Skip] [Approve] [Reject].
+    # State model (3 mutex states; default skip):
+    #   skip     → both hidden checkboxes off (default — no opinion)
+    #   approve  → approve checkbox checked, reject off
+    #   reject   → reject checkbox checked, approve off
+    #
+    # The hidden inputs (`<input type="checkbox" data-decision="...">`) are
+    # preserved from v3.1 so existing tests + responder code can still
+    # observe the decision via the same selectors. The segmented control
+    # is the visible affordance: clicks land on the buttons, keyboard
+    # arrow keys move between them, and the runtime keeps every layer
+    # (visible aria-checked, hidden checkbox state) in sync.
+    #
     # The fieldset's `data-anchor-id` is the canonical anchorId the runtime
     # writes into every JSONL turn for this finding (anchorId namespace =
     # `ve-` + findingId, e.g. `finding-3` → `ve-finding-3`).
-    #
-    # State model (3 effective states from 2 checkboxes):
-    #   approve OFF  + reject OFF  → "skip"  (default, no implicit approval)
-    #   approve ON   + reject OFF  → "approve"
-    #   approve OFF  + reject ON   → "reject"
-    #   approve ON   + reject ON   → invalid; runtime mutex auto-clears the prior
     fid_safe = html.escape(f.findingId)
     anchor_id = "ve-" + f.findingId
     aid_safe = html.escape(anchor_id)
+    # Hidden inputs are siblings of the segment buttons so existing
+    # selectors (input[type="checkbox"][data-decision="approve|reject"])
+    # continue to find them. The visible affordance is the .ve-segment
+    # buttons; the runtime keeps both layers in sync via
+    # applyDecisionToFieldset() in amvcp-runtime.js.
     decision_fieldset = (
-        f'  <fieldset class="ve-decision" data-anchor-id="{aid_safe}">\n'
+        f'  <fieldset class="ve-decision" data-anchor-id="{aid_safe}"\n'
+        f'            role="radiogroup" aria-label="Decision for {fid_safe}">\n'
         f'    <legend class="ve-sr-only">Decision for {fid_safe}</legend>\n'
-        f'    <label class="ve-toggle ve-toggle-approve">\n'
-        f'      <input type="checkbox" data-decision="approve" data-anchor-id="{aid_safe}">\n'
-        f'      <span class="ve-toggle-track" aria-hidden="true"></span>\n'
-        f'      <span class="ve-toggle-label">approve</span>\n'
-        f'    </label>\n'
-        f'    <label class="ve-toggle ve-toggle-reject">\n'
-        f'      <input type="checkbox" data-decision="reject" data-anchor-id="{aid_safe}">\n'
-        f'      <span class="ve-toggle-track" aria-hidden="true"></span>\n'
-        f'      <span class="ve-toggle-label">reject</span>\n'
-        f'    </label>\n'
+        f'    <input type="checkbox" class="ve-sr-only"\n'
+        f'           data-decision="approve" data-anchor-id="{aid_safe}"\n'
+        f'           tabindex="-1" aria-hidden="true">\n'
+        f'    <input type="checkbox" class="ve-sr-only"\n'
+        f'           data-decision="reject" data-anchor-id="{aid_safe}"\n'
+        f'           tabindex="-1" aria-hidden="true">\n'
+        f'    <button type="button" class="ve-segment ve-segment-skip"\n'
+        f'            data-decision="skip" role="radio" aria-checked="true"\n'
+        f'            tabindex="0">Skip</button>\n'
+        f'    <button type="button" class="ve-segment ve-segment-approve"\n'
+        f'            data-decision="approve" role="radio" aria-checked="false"\n'
+        f'            tabindex="-1">Approve</button>\n'
+        f'    <button type="button" class="ve-segment ve-segment-reject"\n'
+        f'            data-decision="reject" role="radio" aria-checked="false"\n'
+        f'            tabindex="-1">Reject</button>\n'
         f'  </fieldset>\n'
     )
 
