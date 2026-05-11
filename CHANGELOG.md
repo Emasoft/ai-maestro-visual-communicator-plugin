@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.2.2] — 2026-05-11
+
+### Features
+
+- Disable pane dimming + name preview pane + bright-gray tab color
+- Add amvcp-iterm2-preview + auto-prefer iTerm2 split-pane in runner
+
 ## [1.2.1] — 2026-05-11
 
 ### Bug Fixes
@@ -14,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Chores
 
+- V1.2.1 — comment modal responsive at narrow viewports + CPV strict-mode hygiene
 - Regenerate uv.lock after pyproject version sync
 - Sync pyproject.toml + package.json versions to plugin.json (1.2.0)
 - V1.2.0 — 10-skill multi-split (1 coordinator + 9 sub-skills)
