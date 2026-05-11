@@ -5,7 +5,18 @@ All notable changes to this project will be documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [1.2.1] — 2026-05-11
+
+### Bug Fixes
+
+- Comment modal responsive at narrow viewports + clamp gutters
+- Theme-leak in injected UI + native-input visibility + comment-pill scroll race
+
+### Chores
+
+- Regenerate uv.lock after pyproject version sync
+- Sync pyproject.toml + package.json versions to plugin.json (1.2.0)
+- V1.2.0 — 10-skill multi-split (1 coordinator + 9 sub-skills)
 
 ### Documentation
 
@@ -13,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Features
 
+- Segmented decision control + draggable modal + anchor connector
 - Add amvcp-modal-comments sub-skill (v2/v3 agent-report flow)
 - Add amvcp-prose-pages sub-skill (article-style publishable pages)
 - Add amvcp-slide-decks sub-skill (magazine-quality slide decks)
@@ -25,12 +37,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Refactoring
 
+- Satisfy CPV strict-mode rules added since v1.2.0
 - Restructure all 10 SKILL.md files for CPV 2.80.1 strict mode
 - Slim main SKILL.md to <=4000 chars + 5 main-only refs
 - Extract comment-chat-box.md from modal-comments.md
 - Split interactive-selection.md into 8 topic files
 - Update plugin-ref-internal cross-references to use ${CLAUDE_PLUGIN_ROOT}
 - Move 6 cross-cutting refs to plugin-level references/
+
+### Testing
+
+- Update modal_page_scrolls_while_open for new draggable layout + add 2 fixture files
 
 ## [1.1.9] — 2026-05-09
 
