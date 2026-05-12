@@ -766,13 +766,28 @@
       '  --ve-brightness-hover:1;',
       '  --ve-brightness-selected:1;',
       '}',
-      // Outer dark-brown ring appears ON HOVER, or when at least one
-      // line in the block is selected. Default state = single inner
-      // border. Matches the same dark-brown used by Cancel buttons so
-      // every "interactive" affordance shares one outline color.
-      // CSS :has() is the native selector; supported in WKWebView (iTerm2)
-      // since Safari 15.4 (2022) and Chromium 105 (2022).
+      // The code block as a WHOLE is NOT a selectable element — only
+      // its individual lines are selectable. So no hover highlight, no
+      // hover outline. The outer dark-brown ring appears EXCLUSIVELY
+      // when at least one line in the block is selected, as a feedback
+      // affordance for "this block has active selection".
+      //
+      // The pre still carries a `data-ve-id` (used as a stable block ID
+      // for the codeline:<blockId>:<line> selection entries and for
+      // the snippet-selection codeId payload), which means the generic
+      // [data-ve-id]:hover/focus rules above WOULD draw a gold outline
+      // on hover. Suppress that explicitly — the local CSS-variable
+      // overrides on the pre already neutralise the bg overlay / glow /
+      // brightness side-effects.
       '.ve-code-block > pre:hover,',
+      '.ve-code-block > pre:focus-visible {',
+      '  outline:none !important;',
+      '  box-shadow:none !important;',
+      '}',
+      // CSS :has() is the native selector; supported in WKWebView (iTerm2)
+      // since Safari 15.4 (2022) and Chromium 105 (2022). Higher
+      // specificity than the :hover override above, so selected + hovered
+      // still shows the outer ring.
       '.ve-code-block:has(.ve-code-line[data-ve-pressed="1"]) > pre {',
       '  outline:2px solid var(--ve-accent-dark, #6e4d18) !important;',
       '  outline-offset:3px;',
