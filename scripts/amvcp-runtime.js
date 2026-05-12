@@ -1365,6 +1365,76 @@
       '  background:var(--ve-decision-reject-bg, #a84a32);', // brick rust
       '  color:var(--ve-decision-reject-fg, #fbfaf6);',
       '}',
+      // ─── v4.1 (TRDD-3d1570ab R5): per-element 3-state mini-switch ───
+      // The per-finding `<fieldset class="ve-decision">` is hidden in
+      // report views — the user wants ONE switch per SELECTABLE atom,
+      // not one per section. The hidden inputs / DOM stay so existing
+      // decision-pills tests + the .summary.json wire-protocol keep
+      // working; only the visible chrome moves to .ve-decision-mini.
+      // Page authors who want to RESTORE the per-finding visible
+      // pillset for non-report views can opt out via
+      // body[data-ve-keep-finding-decision] { ... }.
+      'body[data-ve-report] .ve-decision { display:none; }',
+      // The mini switch — three single-letter slots (S / A / D) in a
+      // compact pill. ~38px wide, ~14px tall — fits at the right edge
+      // of any selectable atom without disturbing the row layout.
+      '.ve-decision-mini {',
+      '  display:inline-flex; align-items:center; vertical-align:middle;',
+      '  margin-left:0.5em;',
+      '  border:0; padding:1px;',
+      '  border-radius:5px;',
+      '  background:color-mix(in srgb, var(--ve-control-border, #d6d1c5) 28%, transparent);',
+      '  font:600 9px/1 ui-sans-serif,system-ui,sans-serif;',
+      '  letter-spacing:0.06em; text-transform:uppercase;',
+      '  user-select:none;',
+      '}',
+      '.ve-decision-mini-seg {',
+      '  display:inline-flex; align-items:center; justify-content:center;',
+      '  width:14px; height:14px;',
+      '  border:0; outline:0; margin:0;',
+      '  background:transparent;',
+      '  color:color-mix(in srgb, var(--text, currentColor) 50%, transparent);',
+      '  border-radius:3px;',
+      '  cursor:pointer;',
+      '  transition:background 120ms ease, color 120ms ease;',
+      '}',
+      '.ve-decision-mini-seg:hover:not([aria-checked="true"]) {',
+      '  background:color-mix(in srgb, var(--text, currentColor) 8%, transparent);',
+      '  color:var(--text, currentColor);',
+      '}',
+      '.ve-decision-mini-seg[aria-checked="true"] {',
+      '  background:var(--ve-decision-skip-bg, var(--ve-control-bg, #fbfaf6));',
+      '  color:var(--ve-control-fg, var(--text, currentColor));',
+      '  box-shadow:0 1px 2px rgba(0,0,0,0.14);',
+      '}',
+      '.ve-decision-mini-approve[aria-checked="true"] {',
+      '  background:var(--ve-decision-approve-bg, #3a6b5c);',
+      '  color:var(--ve-decision-approve-fg, #fbfaf6);',
+      '}',
+      '.ve-decision-mini-deny[aria-checked="true"] {',
+      '  background:var(--ve-decision-reject-bg, #a84a32);',
+      '  color:var(--ve-decision-reject-fg, #fbfaf6);',
+      '}',
+      // For table rows: append the mini-switch in a special <td> cell
+      // at the row's far right. The CSS keeps it visually distinct
+      // from data cells (no border-left, slightly tighter padding).
+      'td.ve-decision-mini-cell {',
+      '  border:0 !important;',
+      '  padding:4px 8px !important;',
+      '  background:transparent !important;',
+      '  width:48px;',
+      '  text-align:center;',
+      '}',
+      'th.ve-decision-mini-cell {',
+      '  border:0 !important;',
+      '  padding:4px 8px !important;',
+      '  background:transparent !important;',
+      '  width:48px;',
+      '  text-align:center;',
+      '  font-size:9px;',
+      '  font-weight:600;',
+      '  color:color-mix(in srgb, var(--text, currentColor) 60%, transparent);',
+      '}',
       // ─── Two standalone action buttons (top-right + bottom-(left|right)) ──
       // Y-anchored to the PAGE (position:absolute on body, so they live in
       // the document flow and are reachable only by scrolling to the top
@@ -6163,6 +6233,15 @@
     var rect = el.getBoundingClientRect();
     var desiredTop = rect.top + window.scrollY + 4;
     var desiredLeft = rect.right + window.scrollX - 130;
+    // In report mode the .ve-decision-mini occupies the row's right
+    // edge, so the hover-pill (default position = right inside-edge)
+    // would overlap the mini buttons and intercept clicks. Shift the
+    // pill ABOVE the row instead — it stays visible + clickable, and
+    // the mini buttons get their own clean target zone.
+    if (document.body.hasAttribute('data-ve-report')) {
+      desiredTop = rect.top + window.scrollY - 22;
+      desiredLeft = rect.left + window.scrollX + 8;
+    }
     var pos = clampToViewport(commentHoverPill, desiredTop, desiredLeft, 8);
     commentHoverPill.style.top = pos.top + 'px';
     commentHoverPill.style.left = pos.left + 'px';
@@ -7288,6 +7367,133 @@
     setupFindingReplyHandlers(); // TRDD-eff1aa87 v1 — interactive reports
     setupCommentModal();         // TRDD-eff1aa87 v2 — modal comment threads
     wireDecisionPills();         // TRDD-7a2dab03 v3 — per-element decision pills
+    initReportMode();            // v4 — propagate data-ve-report to body
+                                 // and inject .ve-decision-mini per atom
+  }
+
+  // ─── v4 — Report mode init ───────────────────────────────────────────
+  // The renderer stamps `<article data-ve-report>` on report pages. We
+  // propagate that attribute up to <body> so the CSS gates above
+  // (e.g. body[data-ve-report] .ve-decision { display:none })
+  // resolve. We then walk every selectable atom (<p>/<li>/<tr> with
+  // data-ve-comment-id) and insert one compact .ve-decision-mini at the
+  // right edge — one switch per atom, per the user's TRDD-3d1570ab R5.
+  function initReportMode() {
+    var report = document.querySelector('[data-ve-report]');
+    if (!report) return;
+    document.body.setAttribute('data-ve-report', '');
+    injectDecisionMinis();
+  }
+
+  // localStorage key for per-element decision state.
+  var DECISION_MINI_LS_KEY = 've-decision-mini-state';
+
+  function loadMiniDecisions() {
+    try {
+      var raw = localStorage.getItem(DECISION_MINI_LS_KEY);
+      return raw ? JSON.parse(raw) : {};
+    } catch (_) { return {}; }
+  }
+
+  function saveMiniDecisions(map) {
+    try { localStorage.setItem(DECISION_MINI_LS_KEY, JSON.stringify(map)); }
+    catch (_) {}
+  }
+
+  function injectDecisionMinis() {
+    var atoms = document.querySelectorAll(
+      'p[data-ve-comment-id], li[data-ve-comment-id], tr[data-ve-comment-id]'
+    );
+    var savedDecisions = loadMiniDecisions();
+    // For tables we add a header column too — track which tables we've
+    // augmented so we don't double-inject the header cell.
+    var taggedTables = {};
+    for (var i = 0; i < atoms.length; i++) {
+      var atom = atoms[i];
+      // Skip if already injected (idempotent on re-init).
+      if (atom.querySelector(':scope > .ve-decision-mini, :scope > td.ve-decision-mini-cell')) continue;
+      var key = atom.getAttribute('data-ve-pnum')
+                || atom.getAttribute('data-ve-comment-id')
+                || ('atom-' + i);
+      var current = savedDecisions[key] || 'skip';
+      var widget = buildDecisionMini(key, current);
+      if (atom.tagName === 'TR') {
+        // Append a new <td> at the end of the row to host the widget.
+        var td = document.createElement('td');
+        td.className = 've-decision-mini-cell';
+        td.appendChild(widget);
+        atom.appendChild(td);
+        // Add a matching <th> in the THEAD for column alignment, ONCE
+        // per table.
+        var table = atom.closest('table');
+        var tableId = table && (table.id || (table.dataset && table.dataset.veTableTag) || ('t-' + i));
+        if (table && !taggedTables[tableId]) {
+          taggedTables[tableId] = true;
+          var headRow = table.querySelector('thead tr');
+          if (headRow && !headRow.querySelector(':scope > th.ve-decision-mini-cell')) {
+            var th = document.createElement('th');
+            th.className = 've-decision-mini-cell';
+            th.title = 'Skip / Approve / Deny';
+            th.textContent = 'S/A/D';
+            headRow.appendChild(th);
+          }
+          if (table.dataset) table.dataset.veTableTag = tableId;
+        }
+      } else {
+        // For <p> and <li>: append the widget inline at the end. The
+        // widget is inline-flex with margin-left, so it flows after the
+        // last word of the text without breaking the line on its own.
+        atom.appendChild(widget);
+      }
+    }
+  }
+
+  function buildDecisionMini(key, currentValue) {
+    var span = document.createElement('span');
+    span.className = 've-decision-mini';
+    span.setAttribute('role', 'radiogroup');
+    span.setAttribute('data-ve-decision-key', key);
+    var labels = [
+      { value: 'skip',    label: 'S', cls: 've-decision-mini-skip',    title: 'Skip — no opinion (default)' },
+      { value: 'approve', label: 'A', cls: 've-decision-mini-approve', title: 'Approve — accept this item' },
+      { value: 'deny',    label: 'D', cls: 've-decision-mini-deny',    title: 'Deny — reject this item' },
+    ];
+    for (var i = 0; i < labels.length; i++) {
+      var spec = labels[i];
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 've-decision-mini-seg ' + spec.cls;
+      btn.textContent = spec.label;
+      btn.title = spec.title;
+      btn.setAttribute('role', 'radio');
+      btn.setAttribute('data-decision', spec.value);
+      btn.setAttribute('aria-checked', spec.value === currentValue ? 'true' : 'false');
+      btn.addEventListener('click', function (ev) {
+        ev.preventDefault();
+        ev.stopPropagation();
+        var newValue = this.getAttribute('data-decision');
+        var parent = this.parentElement;
+        var k = parent.getAttribute('data-ve-decision-key');
+        // Update aria-checked across the 3 segments.
+        var segs = parent.querySelectorAll('.ve-decision-mini-seg');
+        for (var s = 0; s < segs.length; s++) {
+          segs[s].setAttribute(
+            'aria-checked',
+            segs[s].getAttribute('data-decision') === newValue ? 'true' : 'false'
+          );
+        }
+        // Persist.
+        var map = loadMiniDecisions();
+        if (newValue === 'skip') {
+          delete map[k];
+        } else {
+          map[k] = newValue;
+        }
+        saveMiniDecisions(map);
+      });
+      span.appendChild(btn);
+    }
+    return span;
   }
 
   if (document.readyState === 'loading') {
