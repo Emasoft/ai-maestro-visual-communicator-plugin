@@ -720,6 +720,23 @@
       '  background:color-mix(in srgb, var(--ve-accent, #b8861f) 30%, transparent);',
       '  color:var(--ve-sel-text, #14110b);',
       '}',
+      // Per-line span styles — mirror the gutter button\'s pressed/preview
+      // state onto the matching code text so clicking line N\'s number
+      // visibly selects line N in the code too. Inline-by-default; the
+      // newlines between spans inside <pre> already break lines.
+      '.ve-code-line[data-ve-pressed="1"] {',
+      '  background:var(--ve-accent, #b8861f); color:var(--ve-sel-text, #14110b);',
+      '}',
+      '.ve-code-line[data-ve-preview="1"] {',
+      '  background:color-mix(in srgb, var(--ve-accent, #b8861f) 30%, transparent);',
+      '}',
+      // Hovering a gutter button highlights the matching code line too.
+      // Pure-CSS sibling-trick: gutter and pre are siblings of .ve-code-block
+      // — easier to do via JS. Keep CSS for press/preview only; hover
+      // mirroring is handled in setupGutterEvents.
+      '.ve-code-line[data-ve-hover="1"] {',
+      '  background:color-mix(in srgb, var(--ve-accent, #b8861f) 18%, transparent);',
+      '}',
       // ─── Phase 7: bigger hit-zones on touch devices ──────────────────
       // body[data-ve-touch="1"] is set by isTouchDevice() on first call.
       'body[data-ve-touch="1"] .ve-table-handle { width:32px; height:32px; font-size:14px; line-height:30px; }',
@@ -5060,7 +5077,9 @@
   function repaintCodeGutters() {
     // Walk every line button and set [data-ve-pressed] based on whether
     // the line is covered by any kind:'codeline' or kind:'codelines'
-    // entry for the same block.
+    // entry for the same block. Mirror the same flag onto the matching
+    // .ve-code-line span so the code TEXT visually shows what's selected,
+    // not just the gutter number.
     var btns = document.querySelectorAll('.ve-code-linenum');
     for (var i = 0; i < btns.length; i++) {
       var btn = btns[i];
@@ -5076,6 +5095,13 @@
       }
       if (pressed) btn.setAttribute('data-ve-pressed', '1');
       else btn.removeAttribute('data-ve-pressed');
+      var span = blockId && document.querySelector(
+        '.ve-code-line[data-ve-block-id="' + blockId
+        + '"][data-ve-line="' + line + '"]');
+      if (span) {
+        if (pressed) span.setAttribute('data-ve-pressed', '1');
+        else span.removeAttribute('data-ve-pressed');
+      }
     }
   }
 
@@ -5087,11 +5113,23 @@
       if (ln >= lo && ln <= hi) btns[i].setAttribute('data-ve-preview', '1');
       else btns[i].removeAttribute('data-ve-preview');
     }
+    // Mirror onto the line spans so the preview range visibly selects
+    // the code TEXT during drag, not just the gutter numbers.
+    var spans = document.querySelectorAll(
+      '.ve-code-line[data-ve-block-id="' + blockId + '"]');
+    for (var k = 0; k < spans.length; k++) {
+      var sln = parseInt(spans[k].getAttribute('data-ve-line'), 10);
+      if (sln >= lo && sln <= hi) spans[k].setAttribute('data-ve-preview', '1');
+      else spans[k].removeAttribute('data-ve-preview');
+    }
   }
 
   function clearGutterPreview(blockId) {
     var btns = document.querySelectorAll('.ve-code-gutter[data-ve-block-id="' + blockId + '"] .ve-code-linenum[data-ve-preview]');
     for (var i = 0; i < btns.length; i++) btns[i].removeAttribute('data-ve-preview');
+    var spans = document.querySelectorAll(
+      '.ve-code-line[data-ve-block-id="' + blockId + '"][data-ve-preview]');
+    for (var k = 0; k < spans.length; k++) spans[k].removeAttribute('data-ve-preview');
   }
 
   function pushSingleCodeLine(blockId, line) {
@@ -5257,8 +5295,31 @@
     var raw = pre.textContent || '';
     // Trim trailing newline so the gutter line count matches what users see.
     if (raw.length && raw.charAt(raw.length - 1) === '\n') raw = raw.slice(0, -1);
-    var lineCount = raw.split('\n').length;
+    var lineSrc = raw.split('\n');
+    var lineCount = lineSrc.length;
     if (lineCount === 0) return;
+
+    // Wrap each line of code in a `.ve-code-line[data-ve-line=N]` span so
+    // the gutter's pressed/preview state can be MIRRORED onto the matching
+    // code text — clicking line 3's number highlights both the number AND
+    // the code text. Only wrap when the <pre><code> contains plain text
+    // (no syntax-highlighted child spans); otherwise we'd corrupt the
+    // existing markup. The newline characters STAY between spans so the
+    // <pre>'s `white-space: pre` continues to render line breaks.
+    var codeEl = pre.querySelector('code') || pre;
+    var canWrap = codeEl.children.length === 0;
+    if (canWrap) {
+      var newHTML = '';
+      for (var li = 0; li < lineSrc.length; li++) {
+        // escapeHtml covers `&"<>` — sufficient for both attr value
+        // and inner content (blockId is alphanumeric, but defensive).
+        newHTML += '<span class="ve-code-line" data-ve-block-id="'
+          + escapeHtml(blockId) + '" data-ve-line="' + (li + 1) + '">'
+          + escapeHtml(lineSrc[li]) + '</span>';
+        if (li < lineSrc.length - 1) newHTML += '\n';
+      }
+      codeEl.innerHTML = newHTML;
+    }
 
     var wrapper = document.createElement('div');
     wrapper.className = 've-code-block';
@@ -5269,11 +5330,41 @@
     gutter.setAttribute('data-ve-block-id', blockId);
     gutter.setAttribute('data-ve-line-count', String(lineCount));
 
-    // Sync line-height: read the <pre>'s computed line-height so each
-    // gutter button lines up with the visual line of code beside it.
-    var styles = window.getComputedStyle(pre);
-    var lineHeight = styles.lineHeight;
-    if (lineHeight && lineHeight !== 'normal') gutter.style.lineHeight = lineHeight;
+    // Sync the typographic properties of the gutter with the pre: each
+    // gutter line MUST sit on the same baseline as the matching code
+    // line. The wrapper is `display:flex; align-items:flex-start`, so
+    // gutter and pre share the same outer top — every line below
+    // depends on:
+    //   1. padding-top   — same content-area top
+    //   2. border-top-width — pre often has a border, gutter doesn't
+    //   3. font-size     — different sizes have different baselines in
+    //                      the same line-box (smaller font sits higher)
+    //   4. line-height   — same row stride
+    //   5. font-family   — different families have different metrics
+    // Reading the pre's COMPUTED values at runtime (host CSS can be
+    // anything) and applying them with !important so the gutter's own
+    // CSS shorthand `font:600 12px/1.4 ...` doesn't win.
+    wrapper.appendChild(gutter);
+    wrapper.appendChild(pre);
+    // Append BEFORE syncing so getComputedStyle on `pre` resolves
+    // against the new flex parent (otherwise some properties may be
+    // stale per the original layout). pre's intrinsic font/padding
+    // don't change with parent, but be defensive.
+    var preStyles = window.getComputedStyle(pre);
+    // Mirror padding-top + border-top so the gutter's content-area
+    // top matches the pre's content-area top to the pixel.
+    var padTopPx = parseFloat(preStyles.paddingTop) || 0;
+    var bordTopPx = parseFloat(preStyles.borderTopWidth) || 0;
+    var padBotPx = parseFloat(preStyles.paddingBottom) || 0;
+    var bordBotPx = parseFloat(preStyles.borderBottomWidth) || 0;
+    gutter.style.setProperty('padding-top', (padTopPx + bordTopPx) + 'px', 'important');
+    gutter.style.setProperty('padding-bottom', (padBotPx + bordBotPx) + 'px', 'important');
+    gutter.style.setProperty('font-family', preStyles.fontFamily, 'important');
+    gutter.style.setProperty('font-size', preStyles.fontSize, 'important');
+    gutter.style.setProperty('line-height', preStyles.lineHeight, 'important');
+    // font-weight intentionally NOT mirrored — the gutter's `600` weight
+    // is the page-distinguishing affordance (numbers slightly heavier
+    // than code text).
 
     for (var i = 0; i < lineCount; i++) {
       var num = document.createElement('button');
@@ -5281,12 +5372,14 @@
       num.className = 've-code-linenum';
       num.setAttribute('data-line', String(i + 1));
       num.textContent = String(i + 1);
-      if (lineHeight) num.style.lineHeight = lineHeight;
+      // Buttons inherit `font: inherit` from CSS, but inheritance only
+      // covers properties that DIDN'T have an explicit value. Buttons
+      // have user-agent-default font properties, so set explicitly.
+      num.style.setProperty('font-family', preStyles.fontFamily, 'important');
+      num.style.setProperty('font-size', preStyles.fontSize, 'important');
+      num.style.setProperty('line-height', preStyles.lineHeight, 'important');
       gutter.appendChild(num);
     }
-
-    wrapper.appendChild(gutter);
-    wrapper.appendChild(pre);
   }
 
   function initAllCodeGutters() {
