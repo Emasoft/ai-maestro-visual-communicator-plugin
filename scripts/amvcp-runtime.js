@@ -238,6 +238,46 @@
       '  --ve-control-overlay-bg: color-mix(in srgb, var(--bg, #ffffff) 82%, transparent);',
       '  --ve-control-overlay-blur: blur(10px);',
       '  --ve-control-accent-fg: var(--ve-sel-text, #14110b);',
+      // ─── Unified hover / selection brightness model ──────────────────
+      // Per the user spec, ALL selectable elements (HTML divs/rows/cards,
+      // SVG graphviz nodes, table-form rows, prose paragraphs, etc.) use
+      // the SAME visual language: hover = brightness boost + accent glow,
+      // selected = smaller brightness boost (no glow).
+      //
+      // Three CSS primitives, each handling a different surface:
+      //   1. `filter: brightness(N)` on cells — multiplicative, brightens
+      //      TEXT (and bg) inside the cell. Critical for visible text-
+      //      brightness change because text colour can\'t be lifted any
+      //      other way without per-element color overrides.
+      //   2. `background-color: rgba(255,255,255,α)` on cells — additive
+      //      bg lift. Replaces the `box-shadow: inset 9999px` trick that
+      //      caused visible per-cell seams ("tiling bars" the user reported).
+      //   3. `box-shadow: 0 0 8px var(--ve-accent)` on the ROW — soft
+      //      outer halo around the row\'s bounding box. Replaces the
+      //      `filter: drop-shadow` approach that haloed every individual
+      //      glyph (made text unreadable per the user\'s screenshot).
+      // Defaults match a DARK theme (positive brightness lift + white
+      // additive bg overlay). detectAndStampTheme() stamps
+      // data-ve-theme="light" on <html> when the page bg is bright, and
+      // the :root[data-ve-theme="light"] override below mirrors every
+      // value: multiplicative inverse for brightness (so the darkening
+      // is perceptually symmetric to the lift on dark themes) and a
+      // BLACK additive overlay instead of white. The mirror keeps the
+      // selection/hover visual language consistent across themes —
+      // dark theme: highlight by lifting toward white. Light theme:
+      // highlight by pushing toward black. Same emphasis, opposite
+      // direction.
+      '  --ve-brightness-hover: 1.30;',
+      '  --ve-brightness-selected: 1.15;',
+      '  --ve-overlay-hover: rgba(255,255,255,0.10);',
+      '  --ve-overlay-selected: rgba(255,255,255,0.05);',
+      '  --ve-glow-hover: 0 0 8px var(--ve-accent, currentColor);',
+      '}',
+      ':root[data-ve-theme="light"] {',
+      '  --ve-brightness-hover: 0.77;',     // 1/1.30 — perceptual mirror of dark hover
+      '  --ve-brightness-selected: 0.87;',  // 1/1.15 — perceptual mirror of dark selected
+      '  --ve-overlay-hover: rgba(0,0,0,0.10);',
+      '  --ve-overlay-selected: rgba(0,0,0,0.05);',
       '}',
       '[data-ve-id] { cursor:pointer; transition:outline-color 120ms ease, box-shadow 120ms ease, filter 120ms ease; }',
       // HTML elements with [data-ve-id]: rectangular outline on hover —
@@ -252,12 +292,41 @@
       // The glow blur radius is small (4px) on purpose — wider blurs
       // become a smeary band on long edges instead of a soft halo, and
       // pages can always override per-element via their own CSS.
-      '[data-ve-id]:hover { outline:2px solid var(--ve-accent, currentColor); outline-offset:3px; filter: drop-shadow(0 0 4px var(--ve-accent, currentColor)); }',
-      '[data-ve-id]:focus-visible { outline:2px solid var(--ve-accent, currentColor); outline-offset:3px; }',
-      '[data-ve-id][data-ve-selected="1"] { outline:2px solid var(--ve-accent, currentColor); outline-offset:3px; }',
-      // Hover-on-selected (HTML elements): keep the glow active so the
-      // cursor still feels reactive over an already-picked element.
-      '[data-ve-id][data-ve-selected="1"]:hover { filter: drop-shadow(0 0 4px var(--ve-accent, currentColor)); }',
+      // Exclude data-ve-type="table-form" from these table-level hover /
+      // selected rules. Those tables are CONTAINERS with their own
+      // checkbox-based selection model (each <tr> has an injected
+      // <input data-ve-control> + .ve-form-glyph), so the table itself
+      // must NOT participate in click-to-select. Without this exclusion,
+      // hovering anywhere inside a table-form table makes the entire
+      // <table data-ve-id="…"> match [data-ve-id]:hover and a CSS
+      // filter:drop-shadow is applied to it. CSS filters cascade visually
+      // to every descendant, so all text + every row appears to "glow"
+      // — exactly the bug the user reported.
+      // HTML hover: outline + multiplicative brightness (text) + additive
+      // bg tint via background-color + outer accent glow via box-shadow.
+      // Box-shadow combines the outline-style ring AND the soft outer
+      // halo so they read as ONE highlight.
+      '[data-ve-id]:not([data-ve-type="table-form"]):hover {',
+      '  outline:2px solid var(--ve-accent, currentColor); outline-offset:3px;',
+      '  background-color: var(--ve-overlay-hover);',
+      '  box-shadow: var(--ve-glow-hover);',
+      '  filter: brightness(var(--ve-brightness-hover));',
+      '}',
+      '[data-ve-id]:not([data-ve-type="table-form"]):focus-visible {',
+      '  outline:2px solid var(--ve-accent, currentColor); outline-offset:3px;',
+      '}',
+      // HTML selected: outline + smaller brightness + smaller bg tint, no glow.
+      '[data-ve-id]:not([data-ve-type="table-form"])[data-ve-selected="1"] {',
+      '  outline:2px solid var(--ve-accent, currentColor); outline-offset:3px;',
+      '  background-color: var(--ve-overlay-selected);',
+      '  filter: brightness(var(--ve-brightness-selected));',
+      '}',
+      // Hover-on-selected: heavier overlay + heavier brightness + glow.
+      '[data-ve-id]:not([data-ve-type="table-form"])[data-ve-selected="1"]:hover {',
+      '  background-color: var(--ve-overlay-hover);',
+      '  box-shadow: var(--ve-glow-hover);',
+      '  filter: brightness(var(--ve-brightness-hover));',
+      '}',
       // SVG elements (Graphviz nodes/edges, geometric regions, etc.):
       // a rectangular outline around a circle / arrow / path looks wrong,
       // so suppress it and highlight the actual SHAPE instead. The
@@ -265,23 +334,23 @@
       // colour palette; page-level CSS like `.ve-graph .node:hover circle`
       // wins on specificity for palette-specific recolouring.
       'svg [data-ve-id]:hover, svg [data-ve-id]:focus-visible, svg [data-ve-id]:hover *, svg [data-ve-id]:focus-visible *, svg [data-ve-id][data-ve-selected="1"], svg [data-ve-id][data-ve-selected="1"] * { outline:none !important; }',
-      // Hover: brightness boost + soft glow (drop-shadow). The glow is
-      // the visual signal that distinguishes hover from selected.
+      // Hover: brightness boost + soft glow (drop-shadow). The brightness
+      // factor and the glow primitive both come from the unified :root
+      // vars so SVG hover matches HTML hover perceptually.
       'svg g[data-ve-id]:hover > circle,',
       'svg g[data-ve-id]:hover > ellipse,',
       'svg g[data-ve-id]:hover > polygon,',
       'svg g[data-ve-id]:hover > rect,',
       'svg g[data-ve-id]:hover > path,',
-      'svg g[data-ve-id]:hover > polyline { filter: brightness(1.20) drop-shadow(0 0 4px var(--ve-accent, currentColor)); }',
-      // Selected: same brightness boost as hover (same colour intent),
-      // but NO glow — that absence is what tells the user "this is
-      // already in the set, hovering would re-glow it".
+      'svg g[data-ve-id]:hover > polyline { filter: brightness(var(--ve-brightness-hover)) drop-shadow(0 0 4px var(--ve-accent, currentColor)); }',
+      // Selected: lighter brightness boost (same primitive), no glow —
+      // glow stays reserved for hover.
       'svg g[data-ve-id][data-ve-selected="1"] > circle,',
       'svg g[data-ve-id][data-ve-selected="1"] > ellipse,',
       'svg g[data-ve-id][data-ve-selected="1"] > polygon,',
       'svg g[data-ve-id][data-ve-selected="1"] > rect,',
       'svg g[data-ve-id][data-ve-selected="1"] > path,',
-      'svg g[data-ve-id][data-ve-selected="1"] > polyline { filter: brightness(1.20); }',
+      'svg g[data-ve-id][data-ve-selected="1"] > polyline { filter: brightness(var(--ve-brightness-selected)); }',
       // Hover-on-selected: the user is hovering an element they already
       // picked. Re-introduce the glow so the cursor still feels reactive
       // even on selected items. Without this combined-selector rule the
@@ -293,7 +362,7 @@
       'svg g[data-ve-id][data-ve-selected="1"]:hover > polygon,',
       'svg g[data-ve-id][data-ve-selected="1"]:hover > rect,',
       'svg g[data-ve-id][data-ve-selected="1"]:hover > path,',
-      'svg g[data-ve-id][data-ve-selected="1"]:hover > polyline { filter: brightness(1.20) drop-shadow(0 0 4px var(--ve-accent, currentColor)); }',
+      'svg g[data-ve-id][data-ve-selected="1"]:hover > polyline { filter: brightness(var(--ve-brightness-hover)) drop-shadow(0 0 4px var(--ve-accent, currentColor)); }',
       // Edge groups have a path + an arrowhead polygon. Hover and selected
       // both thicken; only hover adds the glow (handled by the rules above).
       'svg g.edge[data-ve-id]:hover > path { stroke-width: 2.4; opacity: 1; }',
@@ -525,6 +594,101 @@
       'tr[data-ve-row-selected="1"] > td,',
       'tr[data-ve-row-selected="1"] > th {',
       '  background:color-mix(in srgb, var(--ve-accent, #b8861f) 18%, transparent) !important;',
+      '}',
+      // ─── table-form row-level visual feedback ────────────────────────
+      // The table-level [data-ve-id]:hover rule is suppressed for
+      // table-form tables (so the entire table doesn\'t glow when you
+      // hover any descendant). Instead, give the user explicit visual
+      // feedback at the ROW level. The user\'s explicit spec:
+      //   • Brightness must be ADDITIVE on a 0.0-1.0 lightness scale
+      //     (not multiplicative — multiplicative leaves dark colors
+      //     barely changed). Selected = +0.2, Hover = +0.3 + glow.
+      //   • Page-defined zebra (tr:nth-child(even)) must be PRESERVED;
+      //     the page\'s own tr:hover background change (if any) must be
+      //     CANCELLED so it doesn\'t fight the runtime\'s brightness boost.
+      //
+      // Implementation:
+      //   - `box-shadow: inset 0 0 0 9999px rgba(255,255,255,α)` paints
+      //     a white overlay of opacity α on top of the cell\'s existing
+      //     background. White-blend approximates additive RGB → additive
+      //     perceptual brightness (esp. on dark colors where multiplicative
+      //     brightness fails). α = 0.20 for selected, 0.30 for hover.
+      //   - `background: revert !important` on tr:hover cancels the page\'s
+      //     own tr:hover bg change; the cascade then falls back to the
+      //     non-hover rules (tr:nth-child(even) zebra, etc.), so the
+      //     natural row bg remains visible underneath the white overlay.
+      //   - Three explicit rules so cascade resolution is unambiguous:
+      //       a) selected (no hover) — tint + light overlay
+      //       b) hover (no selection) — natural bg + heavier overlay + glow
+      //       c) hover + selected — tint + heavier overlay + glow
+      // -- (a) selected, no hover -- additive bg tint + brightness on the
+      // <tr> (not the cells). The TR-level filter composites the row as
+      // ONE layer so the boundaries between cells don't become visible
+      // seams between PICK / FEATURE / DESC columns; per-cell filters
+      // create one compositing layer per <td>, and those layer edges are
+      // exactly the seams we want to avoid.
+      // No explicit text colour shift — the row-level brightness already
+      // provides emphasis on every theme. The previous rule pushed text
+      // toward `white 70%` which made selected rows readable on dark themes
+      // but invisible on light themes (white-on-cream); pages that want a
+      // hard text-colour change can set `--ve-text-selected` themselves.
+      '[data-ve-type="table-form"] tbody tr:has(input[data-ve-control]:checked) {',
+      '  filter: brightness(var(--ve-brightness-selected));',
+      '}',
+      '[data-ve-type="table-form"] tbody tr:has(input[data-ve-control]:checked) > td,',
+      '[data-ve-type="table-form"] tbody tr:has(input[data-ve-control]:checked) > th {',
+      '  background-color: var(--ve-overlay-selected) !important;',
+      // Hide page-CSS inter-cell borders inside the highlighted row so the
+      // selection reads as one continuous band. The fixture / page often
+      // sets `border: 1px solid rgba(0,0,0,0.12)` per cell — those vertical
+      // lines are visually unobtrusive on unselected rows but pop against
+      // the row-level brightness/overlay, recreating the "seam" effect.
+      // `border-style: hidden` is the ONLY value that always wins in a
+      // border-collapse:collapse merge — `transparent` colors lose to
+      // opaque adjacent borders per CSS 2.1 §17.6.3 (border conflict
+      // resolution: hidden > wider > style precedence > element type).
+      '  border-left-style: hidden !important;',
+      '  border-right-style: hidden !important;',
+      '}',
+      // -- (b) hover, no selection -- pin row bg to captured natural value
+      // (suppresses page\'s tr:hover bg change), apply additive bg lift on
+      // cells + brightness on the ROW (see rule (a)\'s comment for why),
+      // and apply outer glow as box-shadow on each TD (TR-level box-shadow
+      // doesn\'t render in border-collapse:collapse tables, but TR-level
+      // filter does). Text colour intentionally NOT overridden — same
+      // reasoning as rule (a): forcing `#ffffff` makes hover invisible on
+      // light themes. Pages can opt in via `--ve-text-hover`.
+      '[data-ve-type="table-form"] tbody tr:hover > td,',
+      '[data-ve-type="table-form"] tbody tr:hover > th {',
+      '  background-color: var(--ve-overlay-hover) !important;',
+      // `border-style: hidden` is the ONLY value that always wins in a
+      // border-collapse:collapse merge — `transparent` colors lose to
+      // opaque adjacent borders per CSS 2.1 §17.6.3 (border conflict
+      // resolution: hidden > wider > style precedence > element type).
+      '  border-left-style: hidden !important;',
+      '  border-right-style: hidden !important;',
+      '  box-shadow: 0 0 6px var(--ve-accent, currentColor);',
+      '}',
+      '[data-ve-type="table-form"] tbody tr:hover {',
+      '  background:var(--ve-row-natural-bg, transparent) !important;',
+      '  filter: brightness(var(--ve-brightness-hover));',
+      '}',
+      // -- (c) hover-on-selected -- heavier brightness/text/overlay/glow
+      // (same as plain hover, since hover dominates).
+      '[data-ve-type="table-form"] tbody tr:has(input[data-ve-control]:checked):hover {',
+      '  background:var(--ve-row-natural-bg, transparent) !important;',
+      '  filter: brightness(var(--ve-brightness-hover));',
+      '}',
+      '[data-ve-type="table-form"] tbody tr:has(input[data-ve-control]:checked):hover > td,',
+      '[data-ve-type="table-form"] tbody tr:has(input[data-ve-control]:checked):hover > th {',
+      '  background-color: var(--ve-overlay-hover) !important;',
+      // `border-style: hidden` is the ONLY value that always wins in a
+      // border-collapse:collapse merge — `transparent` colors lose to
+      // opaque adjacent borders per CSS 2.1 §17.6.3 (border conflict
+      // resolution: hidden > wider > style precedence > element type).
+      '  border-left-style: hidden !important;',
+      '  border-right-style: hidden !important;',
+      '  box-shadow: 0 0 6px var(--ve-accent, currentColor);',
       '}',
       // ─── Phase 6: code line-number gutter ─────────────────────────────
       '.ve-code-block {',
@@ -944,13 +1108,34 @@
       // the user explicitly asked for two clean floating buttons, not a
       // single glass bar.
       '.ve-action-btn {',
-      '  position:absolute;',  // Y-anchored to document flow
+      // position:fixed pins X+Y to the viewport. We mimic the user-asked
+      // "Y anchored to PAGE" behaviour at the JS layer instead:
+      // pinActionButtonsToViewport() shows the top button only when the
+      // page is scrolled to the very top, and the bottom button only
+      // when the page is scrolled to the very bottom. Mid-page → both
+      // invisible. This is functionally equivalent to "anchored to the
+      // Y of the page" without the document-width feedback loop that
+      // position:absolute + dynamic-left was triggering on pages with a
+      // horizontal scrollbar.
+      '  position:fixed;',
       '  z-index:2147483646;',
-      // X (left) is computed by JS — see pinActionButtonsToViewport().
-      // Y is fixed via top/bottom on the per-position class below.
       '}',
-      '.ve-action-btn--top { top:24px; }',
-      '.ve-action-btn--bottom { bottom:24px; }',
+      '.ve-action-btn--top    { top:36px;    right:36px; }',
+      '.ve-action-btn--bottom { bottom:36px; right:36px; }',
+      '.ve-action-btn--bottom[data-ve-action-side="left"] { left:36px; right:auto; }',
+      // Reserve space at the top + bottom of body so the action buttons
+      // sit on an EMPTY band, never overlapping page content. The user-
+      // stated requirement is SYMMETRIC breathing room: viewport-edge ↔
+      // button must equal button ↔ content. With a 36px outer gap and a
+      // ~36px tall button, each band totals 36 + 36 + 36 = 108px.
+      //
+      // !important is necessary because most demo pages set their own
+      // body padding (often less). Opt-out for pages that need
+      // edge-to-edge content: <body data-ve-no-action-padding>.
+      'body:not([data-ve-no-action-padding]) {',
+      '  padding-top:108px !important;',
+      '  padding-bottom:108px !important;',
+      '}',
       // Buttons inside the bar AND any standalone runtime button. They
       // both use the shared --ve-control-* palette so a host-page
       // override re-themes the whole runtime UI in one place.
@@ -1245,31 +1430,16 @@
     overlay.root.querySelector('#ve-copy').addEventListener('click', function () {
       var btn = this;
       var done = function () { btn.textContent = 'Copied'; btn.disabled = true; };
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(json).then(done, function () { fallbackCopy(json); done(); });
-      } else {
-        fallbackCopy(json);
-        done();
-      }
+      // navigator.clipboard.writeText is universally available in modern
+      // browsers (Chrome 66+, Firefox 63+, Safari 13.1+). Older textarea +
+      // document.execCommand('copy') fallback removed — execCommand is
+      // deprecated by web standards.
+      navigator.clipboard.writeText(json).then(done, done);
     });
     overlay.root.querySelector('#ve-cancel').addEventListener('click', function () {
       overlay.root.remove();
       sending = false;
     });
-  }
-
-  function fallbackCopy(text) {
-    try {
-      var ta = document.createElement('textarea');
-      ta.value = text;
-      ta.setAttribute('readonly', '');
-      ta.style.position = 'fixed';
-      ta.style.opacity = '0';
-      document.body.appendChild(ta);
-      ta.select();
-      document.execCommand('copy');
-      document.body.removeChild(ta);
-    } catch (_) {}
   }
 
   function escapeHtml(s) {
@@ -1383,7 +1553,9 @@
   // a parallel API.
   // ─────────────────────────────────────────────────────────────────────
   var veSelection = [];
-  window.veSelection = veSelection;
+  // Exposed on window as a debugging hook; cast to any so the TS language
+  // server doesn't flag the property assignment on the standard Window type.
+  (/** @type {any} */ (window)).veSelection = veSelection;
 
   function entryIdFor(payload) {
     // Stable identity within the selection set. Element-kind entries
@@ -1613,9 +1785,19 @@
       btn.setAttribute('data-ve-overlay', '1');
       btn.setAttribute('data-ve-action-side', specs[i].side);
       (function (b) {
-        // Auto-derive kind from current selection size — see comment in
-        // updateSubmitButtonsState for label semantics.
-        b.addEventListener('click', function () { submitSelections(); });
+        // Corner buttons NEVER submit — the user contract is:
+        //   • On an INPUT page (selectable elements present) the label is
+        //     "Cancel" and the click sends `exit` (dismiss without action).
+        //     The page\'s own visible Submit/Send affordance (e.g. the
+        //     table-form\'s tfoot Submit) handles the actual submission.
+        //   • On a NON-INPUT page (preview / read-only) the label is
+        //     "Done" (or whatever the page declared) and the click sends
+        //     `exit` (close the preview).
+        // In both cases the corner click resolves the runner with an
+        // exit-kind payload — no selections are forced through. Per the
+        // user\'s spec ("never use \'send\', \'submit\', etc. in the corner\'s
+        // buttons"), the corner is always a dismiss-only affordance.
+        b.addEventListener('click', function () { submitSelections('exit'); });
       })(btn);
       document.body.appendChild(btn);
     }
@@ -1628,84 +1810,111 @@
     pinActionButtonsToViewport();
   }
 
-  function updateSubmitButtonsState() {
-    // The two buttons each have a content-adaptive label:
-    //   - n === 0  → both show "Exit"   (ghost styling — quiet, dismissive)
-    //   - n  >  0  → top-right shows "Exit", bottom shows "Submit (N)"
-    //                (primary styling — accent fill, the action button)
-    // Both POST through submitSelections() with the auto-derived kind,
-    // so the existing tests click either ID and get the right wire payload.
-    // The single-direct-select case where a click already auto-submits
-    // gets the same chrome (two Exit buttons) — the page just never
-    // reaches n>0 because the runtime collapses to submit on first click.
-    var n = veSelection.length;
-    var exitBtn = document.getElementById('ve-submit-tr');     // top-right
-    var submitBtn = document.getElementById('ve-submit-bl');   // bottom
-    if (exitBtn) {
-      exitBtn.textContent = 'Exit';
-      exitBtn.className = 've-floating-btn ve-action-btn ve-action-btn--top ve-floating-btn--ghost';
-      exitBtn.style.display = 'inline-flex';
-    }
-    if (submitBtn) {
-      var bottomPosClass = 've-action-btn--bottom';
-      if (n === 0) {
-        submitBtn.textContent = 'Exit';
-        submitBtn.className = 've-floating-btn ve-action-btn ' + bottomPosClass + ' ve-floating-btn--ghost';
-      } else {
-        submitBtn.textContent = 'Submit (' + n + ')';
-        submitBtn.className = 've-floating-btn ve-action-btn ' + bottomPosClass + ' ve-floating-btn--primary';
+  function computeCornerLabel() {
+    // Decide the corner-button label per the user contract.
+    //
+    // Priority 1 — explicit page override: <body data-ve-corner-label="…">
+    //   accepted: "Cancel" | "Done" | "Ok" | "Exit"
+    // Priority 2 — auto-detect by scanning for selectable elements. If the
+    //   page has anything the runtime would treat as user-input (a
+    //   [data-ve-id] picker, a [data-ve-type="table-form"], a prose
+    //   selection target), it\'s an INPUT page → label = "Cancel". Else
+    //   it\'s a preview/read-only page → label = "Done".
+    //
+    // Rationale: the corner buttons are NEVER "Submit"/"Send" affordances;
+    // they dismiss/cancel the runner. The label communicates that intent:
+    //   • "Cancel" — the user was asked to do something, they\'re bailing.
+    //   • "Done"   — the user finished viewing, close cleanly.
+    if (document.body) {
+      var override = document.body.getAttribute('data-ve-corner-label');
+      if (override) {
+        var t = String(override).trim();
+        if (t) return t;
       }
-      submitBtn.style.display = 'inline-flex';
+    }
+    var hasSelectable = !!document.querySelector(
+      '[data-ve-id]:not(svg [data-ve-id]):not([data-ve-type="table-form"]),' +
+      '[data-ve-type="table-form"],' +
+      '[data-ve-prose] [data-ve-id],' +
+      'svg [data-ve-id]'
+    );
+    return hasSelectable ? 'Cancel' : 'Done';
+  }
+
+  function updateSubmitButtonsState() {
+    // BOTH corner buttons carry the SAME label, per the user contract:
+    //   • Input pages → "Cancel" (top + bottom)
+    //   • Preview/read-only pages → "Done" (top + bottom)
+    // The chrome is always "ghost" (transparent, themed) — never the
+    // primary accent fill. The bottom button no longer mutates to
+    // "Submit (N)" when selections exist; submission flows through the
+    // page\'s own visible affordance (e.g. the table-form\'s tfoot Submit
+    // button, or the regex-vis editor\'s Save button) — NOT through the
+    // corner.
+    var label = computeCornerLabel();
+    var topBtn = document.getElementById('ve-submit-tr');
+    var bottomBtn = document.getElementById('ve-submit-bl');
+    if (topBtn) {
+      topBtn.textContent = label;
+      topBtn.className = 've-floating-btn ve-action-btn ve-action-btn--top ve-floating-btn--ghost';
+      topBtn.style.display = 'inline-flex';
+    }
+    if (bottomBtn) {
+      bottomBtn.textContent = label;
+      bottomBtn.className = 've-floating-btn ve-action-btn ve-action-btn--bottom ve-floating-btn--ghost';
+      bottomBtn.style.display = 'inline-flex';
     }
     // Phase 7: Clear-all is touch-only, visible only when there's
     // something to clear. Floats near the bottom button — see
     // pinActionButtonsToViewport().
     var clearBtn = document.getElementById('ve-clear-all');
+    var n = veSelection.length;
     if (clearBtn) clearBtn.style.display = (isTouchDevice() && n > 0) ? 'inline-flex' : 'none';
     // Re-pin after any geometry change so the buttons stay on the
-    // viewport edge even if their width changed (e.g. "Exit" → "Submit (12)").
+    // viewport edge even if their width changed (e.g. "Done" → "Cancel").
     pinActionButtonsToViewport();
   }
 
-  // X-anchor the two floating action buttons to the VIEWPORT edge while
-  // their Y stays anchored to the document (top of page / bottom of page
-  // via position:absolute + top/bottom). The user explicitly asked for
-  // this behaviour: as the user scrolls horizontally, each button must
-  // stay at the extreme right (top button) / extreme left-or-right (bottom
-  // button) of the visible viewport. They are NOT position:fixed because
-  // fixed would also pin them to the Y of the viewport, which the design
-  // contract forbids — the buttons must hide until the user scrolls to
-  // top/bottom of the page.
+  // Mimic the user-asked "Y anchored to PAGE, X anchored to VIEWPORT"
+  // contract with a position:fixed CSS layer + a JS visibility gate
+  // driven by scrollY. Pure CSS would force one of two trade-offs:
+  //   - position:absolute → real Y-anchoring but the dynamic-left scheme
+  //     extends document width on overflow pages and fires a feedback
+  //     loop with the horizontal scrollbar (verified empirically).
+  //   - position:fixed → no feedback loop, but Y stays pinned to viewport
+  //     forever, violating the "you need to scroll to top/bottom to see
+  //     the button" requirement.
+  // We pick fixed + gate visibility on scrollY so the behaviour matches
+  // the spec without the layout instability.
+  //
+  // SCROLL_THRESHOLD_PX: how far from the top/bottom counts as "at the
+  // edge". A few pixels of slack so a tiny inertial overshoot doesn't
+  // flash the button off.
   function pinActionButtonsToViewport() {
     if (!document.body) return;
-    var margin = 24;
-    var buttons = document.querySelectorAll('.ve-action-btn');
+    var SCROLL_THRESHOLD_PX = 8;
+    var topBtn = document.getElementById('ve-submit-tr');
+    var bottomBtn = document.getElementById('ve-submit-bl');
     function update() {
-      var visibleLeft = window.scrollX;
-      var visibleRight = window.scrollX + window.innerWidth;
-      for (var i = 0; i < buttons.length; i++) {
-        var btn = buttons[i];
-        // offsetWidth is 0 until the button is in the DOM AND laid out.
-        // On the first call from within injectSubmitButtons() the layout
-        // may not have flushed yet — guard so we don't compute negative
-        // positions. The next scroll/resize event will re-pin correctly.
-        if (!btn.offsetWidth) continue;
-        var side = btn.getAttribute('data-ve-action-side') || 'right';
-        var x = (side === 'left')
-          ? visibleLeft + margin
-          : visibleRight - btn.offsetWidth - margin;
-        btn.style.left = x + 'px';
-      }
+      var doc = document.documentElement;
+      var docH = Math.max(doc.scrollHeight, document.body.scrollHeight);
+      var atTop = window.scrollY <= SCROLL_THRESHOLD_PX;
+      var atBottom = (window.scrollY + window.innerHeight) >= (docH - SCROLL_THRESHOLD_PX);
+      // Edge case: the page is shorter than the viewport (no vertical
+      // scroll). Then the user is simultaneously "at the top" AND "at
+      // the bottom" — show both buttons.
+      var noVerticalScroll = docH <= window.innerHeight + SCROLL_THRESHOLD_PX;
+      if (topBtn) topBtn.style.visibility = (atTop || noVerticalScroll) ? 'visible' : 'hidden';
+      if (bottomBtn) bottomBtn.style.visibility = (atBottom || noVerticalScroll) ? 'visible' : 'hidden';
     }
     update();
-    // Avoid stacking multiple listeners across re-injections (e.g. if
-    // injectSubmitButtons runs more than once because of script re-load).
+    // Avoid stacking multiple listeners across re-injections.
     if (!window.__veActionButtonsPinned) {
       window.__veActionButtonsPinned = true;
       window.addEventListener('scroll', update, { passive: true });
       window.addEventListener('resize', update, { passive: true });
-      // Some pages dynamically inject content that changes layout AFTER
-      // load — re-pin on a short debounced raf so we don't miss those.
+      // Layout changes that don't fire scroll/resize (dynamic content,
+      // images loading, font swaps) still affect docH → re-evaluate.
       var raf = null;
       var observer = new MutationObserver(function () {
         if (raf) cancelAnimationFrame(raf);
@@ -2109,6 +2318,29 @@
     table.__veFormLabel = label;
     table.__veFormMode = mode;
     table.__veFormId = tableId;
+
+    // Capture each row\'s natural (non-hover) background so the runtime
+    // hover rule can pin it back. Without this, the page\'s own
+    // `tr:hover { background: ... }` rule (very common in
+    // \`.data-table\`-style demos) replaces the row\'s zebra/transparent bg
+    // with an arbitrary color when the user mouses over — the user\'s
+    // request is for hover to ONLY brighten the row uniformly, never
+    // change its base color. CSS `revert` falls back to UA default
+    // (transparent) for unlayered author rules, so JS capture is the
+    // robust portable way to preserve the page-defined zebra.
+    //
+    // requestAnimationFrame defers the read until layout has settled —
+    // the bg may depend on @media queries or font loads that haven\'t
+    // resolved at script-end time.
+    if (typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') {
+      window.requestAnimationFrame(function () {
+        var bodyRows = table.querySelectorAll('tbody tr');
+        for (var ri = 0; ri < bodyRows.length; ri++) {
+          var bg = window.getComputedStyle(bodyRows[ri]).backgroundColor;
+          if (bg) bodyRows[ri].style.setProperty('--ve-row-natural-bg', bg);
+        }
+      });
+    }
   }
 
   function toggleRow(row, mode) {
@@ -3545,16 +3777,13 @@
   }
 
   function caretInfoAt(x, y) {
-    var pos = null;
-    if (document.caretPositionFromPoint) {
-      var p = document.caretPositionFromPoint(x, y);
-      if (p) pos = {node: p.offsetNode, offset: p.offset};
-    } else if (document.caretRangeFromPoint) {
-      var r = document.caretRangeFromPoint(x, y);
-      if (r) pos = {node: r.startContainer, offset: r.startOffset};
-    }
-    if (!pos || !pos.node || pos.node.nodeType !== Node.TEXT_NODE) return null;
-    return pos;
+    // caretPositionFromPoint is the standard API (Baseline since 2024 across
+    // Chrome 128+ / Safari 18.2+ / Firefox 20+). The legacy WebKit-only
+    // caretRangeFromPoint fallback was removed — it is deprecated.
+    if (typeof document.caretPositionFromPoint !== 'function') return null;
+    var p = document.caretPositionFromPoint(x, y);
+    if (!p || !p.offsetNode || p.offsetNode.nodeType !== Node.TEXT_NODE) return null;
+    return {node: p.offsetNode, offset: p.offset};
   }
 
   function buildLetterRange(node, idx) {
@@ -6114,7 +6343,7 @@
     return n;
   }
 
-  function postDecisionTurn(anchorId, decision, text) {
+  async function postDecisionTurn(anchorId, decision, text) {
     // Atomic POST: one JSONL line per call. Idempotent suppression is
     // applied by the caller (recordDecision) — this function always
     // writes.
@@ -6334,7 +6563,37 @@
     });
   }
 
+  function detectAndStampTheme() {
+    // Set data-ve-theme="light"|"dark" on <html> based on the page's
+    // body background luminance, so :root[data-ve-theme="light"] CSS
+    // overrides can mirror the brightness/overlay defaults. The
+    // selection/hover language is the same on both themes (lift the
+    // row, tint the bg, glow the accent) — only the DIRECTION flips,
+    // and that direction lives entirely in CSS variables.
+    //
+    // Skip if the page already set the attribute explicitly (escape
+    // hatch for pages that bg-detect wrong, e.g. CSS-only theme
+    // toggles, transparent body, or split light/dark sections).
+    var html = document.documentElement;
+    if (html.hasAttribute('data-ve-theme')) return;
+    var bg = document.body ? getComputedStyle(document.body).backgroundColor : '';
+    var m = bg.match(/\d+(\.\d+)?/g);
+    if (!m || m.length < 3 || (m.length >= 4 && +m[3] === 0)) {
+      // Transparent / unset body bg → browser default (typically white)
+      // shows through. Stamp "light" so the brightness/overlay direction
+      // matches what the user actually sees.
+      html.setAttribute('data-ve-theme', 'light');
+      return;
+    }
+    // sRGB perceptual luminance (Rec. 709 weights). >0.5 = light page.
+    var lum = (0.2126 * +m[0] + 0.7152 * +m[1] + 0.0722 * +m[2]) / 255;
+    html.setAttribute('data-ve-theme', lum > 0.5 ? 'light' : 'dark');
+  }
+
   function bootEverything() {
+    detectAndStampTheme();   // MUST run before injectStyles so the
+                             // :root[data-ve-theme="light"] overrides
+                             // resolve to the right values from frame 1.
     injectStyles();
     isTouchDevice(); // Phase 7: stamp body[data-ve-touch="1"] early so the
                      // CSS that ups handle hit-zones is in effect by the
