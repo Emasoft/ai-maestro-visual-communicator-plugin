@@ -5,11 +5,21 @@ All notable changes to this project will be documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.2.9] — 2026-05-12
+
+### Documentation
+
+- V4 status — P1+P3+P4+P5 shipped, P2 deferred to v4.1
+
 ## [1.2.8] — 2026-05-12
 
 ### Bug Fixes
 
 - ESC clears data-ve-pressed + removes orphan group handles
+
+### Chores
+
+- V1.2.8
 
 ## [1.2.7] — 2026-05-12
 
