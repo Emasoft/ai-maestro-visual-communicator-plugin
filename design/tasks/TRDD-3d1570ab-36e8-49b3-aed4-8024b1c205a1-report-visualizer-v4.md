@@ -3,7 +3,11 @@
 **TRDD ID:** `3d1570ab-36e8-49b3-aed4-8024b1c205a1`
 **Filename:** `design/tasks/TRDD-3d1570ab-36e8-49b3-aed4-8024b1c205a1-report-visualizer-v4.md`
 **Tracked in:** this repo (design/tasks/ is git-tracked)
-**Status:** Not started (this TRDD captures the v4 spec; implementation is phased)
+**Status:** Phase 1 + Phase 3 + Phase 4 + Phase 5 SHIPPED in v1.2.7 / v1.2.8.
+Phase 2 (per-element 3-state switch) DEFERRED to v4.1 — substantial
+refactor that mutates decision state schema (finding-keyed →
+element-keyed), the .summary.json wire contract, and the 5 existing
+decision-pills tests. Implementation guidance preserved below.
 
 ## Verbatim user spec (2026-05-12)
 
