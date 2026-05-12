@@ -1,7 +1,7 @@
 {
   "name": "ai-maestro-visual-communicator-plugin",
   "description": "Generate interactive HTML pages — diagrams, diff reviews, plan reviews, slide decks, data tables, and v2 modal-comment agent reports. Every page sends the user's selection (or per-element comment thread) back to the agent.",
-  "version": "1.2.7",
+  "version": "1.2.8",
   "author": {
     "name": "Emasoft",
     "email": "713559+Emasoft@users.noreply.github.com",
