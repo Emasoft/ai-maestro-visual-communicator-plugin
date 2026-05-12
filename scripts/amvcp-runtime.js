@@ -224,6 +224,19 @@
       // page to brand the runtime UI; set --ve-control-bg:transparent to
       // suppress runtime backgrounds entirely.
       ':root {',
+      // --ve-accent is the single source of truth for the warm "honey
+      // brown" tone used by selection cells, code-block borders, hover
+      // outlines, etc. EVERY runtime CSS rule ultimately reads this.
+      // Setting it explicitly here guarantees that calls like
+      // `var(--ve-accent, currentColor)` (which exist for backwards
+      // compat) never silently fall back to currentColor — which on a
+      // light page = near-black text and made hover outlines look black.
+      // --ve-accent-dark is a slightly deeper brown used for the
+      // outer ring on hover/focus, so the two-tone reads as "warm
+      // brown getting deeper outside" instead of "gold inside, black
+      // outside".
+      '  --ve-accent: #b8861f;',
+      '  --ve-accent-dark: #6e4d18;',
       '  --ve-control-bg: var(--surface, #ffffff);',
       '  --ve-control-bg-hover: color-mix(in srgb, var(--ve-control-bg, #fff) 88%, var(--ve-accent, var(--accent, #555)) 12%);',
       '  --ve-control-fg: var(--text, #14110b);',
@@ -278,6 +291,30 @@
       '  --ve-brightness-selected: 0.87;',  // 1/1.15 — perceptual mirror of dark selected
       '  --ve-overlay-hover: rgba(0,0,0,0.10);',
       '  --ve-overlay-selected: rgba(0,0,0,0.05);',
+      '}',
+      // Headings on light pages: 8% darker than the inner-border accent.
+      // Same tonal family but reads as the next step down on the warm
+      // brown ramp (border accent → heading → outer dark ring). Page
+      // authors can override per-page by setting `--ve-heading` on :root
+      // or by adding their own h1/h2/h3 rule.
+      ':root[data-ve-theme="light"] h1,',
+      ':root[data-ve-theme="light"] h2,',
+      ':root[data-ve-theme="light"] h3 {',
+      '  color:var(--ve-heading, color-mix(in srgb, var(--ve-accent, #b8861f) 92%, black 8%));',
+      '}',
+      // Inverted-blueprint page background — applies on light-themed
+      // pages so the whole document reads as graph-paper. The body-bg
+      // color stays whatever the host page declares (typically a warm
+      // cream). The grid is layered on TOP via a background-image, so
+      // pages that declare their own background-color keep it visible
+      // through the gaps. Pages that don't want the grid can override
+      // with `body { background-image: none; }` in their own CSS.
+      ':root[data-ve-theme="light"] body {',
+      '  background-image:',
+      '    linear-gradient(to right, color-mix(in srgb, var(--ve-accent, #b8861f) 16%, transparent) 1px, transparent 1px),',
+      '    linear-gradient(to bottom, color-mix(in srgb, var(--ve-accent, #b8861f) 16%, transparent) 1px, transparent 1px);',
+      '  background-size:24px 24px;',
+      '  background-attachment:fixed;',
       '}',
       '[data-ve-id] { cursor:pointer; transition:outline-color 120ms ease, box-shadow 120ms ease, filter 120ms ease; }',
       // HTML elements with [data-ve-id]: rectangular outline on hover —
@@ -702,7 +739,56 @@
       // element can\'t catch clicks directly, but the whole line is the
       // gesture target — clicking anywhere on the line selects it.
       '.ve-code-block { position:relative; }',
-      '.ve-code-block > pre { margin:0; counter-reset:ve-code-line; }',
+      // Default code-block style: single brown border, ORIGINAL host-
+      // page interior (no bg override). The fixture / page CSS owns the
+      // interior color; we only style the border + a barely-perceptible
+      // backdrop blur for a subtle frost. NO double border in default
+      // state.
+      //
+      // The local overrides on --ve-overlay-hover / --ve-glow-hover /
+      // --ve-brightness-hover NEUTRALISE the generic [data-ve-id]:hover
+      // side-effects (background-color overlay, box-shadow glow,
+      // brightness filter). Those side-effects were turning the pre
+      // interior gray on hover. The hover affordance for the code block
+      // is the OUTLINE (defined below), not an overlay.
+      '.ve-code-block > pre {',
+      '  margin:0;',
+      '  counter-reset:ve-code-line;',
+      '  border:1px solid var(--ve-accent, #b8861f);',
+      // 1.5px blur is just enough to soften the body-grid lines under
+      // the pre without erasing them. 6px (earlier) was too aggressive —
+      // the grid disappeared completely.
+      '  -webkit-backdrop-filter:blur(1.5px);',
+      '  backdrop-filter:blur(1.5px);',
+      '  --ve-overlay-hover:transparent;',
+      '  --ve-overlay-selected:transparent;',
+      '  --ve-glow-hover:none;',
+      '  --ve-brightness-hover:1;',
+      '  --ve-brightness-selected:1;',
+      '}',
+      // Outer dark-brown ring appears ON HOVER, or when at least one
+      // line in the block is selected. Default state = single inner
+      // border. Matches the same dark-brown used by Cancel buttons so
+      // every "interactive" affordance shares one outline color.
+      // CSS :has() is the native selector; supported in WKWebView (iTerm2)
+      // since Safari 15.4 (2022) and Chromium 105 (2022).
+      '.ve-code-block > pre:hover,',
+      '.ve-code-block:has(.ve-code-line[data-ve-pressed="1"]) > pre {',
+      '  outline:2px solid var(--ve-accent-dark, #6e4d18) !important;',
+      '  outline-offset:3px;',
+      '}',
+      // Opt-in blueprint theme for code blocks — author adds the class
+      // `ve-blueprint` to the .ve-code-block (or any ancestor) when they
+      // want the graph-paper background on a specific block. Same grid
+      // pattern is also used by the page-body light-theme rule below.
+      '.ve-blueprint.ve-code-block > pre,',
+      '.ve-blueprint .ve-code-block > pre {',
+      '  background-color:var(--ve-blueprint-bg, #faf6ee);',
+      '  background-image:',
+      '    linear-gradient(to right, color-mix(in srgb, var(--ve-accent, #b8861f) 16%, transparent) 1px, transparent 1px),',
+      '    linear-gradient(to bottom, color-mix(in srgb, var(--ve-accent, #b8861f) 16%, transparent) 1px, transparent 1px);',
+      '  background-size:24px 24px;',
+      '}',
       // counter-increment fires once per line span — each span gets the
       // next integer in the counter sequence.
       // display:block so each line\'s highlight covers the full row width
@@ -721,7 +807,12 @@
       '  text-align:right;',
       '  color:color-mix(in srgb, currentColor 50%, transparent);',
       '  border-right:1px solid color-mix(in srgb, currentColor 18%, transparent);',
-      '  user-select:none;',
+      // WebKit (iTerm2 WKWebView, Safari) requires the -webkit- prefix
+      // AND -webkit-touch-callout:none — without these, mousedown over
+      // the pseudo-element digit triggers text-selection / Look-Up and
+      // the click is never seen by our mousedown listener.
+      '  user-select:none; -webkit-user-select:none;',
+      '  -webkit-touch-callout:none;',
       '  cursor:pointer;',
       '  transition:background 100ms ease, color 100ms ease;',
       '}',
@@ -739,13 +830,57 @@
       '}',
       // Pressed/preview state on the WHOLE line span (so the row visibly
       // selects, not just the gutter number) — the ::before above reads
-      // these same attrs to update the number-cell background too.
+      // these same attrs to update the number-cell background too. The
+      // bg is a soft accent tint (not full-strength) so the row reads
+      // as "highlighted" without dominating the page on either theme;
+      // text colour is left alone so readability is preserved.
       '.ve-code-line[data-ve-pressed="1"] {',
-      '  background:var(--ve-accent, #b8861f); color:var(--ve-sel-text, #14110b);',
+      '  background:color-mix(in srgb, var(--ve-accent, #b8861f) 28%, transparent);',
       '}',
       '.ve-code-line[data-ve-preview="1"] {',
-      '  background:color-mix(in srgb, var(--ve-accent, #b8861f) 30%, transparent);',
+      '  background:color-mix(in srgb, var(--ve-accent, #b8861f) 18%, transparent);',
       '}',
+      '.ve-code-line[data-ve-pressed="1"] .ve-code-linenum {',
+      '  background:var(--ve-accent, #b8861f); color:var(--ve-sel-text, #14110b);',
+      '}',
+      '.ve-code-line[data-ve-preview="1"] .ve-code-linenum {',
+      '  background:color-mix(in srgb, var(--ve-accent, #b8861f) 60%, transparent);',
+      '  color:var(--ve-sel-text, #14110b);',
+      '}',
+      // ── Multi-select comment handle (Phase 1) ─────────────────────────
+      // Matches the existing `.ve-comment-pill` palette so it looks at
+      // home next to other commentable affordances. Pill style — gold
+      // accent bg, soft shadow, rounded-full. Position: outside the
+      // .ve-code-block on the left, vertically centered on the FIRST
+      // selected line (so the handle doesn\'t jump as more lines are
+      // added). Click → openCommentModal(handle) — reuses the existing
+      // multi-turn comment thread modal with polling, decision pills,
+      // connector line. NO custom dialog.
+      // Left margin reserves space for the .ve-comment-handle (24px circle
+      // at left:-32px → needs ≥36px of free margin to its left). Without
+      // this, narrow viewports / tight body padding clip the handle.
+      '.ve-code-block { position:relative; margin-left:40px; }',
+      // Compact rounded-rect tag — slightly wider than tall (badge shape).
+      // Sits OUTSIDE the .ve-code-block with a clear gap to the block's
+      // left border; the block's own `margin-left:40px` (set above) gives
+      // us the room. Rounded corners (not a full circle) read as a UI
+      // chip / tag rather than a status dot.
+      '.ve-comment-handle {',
+      '  position:absolute;',
+      '  left:-40px;',
+      '  width:28px; height:22px;',
+      '  display:inline-flex; align-items:center; justify-content:center;',
+      '  background:var(--ve-accent, #b8861f); color:var(--ve-sel-text, #14110b);',
+      '  border:0; border-radius:6px;',
+      '  padding:0;',
+      '  font:600 13px/1 ui-sans-serif,system-ui,sans-serif;',
+      '  cursor:pointer;',
+      '  box-shadow:0 3px 10px rgba(0,0,0,0.24);',
+      '  transform:translateY(-50%);',
+      '  z-index:2;',
+      '  animation:veFadeIn 120ms ease;',
+      '}',
+      '.ve-comment-handle:hover { filter:brightness(1.08); }',
       // ─── Phase 7: bigger hit-zones on touch devices ──────────────────
       // body[data-ve-touch="1"] is set by isTouchDevice() on first call.
       'body[data-ve-touch="1"] .ve-table-handle { width:32px; height:32px; font-size:14px; line-height:30px; }',
@@ -1170,11 +1305,15 @@
       '  display:inline-flex; align-items:center; justify-content:center;',
       '  min-width:84px; padding:9px 16px;',
       '  border-radius:var(--ve-control-radius);',
-      '  border:1px solid var(--ve-control-border);',
+      // Border + label use the SAME deeper-brown that the code-block\'s
+      // selected-state outer ring uses, so all chrome on a light page
+      // shares a single dark-brown accent. Background stays neutral so
+      // the button reads as a tertiary affordance, not a primary CTA.
+      '  border:1px solid var(--ve-accent-dark, #6e4d18);',
       '  font:600 13px/1.2 var(--ve-control-font);',
       '  letter-spacing:0.02em;',
       '  background:var(--ve-control-bg);',
-      '  color:var(--ve-control-fg);',
+      '  color:var(--ve-accent-dark, #6e4d18);',
       '  cursor:pointer;',
       '  transition:background 120ms ease, color 120ms ease,',
       '              border-color 120ms ease, box-shadow 120ms ease,',
@@ -1207,12 +1346,17 @@
       // with Exit/Submit visually.
       '.ve-floating-btn--ghost {',
       '  background:transparent;',
-      '  color:var(--ve-control-fg-dim);',
-      '  border-color:var(--ve-control-border);',
+      // Ghost variant (Cancel / Done buttons) uses the SAME deeper-brown
+      // accent as the code-block selected-outline. Keeps the page chrome
+      // in one warm palette so the floating action buttons read as part
+      // of the brown theme rather than neutral gray.
+      '  color:var(--ve-accent-dark, #6e4d18);',
+      '  border-color:var(--ve-accent-dark, #6e4d18);',
       '}',
       '.ve-floating-btn--ghost:hover {',
       '  background:var(--ve-control-bg-hover);',
-      '  color:var(--ve-control-fg);',
+      '  color:var(--ve-accent-dark, #6e4d18);',
+      '  border-color:var(--ve-accent-dark, #6e4d18);',
       '}',
       // ─── Form-mode custom radio / checkbox glyphs ─────────────────────
       // The runtime still injects a real <input type="radio"> /
@@ -1472,6 +1616,49 @@
     return String(s == null ? '' : s)
       .replace(/&/g, '&amp;').replace(/</g, '&lt;')
       .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  // ─── Universal tooltip / popup viewport-clamp ──────────────────────
+  // Shifts a desired (top, left) PAGE coordinate so an element of the
+  // given size always fits inside the currently-visible viewport, with
+  // an optional padding margin from the viewport edges. Used by every
+  // free-floating tooltip / popup in the runtime so none of them get
+  // clipped on narrow viewports (iTerm2 split-pane, mobile, etc.).
+  //
+  // Inputs are PAGE coordinates (i.e. include window.scrollX/Y) — most
+  // callers compute `rect.top + window.scrollY` from
+  // getBoundingClientRect, which is the page coord of the viewport-
+  // relative rect. The function returns adjusted page coordinates that
+  // the caller can write directly to `el.style.top/left`.
+  //
+  // Calling pattern:
+  //   var pos = clampToViewport(el, desiredTop, desiredLeft, 8);
+  //   el.style.top  = pos.top  + 'px';
+  //   el.style.left = pos.left + 'px';
+  function clampToViewport(el, top, left, pad) {
+    if (pad == null) pad = 8;
+    // Element must be in the document so offsetWidth/Height are real.
+    var w = el.offsetWidth || el.getBoundingClientRect().width || 0;
+    var h = el.offsetHeight || el.getBoundingClientRect().height || 0;
+    var vw = window.innerWidth || document.documentElement.clientWidth;
+    var vh = window.innerHeight || document.documentElement.clientHeight;
+    var sx = window.scrollX || window.pageXOffset || 0;
+    var sy = window.scrollY || window.pageYOffset || 0;
+    // Visible-viewport range expressed in page coords.
+    var minLeft = sx + pad;
+    var maxLeft = sx + vw - w - pad;
+    var minTop  = sy + pad;
+    var maxTop  = sy + vh - h - pad;
+    // If the element is wider/taller than the viewport (minus pad),
+    // pin to minLeft/minTop so the LEFT/TOP edge stays visible (more
+    // common case for a tooltip — user wants to see the start of it).
+    if (maxLeft < minLeft) maxLeft = minLeft;
+    if (maxTop  < minTop)  maxTop  = minTop;
+    if (left < minLeft) left = minLeft;
+    else if (left > maxLeft) left = maxLeft;
+    if (top  < minTop)  top  = minTop;
+    else if (top  > maxTop)  top  = maxTop;
+    return { top: top, left: left };
   }
 
   function postSelection(payload) {
@@ -3694,10 +3881,13 @@
 
     var top = rect.top + window.scrollY - 44;
     var left = rect.left + window.scrollX + (rect.width / 2) - (snippetPopup.offsetWidth / 2 || 90);
-    if (top < 8) top = rect.bottom + window.scrollY + 8;
-    if (left < 8) left = 8;
-    snippetPopup.style.top = top + 'px';
-    snippetPopup.style.left = left + 'px';
+    // If the preferred ABOVE position is off-screen at the top, flip
+    // BELOW the source rect — universal viewport-clamp then nudges
+    // it inward on the X axis if it would clip the right edge.
+    if (top < window.scrollY + 8) top = rect.bottom + window.scrollY + 8;
+    var pos = clampToViewport(snippetPopup, top, left, 8);
+    snippetPopup.style.top = pos.top + 'px';
+    snippetPopup.style.left = pos.left + 'px';
 
     btn.addEventListener('click', function () {
       snippetSeq++;
@@ -5109,117 +5299,182 @@
       if (pressed) span.setAttribute('data-ve-pressed', '1');
       else span.removeAttribute('data-ve-pressed');
     }
+    updateCommentHandles();
   }
 
-  function paintGutterPreview(blockId, fromLine, toLine) {
-    var lo = Math.min(fromLine, toLine), hi = Math.max(fromLine, toLine);
-    var spans = document.querySelectorAll(
-      '.ve-code-line[data-ve-block-id="' + blockId + '"]');
-    for (var i = 0; i < spans.length; i++) {
-      var ln = parseInt(spans[i].getAttribute('data-ve-line'), 10);
-      if (ln >= lo && ln <= hi) spans[i].setAttribute('data-ve-preview', '1');
-      else spans[i].removeAttribute('data-ve-preview');
+  function updateCommentHandles() {
+    // Phase 1: per-block comment handle. For each .ve-code-block that
+    // has ≥1 selected code-line, render (or update) a small chat-bubble
+    // button anchored to the FIRST selected line\'s vertical center.
+    // Click opens openCommentDialog(blockId, [lineNums…]).
+    var blocks = document.querySelectorAll('.ve-code-block');
+    for (var b = 0; b < blocks.length; b++) {
+      var block = blocks[b];
+      var blockId = block.getAttribute('data-ve-block-id');
+      // Collect selected line numbers in this block from veSelection.
+      var selected = [];
+      for (var k = 0; k < veSelection.length; k++) {
+        var e = veSelection[k];
+        if (e.kind === 'codeline' && e.block === blockId) selected.push(e.line);
+      }
+      var existing = block.querySelector(':scope > .ve-comment-handle');
+      if (selected.length === 0) {
+        if (existing) existing.remove();
+        continue;
+      }
+      // Anchor at the FIRST selected line\'s vertical center (smallest
+      // line-num). Stable: handle doesn\'t jump as more lines are added.
+      selected.sort(function (a, b2) { return a - b2; });
+      var firstLine = block.querySelector(
+        '.ve-code-line[data-ve-line="' + selected[0] + '"]');
+      if (!firstLine) {
+        if (existing) existing.remove();
+        continue;
+      }
+      var blockRect = block.getBoundingClientRect();
+      var lineRect = firstLine.getBoundingClientRect();
+      var topPx = lineRect.top - blockRect.top + lineRect.height / 2;
+      var handle = existing;
+      if (!handle) {
+        handle = document.createElement('button');
+        handle.type = 'button';
+        handle.className = 've-comment-handle';
+        // Speech-bubble glyph fits in the 24px circle; full "Comment" text
+        // would overflow. Title attribute carries the readable label.
+        handle.textContent = '\u{1F4AC}';  // 💬
+        handle.title = 'Open comment thread for selected lines';
+        handle.addEventListener('click', function (ev) {
+          ev.preventDefault(); ev.stopPropagation();
+          // Reuse the existing multi-turn comment modal — sets
+          // data-ve-comment-id with the current selection's
+          // canonical ref so each unique line-set has its own thread,
+          // then delegates to openCommentModal which handles polling,
+          // decision pills, draft persistence, and connector line.
+          openCommentModal(this);
+        });
+        block.appendChild(handle);
+      }
+      var commentId = 'codeline:' + blockId + ':' + selected.join(',');
+      handle.setAttribute('data-ve-comment-id', commentId);
+      handle.setAttribute('data-ve-block-id', blockId);
+      handle.setAttribute('data-ve-lines', selected.join(','));
+      handle.style.top = topPx + 'px';
     }
   }
 
-  function clearGutterPreview(blockId) {
-    var spans = document.querySelectorAll(
-      '.ve-code-line[data-ve-block-id="' + blockId + '"][data-ve-preview]');
-    for (var i = 0; i < spans.length; i++) spans[i].removeAttribute('data-ve-preview');
-  }
-
-  function pushSingleCodeLine(blockId, line) {
+  function isCodeLineSelected(blockId, line) {
     var entryId = 'codeline:' + blockId + ':' + line;
     for (var i = 0; i < veSelection.length; i++) {
-      if (veSelection[i].entryId === entryId) {
-        // Toggle off
-        veSelection.splice(i, 1);
-        repaintCodeGutters();
-        updateSubmitButtonsState();
-        return;
-      }
+      if (veSelection[i].entryId === entryId) return true;
     }
-    veSelection.push({ kind: 'codeline', entryId: entryId, block: blockId, line: line });
-    repaintCodeGutters();
-    updateSubmitButtonsState();
+    return false;
   }
 
-  function pushCodeLineRange(blockId, fromLine, toLine) {
-    var lo = Math.min(fromLine, toLine), hi = Math.max(fromLine, toLine);
-    // Always store individual `codeline` entries — no `codelines` range
-    // shape. With per-line entries, click-to-toggle-off works uniformly
-    // (the toggle's match-by-entryId finds the single-line entry and
-    // splices it cleanly). The earlier range shape made middle/edge
-    // toggles fail because the click looked for a `codeline:N` entry
-    // that didn't exist alongside the `codelines:from-to` entry.
-    for (var n = lo; n <= hi; n++) {
-      var entryId = 'codeline:' + blockId + ':' + n;
-      var found = false;
-      for (var i = 0; i < veSelection.length; i++) {
-        if (veSelection[i].entryId === entryId) { found = true; break; }
-      }
-      if (!found) {
-        veSelection.push({ kind: 'codeline', entryId: entryId, block: blockId, line: n });
-      }
+  function applyCodeLinePaint(blockId, line, mode) {
+    // mode === 'select'   → ensure line IS in veSelection (add if absent)
+    // mode === 'deselect' → ensure line is NOT in veSelection (remove if present)
+    var entryId = 'codeline:' + blockId + ':' + line;
+    var idx = -1;
+    for (var i = 0; i < veSelection.length; i++) {
+      if (veSelection[i].entryId === entryId) { idx = i; break; }
+    }
+    var isSel = idx !== -1;
+    if (mode === 'select' && !isSel) {
+      veSelection.push({ kind: 'codeline', entryId: entryId, block: blockId, line: line });
+    } else if (mode === 'deselect' && isSel) {
+      veSelection.splice(idx, 1);
+    } else {
+      return;  // already in target state — no-op
     }
     repaintCodeGutters();
     updateSubmitButtonsState();
   }
 
   function setupGutterEvents() {
+    // Drag-paint mode determined by start line's BEFORE state (per the
+    // user spec):
+    //   • start line was UNSELECTED → drag SELECTS every line passed over
+    //   • start line was SELECTED   → drag DESELECTS every line passed over
+    // The start line itself is also painted with the same mode (so the
+    // single-click case = "toggle this one line").
     document.addEventListener('mousedown', function (ev) {
+      // Two-step hit-test:
+      //   1. ev.target.closest('.ve-code-linenum') — works in every
+      //      browser when the target IS the linenum or its descendant.
+      //   2. document.elementFromPoint(clientX, clientY) — fallback for
+      //      WebKit (and some other engines) where mousedown over text
+      //      content rendered by a ::before pseudo-element with
+      //      `user-select:none` can route the event to an ancestor
+      //      (the <pre> or <code>) instead of the linenum span.
+      // The fallback also covers the "mouse moved 1px between mouse
+      // event creation and dispatch" race that some hardware shows.
       var hit = findCodeLineButton(ev.target);
+      if (!hit && typeof document.elementFromPoint === 'function') {
+        var atPoint = document.elementFromPoint(ev.clientX, ev.clientY);
+        if (atPoint) hit = findCodeLineButton(atPoint);
+      }
       if (!hit) return;
       ev.preventDefault();
+      var startWasSelected = isCodeLineSelected(hit.blockId, hit.line);
       gutterDragStart = {
         blockId: hit.blockId,
         line: hit.line,
-        dragging: false,
-        lineCount: hit.lineCount
+        lineCount: hit.lineCount,
+        mode: startWasSelected ? 'deselect' : 'select',
+        // Track which lines we've painted in THIS drag so the same line
+        // doesn\'t flicker on/off if the cursor crosses it twice.
+        painted: {}
       };
+      // Paint the start line immediately (this is the single-click
+      // behavior — even if no drag happens, the start line gets toggled).
+      applyCodeLinePaint(hit.blockId, hit.line, gutterDragStart.mode);
+      gutterDragStart.painted[hit.line] = true;
     }, true);
 
-    document.addEventListener('mouseover', function (ev) {
+    // mousemove + elementFromPoint (NOT mouseover) — mouseover only fires
+    // when the cursor crosses INTO a new element, so a fast drag from line
+    // 1 to line 5 can leave 2/3/4 unpainted. mousemove fires on every pixel
+    // step; elementFromPoint resolves the element under the cursor exactly,
+    // and our `painted` map dedups so the same line never flickers.
+    document.addEventListener('mousemove', function (ev) {
       if (!gutterDragStart) return;
-      var hit = findCodeLineButton(ev.target);
+      var el = document.elementFromPoint(ev.clientX, ev.clientY);
+      var hit = findCodeLineButton(el);
       if (!hit || hit.blockId !== gutterDragStart.blockId) return;
-      if (hit.line !== gutterDragStart.line) gutterDragStart.dragging = true;
-      paintGutterPreview(gutterDragStart.blockId, gutterDragStart.line, hit.line);
+      if (gutterDragStart.painted[hit.line]) return;  // already painted in this drag
+      applyCodeLinePaint(gutterDragStart.blockId, hit.line, gutterDragStart.mode);
+      gutterDragStart.painted[hit.line] = true;
     }, true);
 
-    document.addEventListener('mouseup', function (ev) {
-      if (!gutterDragStart) return;
-      var snapshot = gutterDragStart;
+    document.addEventListener('mouseup', function () {
       gutterDragStart = null;
-      if (snapshot.dragging) {
-        var hit = findCodeLineButton(ev.target);
-        var endLine = hit && hit.blockId === snapshot.blockId ? hit.line : snapshot.line;
-        clearGutterPreview(snapshot.blockId);
-        pushCodeLineRange(snapshot.blockId, snapshot.line, endLine);
-        return;
-      }
-      // No drag — single line click. Toggle immediately (no 300 ms
-      // multi-click chain — that delayed every action and made the
-      // 2nd-click-on-same-line gesture register as "select all"
-      // instead of "deselect").
-      pushSingleCodeLine(snapshot.blockId, snapshot.line);
     }, true);
 
-    // Phase 7: touch parity — touchstart begins the drag, touchmove
-    // tracks the line under the finger via elementFromPoint (touch
-    // events don't bubble like mouseover), touchend finalises.
+    // Touch parity for the drag-paint mode. touchmove uses
+    // elementFromPoint because touch events don't bubble like mouseover.
     document.addEventListener('touchstart', function (ev) {
       var hit = findCodeLineButton(ev.target);
+      if (!hit) {
+        var t0 = ev.touches && ev.touches[0];
+        if (t0 && typeof document.elementFromPoint === 'function') {
+          var atPoint = document.elementFromPoint(t0.clientX, t0.clientY);
+          if (atPoint) hit = findCodeLineButton(atPoint);
+        }
+      }
       if (!hit) return;
       // preventDefault on the line button stops the long-press selection
       // popup from hijacking the gesture on iOS.
       ev.preventDefault();
+      var startWasSelected = isCodeLineSelected(hit.blockId, hit.line);
       gutterDragStart = {
         blockId: hit.blockId,
         line: hit.line,
-        dragging: false,
-        lineCount: hit.lineCount
+        lineCount: hit.lineCount,
+        mode: startWasSelected ? 'deselect' : 'select',
+        painted: {}
       };
+      applyCodeLinePaint(hit.blockId, hit.line, gutterDragStart.mode);
+      gutterDragStart.painted[hit.line] = true;
     }, { passive: false, capture: true });
 
     document.addEventListener('touchmove', function (ev) {
@@ -5229,27 +5484,13 @@
       var el = document.elementFromPoint(t.clientX, t.clientY);
       var hit = findCodeLineButton(el);
       if (!hit || hit.blockId !== gutterDragStart.blockId) return;
-      if (hit.line !== gutterDragStart.line) gutterDragStart.dragging = true;
-      paintGutterPreview(gutterDragStart.blockId, gutterDragStart.line, hit.line);
+      if (gutterDragStart.painted[hit.line]) return;
+      applyCodeLinePaint(gutterDragStart.blockId, hit.line, gutterDragStart.mode);
+      gutterDragStart.painted[hit.line] = true;
     }, { passive: true, capture: true });
 
-    document.addEventListener('touchend', function (ev) {
-      if (!gutterDragStart) return;
-      var snapshot = gutterDragStart;
+    document.addEventListener('touchend', function () {
       gutterDragStart = null;
-      var endLine = snapshot.line;
-      if (ev.changedTouches && ev.changedTouches[0]) {
-        var t = ev.changedTouches[0];
-        var el = document.elementFromPoint(t.clientX, t.clientY);
-        var hit = findCodeLineButton(el);
-        if (hit && hit.blockId === snapshot.blockId) endLine = hit.line;
-      }
-      if (snapshot.dragging) {
-        clearGutterPreview(snapshot.blockId);
-        pushCodeLineRange(snapshot.blockId, snapshot.line, endLine);
-        return;
-      }
-      pushSingleCodeLine(snapshot.blockId, snapshot.line);
     }, { passive: true, capture: true });
   }
 
@@ -5530,8 +5771,11 @@
       document.body.appendChild(commentHoverPill);
     }
     var rect = el.getBoundingClientRect();
-    commentHoverPill.style.top = (rect.top + window.scrollY + 4) + 'px';
-    commentHoverPill.style.left = (rect.right + window.scrollX - 130) + 'px';
+    var desiredTop = rect.top + window.scrollY + 4;
+    var desiredLeft = rect.right + window.scrollX - 130;
+    var pos = clampToViewport(commentHoverPill, desiredTop, desiredLeft, 8);
+    commentHoverPill.style.top = pos.top + 'px';
+    commentHoverPill.style.left = pos.left + 'px';
     commentHoverPill.style.opacity = '1';
     commentHoverPill.style.pointerEvents = 'auto';
   }
@@ -5616,9 +5860,11 @@
         && commentHoverPill.style.opacity === '1'
       ) {
         var rect = commentHoverTarget.getBoundingClientRect();
-        commentHoverPill.style.top = (rect.top + window.scrollY + 4) + 'px';
-        commentHoverPill.style.left =
-          (rect.right + window.scrollX - 130) + 'px';
+        var dt = rect.top + window.scrollY + 4;
+        var dl = rect.right + window.scrollX - 130;
+        var pos = clampToViewport(commentHoverPill, dt, dl, 8);
+        commentHoverPill.style.top = pos.top + 'px';
+        commentHoverPill.style.left = pos.left + 'px';
       }
       // The anchor's viewport coords change on every scroll, so the
       // connector line's anchor end has to follow it. Modal end is

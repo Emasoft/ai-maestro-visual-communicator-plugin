@@ -31,12 +31,20 @@ async function setup(page) {
 }
 
 async function gutterButtonRect(page, line) {
+  // CSS-counter architecture: each line is wrapped in
+  // <span class="ve-code-line" data-ve-line="N"><span class="ve-code-linenum">.
+  // The linenum is the gutter cell (number rendered via ::before pseudo).
+  // The previous "btn[data-line=N]" lookup is gone — line number lives
+  // on the PARENT .ve-code-line, the .ve-code-linenum is just the cell.
   return page.evaluate((ln) => {
-    const btns = Array.from(document.querySelectorAll('.ve-code-linenum'));
-    const b = btns.find((x) => parseInt(x.getAttribute('data-line'), 10) === ln);
-    if (!b) return null;
-    b.scrollIntoView({ block: 'center' });
-    const r = b.getBoundingClientRect();
+    const lineEl = document.querySelector(
+      '.ve-code-line[data-ve-line="' + ln + '"]'
+    );
+    if (!lineEl) return null;
+    const num = lineEl.querySelector('.ve-code-linenum');
+    if (!num) return null;
+    num.scrollIntoView({ block: 'center' });
+    const r = num.getBoundingClientRect();
     return { x: r.x + r.width / 2, y: r.y + r.height / 2 };
   }, line);
 }
@@ -83,11 +91,11 @@ async function testSingleLineClickSelects(page) {
 }
 
 async function testDragSelectsRange(page) {
-  // D4.2 — mousedown on line-1, drag to line-3, mouseup. Should push
-  // a kind:'codelines' with fromLine=1, toLine=3. The runtime's mouseover
-  // tracking flips `dragging=true` when the cursor enters a different
-  // line button, so a real drag (not a single click on the start line)
-  // is required.
+  // D4.2 — mousedown on line-1, drag to line-3, mouseup. Per the
+  // drag-paint contract, each line touched gets its OWN `kind:'codeline'`
+  // entry (no `codelines` range — the user explicitly asked for per-line
+  // entries so individual lines can be deselected later). A 1→3 drag
+  // therefore produces 3 entries: line 1, 2, 3.
   await setup(page);
   const start = await gutterButtonRect(page, 1);
   const end   = await gutterButtonRect(page, 3);
@@ -97,19 +105,24 @@ async function testDragSelectsRange(page) {
   }
   await page.mouse.move(start.x, start.y);
   await page.mouse.down();
-  // Multi-step move so mouseover fires on the intermediate line buttons.
-  await page.mouse.move(end.x, end.y, { steps: 8 });
+  // Multi-step move so the runtime's mousemove + elementFromPoint catches
+  // every intermediate line. Higher step count = more painted lines.
+  await page.mouse.move(end.x, end.y, { steps: 12 });
   await page.mouse.up();
   await page.waitForTimeout(400);
   const sel = await readSelection(page);
-  const ok = sel.length === 1
-    && sel[0].kind === 'codelines'
-    && sel[0].fromLine === 1
-    && sel[0].toLine === 3;
+  const lines = sel
+    .filter((e) => e.kind === 'codeline')
+    .map((e) => e.line)
+    .sort((a, b) => a - b);
+  const ok = lines.length === 3
+    && lines[0] === 1
+    && lines[1] === 2
+    && lines[2] === 3;
   record(
     'code_gutter_drag_range',
     ok ? 'PASS' : 'FAIL',
-    'drag from line 1 to line 3 → kind:codelines, [1, 3]',
+    'drag from line 1 to line 3 → 3 codeline entries [1,2,3]',
     JSON.stringify(sel)
   );
 }

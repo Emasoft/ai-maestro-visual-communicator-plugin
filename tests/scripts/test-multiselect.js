@@ -146,13 +146,18 @@ async function testEscClearsSelection(page) {
 }
 
 async function testSubmitButtonPostsPayload(page) {
-  // D2.2 — clicking the floating Submit (top-right) button POSTs
-  // {kind:'submit', count:N, selections:[…]} to /__ve-select.
-  // We assert against the test server's /__ve-test-last-select capture.
+  // D2.2 — clicking the floating corner button (top-right) POSTs the
+  // current veSelection as {kind:'exit', count:N, selections:[…]} to
+  // /__ve-select. Per the e516350 contract ("corner buttons NEVER
+  // submit"), the corner click is a DISMISS — the page's own visible
+  // Submit/Send affordance handles real submission. So the test now
+  // verifies the corner sends an EXIT payload that still CARRIES the
+  // selections, not a submit payload. The "submit_posts" name is kept
+  // for git-blame continuity even though the kind it asserts is exit.
   await setup(page);
   await clickCard(page, 'card-alpha');
   await clickCard(page, 'card-gamma');
-  // Click the top-right Submit button (id=ve-submit-tr).
+  // Click the top-right corner button (id=ve-submit-tr).
   const btn = await page.evaluate(() => {
     const b = document.getElementById('ve-submit-tr');
     if (!b) return null;
@@ -160,7 +165,7 @@ async function testSubmitButtonPostsPayload(page) {
     return { x: r.x + r.width / 2, y: r.y + r.height / 2 };
   });
   if (!btn) {
-    record('multiselect_submit_posts', 'FAIL', 'Submit button posts payload', 'button missing');
+    record('multiselect_submit_posts', 'FAIL', 'corner button posts payload', 'button missing');
     return;
   }
   await page.mouse.click(btn.x, btn.y);
@@ -168,7 +173,7 @@ async function testSubmitButtonPostsPayload(page) {
   await page.waitForTimeout(500);
   const payload = await readLastSelectPayload(page);
   const pass = payload
-    && payload.kind === 'submit'
+    && payload.kind === 'exit'
     && payload.count === 2
     && Array.isArray(payload.selections)
     && payload.selections.length === 2
@@ -177,7 +182,7 @@ async function testSubmitButtonPostsPayload(page) {
   record(
     'multiselect_submit_posts',
     pass ? 'PASS' : 'FAIL',
-    'Submit button POSTs {kind:submit, count, selections:[…]} to /__ve-select',
+    'corner button POSTs {kind:exit, count, selections:[…]} per e516350 dismiss-only contract',
     JSON.stringify(payload)
   );
 }
