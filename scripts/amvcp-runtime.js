@@ -350,6 +350,81 @@
       // Renderer-supplied <main> often has `max-width: 86ch`. Lift the
       // ceiling so wide content can push the column open.
       'main, .ve-main { max-width:none !important; }',
+      // ─── Table styling (TRDD-3d1570ab R2) ──────────────────────────
+      // Tables MUST look like tables: visible cell borders, header
+      // divider, alternating zebra rows. The renderer emits clean
+      // <table><thead><tr><th>...<tbody><tr>...; the runtime layers
+      // the visual chrome on top so any markdown-rendered table
+      // inherits the look. Borders use the warm accent palette so
+      // they sit inside the brown grid theme.
+      'table {',
+      '  border-collapse:collapse;',
+      '  border:1px solid color-mix(in srgb, var(--ve-accent, #b8861f) 35%, transparent);',
+      '}',
+      'th, td {',
+      '  border:1px solid color-mix(in srgb, var(--ve-accent, #b8861f) 22%, transparent);',
+      '  padding:8px 12px;',
+      '  vertical-align:top;',
+      '}',
+      'thead th {',
+      '  background:color-mix(in srgb, var(--ve-accent, #b8861f) 14%, transparent);',
+      '  border-bottom:2px solid var(--ve-accent, #b8861f);',
+      '  text-align:left;',
+      '  font-weight:600;',
+      '}',
+      // Zebra rows — every OTHER body row gets a subtle accent tint
+      // so the eye can follow rows across wide tables. Tint is small
+      // (6%) to stay readable in both themes.
+      'tbody tr:nth-child(even) {',
+      '  background:color-mix(in srgb, var(--ve-accent, #b8861f) 6%, transparent);',
+      '}',
+      // ─── Universal selectable atoms (TRDD-3d1570ab R3+R6) ─────────
+      // <tr>, <li>, <p data-ve-comment-id> are the SELECTABLE atoms
+      // in any rendered document. Hover lifts the bg, pressed (in
+      // veSelection) gives the warm brown selected highlight. Cursor
+      // becomes pointer to advertise interactivity.
+      'tr[data-ve-comment-id], li[data-ve-comment-id], p[data-ve-comment-id] {',
+      '  cursor:pointer;',
+      '  transition:background 120ms ease;',
+      '}',
+      'tr[data-ve-comment-id]:hover:not([data-ve-pressed="1"]) {',
+      '  background:color-mix(in srgb, var(--ve-accent, #b8861f) 14%, transparent) !important;',
+      '}',
+      'li[data-ve-comment-id]:hover:not([data-ve-pressed="1"]),',
+      'p[data-ve-comment-id]:hover:not([data-ve-pressed="1"]) {',
+      '  background:color-mix(in srgb, var(--ve-accent, #b8861f) 12%, transparent);',
+      '  box-shadow:0 0 6px color-mix(in srgb, var(--ve-accent, #b8861f) 30%, transparent);',
+      '}',
+      'tr[data-ve-pressed="1"], li[data-ve-pressed="1"], p[data-ve-pressed="1"] {',
+      '  background:color-mix(in srgb, var(--ve-accent, #b8861f) 28%, transparent) !important;',
+      '}',
+      // Container outer ring when ANY atom is pressed inside it. CSS
+      // :has() is supported in Safari 15.4+ / Chromium 105+ (2022).
+      'table:has(tr[data-ve-pressed="1"]),',
+      'ul:has(li[data-ve-pressed="1"]),',
+      'ol:has(li[data-ve-pressed="1"]),',
+      'section:has(> p[data-ve-pressed="1"]),',
+      '.ve-finding-body:has(> p[data-ve-pressed="1"]) {',
+      '  outline:2px solid var(--ve-accent-dark, #6e4d18);',
+      '  outline-offset:3px;',
+      '}',
+      // The single per-group handle: same compact rounded-rect chip as
+      // the code-block handle. Position is absolute relative to the
+      // container (set inline by updateGroupCommentHandles).
+      '.ve-group-handle {',
+      '  position:absolute; left:-32px;',
+      '  width:28px; height:22px;',
+      '  display:inline-flex; align-items:center; justify-content:center;',
+      '  background:var(--ve-accent, #b8861f); color:var(--ve-sel-text, #14110b);',
+      '  border:0; border-radius:6px; padding:0;',
+      '  font:600 13px/1 ui-sans-serif,system-ui,sans-serif;',
+      '  cursor:pointer;',
+      '  box-shadow:0 3px 10px rgba(0,0,0,0.24);',
+      '  transform:translateY(-50%);',
+      '  z-index:2;',
+      '  animation:veFadeIn 120ms ease;',
+      '}',
+      '.ve-group-handle:hover { filter:brightness(1.08); }',
       '[data-ve-id] { cursor:pointer; transition:outline-color 120ms ease, box-shadow 120ms ease, filter 120ms ease; }',
       // HTML elements with [data-ve-id]: rectangular outline on hover —
       // matches their bbox geometry (cards, table rows, divs, etc.).
@@ -2233,6 +2308,30 @@
       // kind from the current selection count instead of forcing 'submit'.
       submitSelections();
     }
+    // Ctrl-+ (or Ctrl-= since `+` requires Shift on US keyboards) — open
+    // the comment modal scoped to the current selection (TRDD-3d1570ab
+    // R7). No-op when selection is empty. Don't hijack when an editable
+    // is focused (the user might be Cmd-+ zooming or typing).
+    if ((ev.ctrlKey || ev.metaKey) && (ev.key === '+' || ev.key === '=')) {
+      if (isEditableFocused()) return;
+      if (veSelection.length === 0) return;
+      ev.preventDefault();
+      // Find any group-handle currently visible (Phase 3 will ensure
+      // there's exactly one per selected group). Click the first one
+      // we find — it carries the right data-ve-comment-id for the
+      // selection's group.
+      var handle = document.querySelector('.ve-comment-handle');
+      if (handle && typeof openCommentModal === 'function') {
+        openCommentModal(handle);
+        return;
+      }
+      // Fallback: pick the first selectable element with data-ve-pressed
+      // and open the modal scoped to its data-ve-comment-id.
+      var pressed = document.querySelector('[data-ve-pressed="1"][data-ve-comment-id]');
+      if (pressed && typeof openCommentModal === 'function') {
+        openCommentModal(pressed);
+      }
+    }
   }, false);
 
   // Auto-inject buttons when DOM is ready.
@@ -2302,6 +2401,13 @@
       // toggling the whole paragraph. The .ve-pnum number marker still
       // toggles the paragraph (it has [data-ve-id] and isn't text).
       if (ev.target.closest('[data-ve-prose]') && !ev.target.closest('.ve-pnum')) return;
+      // v4 (TRDD-3d1570ab R3): clicks inside a selectable atom
+      // (<tr>, <li>, <p data-ve-comment-id>) are owned by the atom-
+      // selection handler. Don't ALSO toggle the wrapping
+      // <table>/<ul>/<ol> as a whole-element selection — that would
+      // double-count and violate the "containers are not selectable"
+      // rule.
+      if (ev.target.closest('tr[data-ve-comment-id], li[data-ve-comment-id], p[data-ve-comment-id]')) return;
       var sel = elementSelection(ev.target);
       if (!sel || !sel.id) return;
       ev.preventDefault();
@@ -5409,6 +5515,97 @@
       handle.setAttribute('data-ve-lines', selected.join(','));
       handle.style.top = topPx + 'px';
     }
+    // v4 generalization (TRDD-3d1570ab R3+R4): the same handle
+    // pattern applies to ANY container of selectable atoms:
+    //   - <tbody> with selected <tr>
+    //   - <ul>/<ol> with selected <li>
+    //   - <div> / <section> with selected <p data-ve-comment-id> children
+    //   - .ve-gallery with selected items, .ve-dirtree with selected nodes
+    // Each container gets ONE handle at the LEFT edge of the group's
+    // bbox; the handle's data-ve-comment-id encodes the container id +
+    // sorted child pnums so each unique selection is its own thread.
+    updateGroupCommentHandles();
+  }
+
+  function updateGroupCommentHandles() {
+    // For each container kind, find groups with ≥1 pressed child and
+    // add a single .ve-comment-handle at the left edge of the group's
+    // first-pressed-child bbox.
+    var containerSelectors = [
+      // tbody groups <tr>; the table itself isn't selectable but the
+      // rows are. Place handle on the table (since tbody has no
+      // dimensions of its own in some renderers).
+      { container: 'table', child: 'tr[data-ve-pressed="1"]', kind: 'row' },
+      { container: 'ul',    child: 'li[data-ve-pressed="1"]', kind: 'li' },
+      { container: 'ol',    child: 'li[data-ve-pressed="1"]', kind: 'li' },
+      // Paragraph groups: a section / .ve-finding-body with selected
+      // <p data-ve-comment-id> children.
+      { container: 'section, .ve-finding-body',
+        child: 'p[data-ve-comment-id][data-ve-pressed="1"]',
+        kind: 'para' },
+    ];
+    for (var s = 0; s < containerSelectors.length; s++) {
+      var sel = containerSelectors[s];
+      var containers = document.querySelectorAll(sel.container);
+      for (var c = 0; c < containers.length; c++) {
+        var cont = containers[c];
+        var pressed = cont.querySelectorAll(':scope ' + sel.child);
+        // For paragraphs we don't want CHILD `<p>` from a NESTED
+        // section to count toward the parent's group — querySelectorAll
+        // descends. Use Array.from + filter to keep only direct
+        // descendants (or descendants whose closest matching container
+        // is THIS container).
+        var ownPressed = [];
+        for (var pi = 0; pi < pressed.length; pi++) {
+          if (pressed[pi].closest(sel.container) === cont) {
+            ownPressed.push(pressed[pi]);
+          }
+        }
+        // Reuse handle slot on the container so we update in place.
+        var existing = cont.querySelector(':scope > .ve-group-handle');
+        if (ownPressed.length === 0) {
+          if (existing) existing.remove();
+          continue;
+        }
+        // Position the handle relative to the container.
+        var firstChild = ownPressed[0];
+        var containerCs = getComputedStyle(cont);
+        if (containerCs.position === 'static') {
+          cont.style.position = 'relative';
+        }
+        var contRect = cont.getBoundingClientRect();
+        var firstRect = firstChild.getBoundingClientRect();
+        var topPx = firstRect.top - contRect.top + firstRect.height / 2;
+        var handle = existing;
+        if (!handle) {
+          handle = document.createElement('button');
+          handle.type = 'button';
+          handle.className = 've-comment-handle ve-group-handle';
+          handle.textContent = '\u{1F4AC}';
+          handle.title = 'Open comment thread for selected items';
+          handle.addEventListener('click', function (ev) {
+            ev.preventDefault(); ev.stopPropagation();
+            openCommentModal(this);
+          });
+          cont.appendChild(handle);
+        }
+        // Compose a stable comment-id from container + sorted child
+        // pnums (or, fallback, child indices).
+        var pnums = [];
+        for (var pn = 0; pn < ownPressed.length; pn++) {
+          var p = ownPressed[pn].getAttribute('data-ve-pnum')
+                  || ownPressed[pn].getAttribute('data-ve-comment-id')
+                  || String(pn);
+          pnums.push(p);
+        }
+        pnums.sort();
+        var contId = cont.id || cont.getAttribute('data-ve-finding-id') || cont.tagName.toLowerCase();
+        var commentId = 'group:' + sel.kind + ':' + contId + ':' + pnums.join(',');
+        handle.setAttribute('data-ve-comment-id', commentId);
+        handle.setAttribute('data-ve-group-kind', sel.kind);
+        handle.style.top = topPx + 'px';
+      }
+    }
   }
 
   function isCodeLineSelected(blockId, line) {
@@ -5437,6 +5634,110 @@
     }
     repaintCodeGutters();
     updateSubmitButtonsState();
+  }
+
+  // ─── Group-selectable elements (TRDD-3d1570ab R3) ────────────────────
+  // Click on <tr>, <li>, or <p data-ve-comment-id> toggles its
+  // selection state. The same drag-paint mechanic from code lines
+  // applies: mousedown decides the mode (select if start was unselected,
+  // deselect if it was selected), then any element of the same KIND
+  // entered during the drag is painted with that mode.
+  // After every toggle, repaint + run updateGroupCommentHandles() so the
+  // single-per-group handle appears/disappears immediately.
+  function isSelectableAtom(el) {
+    if (!el || !el.tagName) return null;
+    var tag = el.tagName;
+    if (tag === 'TR' && el.hasAttribute('data-ve-comment-id')) return 'row';
+    if (tag === 'LI' && el.hasAttribute('data-ve-comment-id')) return 'li';
+    if (tag === 'P'  && el.hasAttribute('data-ve-comment-id')) return 'para';
+    return null;
+  }
+
+  function findSelectableAtomFromEvent(target) {
+    if (!target || !target.closest) return null;
+    var el = target.closest('tr[data-ve-comment-id], li[data-ve-comment-id], p[data-ve-comment-id]');
+    if (!el) return null;
+    var kind = isSelectableAtom(el);
+    if (!kind) return null;
+    return { el: el, kind: kind };
+  }
+
+  function entryIdForAtom(atom) {
+    var cid = atom.el.getAttribute('data-ve-comment-id') || '';
+    return atom.kind + ':' + cid;
+  }
+
+  function isAtomSelected(atom) {
+    var entryId = entryIdForAtom(atom);
+    for (var i = 0; i < veSelection.length; i++) {
+      if (veSelection[i].entryId === entryId) return true;
+    }
+    return false;
+  }
+
+  function applyAtomPaint(atom, mode) {
+    var entryId = entryIdForAtom(atom);
+    var idx = -1;
+    for (var i = 0; i < veSelection.length; i++) {
+      if (veSelection[i].entryId === entryId) { idx = i; break; }
+    }
+    var isSel = idx !== -1;
+    if (mode === 'select' && !isSel) {
+      veSelection.push({
+        kind: atom.kind,
+        entryId: entryId,
+        commentId: atom.el.getAttribute('data-ve-comment-id'),
+        pnum: atom.el.getAttribute('data-ve-pnum'),
+      });
+      atom.el.setAttribute('data-ve-pressed', '1');
+    } else if (mode === 'deselect' && isSel) {
+      veSelection.splice(idx, 1);
+      atom.el.removeAttribute('data-ve-pressed');
+    } else {
+      return;
+    }
+    updateGroupCommentHandles();
+    if (typeof updateSubmitButtonsState === 'function') updateSubmitButtonsState();
+  }
+
+  var atomDragStart = null;
+
+  function setupAtomSelectionEvents() {
+    document.addEventListener('mousedown', function (ev) {
+      if (ev.button !== 0) return;
+      // Don't hijack clicks inside the comment modal or any overlay.
+      if (ev.target.closest && ev.target.closest('[data-ve-overlay], .ve-comment-modal, .ve-comment-handle')) return;
+      var atom = findSelectableAtomFromEvent(ev.target);
+      if (!atom) return;
+      // Don't hijack clicks on form controls / links inside the atom.
+      var inner = ev.target.closest('a, button, input, textarea, select, label');
+      if (inner && atom.el.contains(inner)) return;
+      ev.preventDefault();
+      var startWasSelected = isAtomSelected(atom);
+      atomDragStart = {
+        kind: atom.kind,
+        mode: startWasSelected ? 'deselect' : 'select',
+        painted: {},
+      };
+      var key = entryIdForAtom(atom);
+      applyAtomPaint(atom, atomDragStart.mode);
+      atomDragStart.painted[key] = true;
+    }, true);
+    document.addEventListener('mousemove', function (ev) {
+      if (!atomDragStart) return;
+      if (typeof document.elementFromPoint !== 'function') return;
+      var hover = document.elementFromPoint(ev.clientX, ev.clientY);
+      if (!hover) return;
+      var atom = findSelectableAtomFromEvent(hover);
+      if (!atom || atom.kind !== atomDragStart.kind) return;
+      var key = entryIdForAtom(atom);
+      if (atomDragStart.painted[key]) return;
+      applyAtomPaint(atom, atomDragStart.mode);
+      atomDragStart.painted[key] = true;
+    }, true);
+    document.addEventListener('mouseup', function () {
+      atomDragStart = null;
+    }, true);
   }
 
   function setupGutterEvents() {
@@ -6971,6 +7272,7 @@
     initAllTableHandles();   // Phase 5
     initAllCodeGutters();    // Phase 6
     setupGutterEvents();     // Phase 6 + Phase 7 (touch)
+    setupAtomSelectionEvents(); // v4 universal group-selection (TRDD-3d1570ab R3)
     setupSnippetSelection(); // Phase 4 + Phase 7 (touchend)
     setupMultiClickSelection();
     setupFindingReplyHandlers(); // TRDD-eff1aa87 v1 — interactive reports

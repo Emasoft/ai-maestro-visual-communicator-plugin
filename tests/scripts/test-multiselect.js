@@ -24,7 +24,7 @@
 //   - tests/fixtures/sample-report.html (for the prose depth test)
 
 const FIXTURE = "http://127.0.0.1:8767/multiselect.html";
-const PROSE_FIXTURE = "http://127.0.0.1:8767/sample-report.html";
+const PROSE_FIXTURE = "http://127.0.0.1:8767/paragraph-numbering-depth.html";
 const LAST_SELECT = "/__ve-test-last-select";
 const RESET_SELECT = "/__ve-test-reset-last-select";
 

@@ -67,6 +67,13 @@ class Finding:
     title: str
     body_md: str
     meta: dict[str, str] = field(default_factory=dict)
+    # The "1.2"-style numeric prefix that the markdown source carries.
+    # Per TRDD-3d1570ab R1 the prefix MUST NOT be merged into `title`
+    # (visible HTML stays faithful to the source); it lives here as
+    # hidden internal numbering, surfaced to the runtime via a
+    # data-ve-pnum attribute on the finding's <section>. Empty string
+    # when the heading had no leading number.
+    number_prefix: str = ""
 
 
 @dataclass
@@ -125,17 +132,23 @@ def parse_report(md: str, *, mode: str = "finding") -> Report:
                 findingId=make_id(num),
                 title=title or f"Finding {num}",
                 body_md="",
+                number_prefix=num,
             )
             cur_body = []
             continue
         if m_any:
             flush_current()
-            num = m_any.group("num")
+            num = m_any.group("num") or ""
             title = m_any.group("title").strip()
+            # Faithful render (TRDD-3d1570ab R1): the visible title is
+            # the original markdown text, NOT decorated with the
+            # numeric prefix. The prefix is stored separately and only
+            # surfaced via data-ve-pnum.
             cur = Finding(
                 findingId=make_id(num),
-                title=(f"{num} {title}" if num else title),
+                title=title,
                 body_md="",
+                number_prefix=num,
             )
             cur_body = []
             continue
@@ -231,6 +244,12 @@ def _inline(text: str) -> str:
 
 _idmap: dict[str, dict] = {}
 _idmap_section_id: str = "preamble"
+# Per TRDD-3d1570ab R1: every selectable element (p, li, tr) gets a
+# hidden sequential `data-ve-pnum="N"` attribute that Claude can use
+# to reference the element by index when responding ("see paragraph
+# 47 in section 1.2"). The counter is reset per render via
+# _reset_idmap() and increments monotonically across the document.
+_pnum_counter: int = 0
 
 
 def _normalise_for_hash(text: str) -> str:
@@ -245,9 +264,18 @@ def _comment_id(text: str) -> str:
     return h
 
 
-def _stamp(open_tag: str, kind: str, raw_text: str) -> str:
+def _stamp(open_tag: str, kind: str, raw_text: str, *, with_pnum: bool = False) -> str:
     """Insert data-ve-comment-id="..." into an opening tag string and
-    record the id → text mapping in the global idmap."""
+    record the id → text mapping in the global idmap.
+
+    When `with_pnum=True`, ALSO stamps a sequential `data-ve-pnum="N"`
+    so Claude can reference the element by document-position index
+    (TRDD-3d1570ab R1, hidden internal numbering). Caller passes
+    `with_pnum=True` only on selectable atoms (p / li / tr); it is
+    intentionally OFF for containers (the renderer no longer stamps
+    pre / h*, but if it ever did, those would skip pnum).
+    """
+    global _pnum_counter
     cid = _comment_id(raw_text)
     if not cid:
         return open_tag
@@ -259,9 +287,13 @@ def _stamp(open_tag: str, kind: str, raw_text: str) -> str:
             "sectionId": _idmap_section_id,
             "text": _normalise_for_hash(raw_text),
         }
-    # Insert the attribute right before the closing >.
+    extra = ""
+    if with_pnum:
+        _pnum_counter += 1
+        extra = f' data-ve-pnum="{_pnum_counter}"'
+    # Insert the attribute(s) right before the closing >.
     if open_tag.endswith(">"):
-        return open_tag[:-1] + f' data-ve-comment-id="{cid}">'
+        return open_tag[:-1] + f' data-ve-comment-id="{cid}"{extra}>'
     return open_tag
 
 
@@ -271,9 +303,10 @@ def _set_section(section_id: str) -> None:
 
 
 def _reset_idmap() -> None:
-    global _idmap, _idmap_section_id
+    global _idmap, _idmap_section_id, _pnum_counter
     _idmap = {}
     _idmap_section_id = "preamble"
+    _pnum_counter = 0
 
 
 TABLE_ROW_RE = re.compile(r"^\s*\|(.+)\|\s*$")
@@ -302,7 +335,7 @@ def md_to_html(md: str) -> str:
             joined = " ".join(_inline(line) for line in paragraph).strip()
             raw_join = " ".join(paragraph).strip()
             if joined:
-                out.append(_stamp("<p>", "p", raw_join) + joined + "</p>")
+                out.append(_stamp("<p>", "p", raw_join, with_pnum=True) + joined + "</p>")
             paragraph.clear()
 
     while i < len(lines):
@@ -320,8 +353,13 @@ def md_to_html(md: str) -> str:
             i += 1
             cls = f' class="language-{lang}"' if lang else ""
             raw_code = "\n".join(buf)
+            # Per the user's selection model (TRDD-3d1570ab R3),
+            # <pre> is NOT selectable as a whole — only its
+            # individual code lines are. So we DON'T stamp the
+            # <pre> with data-ve-comment-id; the runtime's gutter
+            # handles per-line selection on its own.
             out.append(
-                _stamp("<pre>", "pre", raw_code)
+                "<pre>"
                 + f"<code{cls}>{html.escape(raw_code)}</code></pre>"
             )
             continue
@@ -330,8 +368,11 @@ def md_to_html(md: str) -> str:
             flush_paragraph()
             level = len(m.group(1))
             heading_text = m.group(2)
+            # Per the user's selection model (TRDD-3d1570ab R3),
+            # headings (chapter/section titles) are NOT selectable.
+            # No data-ve-comment-id stamp.
             out.append(
-                _stamp(f"<h{level}>", f"h{level}", heading_text)
+                f"<h{level}>"
                 + _inline(heading_text)
                 + f"</h{level}>"
             )
@@ -346,7 +387,7 @@ def md_to_html(md: str) -> str:
                 if not mm:
                     break
                 items.append(
-                    _stamp("<li>", "li", mm.group(1))
+                    _stamp("<li>", "li", mm.group(1), with_pnum=True)
                     + _inline(mm.group(1))
                     + "</li>"
                 )
@@ -362,7 +403,7 @@ def md_to_html(md: str) -> str:
                 if not mm:
                     break
                 items.append(
-                    _stamp("<li>", "li", mm.group(2))
+                    _stamp("<li>", "li", mm.group(2), with_pnum=True)
                     + _inline(mm.group(2))
                     + "</li>"
                 )
@@ -403,7 +444,7 @@ def md_to_html(md: str) -> str:
             tbl.append("</tr></thead><tbody>")
             for row in body:
                 row_text = " | ".join(row)
-                tbl.append(_stamp("<tr>", "tr", row_text))
+                tbl.append(_stamp("<tr>", "tr", row_text, with_pnum=True))
                 for cell in row:
                     tbl.append(f"<td>{_inline(cell)}</td>")
                 tbl.append("</tr>")
@@ -490,7 +531,7 @@ PAGE_TEMPLATE = """<!DOCTYPE html>
     each per-finding reply and posts a response inline next to your comment.
   </div>
   {warning_block}
-  <article data-ve-prose>
+  <article data-ve-report>
     {preamble_html}
     {findings_html}
   </article>
@@ -541,12 +582,19 @@ def render_finding_html(f: Finding, prior_rounds: list[dict]) -> str:
         )
 
     data_attrs = [f'data-ve-finding-id="{html.escape(f.findingId)}"']
+    # Internal numeric prefix kept as a hidden data attr — the runtime
+    # and Claude can reference "section 1.2" without the visible
+    # heading carrying the prefix decoration. Per TRDD-3d1570ab R1.
+    if f.number_prefix:
+        data_attrs.append(f'data-ve-pnum="{html.escape(f.number_prefix)}"')
     for k, v in f.meta.items():
         data_attrs.append(f'data-ve-finding-{html.escape(k)}="{html.escape(v)}"')
 
-    # v2: stamp the section header itself + the meta line so users can
-    # comment the heading or the metadata directly.
-    h2_open = _stamp("<h2>", "section-heading", f.title)
+    # Per TRDD-3d1570ab R3: section/chapter titles are NOT selectable.
+    # The h2 renders plain; the runtime's findCommentAnchor() also
+    # filters all H1..H6 out of the hover-pill path as a second
+    # defense, but the renderer-side unstamp keeps the DOM clean.
+    h2_open = "<h2>"
     meta_text = " | ".join(
         [sev] if sev else []
     ) + (
