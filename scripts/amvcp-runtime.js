@@ -2291,6 +2291,16 @@
       // TRDD-eff1aa87: also empty any per-finding reply textareas so
       // the visible inputs match the (now-empty) veSelection state.
       if (typeof clearAllFindingReplyTextareas === 'function') clearAllFindingReplyTextareas();
+      // v4 (TRDD-3d1570ab R3): clear the data-ve-pressed attribute on
+      // every selectable atom (<tr>/<li>/<p>) AND drop any orphan
+      // .ve-group-handle that's still attached to a container.
+      var pressedAtoms = document.querySelectorAll(
+        'tr[data-ve-pressed], li[data-ve-pressed], p[data-ve-pressed]'
+      );
+      for (var pa = 0; pa < pressedAtoms.length; pa++) {
+        pressedAtoms[pa].removeAttribute('data-ve-pressed');
+      }
+      if (typeof updateGroupCommentHandles === 'function') updateGroupCommentHandles();
       // Reset multi-click chain so the next click starts depth=1.
       lastClickChain = null;
       ev.preventDefault();
