@@ -289,16 +289,50 @@ async function testTableRowAnchor(page) {
 }
 
 async function testCodeBlockAnchor(page) {
-  // Comments work on <pre data-ve-comment-id>.
+  // Per the user's selection model, the WHOLE <pre> is NOT
+  // commentable — only individual code lines are. Hovering a <pre>
+  // with data-ve-comment-id must NOT show the comment-pill, because
+  // the runtime's findCommentAnchor() filters PRE/TABLE/UL/OL/H*/
+  // BUTTON/INPUT out of the selectable set.
+  //
+  // setup() runs once per test but the SAME page instance carries
+  // pill state from earlier paragraph/list/row tests. We force the
+  // pill to a known-hidden state first by moving the cursor far from
+  // any commentable element and waiting past the hide-debounce
+  // window (180 ms in the runtime), then hover the pre and assert
+  // the pill DID NOT re-show.
   await setup(page);
-  const t = await hoverThenClickPill(page, 'pre[data-ve-comment-id]');
-  const cid = t && t.cid;
-  await typeIntoModal(page, 'Comment on code block.');
-  await clickModalButton(page, 'ANSWER');
-  await page.waitForTimeout(400);
-  const stored = await page.evaluate(c => JSON.parse(localStorage.getItem('ve-comment-thread:' + c)), cid);
-  const ok = stored && stored.turns[0].text === 'Comment on code block.';
-  record('modal_anchor_code_block', ok ? 'PASS' : 'FAIL', 'comment on <pre> commits + posts', `cid=${cid}`);
+  const box = await page.evaluate(() => {
+    const el = document.querySelector('pre[data-ve-comment-id]');
+    if (!el) return null;
+    el.scrollIntoView({ block: 'center' });
+    const r = el.getBoundingClientRect();
+    return { x: r.left + 16, y: r.top + 16, scrollY: window.scrollY };
+  });
+  if (!box) {
+    record('modal_anchor_code_block', 'FAIL', 'no <pre data-ve-comment-id> in fixture', '');
+    return;
+  }
+  // Park the cursor on empty space (top-left of viewport), then wait
+  // out the hide-debounce so any leftover pill goes opacity:0.
+  await page.mouse.move(2, 2);
+  await page.waitForTimeout(300);
+  // Now hover the pre.
+  await page.mouse.move(box.x, box.y);
+  await page.waitForTimeout(300);
+  const result = await page.evaluate(() => {
+    const p = document.querySelector('.ve-comment-pill');
+    if (!p) return { exists: false };
+    return { exists: true, opacity: getComputedStyle(p).opacity };
+  });
+  // PASS: pill either doesn't exist OR is invisible (opacity 0).
+  const ok = !result.exists || result.opacity === '0';
+  record(
+    'modal_anchor_code_block',
+    ok ? 'PASS' : 'FAIL',
+    'hovering whole <pre> shows NO comment pill (only lines are selectable)',
+    JSON.stringify(result),
+  );
 }
 
 async function testPageScrollsWhileModalOpen(page) {

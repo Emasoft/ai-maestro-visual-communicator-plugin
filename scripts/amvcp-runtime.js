@@ -302,20 +302,54 @@
       ':root[data-ve-theme="light"] h3 {',
       '  color:var(--ve-heading, color-mix(in srgb, var(--ve-accent, #b8861f) 92%, black 8%));',
       '}',
-      // Inverted-blueprint page background — applies on light-themed
-      // pages so the whole document reads as graph-paper. The body-bg
-      // color stays whatever the host page declares (typically a warm
-      // cream). The grid is layered on TOP via a background-image, so
-      // pages that declare their own background-color keep it visible
-      // through the gaps. Pages that don't want the grid can override
-      // with `body { background-image: none; }` in their own CSS.
-      ':root[data-ve-theme="light"] body {',
+      // Page background MUST extend across the full document, not just
+      // the initial viewport. Painting body alone breaks when content
+      // is wider than the viewport (tables, code blocks, diagrams) —
+      // the area past the body's right edge shows the OS native theme
+      // color (often pure black on dark macOS). Paint `html` so the
+      // bg covers the entire document box at all scroll positions.
+      // body inherits its color via transparent so the html bg shows.
+      'html { background-color:var(--bg, var(--ve-blueprint-bg, #faf6ee)); }',
+      // Light-theme grid overlay — inverted-blueprint look on a cream
+      // base. Applied to html so it spans the full document.
+      ':root[data-ve-theme="light"] {',
       '  background-image:',
       '    linear-gradient(to right, color-mix(in srgb, var(--ve-accent, #b8861f) 16%, transparent) 1px, transparent 1px),',
       '    linear-gradient(to bottom, color-mix(in srgb, var(--ve-accent, #b8861f) 16%, transparent) 1px, transparent 1px);',
+      '  background-color:var(--ve-blueprint-bg, #faf6ee);',
       '  background-size:24px 24px;',
-      '  background-attachment:fixed;',
       '}',
+      ':root[data-ve-theme="light"] body {',
+      '  background:transparent !important;',
+      '}',
+      // Dark theme: also propagate the page bg from body to html so
+      // horizontal scrolling never reveals the OS native black.
+      ':root[data-ve-theme="dark"] body { background:transparent !important; }',
+      // ─── No nested scrollbars (~/.claude/rules/no-nested-scrollbars.md) ─
+      // Wide content (tables, code blocks, diagrams, ASCII art, file
+      // trees) must extend the document width — never trapped inside an
+      // inner scrollview. The reader gets the ONE outer scrollbar pair;
+      // inner ones break find-in-page, screen-readers, screenshots, and
+      // the side-by-side comparison reading mode.
+      //
+      // Force `overflow:visible` + `max-width:none` on the offenders.
+      // !important wins over inline styles + 3rd-party stylesheets that
+      // ship with the `overflow-x:auto` "responsive table / code" trick.
+      'pre, table, .ve-content-block,',
+      '[data-ve-block], [data-ve-graph], [data-ve-table-wrapper] {',
+      '  overflow:visible !important;',
+      '  max-width:none !important;',
+      '}',
+      // The classic "table-as-block" responsive trick (`table { display:',
+      // block; overflow-x: auto }`) forces table to be a block scroller.',
+      // Revert to default table layout so the table can extend.',
+      'table { display:table !important; }',
+      // Outer scrollers stay on the document. Horizontal scroll appears
+      // on the root window when content is wider than the viewport.
+      'html, body { overflow-x:auto; }',
+      // Renderer-supplied <main> often has `max-width: 86ch`. Lift the
+      // ceiling so wide content can push the column open.
+      'main, .ve-main { max-width:none !important; }',
       '[data-ve-id] { cursor:pointer; transition:outline-color 120ms ease, box-shadow 120ms ease, filter 120ms ease; }',
       // HTML elements with [data-ve-id]: rectangular outline on hover —
       // matches their bbox geometry (cards, table rows, divs, etc.).
@@ -5761,7 +5795,37 @@
 
   function findCommentAnchor(target) {
     if (!target || !target.closest) return null;
-    return target.closest('[data-ve-comment-id]');
+    var anchor = target.closest('[data-ve-comment-id]');
+    if (!anchor) return null;
+    // Selection-model gate (per the user's spec):
+    //
+    //   Selectable (hover-pill OK):
+    //     paragraphs (<p>), list items (<li>), table rows (<tr>),
+    //     gallery items, individual file/dir nodes, prose snippets,
+    //     code-line spans, diagram parts.
+    //
+    //   NOT selectable as wholes — hover-pill must NOT appear even if
+    //   the renderer stamped a data-ve-comment-id on them:
+    //     tables (<table>) — only their <tr> children are selectable
+    //     lists  (<ul>/<ol>) — only their <li> children are selectable
+    //     code blocks (<pre>) — only their .ve-code-line children
+    //     diagrams (whole .ve-graph / svg) — only their parts
+    //     galleries — only their items
+    //     headings (<h1>..<h6>) — section/chapter titles are not selectable
+    //     buttons / sliders / checkboxes / radio buttons — interactive
+    //       widgets, not selectable
+    //     file/dir trees — only individual entries are selectable.
+    //
+    // The runtime is the right place to enforce this because renderers
+    // upstream may not know about the user's model.
+    var tag = (anchor.tagName || '').toUpperCase();
+    if (tag === 'TABLE' || tag === 'UL' || tag === 'OL' || tag === 'PRE'
+        || tag === 'H1' || tag === 'H2' || tag === 'H3'
+        || tag === 'H4' || tag === 'H5' || tag === 'H6'
+        || tag === 'BUTTON' || tag === 'INPUT' || tag === 'SELECT') {
+      return null;
+    }
+    return anchor;
   }
 
   // ── Hover affordance ────────────────────────────────────────────────
