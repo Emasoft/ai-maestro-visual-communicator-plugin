@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.2.5] — 2026-05-12
+
+### Bug Fixes
+
+- Unify selection on individual codeline entries; full-row block highlight
+- Replace 2-column architecture with CSS-counter ::before
+- Sync typographic props from <pre>; wrap each code line in span
+- Theme-aware seamless table-form selection + dev preview tooling
+
+### Features
+
+- Code-gutter polish + drag-paint + comment handle + frosted page bg
+- Two standalone floating buttons (top-right + bottom-(L|R)) replacing single bar
+- Auto-close pane on selection received + file:// URL fallback
+
 ## [1.2.4] — 2026-05-11
 
 ### Bug Fixes
