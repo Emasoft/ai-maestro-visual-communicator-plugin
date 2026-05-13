@@ -5,7 +5,17 @@ All notable changes to this project will be documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.2.11] — 2026-05-13
+
+### Bug Fixes
+
+- Bulk-default switch + selection-model + renderer fidelity
+
 ## [1.2.10] — 2026-05-12
+
+### Chores
+
+- V1.2.10
 
 ### Features
 
