@@ -1375,6 +1375,15 @@
       // pillset for non-report views can opt out via
       // body[data-ve-keep-finding-decision] { ... }.
       'body[data-ve-report] .ve-decision { display:none; }',
+      // v4: also hide orphan per-finding chrome that the renderer still
+      // emits for backward-compat — the modal-comment flow replaces them.
+      // - `.ve-finding-reply` is the per-finding textarea (replaced by modal)
+      // - `.ve-finding-thread` would only contain empty thread + reply
+      // - `.ve-finding-meta` is an empty <div> with data-ve-comment-id stamp
+      //   that would otherwise show a hover pill on a 0×0 region.
+      'body[data-ve-report] .ve-finding-reply,',
+      'body[data-ve-report] .ve-finding-thread { display:none !important; }',
+      'body[data-ve-report] .ve-finding-meta:empty { display:none !important; }',
       // The mini switch — three single-letter slots (S / A / D) in a
       // compact pill. ~38px wide, ~14px tall — fits at the right edge
       // of any selectable atom without disturbing the row layout.
@@ -1435,6 +1444,62 @@
       '  font-weight:600;',
       '  color:color-mix(in srgb, var(--text, currentColor) 60%, transparent);',
       '}',
+      // ─── Bulk-default switch (in .ve-report-banner) ────────────────────
+      // Lets the user mark every decision-mini in one stroke (Skip /
+      // Approve / Deny). Workflow: pick a default upfront, then flip the
+      // few items that should differ. Click overwrites all current
+      // selections (no merge) — that is the point of "default".
+      '.ve-bulk-default {',
+      '  display:inline-flex; align-items:center; gap:8px; flex-wrap:wrap;',
+      '  margin: 10px 0 0; padding: 6px 10px;',
+      '  background:color-mix(in srgb, var(--ve-accent, currentColor) 4%, transparent);',
+      '  border:1px solid color-mix(in srgb, var(--ve-accent, currentColor) 18%, transparent);',
+      '  border-radius:6px;',
+      '  font: 12px/1.4 inherit;',
+      '}',
+      '.ve-bulk-default-label {',
+      '  font-weight:600;',
+      '  color:color-mix(in srgb, var(--text, currentColor) 75%, transparent);',
+      '  font-size:12px;',
+      '  letter-spacing:0.02em;',
+      '}',
+      '.ve-bulk-default-pill {',
+      '  display:inline-flex; align-items:center;',
+      '  border-radius:5px; padding:2px;',
+      '  background:color-mix(in srgb, var(--ve-control-border, #d6d1c5) 35%, transparent);',
+      '}',
+      '.ve-bulk-default-seg {',
+      '  border:0; outline:0; margin:0;',
+      '  padding:4px 10px;',
+      '  background:transparent;',
+      '  color:color-mix(in srgb, var(--text, currentColor) 65%, transparent);',
+      '  font:600 11px/1 ui-sans-serif,system-ui,sans-serif;',
+      '  letter-spacing:0.04em; text-transform:uppercase;',
+      '  border-radius:3px;',
+      '  cursor:pointer;',
+      '  transition:background 120ms ease, color 120ms ease, transform 120ms ease;',
+      '}',
+      '.ve-bulk-default-seg:hover {',
+      '  background:color-mix(in srgb, var(--text, currentColor) 10%, transparent);',
+      '  color:var(--text, currentColor);',
+      '}',
+      '.ve-bulk-default-approve:hover {',
+      '  background:color-mix(in srgb, var(--ve-decision-approve-bg, #3a6b5c) 22%, transparent);',
+      '  color:var(--text, currentColor);',
+      '}',
+      '.ve-bulk-default-deny:hover {',
+      '  background:color-mix(in srgb, var(--ve-decision-reject-bg, #a84a32) 22%, transparent);',
+      '  color:var(--text, currentColor);',
+      '}',
+      '.ve-bulk-default-seg:active { transform: scale(0.96); }',
+      '.ve-bulk-default-flash {',
+      '  margin-left:4px;',
+      '  font-size:11px; font-weight:500;',
+      '  color:color-mix(in srgb, var(--ve-accent, currentColor) 80%, transparent);',
+      '  opacity:0;',
+      '  transition:opacity 200ms ease;',
+      '}',
+      '.ve-bulk-default-flash[data-show="1"] { opacity:1; }',
       // ─── Two standalone action buttons (top-right + bottom-(left|right)) ──
       // Y-anchored to the PAGE (position:absolute on body, so they live in
       // the document flow and are reachable only by scrolling to the top
@@ -5618,11 +5683,17 @@
       { container: 'table', child: 'tr[data-ve-pressed="1"]', kind: 'row' },
       { container: 'ul',    child: 'li[data-ve-pressed="1"]', kind: 'li' },
       { container: 'ol',    child: 'li[data-ve-pressed="1"]', kind: 'li' },
-      // Paragraph groups: a section / .ve-finding-body with selected
-      // <p data-ve-comment-id> children.
-      { container: 'section, .ve-finding-body',
+      // Paragraph groups: a section / .ve-finding-body / article with
+      // selected <p data-ve-comment-id> children. `article` is needed for
+      // preamble paragraphs that live above the first <section>.
+      { container: 'section, .ve-finding-body, article',
         child: 'p[data-ve-comment-id][data-ve-pressed="1"]',
         kind: 'para' },
+      // Blockquote groups: section/article is the canonical container so
+      // the group ID resolves to the finding-id rather than a nested div.
+      { container: 'section, article',
+        child: 'blockquote[data-ve-comment-id][data-ve-pressed="1"]',
+        kind: 'bq' },
     ];
     for (var s = 0; s < containerSelectors.length; s++) {
       var sel = containerSelectors[s];
@@ -5642,7 +5713,13 @@
           }
         }
         // Reuse handle slot on the container so we update in place.
-        var existing = cont.querySelector(':scope > .ve-group-handle');
+        // CRITICAL: scope by kind so a para-handle isn't mistaken for a
+        // bq-handle (when para and bq selectors share the same article/
+        // section container, the second pass would otherwise clobber the
+        // first pass's handle).
+        var existing = cont.querySelector(
+          ':scope > .ve-group-handle[data-ve-group-kind="' + sel.kind + '"]'
+        );
         if (ownPressed.length === 0) {
           if (existing) existing.remove();
           continue;
@@ -5730,12 +5807,16 @@
     if (tag === 'TR' && el.hasAttribute('data-ve-comment-id')) return 'row';
     if (tag === 'LI' && el.hasAttribute('data-ve-comment-id')) return 'li';
     if (tag === 'P'  && el.hasAttribute('data-ve-comment-id')) return 'para';
+    if (tag === 'BLOCKQUOTE' && el.hasAttribute('data-ve-comment-id')) return 'bq';
     return null;
   }
 
   function findSelectableAtomFromEvent(target) {
     if (!target || !target.closest) return null;
-    var el = target.closest('tr[data-ve-comment-id], li[data-ve-comment-id], p[data-ve-comment-id]');
+    var el = target.closest(
+      'tr[data-ve-comment-id], li[data-ve-comment-id], '
+      + 'p[data-ve-comment-id], blockquote[data-ve-comment-id]'
+    );
     if (!el) return null;
     var kind = isSelectableAtom(el);
     if (!kind) return null;
@@ -7383,6 +7464,83 @@
     if (!report) return;
     document.body.setAttribute('data-ve-report', '');
     injectDecisionMinis();
+    injectBulkDefaultSwitch();
+  }
+
+  // Inject a "Set all decisions to: Skip / Approve / Deny" switch into the
+  // .ve-report-banner. Click overwrites every .ve-decision-mini in one
+  // stroke. Idempotent — no duplicate insertion if already present.
+  function injectBulkDefaultSwitch() {
+    var banner = document.querySelector('.ve-report-banner');
+    if (!banner) return;
+    if (banner.querySelector('.ve-bulk-default')) return;
+
+    var wrap = document.createElement('div');
+    wrap.className = 've-bulk-default';
+
+    var label = document.createElement('span');
+    label.className = 've-bulk-default-label';
+    label.textContent = 'Set all decisions to:';
+
+    var pill = document.createElement('span');
+    pill.className = 've-bulk-default-pill';
+    pill.setAttribute('role', 'group');
+    pill.setAttribute('aria-label', 'Bulk-default for every decision in this report');
+
+    var flash = document.createElement('span');
+    flash.className = 've-bulk-default-flash';
+    flash.setAttribute('aria-live', 'polite');
+
+    var specs = [
+      { value: 'skip',    text: 'Skip',    cls: 've-bulk-default-skip' },
+      { value: 'approve', text: 'Approve', cls: 've-bulk-default-approve' },
+      { value: 'deny',    text: 'Deny',    cls: 've-bulk-default-deny' },
+    ];
+    for (var i = 0; i < specs.length; i++) {
+      (function (spec) {
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 've-bulk-default-seg ' + spec.cls;
+        btn.textContent = spec.text;
+        btn.title = 'Mark every item as ' + spec.text + ' (replaces current selections)';
+        btn.setAttribute('data-bulk-default', spec.value);
+        btn.addEventListener('click', function (ev) {
+          ev.preventDefault();
+          ev.stopPropagation();
+          var n = applyBulkDefault(spec.value);
+          flash.textContent = n + ' item' + (n === 1 ? '' : 's') + ' set to ' + spec.text + '.';
+          flash.setAttribute('data-show', '1');
+          setTimeout(function () { flash.removeAttribute('data-show'); }, 1800);
+        });
+        pill.appendChild(btn);
+      })(specs[i]);
+    }
+
+    wrap.appendChild(label);
+    wrap.appendChild(pill);
+    wrap.appendChild(flash);
+    banner.appendChild(wrap);
+  }
+
+  // Walk every .ve-decision-mini, set aria-checked according to `value`,
+  // and rewrite localStorage. Returns the number of widgets affected.
+  function applyBulkDefault(value) {
+    var pills = document.querySelectorAll('.ve-decision-mini');
+    var map = {};
+    for (var i = 0; i < pills.length; i++) {
+      var pill = pills[i];
+      var key = pill.getAttribute('data-ve-decision-key');
+      var segs = pill.querySelectorAll('.ve-decision-mini-seg');
+      for (var s = 0; s < segs.length; s++) {
+        segs[s].setAttribute(
+          'aria-checked',
+          segs[s].getAttribute('data-decision') === value ? 'true' : 'false'
+        );
+      }
+      if (value !== 'skip' && key) map[key] = value;
+    }
+    saveMiniDecisions(map);
+    return pills.length;
   }
 
   // localStorage key for per-element decision state.
@@ -7401,8 +7559,12 @@
   }
 
   function injectDecisionMinis() {
+    // Selectable atoms per R3 + the universal model: prose paragraphs,
+    // list items, table rows, and blockquotes (styled prose). Containers
+    // (table, ul/ol, pre, headings) deliberately excluded.
     var atoms = document.querySelectorAll(
-      'p[data-ve-comment-id], li[data-ve-comment-id], tr[data-ve-comment-id]'
+      'p[data-ve-comment-id], li[data-ve-comment-id], '
+      + 'tr[data-ve-comment-id], blockquote[data-ve-comment-id]'
     );
     var savedDecisions = loadMiniDecisions();
     // For tables we add a header column too — track which tables we've

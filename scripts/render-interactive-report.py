@@ -212,6 +212,10 @@ HEADING_RE = re.compile(r"^(#{1,6})\s+(.+?)\s*$")
 UL_RE = re.compile(r"^\s*[-*+]\s+(.*)$")
 OL_RE = re.compile(r"^\s*(\d+)\.\s+(.*)$")
 BLOCKQUOTE_RE = re.compile(r"^>\s?(.*)$")
+# Markdown horizontal rule: at least 3 of -, *, or _ on a line by themselves
+# (allowing spaces between). Must NOT match a setext heading underline (that
+# only fires when preceded by a paragraph line, which we don't support).
+HR_RE = re.compile(r"^\s*(?:-\s*){3,}$|^\s*(?:\*\s*){3,}$|^\s*(?:_\s*){3,}$")
 LINK_RE = re.compile(r"\[([^\]]+)\]\(([^)]+)\)")
 BOLD_RE = re.compile(r"\*\*([^*]+)\*\*")
 ITALIC_RE = re.compile(r"(?<!\*)\*([^*]+)\*(?!\*)")
@@ -340,6 +344,13 @@ def md_to_html(md: str) -> str:
 
     while i < len(lines):
         line = lines[i]
+        # Horizontal rule (---, ***, ___) — emit <hr>, never a paragraph.
+        # Per R3, <hr> is structural chrome, not selectable.
+        if HR_RE.match(line):
+            flush_paragraph()
+            out.append("<hr>")
+            i += 1
+            continue
         # Fenced code
         m = CODE_FENCE_RE.match(line)
         if m:
@@ -386,12 +397,28 @@ def md_to_html(md: str) -> str:
                 mm = UL_RE.match(lines[i])
                 if not mm:
                     break
+                # Absorb indented continuation lines (markdown convention:
+                # subsequent lines indented by ≥2 spaces belong to the
+                # same list item). Stop at: a new bullet at any indent,
+                # a blank line, or any non-indented content.
+                item_lines = [mm.group(1)]
+                i += 1
+                while i < len(lines):
+                    nxt = lines[i]
+                    if not nxt.strip():
+                        break
+                    if UL_RE.match(nxt) or OL_RE.match(nxt):
+                        break
+                    if not nxt.startswith(("  ", "\t")):
+                        break
+                    item_lines.append(nxt.strip())
+                    i += 1
+                joined = " ".join(item_lines)
                 items.append(
-                    _stamp("<li>", "li", mm.group(1), with_pnum=True)
-                    + _inline(mm.group(1))
+                    _stamp("<li>", "li", joined, with_pnum=True)
+                    + _inline(joined)
                     + "</li>"
                 )
-                i += 1
             out.append("<ul>" + "".join(items) + "</ul>")
             continue
         m = OL_RE.match(line)
@@ -402,12 +429,24 @@ def md_to_html(md: str) -> str:
                 mm = OL_RE.match(lines[i])
                 if not mm:
                     break
+                item_lines = [mm.group(2)]
+                i += 1
+                while i < len(lines):
+                    nxt = lines[i]
+                    if not nxt.strip():
+                        break
+                    if UL_RE.match(nxt) or OL_RE.match(nxt):
+                        break
+                    if not nxt.startswith(("  ", "\t")):
+                        break
+                    item_lines.append(nxt.strip())
+                    i += 1
+                joined = " ".join(item_lines)
                 items.append(
-                    _stamp("<li>", "li", mm.group(2), with_pnum=True)
-                    + _inline(mm.group(2))
+                    _stamp("<li>", "li", joined, with_pnum=True)
+                    + _inline(joined)
                     + "</li>"
                 )
-                i += 1
             out.append("<ol>" + "".join(items) + "</ol>")
             continue
         m = BLOCKQUOTE_RE.match(line)
@@ -423,7 +462,13 @@ def md_to_html(md: str) -> str:
                 i += 1
             inner = "<br>".join(_inline(b) for b in buf2)
             raw_bq = " ".join(buf2)
-            out.append(_stamp("<blockquote>", "blockquote", raw_bq) + inner + "</blockquote>")
+            # Blockquote is a selectable atom (styled prose). Stamp with
+            # both data-ve-comment-id and a hidden data-ve-pnum so the
+            # runtime can attach a decision-mini consistent with <p>/<li>.
+            out.append(
+                _stamp("<blockquote>", "blockquote", raw_bq, with_pnum=True)
+                + inner + "</blockquote>"
+            )
             continue
         # Pipe table — header row, separator row, body rows.
         m = TABLE_ROW_RE.match(line)

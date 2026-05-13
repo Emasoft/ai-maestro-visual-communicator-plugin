@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AMAMA Phase-1 Workflow — Code-Only Review</title>
+<style>
+  :root {
+    --bg:#faf6ee; --text:#1f1a14;
+    --gold:#b8861f;
+    --ve-accent: var(--gold);
+    --ve-sel-text: #14110b;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#14110b; --text:#ede5dd; --gold:#e0bf5b; --ve-sel-text:#14110b; }
+  }
+  body {
+    margin:0; padding:32px 24px; background:var(--bg); color:var(--text);
+    font:17px/1.6 ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif;
+  }
+  main { max-width: 86ch; margin: 0 auto; }
+  h1 { font-style: italic; font-weight: 500; margin: 0 0 8px; }
+  h2 { margin-top: 0; }
+  pre {
+    background: rgba(0,0,0,0.05);
+    border: 1px solid rgba(0,0,0,0.10);
+    border-radius: 6px;
+    padding: 12px 14px;
+    font: 13px/1.55 ui-monospace,Menlo,Consolas,monospace;
+    overflow-x: auto;
+  }
+  @media (prefers-color-scheme: dark) {
+    pre { background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.10); }
+  }
+  code { font-family: ui-monospace, Menlo, Consolas, monospace; }
+  blockquote {
+    margin: 12px 0; padding: 8px 14px;
+    border-left: 3px solid color-mix(in srgb, var(--gold) 60%, transparent);
+    background: color-mix(in srgb, var(--gold) 6%, transparent);
+    border-radius: 0 6px 6px 0;
+  }
+  .ve-report-banner {
+    margin: 0 0 24px; padding: 14px 18px;
+    background: color-mix(in srgb, var(--gold) 10%, transparent);
+    border: 1px solid color-mix(in srgb, var(--gold) 30%, transparent);
+    border-radius: 8px;
+    font: 14px/1.5 inherit;
+  }
+  .ve-report-warning {
+    margin: 6px 0 0; padding: 8px 12px;
+    background: color-mix(in srgb, #c0392b 8%, transparent);
+    border-left: 3px solid #c0392b;
+    border-radius: 0 4px 4px 0;
+    font: 13px/1.5 ui-monospace, Menlo, monospace;
+  }
+</style>
+</head>
+<body>
+<main>
+  <div class="ve-report-banner">
+    <strong>Interactive review.</strong> Read each finding below. Type a reply
+    in any thread and click <strong>Submit</strong> when done. Claude reads
+    each per-finding reply and posts a response inline next to your comment.
+  </div>
+  
+  <article data-ve-report>
+    <h1>AMAMA Phase-1 Workflow — Code-Only Review</h1>
+<p data-ve-comment-id="88833416" data-ve-pnum="160"><strong>Reviewed at:</strong> 2026-05-06 11:53 +0200 <strong>Reviewer:</strong> Claude (orchestrator) <strong>Scope:</strong> Static reading of phase-1 implementation shipped in v2.9.0 (<code>af5a1b0</code>). No runtime testing performed — empirical confirmation gated by AID-auth strictness (this Claude instance is not a registered AI Maestro agent).</p>
+<p data-ve-comment-id="76ed2311" data-ve-pnum="161"><strong>Files reviewed</strong></p>
+<table><thead><tr><th>Component</th><th>File</th></tr></thead><tbody><tr data-ve-comment-id="fcec1748" data-ve-pnum="162"><td>WRITE-side hook script</td><td><code>scripts/amama_user_prompt_submit.py</code></td></tr><tr data-ve-comment-id="10134c7e" data-ve-pnum="163"><td>Hook registration</td><td><code>hooks/hooks.json</code></td></tr><tr data-ve-comment-id="f8c8fe9f" data-ve-pnum="164"><td>READ-side skill</td><td><code>skills/amama-presence-tracker/SKILL.md</code></td></tr><tr data-ve-comment-id="ce1b152c" data-ve-pnum="165"><td>Threshold reference</td><td><code>skills/amama-presence-tracker/references/state-thresholds.md</code></td></tr><tr data-ve-comment-id="657b1be4" data-ve-pnum="166"><td>Decision skill</td><td><code>skills/amama-autonomous-fallback/SKILL.md</code></td></tr><tr data-ve-comment-id="c1eb38e3" data-ve-pnum="167"><td>Reversibility matrix</td><td><code>skills/amama-autonomous-fallback/references/reversibility-matrix.md</code></td></tr><tr data-ve-comment-id="d321398b" data-ve-pnum="168"><td>Decision flow</td><td><code>skills/amama-autonomous-fallback/references/decision-flow.md</code></td></tr><tr data-ve-comment-id="f691dfd4" data-ve-pnum="169"><td>Persona</td><td><code>agents/ai-maestro-assistant-manager-agent-main-agent.md</code></td></tr><tr data-ve-comment-id="e5a75f6e" data-ve-pnum="170"><td>Server contract</td><td><code>design/handoffs/aimaestro-server-presence-api.md</code></td></tr><tr data-ve-comment-id="2f196b18" data-ve-pnum="171"><td>Hard-floor source</td><td><code>skills/amama-amcos-coordination/references/delegation-rules.md</code></td></tr></tbody></table>
+<hr>
+    <section data-ve-finding-id="finding-1">
+  <h2>0. Verdict at a glance</h2>
+  <div class="ve-finding-meta" data-ve-comment-id="03f956d9"></div>
+  <fieldset class="ve-decision" data-anchor-id="ve-finding-1"
+            role="radiogroup" aria-label="Decision for finding-1">
+    <legend class="ve-sr-only">Decision for finding-1</legend>
+    <input type="checkbox" class="ve-sr-only"
+           data-decision="approve" data-anchor-id="ve-finding-1"
+           tabindex="-1" aria-hidden="true">
+    <input type="checkbox" class="ve-sr-only"
+           data-decision="reject" data-anchor-id="ve-finding-1"
+           tabindex="-1" aria-hidden="true">
+    <button type="button" class="ve-segment ve-segment-skip"
+            data-decision="skip" role="radio" aria-checked="true"
+            tabindex="0">Skip</button>
+    <button type="button" class="ve-segment ve-segment-approve"
+            data-decision="approve" role="radio" aria-checked="false"
+            tabindex="-1">Approve</button>
+    <button type="button" class="ve-segment ve-segment-reject"
+            data-decision="reject" role="radio" aria-checked="false"
+            tabindex="-1">Reject</button>
+  </fieldset>
+  <div class="ve-finding-body"><table><thead><tr><th>Severity</th><th>Count</th><th>Headline</th></tr></thead><tbody><tr data-ve-comment-id="0add8d02" data-ve-pnum="1"><td><strong>CRITICAL</strong></td><td>1</td><td>Cron-injected prompts almost-certainly fire <code>UserPromptSubmit</code>, so the WRITE hook resets <code>last_user_input_epoch</code> every 5 min. The idle clock never crosses 30 min, and presence-state never leaves <code>active</code>. Phase-1 fallback path becomes unreachable in production.</td></tr><tr data-ve-comment-id="66164b91" data-ve-pnum="2"><td><strong>HIGH</strong></td><td>3</td><td>(a) Documentation in both autonomous-fallback skill files still asserts &quot;presence is <code>unknown</code> until phase 3, so step 4 always escalates&quot; — that statement is now FALSE (server-API integration collapsed phase 3 into phase 1). (b) Presence-tracker SKILL.md doesn&#x27;t specify a curl <code>--max-time</code> — a hung server will hang every approval decision indefinitely. (c) Catastrophic Python exceptions in the WRITE hook can return a non-zero exit code, which by Claude Code semantics may BLOCK the user&#x27;s prompt.</td></tr><tr data-ve-comment-id="06e3268f" data-ve-pnum="3"><td><strong>MEDIUM</strong></td><td>4</td><td>Override-file malformed-YAML behaviour unspecified; &quot;last recorded state&quot; lookup mechanism for transition-log unspecified; presence-tracker called twice per decision (persona + skill); compaction-guard relies on model behavioural judgment instead of a deterministic marker.</td></tr><tr data-ve-comment-id="bcddfbb4" data-ve-pnum="4"><td><strong>LOW / NIT</strong></td><td>6</td><td>(See §6.)</td></tr><tr data-ve-comment-id="25900108" data-ve-pnum="5"><td><strong>STRENGTHS</strong></td><td>—</td><td>Server-clock anchoring, R6 v3 enforcement at composition time, snapshot-rule on matrix read, fail-soft hook design, hard-floor as a separate gate before the matrix.</td></tr></tbody></table>
+<p data-ve-comment-id="8bb04fcf" data-ve-pnum="6">The CRITICAL finding is the only one that changes whether phase-1 actually <em>does</em> anything in production. The HIGH-(a) finding is documentation drift but it is the kind of drift that misleads future readers (and the model itself) about what the gate currently does. Everything else is hardening.</p>
+<hr></div>
+  <div class="ve-finding-thread">
+    
+    <textarea class="ve-finding-reply" data-ve-finding-reply
+              data-ve-finding-id="finding-1"
+              placeholder="Reply to this finding…" rows="3"></textarea>
+  </div>
+</section>
+
+<section data-ve-finding-id="finding-2">
+  <h2>1. WRITE side — `scripts/amama_user_prompt_submit.py` + `hooks/hooks.json`</h2>
+  <div class="ve-finding-meta" data-ve-comment-id="a51e45eb"></div>
+  <fieldset class="ve-decision" data-anchor-id="ve-finding-2"
+            role="radiogroup" aria-label="Decision for finding-2">
+    <legend class="ve-sr-only">Decision for finding-2</legend>
+    <input type="checkbox" class="ve-sr-only"
+           data-decision="approve" data-anchor-id="ve-finding-2"
+           tabindex="-1" aria-hidden="true">
+    <input type="checkbox" class="ve-sr-only"
+           data-decision="reject" data-anchor-id="ve-finding-2"
+           tabindex="-1" aria-hidden="true">
+    <button type="button" class="ve-segment ve-segment-skip"
+            data-decision="skip" role="radio" aria-checked="true"
+            tabindex="0">Skip</button>
+    <button type="button" class="ve-segment ve-segment-approve"
+            data-decision="approve" role="radio" aria-checked="false"
+            tabindex="-1">Approve</button>
+    <button type="button" class="ve-segment ve-segment-reject"
+            data-decision="reject" role="radio" aria-checked="false"
+            tabindex="-1">Reject</button>
+  </fieldset>
+  <div class="ve-finding-body"><p data-ve-comment-id="ee766d36" data-ve-pnum="7"><strong>Purpose.</strong> On every <code>UserPromptSubmit</code>, fire-and-forget POST to <code>/api/sessions/me/user-input</code> so the AI Maestro server can stamp <code>last_user_input_epoch = server_clock_now</code> for this AID owner.</p>
+<h3>1.1 CRITICAL — Cron-injected prompts treated as user input</h3>
+<p data-ve-comment-id="94419b30" data-ve-pnum="8"><strong>File:</strong> <code>scripts/amama_user_prompt_submit.py:34-49</code> <strong>Hook:</strong> <code>hooks/hooks.json:17-28</code> (<code>UserPromptSubmit</code>)</p>
+<p data-ve-comment-id="6b8df731" data-ve-pnum="9">The script unconditionally drains stdin and POSTs:</p>
+<pre><code class="language-python">def _entry() -&gt; None:
+    try:
+        sys.stdin.read()           # drained, never inspected
+    except OSError:
+        pass
+
+    api_base = os.environ.get(&quot;AIMAESTRO_API&quot;, &quot;http://localhost:23000&quot;)
+    aid_auth = os.environ.get(&quot;AID_AUTH&quot;, &quot;&quot;)
+
+    if not aid_auth:
+        return
+    ...
+    subprocess.run([... POST ...])</code></pre>
+<p data-ve-comment-id="06b8cc7a" data-ve-pnum="10"><code>UserPromptSubmit</code> fires on every prompt the REPL receives, including <code>CronCreate</code>-injected prompts (the janitor heartbeat, <code>[janitor-renew]</code>, the <code>/janitor-arm</code> and <code>/amama-*</code> slash commands the user types, and any other system-injected turn). The <code>ai-maestro-janitor</code> plugin is currently armed at <code><em>/5 </em> <em> </em> *</code> (<code>heartbeat 0067b3ae</code>, durable, recurring), so the script will POST every 5 minutes regardless of whether the human is at the keyboard.</p>
+<p data-ve-comment-id="f8d4bdd7" data-ve-pnum="11"><strong>Consequence.</strong> <code>server_now_epoch − last_user_input_epoch</code> never exceeds ~5 minutes for any AMAMA session that has the janitor armed. The state classifier in <code>references/state-thresholds.md</code> therefore returns <strong><code>active</code> forever</strong>, and the persona&#x27;s &quot;When state ≠ active&quot; decision tree never enters its non-trivial branches. Phase-1&#x27;s fallback machinery is wired but unreachable.</p>
+<p data-ve-comment-id="1e54a340" data-ve-pnum="12">This is exactly the failure mode that the server-clock anchoring fix (B8 / G6) was supposed to make irrelevant — but the input layer is poisoned before the server clock ever gets a chance to disagree.</p>
+<p data-ve-comment-id="680fbb0b" data-ve-pnum="13"><strong>Empirical caveat.</strong> I cannot confirm via reading alone that cron-injected prompts trigger <code>UserPromptSubmit</code> in the running Claude Code build. Two pieces of indirect evidence make it the strongly likely case:</p>
+<ul><li data-ve-comment-id="9249153e" data-ve-pnum="14">The plugin&#x27;s <code>dispatch.sh</code> is described as &quot;each cron fire is a fresh user turn&quot; — a &quot;fresh user turn&quot; is the exact event class <code>UserPromptSubmit</code> listens for.</li><li data-ve-comment-id="8e888f19" data-ve-pnum="15">This conversation has been receiving <code>[janitor-heartbeat]</code> messages as user-message turns; if they ride the same channel that hooks tap, the hook fires.</li></ul>
+<p data-ve-comment-id="4b27f5aa" data-ve-pnum="16"><strong>Suggested fix.</strong> Read the stdin payload (which is JSON for hook events), parse <code>prompt</code>, and short-circuit if the prompt starts with one of the known system-prefixes:</p>
+<pre><code class="language-python">import json
+raw = sys.stdin.read() or &quot;&quot;
+try:
+    payload = json.loads(raw)
+    prompt = (payload.get(&quot;prompt&quot;) or &quot;&quot;).lstrip()
+except (ValueError, AttributeError):
+    prompt = &quot;&quot;
+
+# System-injected turns must NOT count as user input.
+SYSTEM_PREFIXES = (&quot;[janitor-heartbeat]&quot;, &quot;[janitor-renew]&quot;,
+                   &quot;[janitor-resume]&quot;, &quot;[janitor-&quot;)
+if any(prompt.startswith(p) for p in SYSTEM_PREFIXES):
+    return</code></pre>
+<p data-ve-comment-id="06f0e426" data-ve-pnum="17">The exact prefix list belongs in a constant at the top of the file with a short comment pointing at the upstream source (the janitor plugin&#x27;s heartbeat skill defines them). Slash-command turns (<code>/janitor-arm</code>, <code>/amama-...</code>) are a judgment call — they are clearly USER actions, but they are not the human &quot;leaning on the keyboard&quot; signal the matrix wants to detect. Probably correct to count them.</p>
+<p data-ve-comment-id="6b260c32" data-ve-pnum="18"><strong>Verification recipe (once empirical access is restored).</strong></p>
+<ol><li data-ve-comment-id="dfc13b4f" data-ve-pnum="19">Arm janitor at 5-min interval, leave the session idle 90 minutes, query <code>GET /api/users/me/presence</code>. If <code>last_user_input_epoch</code> is within the last 5 minutes, the bug is real.</li><li data-ve-comment-id="98e051c3" data-ve-pnum="20">After applying the fix, repeat. <code>last_user_input_epoch</code> should match the timestamp of the LAST genuine user prompt.</li></ol>
+<h3>1.2 HIGH — Catastrophic exceptions can block prompt submission</h3>
+<p data-ve-comment-id="b575a927" data-ve-pnum="21"><strong>File:</strong> <code>scripts/amama_user_prompt_submit.py:38-73</code></p>
+<p data-ve-comment-id="8f576262" data-ve-pnum="22">The narrow <code>except</code> catches <code>subprocess.TimeoutExpired</code>, <code>subprocess.SubprocessError</code>, <code>FileNotFoundError</code>, <code>OSError</code>. Anything else (<code>MemoryError</code>, <code>KeyboardInterrupt</code>, a malformed <code>AIMAESTRO_API</code> that breaks <code>rstrip</code> — unlikely but possible if the env var is set to a non-string somehow, an import-time failure if <code>subprocess</code> is shadowed, …) propagates out of <code>_entry()</code>, bubbles to the script&#x27;s top level, and exits with a non-zero return code.</p>
+<p data-ve-comment-id="b64c04c1" data-ve-pnum="23"><code>UserPromptSubmit</code> is one of the hook events for which a non-zero exit can be interpreted by Claude Code as <strong>&quot;abort this prompt&quot;</strong>. The script&#x27;s docstring claims fail-soft, but the implementation only fail-softs the predicted error classes. This contradicts the comment at line 75: *&quot;Always exit 0 — never block prompt submission on a presence-write failure.&quot;*</p>
+<p data-ve-comment-id="bfb21311" data-ve-pnum="24"><strong>Suggested fix.</strong> Wrap the entire <code>__main__</code> block in `try / except BaseException<code> and force </code>sys.exit(0)`:</p>
+<pre><code class="language-python">if __name__ == &quot;__main__&quot;:
+    try:
+        _entry()
+    except BaseException:
+        # Fail-soft is absolute — even MemoryError must not block input.
+        pass
+    sys.exit(0)</code></pre>
+<p data-ve-comment-id="ae9e23be" data-ve-pnum="25"><code>BaseException</code> rather than <code>Exception</code> because the docstring promises ZERO blocking, and that includes <code>KeyboardInterrupt</code> mid-curl (unrealistic but cheap to defend against).</p>
+<h3>1.3 LOW — <code>Content-Type</code> header omitted</h3>
+<p data-ve-comment-id="bfde49c2" data-ve-pnum="26"><strong>File:</strong> <code>scripts/amama_user_prompt_submit.py:60-65</code></p>
+<p data-ve-comment-id="9b8209d3" data-ve-pnum="27">The POST sets <code>Content-Length: 0</code> but no <code>Content-Type</code>. Most servers tolerate this for empty bodies, but strict body-parsers (e.g. Express with <code>body-parser.json({strict: true})</code>) sometimes return 415 instead of treating the body as empty. The server contract in <code>design/handoffs/aimaestro-server-presence-api.md:8-15</code> says the body is empty, so this is server-team responsibility — but a defensive <code>-H &quot;Content-Type: application/json&quot;</code> is a one-line insurance policy.</p>
+<h3>1.4 NIT — No diagnostic channel</h3>
+<p data-ve-comment-id="808dad67" data-ve-pnum="28"><code>capture_output=True</code> discards stderr. When debugging &quot;why did the presence read say <code>unknown</code>&quot; the answer often lives in curl&#x27;s stderr (<code>Could not resolve host</code>, <code>Connection refused</code>, <code>401 Unauthorized</code>). A best-effort append to <code>~/.aimaestro/amama-presence-write.log</code> with exit-code + first 200 chars of stderr would pay for itself the first time something goes wrong. Optional.</p>
+<h3>1.5 NIT — Coverage gap: only AMAMA&#x27;s session writes</h3>
+<p data-ve-comment-id="1d4a3d44" data-ve-pnum="29">Already flagged in the v2.9.0 ship summary. Documented here for completeness: a user who replies to a notification surfaced by a programmer/COS/MAINTAINER session does not update <code>last_user_input_epoch</code>, because those sessions don&#x27;t ship the <code>amama_user_prompt_submit.py</code> hook. The matrix may classify the user as <code>away</code> while they are typing into a non-AMAMA window. R6 v3 makes this less common in practice (MANAGER is sole user interface), but the <code>1</code>-edge reply-only paths still let other agents receive user input. Spread the WRITE hook (or a slimmed-down variant) to the COS / AUTONOMOUS / MAINTAINER / programmer / integrator role plugins.</p>
+<hr></div>
+  <div class="ve-finding-thread">
+    
+    <textarea class="ve-finding-reply" data-ve-finding-reply
+              data-ve-finding-id="finding-2"
+              placeholder="Reply to this finding…" rows="3"></textarea>
+  </div>
+</section>
+
+<section data-ve-finding-id="finding-3">
+  <h2>2. READ side — `skills/amama-presence-tracker/SKILL.md`</h2>
+  <div class="ve-finding-meta" data-ve-comment-id="87ff0322"></div>
+  <fieldset class="ve-decision" data-anchor-id="ve-finding-3"
+            role="radiogroup" aria-label="Decision for finding-3">
+    <legend class="ve-sr-only">Decision for finding-3</legend>
+    <input type="checkbox" class="ve-sr-only"
+           data-decision="approve" data-anchor-id="ve-finding-3"
+           tabindex="-1" aria-hidden="true">
+    <input type="checkbox" class="ve-sr-only"
+           data-decision="reject" data-anchor-id="ve-finding-3"
+           tabindex="-1" aria-hidden="true">
+    <button type="button" class="ve-segment ve-segment-skip"
+            data-decision="skip" role="radio" aria-checked="true"
+            tabindex="0">Skip</button>
+    <button type="button" class="ve-segment ve-segment-approve"
+            data-decision="approve" role="radio" aria-checked="false"
+            tabindex="-1">Approve</button>
+    <button type="button" class="ve-segment ve-segment-reject"
+            data-decision="reject" role="radio" aria-checked="false"
+            tabindex="-1">Reject</button>
+  </fieldset>
+  <div class="ve-finding-body"><h3>2.1 HIGH — No curl timeout specified</h3>
+<p data-ve-comment-id="366a1100" data-ve-pnum="30"><strong>File:</strong> <code>skills/amama-presence-tracker/SKILL.md:30</code></p>
+<blockquote data-ve-comment-id="d76b9e3e" data-ve-pnum="31"><code>GET /api/users/me/presence</code> with <code>Authorization: Bearer $AID_AUTH</code>.<br>If HTTP error or transport failure, return `(&quot;unknown&quot;, now,<br>&quot;presence-api-unreachable&quot;)`.</blockquote>
+<p data-ve-comment-id="7cfaa98d" data-ve-pnum="32">The skill instruction does NOT specify how the model issues this GET. The natural implementation is `curl -fsS -H &quot;Authorization: Bearer $AID_AUTH&quot; $URL<code>. Without </code>--max-time`, curl uses its default connect-timeout (~120s) and no read-timeout. A hung server (or a slow network) will block the entire approval-decision turn.</p>
+<p data-ve-comment-id="30c53e16" data-ve-pnum="33">The WRITE hook explicitly uses <code>--max-time 2</code> (<code>amama_user_prompt_submit.py:64</code>). The READ skill should match. Recommend updating step 3 to read:</p>
+<blockquote data-ve-comment-id="e8cd2f13" data-ve-pnum="34">3. <strong>Presence read.</strong> <code>GET /api/users/me/presence</code> with<br><code>Authorization: Bearer $AID_AUTH</code> **and a 2-second timeout<br>(<code>curl --max-time 2</code>)**. If HTTP error, transport failure, or<br>timeout, return <code>(&quot;unknown&quot;, now, &quot;presence-api-unreachable&quot;)</code>.</blockquote>
+<p data-ve-comment-id="c1f4caf0" data-ve-pnum="35">This is the kind of detail the model will get right ~80% of the time without the explicit instruction; making it explicit closes that gap.</p>
+<h3>2.2 MEDIUM — Override-file malformed-YAML fallback unspecified</h3>
+<p data-ve-comment-id="a02a0b30" data-ve-pnum="36"><strong>File:</strong> <code>skills/amama-presence-tracker/SKILL.md:27</code> (step 2) <strong>Reference:</strong> <code>references/state-thresholds.md:32-41</code></p>
+<p data-ve-comment-id="b9015a08" data-ve-pnum="37">Step 2 says &quot;If override carries a non-expired override, return …&quot; — but does not specify what happens when the file exists but is malformed (corrupt YAML, missing <code>state:</code> key, missing <code>expires_at:</code>, <code>expires_at</code> in the past in a different timezone format than expected, etc.).</p>
+<p data-ve-comment-id="2ede976c" data-ve-pnum="38">Phase-1 must fail-soft to &quot;no override → continue to step 3&quot;. State the rule explicitly. Recommended additions:</p>
+<ul><li data-ve-comment-id="5462f207" data-ve-pnum="39">Parse error → treat as &quot;no override&quot; (and stderr-warn).</li><li data-ve-comment-id="8d3b5634" data-ve-pnum="40">Missing <code>expires_at</code> → treat as &quot;no override&quot; (defensive default; alternative is &quot;permanent override&quot; but that&#x27;s a footgun).</li><li data-ve-comment-id="a8a1d69d" data-ve-pnum="41"><code>expires_at</code> in the past → treat as &quot;no override&quot;.</li><li data-ve-comment-id="af75d59e" data-ve-pnum="42"><code>state</code> not in <code>{active, monitoring, away, dnd, unknown}</code> → treat as &quot;no override&quot;.</li></ul>
+<p data-ve-comment-id="e1470f15" data-ve-pnum="43">The intent is that a hand-edited/garbage override file can never make AMAMA refuse to escalate when it should escalate, and can never lock AMAMA into auto-approval mode permanently.</p>
+<h3>2.3 MEDIUM — &quot;Last recorded state&quot; lookup is unspecified</h3>
+<p data-ve-comment-id="4f4d69be" data-ve-pnum="44"><strong>File:</strong> <code>skills/amama-presence-tracker/SKILL.md:33</code> (step 7)</p>
+<blockquote data-ve-comment-id="39ee6123" data-ve-pnum="45">7. <strong>Audit log on transition.</strong> Append one row when computed state<br>differs from last recorded.</blockquote>
+<p data-ve-comment-id="1f065be3" data-ve-pnum="46">How does the skill know the &quot;last recorded&quot; state? Three plausible implementations:</p>
+<ol><li data-ve-comment-id="0ba9186a" data-ve-pnum="47">Read the last data row of <code>docs_dev/sessions/availability-log.md</code> and parse the <code>state</code> column. Requires a stable row format; the format is not pinned in the SKILL.</li><li data-ve-comment-id="6fd79233" data-ve-pnum="48">Keep an in-process variable that survives across calls within one Claude session. Loses the value across sessions and across compactions.</li><li data-ve-comment-id="874dcc67" data-ve-pnum="49">Cache in CozoDB. Phase-1 spec defers CozoDB integration (TRDD §3.1 &quot;phase 2 will add the formal <code>availability_transitions</code> schema&quot;).</li></ol>
+<p data-ve-comment-id="76ca97e2" data-ve-pnum="50">Phase-1 lands with option 1 implicitly. The SKILL should pin the row format (e.g. a markdown table with `| timestamp | state | source | since |` columns) so the parse is reliable across sessions. Otherwise the model invents a slightly different format every time and &quot;last recorded&quot; becomes brittle.</p>
+<p data-ve-comment-id="9f32817d" data-ve-pnum="51">If the model can&#x27;t determine the last state, the safe default is &quot;log the row anyway, even if it&#x27;s a duplicate&quot; — the audit log is an append-only artefact and a duplicate row is harmless. State this explicitly so the failure mode is &quot;noise&quot; rather than &quot;silent gap&quot;.</p>
+<h3>2.4 MEDIUM — Compaction-guard relies on model judgment, not a marker</h3>
+<p data-ve-comment-id="c40acc4c" data-ve-pnum="52"><strong>File:</strong> <code>skills/amama-presence-tracker/SKILL.md:26</code> (step 1)</p>
+<blockquote data-ve-comment-id="b9a3188f" data-ve-pnum="53">1. <strong>Compaction guard.</strong> If this is the first user-facing turn after a<br>detected compaction, return `(&quot;unknown-after-compaction&quot;, now,<br>&quot;compaction-guard&quot;)` and stop.</blockquote>
+<p data-ve-comment-id="df673878" data-ve-pnum="54">&quot;detected compaction&quot; is a behavioural cue — the model is expected to remember that the prior <code>&lt;system-reminder&gt;</code> mentioned a compaction and to behave differently on the next turn. There is no on-disk marker, no hook, no env-var.</p>
+<p data-ve-comment-id="70257bc4" data-ve-pnum="55">Claude Code DOES fire a <code>SessionStart:compact</code> hook (we observed it in this very session — the janitor reminder banner was the proof). That hook could write an atomic marker file:</p>
+<pre><code>$CLAUDE_PROJECT_DIR/.claude/amama/last-compaction-at.ts</code></pre>
+<p data-ve-comment-id="0bab82a3" data-ve-pnum="56">Then step 1 of the skill becomes deterministic: read the marker, compare to the timestamp of the previous successful presence read (cached in the skill&#x27;s transition log), and if marker &gt; previous-read, return <code>unknown-after-compaction</code>. The marker is then cleared by the next successful read.</p>
+<p data-ve-comment-id="f987ce0e" data-ve-pnum="57">This is a phase-1 hardening — non-blocking but worth queueing.</p>
+<h3>2.5 NIT — <code>since</code> semantics differ across return paths</h3>
+<p data-ve-comment-id="6f5a79b6" data-ve-pnum="58"><strong>File:</strong> <code>skills/amama-presence-tracker/SKILL.md:26-32</code> (steps 1-5)</p>
+<p data-ve-comment-id="bd62c8b3" data-ve-pnum="59">The same return tuple slot <code>since</code> is used for:</p>
+<ul><li data-ve-comment-id="492df326" data-ve-pnum="60">compaction-guard → <code>now</code></li><li data-ve-comment-id="870f2baf" data-ve-pnum="61">override → <code>override.since</code> (e.g. when the override was set, possibly hours ago)</li><li data-ve-comment-id="1fb4eb38" data-ve-pnum="62">API unreachable → <code>now</code></li><li data-ve-comment-id="036f70f7" data-ve-pnum="63">no input recorded → <code>now</code></li><li data-ve-comment-id="85bd2bc7" data-ve-pnum="64">auto-clock → <code>last_user_input_epoch</code></li></ul>
+<p data-ve-comment-id="02f6f2c6" data-ve-pnum="65">Callers that interpret <code>since</code> as &quot;the moment when this state began&quot; will be confused: for <code>override</code> it is when the override started; for <code>auto-clock</code> it is the moment the user last typed; for <code>unknown</code> it is &quot;now&quot; (which is the moment of failure, not the moment of state-onset). This is fine if all callers treat <code>since</code> as &quot;best-effort hint, not a precise event time&quot;, but the SKILL should say so. One line under the Output section is enough.</p>
+<hr></div>
+  <div class="ve-finding-thread">
+    
+    <textarea class="ve-finding-reply" data-ve-finding-reply
+              data-ve-finding-id="finding-3"
+              placeholder="Reply to this finding…" rows="3"></textarea>
+  </div>
+</section>
+
+<section data-ve-finding-id="finding-4">
+  <h2>3. Decision side — `skills/amama-autonomous-fallback/`</h2>
+  <div class="ve-finding-meta" data-ve-comment-id="f1543f29"></div>
+  <fieldset class="ve-decision" data-anchor-id="ve-finding-4"
+            role="radiogroup" aria-label="Decision for finding-4">
+    <legend class="ve-sr-only">Decision for finding-4</legend>
+    <input type="checkbox" class="ve-sr-only"
+           data-decision="approve" data-anchor-id="ve-finding-4"
+           tabindex="-1" aria-hidden="true">
+    <input type="checkbox" class="ve-sr-only"
+           data-decision="reject" data-anchor-id="ve-finding-4"
+           tabindex="-1" aria-hidden="true">
+    <button type="button" class="ve-segment ve-segment-skip"
+            data-decision="skip" role="radio" aria-checked="true"
+            tabindex="0">Skip</button>
+    <button type="button" class="ve-segment ve-segment-approve"
+            data-decision="approve" role="radio" aria-checked="false"
+            tabindex="-1">Approve</button>
+    <button type="button" class="ve-segment ve-segment-reject"
+            data-decision="reject" role="radio" aria-checked="false"
+            tabindex="-1">Reject</button>
+  </fieldset>
+  <div class="ve-finding-body"><h3>3.1 HIGH — Doc says &quot;phase 3 is when this becomes active&quot; but phase 3 was collapsed into phase 1</h3>
+<p data-ve-comment-id="ea3cb7b1" data-ve-pnum="66"><strong>File:</strong> <code>skills/amama-autonomous-fallback/SKILL.md:37</code></p>
+<blockquote data-ve-comment-id="09290d85" data-ve-pnum="67">Phase-1 behavior: amama-presence-tracker returns <code>unknown</code> until phase<br>3 ships, so step 4 always escalates. Policy is wired but dormant.</blockquote>
+<p data-ve-comment-id="03036918" data-ve-pnum="68"><strong>File:</strong> <code>skills/amama-autonomous-fallback/references/decision-flow.md:32</code></p>
+<blockquote data-ve-comment-id="62062e21" data-ve-pnum="69"><strong>Phase 1 default</strong>: state is always <code>unknown</code> until phase 3 ships, so<br>this gate fires for every request — by design.</blockquote>
+<p data-ve-comment-id="544f70c2" data-ve-pnum="70"><strong>File:</strong> <code>skills/amama-autonomous-fallback/references/decision-flow.md:92-94</code></p>
+<blockquote data-ve-comment-id="9d5915df" data-ve-pnum="71">## Phase-1 invisibility property<br>Steps 1-3 fire for every request. Step 4 (presence gate) ALWAYS<br>escalates in phase 1 because amama-presence-tracker returns <code>unknown</code><br>until phase 3 ships. Therefore steps 5-10 don&#x27;t execute in production<br>until phase 3 — they&#x27;re wired but dormant.</blockquote>
+<p data-ve-comment-id="0f526aa8" data-ve-pnum="72">This was true in the original v3 plan (where a separate <code>PRESENCE</code> plugin was supposed to ship in phase 3 and write the host-global <code>~/.aimaestro/host-state/last-user-input.ts</code> file). It is FALSE after the v2.9.0 architectural pivot, which used the AI Maestro server&#x27;s REST endpoints instead — collapsing phase 3 into phase 1. The presence tracker now returns concrete <code>active|monitoring|away|dnd</code> states whenever the API responds.</p>
+<p data-ve-comment-id="1c09b7b4" data-ve-pnum="73">The model reading these files in a future session will believe the fallback path is dormant and act conservatively, OR be confused when it observes a non-<code>unknown</code> state and the documentation says that should be impossible. Both are bad failure modes.</p>
+<p data-ve-comment-id="dd3a051e" data-ve-pnum="74"><strong>Suggested rewrite (one paragraph in each file):</strong></p>
+<blockquote data-ve-comment-id="747fda48" data-ve-pnum="75">Phase-1 status (post 2026-05-06 server-API integration): the<br>presence-tracker now queries <code>GET /api/users/me/presence</code> and returns<br>concrete states whenever the server is reachable. Step 4 of this<br>skill therefore executes its full classification logic in production,<br>NOT a constant <code>unknown</code>. The earlier &quot;phase 1 invisible until phase 3&quot;<br>property no longer holds — phase 3 was collapsed into phase 1 by the<br>server-API pivot. What is still deferred to later phases: the<br>ratification ritual (phase 2), the HMAC cue protocol (phase 1.5), and<br>the multi-team fleet view (phase 4).</blockquote>
+<p data-ve-comment-id="d098293c" data-ve-pnum="76">The TRDD (<code>design/tasks/TRDD-bfcedff0-…md</code>) also still describes the old architecture (TRDD §2, §3.1) and should be amended in lockstep. Suggest a <code>TRDD-bfcedff0-amendment-2026-05-06.md</code> change-log entry so the historical record stays clean.</p>
+<h3>3.2 MEDIUM — Presence is consulted twice per decision</h3>
+<p data-ve-comment-id="dc1e7802" data-ve-pnum="77"><strong>File:</strong> <code>agents/ai-maestro-assistant-manager-agent-main-agent.md:310</code> (persona step 1) <strong>File:</strong> <code>skills/amama-autonomous-fallback/references/decision-flow.md:30-33</code> (skill step 4)</p>
+<p data-ve-comment-id="680dea58" data-ve-pnum="78">The persona&#x27;s &quot;When state ≠ active&quot; decision tree calls <code>amama-presence-tracker.get_state()</code> (step 1), and so does the fallback skill (step 4). Two API roundtrips per approval decision, two opportunities for the server to be slow.</p>
+<p data-ve-comment-id="70f24c20" data-ve-pnum="79">Defense-in-depth justification exists (&quot;the skill must not rely on the caller having checked&quot;), but the cost is real. Two cheap fixes:</p>
+<ul><li data-ve-comment-id="a7dcaa19" data-ve-pnum="80">Make <code>decide(request)</code> accept an optional <code>state</code> parameter: if supplied, skill uses it; otherwise skill calls <code>get_state()</code> itself. Persona passes the value it already computed.</li><li data-ve-comment-id="17d8d67a" data-ve-pnum="81">Or: cache the last <code>get_state()</code> result in-process for ~10 seconds (turn-scoped). Server-side <code>last_user_input_epoch</code> doesn&#x27;t change meaningfully on a 10-second timescale.</li></ul>
+<p data-ve-comment-id="108137ad" data-ve-pnum="82">Either is a NIT-with-bite — works fine without it, but a 4-second worst-case approval latency is annoying for routine REVERSIBLE ops.</p>
+<h3>3.3 LOW — Hard-floor reference is off-by-a-few</h3>
+<p data-ve-comment-id="5f4cf66b" data-ve-pnum="83"><strong>File:</strong> <code>skills/amama-autonomous-fallback/SKILL.md:20</code></p>
+<blockquote data-ve-comment-id="e8f6852c" data-ve-pnum="84">The hard-floor list at amama-amcos-coordination/references/delegation-rules.md:112-126 accessible.</blockquote>
+<p data-ve-comment-id="bdb7d6b0" data-ve-pnum="85"><strong>File:</strong> <code>skills/amama-autonomous-fallback/references/reversibility-matrix.md:13</code></p>
+<blockquote data-ve-comment-id="eb410d6b" data-ve-pnum="86">see amama-amcos-coordination/references/delegation-rules.md:112-126</blockquote>
+<p data-ve-comment-id="534abc24" data-ve-pnum="87">Actual location of the seven-row hard-floor table in <code>delegation-rules.md</code> is <strong>lines 117-125</strong> (the section header is at line 109, the table itself spans 117-125 in the current file — re-checked just now: file is 126 lines total, table is the last block). The cited range &quot;112-126&quot; is close but not precise; future readers running <code>sed -n &#x27;112,126p&#x27;</code> on the file will get a few lines of preamble plus the table.</p>
+<p data-ve-comment-id="262e8abc" data-ve-pnum="88">Trivial fix — just update the line range. Or, better, drop the line range entirely and cite `## 4. Operations That ALWAYS Require AMAMA Approval` (the section header) since that survives line-shift edits.</p>
+<h3>3.4 LOW — Phase-1 string-match guard regex is too narrow</h3>
+<p data-ve-comment-id="f7d62261" data-ve-pnum="89"><strong>File:</strong> <code>skills/amama-autonomous-fallback/references/decision-flow.md:24</code></p>
+<blockquote data-ve-comment-id="b29a9354" data-ve-pnum="90">regex <code>(production|prod|main|secrets|credentials|iam|auth)</code><br>(case-insensitive)</blockquote>
+<p data-ve-comment-id="5e478cf8" data-ve-pnum="91">This is intentionally over-broad on the documented intent (&quot;accepts false positives in exchange for safety&quot;), BUT it misses some obvious high-risk substrings:</p>
+<ul><li data-ve-comment-id="d7718e90" data-ve-pnum="92"><code>migration</code> (DB migrations are hard-floor row 22 territory)</li><li data-ve-comment-id="6b6000c2" data-ve-pnum="93"><code>deploy</code> / <code>release</code> (covers row 19/20 even when &quot;prod&quot; is not in the branch name)</li><li data-ve-comment-id="a2706d3e" data-ve-pnum="94"><code>master</code> (still common alongside <code>main</code>)</li><li data-ve-comment-id="b2fe458b" data-ve-pnum="95"><code>password</code> / <code>key</code> / <code>token</code> (cover credentials in fields named differently from <code>secrets</code>)</li></ul>
+<p data-ve-comment-id="28830cc0" data-ve-pnum="96">Phase-1 string-match is replaced by HMAC in 1.5, so this only matters for the few weeks/months that 1.5 takes to ship. Cheap to broaden.</p>
+<h3>3.5 NIT — Audit-log path lives in <code>docs_dev/</code> (gitignored)</h3>
+<p data-ve-comment-id="ada9cf25" data-ve-pnum="97"><strong>File:</strong> <code>skills/amama-autonomous-fallback/references/decision-flow.md:67</code></p>
+<blockquote data-ve-comment-id="5669e744" data-ve-pnum="98"><code>docs_dev/approvals/autonomous-decisions-pending-ratification.md</code></blockquote>
+<p data-ve-comment-id="365220fd" data-ve-pnum="99"><code>docs_dev/</code> is gitignored (per project CLAUDE.md). Phase-2&#x27;s ratification ritual (the next phase) consumes this log. The user has committed to &quot;never delete <code>_dev</code> folder content&quot;, but the log is not backed up by git, not synced across machines, and disappears if the folder is rm-rf&#x27;d by mistake. For a load-bearing audit trail, consider moving it to a tracked location (e.g. <code>design/audit/…</code>) or having phase-2&#x27;s ritual ALSO commit the file post-ratification.</p>
+<p data-ve-comment-id="4b1ec698" data-ve-pnum="100">This is a phase-2 concern, not phase-1, but worth flagging now while the path is being used by exactly one skill.</p>
+<hr></div>
+  <div class="ve-finding-thread">
+    
+    <textarea class="ve-finding-reply" data-ve-finding-reply
+              data-ve-finding-id="finding-4"
+              placeholder="Reply to this finding…" rows="3"></textarea>
+  </div>
+</section>
+
+<section data-ve-finding-id="finding-5">
+  <h2>4. Persona — `agents/ai-maestro-assistant-manager-agent-main-agent.md`</h2>
+  <div class="ve-finding-meta" data-ve-comment-id="5aa5688c"></div>
+  <fieldset class="ve-decision" data-anchor-id="ve-finding-5"
+            role="radiogroup" aria-label="Decision for finding-5">
+    <legend class="ve-sr-only">Decision for finding-5</legend>
+    <input type="checkbox" class="ve-sr-only"
+           data-decision="approve" data-anchor-id="ve-finding-5"
+           tabindex="-1" aria-hidden="true">
+    <input type="checkbox" class="ve-sr-only"
+           data-decision="reject" data-anchor-id="ve-finding-5"
+           tabindex="-1" aria-hidden="true">
+    <button type="button" class="ve-segment ve-segment-skip"
+            data-decision="skip" role="radio" aria-checked="true"
+            tabindex="0">Skip</button>
+    <button type="button" class="ve-segment ve-segment-approve"
+            data-decision="approve" role="radio" aria-checked="false"
+            tabindex="-1">Approve</button>
+    <button type="button" class="ve-segment ve-segment-reject"
+            data-decision="reject" role="radio" aria-checked="false"
+            tabindex="-1">Reject</button>
+  </fieldset>
+  <div class="ve-finding-body"><h3>4.1 R6 v3 narrowing — solid</h3>
+<p data-ve-comment-id="02ce5abc" data-ve-pnum="101">The three places R6 v3 is enforced (Communication Rules C5 at line 99-110, Communication Rules Summary at 363-371, Communication Permissions table at 654-689) are internally consistent. The &quot;forbidden&quot; verdict is repeated in three independent ways — table cell, prose paragraph, and &quot;MANDATORY chain&quot; sentence — which is the right amount of redundancy for a hard rule.</p>
+<p data-ve-comment-id="f35a0e82" data-ve-pnum="102">The empirical motivation paragraph (line 689) is a good documentation move: future readers (and the model) understand WHY the rule exists, not just what it says.</p>
+<h3>4.2 &quot;When state ≠ active&quot; decision tree — generally clean</h3>
+<p data-ve-comment-id="140f1b06" data-ve-pnum="103"><strong>File:</strong> lines 306-319</p>
+<p data-ve-comment-id="12bd4e63" data-ve-pnum="104">The decision tree is well-ordered:</p>
+<ol><li data-ve-comment-id="c3a73760" data-ve-pnum="105">Presence first.</li><li data-ve-comment-id="40451cb7" data-ve-pnum="106">Fallback on <code>monitoring/away/dnd</code>.</li><li data-ve-comment-id="2bb893c8" data-ve-pnum="107">Verdict application with R6 v3 routing constraint inlined in sub-step 3.</li><li data-ve-comment-id="e5fa0a79" data-ve-pnum="108">Hard-floor as a parallel always-true gate.</li><li data-ve-comment-id="5c634fe1" data-ve-pnum="109">Explicit &quot;no cue parsing in phase 1&quot; defence against prompt injection.</li></ol>
+<p data-ve-comment-id="53714557" data-ve-pnum="110">Two small nudges:</p>
+<ul><li data-ve-comment-id="65b1d6d8" data-ve-pnum="111"><strong>Step 1 wording.</strong> &quot;If state is <code>active</code>, <code>unknown</code>, or <code>unknown-after-compaction</code>, escalate to user as today.&quot; Current wording is correct, but &quot;as today&quot; implies &quot;this is what you used to do before phase 1&quot; — that nuance is lost on a fresh model. Safer: &quot;fall through to the existing approval flow, which always escalates to the user.&quot;</li><li data-ve-comment-id="c0bbec9b" data-ve-pnum="112"><strong>Step 5 footnote.</strong> The &quot;no cue parsing in phase 1&quot; defence is important. It deserves a reference to where cue parsing WILL ship (phase 1.5 with HMAC) — currently the reader has no pointer to the next step in the design.</li></ul>
+<h3>4.3 Skills frontmatter — present</h3>
+<p data-ve-comment-id="229ef998" data-ve-pnum="113">Lines 14-15 register both new skills. Confirmed.</p>
+<hr></div>
+  <div class="ve-finding-thread">
+    
+    <textarea class="ve-finding-reply" data-ve-finding-reply
+              data-ve-finding-id="finding-5"
+              placeholder="Reply to this finding…" rows="3"></textarea>
+  </div>
+</section>
+
+<section data-ve-finding-id="finding-6">
+  <h2>5. Server contract — `design/handoffs/aimaestro-server-presence-api.md`</h2>
+  <div class="ve-finding-meta" data-ve-comment-id="40471b3a"></div>
+  <fieldset class="ve-decision" data-anchor-id="ve-finding-6"
+            role="radiogroup" aria-label="Decision for finding-6">
+    <legend class="ve-sr-only">Decision for finding-6</legend>
+    <input type="checkbox" class="ve-sr-only"
+           data-decision="approve" data-anchor-id="ve-finding-6"
+           tabindex="-1" aria-hidden="true">
+    <input type="checkbox" class="ve-sr-only"
+           data-decision="reject" data-anchor-id="ve-finding-6"
+           tabindex="-1" aria-hidden="true">
+    <button type="button" class="ve-segment ve-segment-skip"
+            data-decision="skip" role="radio" aria-checked="true"
+            tabindex="0">Skip</button>
+    <button type="button" class="ve-segment ve-segment-approve"
+            data-decision="approve" role="radio" aria-checked="false"
+            tabindex="-1">Approve</button>
+    <button type="button" class="ve-segment ve-segment-reject"
+            data-decision="reject" role="radio" aria-checked="false"
+            tabindex="-1">Reject</button>
+  </fieldset>
+  <div class="ve-finding-body"><h3>5.1 Contract is appropriately tight</h3>
+<p data-ve-comment-id="5f27ee8a" data-ve-pnum="114">50 lines, two endpoints, one nullable field. No scope creep. The <code>server_now_epoch</code> co-return is the load-bearing design choice — it makes client-server clock skew structurally impossible, closing crisis B8.</p>
+<h3>5.2 LOW — A few corner cases not pinned</h3>
+<table><thead><tr><th>Question</th><th>Spec answer</th><th>Recommendation</th></tr></thead><tbody><tr data-ve-comment-id="a019eb41" data-ve-pnum="115"><td>What does GET return when the user record itself doesn&#x27;t exist (first call ever)?</td><td>Implied: 200 with <code>last_user_input_epoch: null</code>. Not stated.</td><td>One sentence under &quot;Response 200&quot;.</td></tr><tr data-ve-comment-id="ef13e8aa" data-ve-pnum="116"><td>What does GET return on rate-limit?</td><td>Not stated.</td><td>Either 429 or never (state explicitly).</td></tr><tr data-ve-comment-id="eba90496" data-ve-pnum="117"><td>Does POST require <code>Content-Type</code>?</td><td>Not stated.</td><td>Empty body / no Content-Type required (matches what client sends).</td></tr><tr data-ve-comment-id="99e74b38" data-ve-pnum="118"><td>Server clock backwards-jump (NTP correction): can <code>server_now_epoch &lt; last_user_input_epoch</code>?</td><td>Mentioned in the SKILL&#x27;s <code>max(0, …)</code> clamp but not in the spec.</td><td>Spec should state &quot;server guarantees <code>server_now_epoch ≥ last_user_input_epoch</code>&quot; so the clamp is a belt, not a brace.</td></tr></tbody></table>
+<p data-ve-comment-id="a68eeed8" data-ve-pnum="119">These are server-team&#x27;s responsibility, but the AMAMA-side handoff doc is the contract reference. Tighten it.</p>
+<hr></div>
+  <div class="ve-finding-thread">
+    
+    <textarea class="ve-finding-reply" data-ve-finding-reply
+              data-ve-finding-id="finding-6"
+              placeholder="Reply to this finding…" rows="3"></textarea>
+  </div>
+</section>
+
+<section data-ve-finding-id="finding-7">
+  <h2>6. Severity table</h2>
+  <div class="ve-finding-meta" data-ve-comment-id="9063a3aa"></div>
+  <fieldset class="ve-decision" data-anchor-id="ve-finding-7"
+            role="radiogroup" aria-label="Decision for finding-7">
+    <legend class="ve-sr-only">Decision for finding-7</legend>
+    <input type="checkbox" class="ve-sr-only"
+           data-decision="approve" data-anchor-id="ve-finding-7"
+           tabindex="-1" aria-hidden="true">
+    <input type="checkbox" class="ve-sr-only"
+           data-decision="reject" data-anchor-id="ve-finding-7"
+           tabindex="-1" aria-hidden="true">
+    <button type="button" class="ve-segment ve-segment-skip"
+            data-decision="skip" role="radio" aria-checked="true"
+            tabindex="0">Skip</button>
+    <button type="button" class="ve-segment ve-segment-approve"
+            data-decision="approve" role="radio" aria-checked="false"
+            tabindex="-1">Approve</button>
+    <button type="button" class="ve-segment ve-segment-reject"
+            data-decision="reject" role="radio" aria-checked="false"
+            tabindex="-1">Reject</button>
+  </fieldset>
+  <div class="ve-finding-body"><table><thead><tr><th>#</th><th>Severity</th><th>Component</th><th>File:line</th><th>Issue</th></tr></thead><tbody><tr data-ve-comment-id="439ebd9b" data-ve-pnum="120"><td>1.1</td><td>CRITICAL</td><td>hook script</td><td><code>amama_user_prompt_submit.py:34-49</code></td><td>Cron-injected prompts treated as user input → idle clock never grows</td></tr><tr data-ve-comment-id="566b2ae1" data-ve-pnum="121"><td>1.2</td><td>HIGH</td><td>hook script</td><td><code>amama_user_prompt_submit.py:38-73</code></td><td>Catastrophic exception can yield non-zero exit, may block prompt</td></tr><tr data-ve-comment-id="f0730a0f" data-ve-pnum="122"><td>2.1</td><td>HIGH</td><td>presence-tracker</td><td><code>SKILL.md:30</code></td><td>No curl <code>--max-time</code> specified — hung server hangs approval flow</td></tr><tr data-ve-comment-id="e0ab8598" data-ve-pnum="123"><td>3.1</td><td>HIGH</td><td>autonomous-fallback</td><td><code>SKILL.md:37</code>, <code>decision-flow.md:32,92-94</code></td><td>&quot;Phase 3 = unknown forever&quot; claim is now false; doc drift</td></tr><tr data-ve-comment-id="bbe0c0c0" data-ve-pnum="124"><td>2.2</td><td>MEDIUM</td><td>presence-tracker</td><td><code>SKILL.md:27</code></td><td>Override-file malformed-YAML fallback unspecified</td></tr><tr data-ve-comment-id="d5dc2b4d" data-ve-pnum="125"><td>2.3</td><td>MEDIUM</td><td>presence-tracker</td><td><code>SKILL.md:33</code></td><td>&quot;Last recorded state&quot; lookup mechanism unspecified</td></tr><tr data-ve-comment-id="d30b9dac" data-ve-pnum="126"><td>2.4</td><td>MEDIUM</td><td>presence-tracker</td><td><code>SKILL.md:26</code></td><td>Compaction-guard non-deterministic (model judgment only)</td></tr><tr data-ve-comment-id="8636b7f1" data-ve-pnum="127"><td>3.2</td><td>MEDIUM</td><td>persona + skill</td><td>persona:310, decision-flow.md:30-33</td><td>Presence read happens twice per decision</td></tr><tr data-ve-comment-id="a427fe38" data-ve-pnum="128"><td>1.3</td><td>LOW</td><td>hook script</td><td><code>amama_user_prompt_submit.py:60-65</code></td><td><code>Content-Type</code> header omitted from POST</td></tr><tr data-ve-comment-id="84121daa" data-ve-pnum="129"><td>1.4</td><td>NIT</td><td>hook script</td><td>—</td><td>No diagnostic log on hook failure</td></tr><tr data-ve-comment-id="351dd524" data-ve-pnum="130"><td>1.5</td><td>NIT</td><td>hook script</td><td>—</td><td>Only AMAMA&#x27;s session writes — flagged in v2.9.0 ship summary</td></tr><tr data-ve-comment-id="295240fc" data-ve-pnum="131"><td>2.5</td><td>NIT</td><td>presence-tracker</td><td><code>SKILL.md</code> Output table</td><td><code>since</code> semantics differ across return paths</td></tr><tr data-ve-comment-id="545e8109" data-ve-pnum="132"><td>3.3</td><td>LOW</td><td>autonomous-fallback</td><td><code>SKILL.md:20</code>, <code>reversibility-matrix.md:13</code></td><td>Hard-floor line range &quot;112-126&quot; off-by-a-few</td></tr><tr data-ve-comment-id="d1ebfedb" data-ve-pnum="133"><td>3.4</td><td>LOW</td><td>autonomous-fallback</td><td><code>decision-flow.md:24</code></td><td>Phase-1 string-match regex misses <code>migration</code>/<code>deploy</code>/<code>master</code>/<code>password</code>/<code>key</code>/<code>token</code></td></tr><tr data-ve-comment-id="f193a4e7" data-ve-pnum="134"><td>3.5</td><td>NIT</td><td>autonomous-fallback</td><td><code>decision-flow.md:67</code></td><td>Audit log lives in gitignored <code>docs_dev/</code></td></tr><tr data-ve-comment-id="a34d8a14" data-ve-pnum="135"><td>4.2</td><td>NIT</td><td>persona</td><td>line 310, 317</td><td>&quot;as today&quot; wording + missing pointer to phase 1.5 cue parsing</td></tr><tr data-ve-comment-id="f0e322ad" data-ve-pnum="136"><td>5.2</td><td>LOW</td><td>server contract</td><td>handoff doc</td><td>A few corner cases (user-record-absent, rate-limit, content-type, clock-backwards) not pinned</td></tr></tbody></table>
+<hr></div>
+  <div class="ve-finding-thread">
+    
+    <textarea class="ve-finding-reply" data-ve-finding-reply
+              data-ve-finding-id="finding-7"
+              placeholder="Reply to this finding…" rows="3"></textarea>
+  </div>
+</section>
+
+<section data-ve-finding-id="finding-8">
+  <h2>7. Strengths worth preserving</h2>
+  <div class="ve-finding-meta" data-ve-comment-id="137e3ce5"></div>
+  <fieldset class="ve-decision" data-anchor-id="ve-finding-8"
+            role="radiogroup" aria-label="Decision for finding-8">
+    <legend class="ve-sr-only">Decision for finding-8</legend>
+    <input type="checkbox" class="ve-sr-only"
+           data-decision="approve" data-anchor-id="ve-finding-8"
+           tabindex="-1" aria-hidden="true">
+    <input type="checkbox" class="ve-sr-only"
+           data-decision="reject" data-anchor-id="ve-finding-8"
+           tabindex="-1" aria-hidden="true">
+    <button type="button" class="ve-segment ve-segment-skip"
+            data-decision="skip" role="radio" aria-checked="true"
+            tabindex="0">Skip</button>
+    <button type="button" class="ve-segment ve-segment-approve"
+            data-decision="approve" role="radio" aria-checked="false"
+            tabindex="-1">Approve</button>
+    <button type="button" class="ve-segment ve-segment-reject"
+            data-decision="reject" role="radio" aria-checked="false"
+            tabindex="-1">Reject</button>
+  </fieldset>
+  <div class="ve-finding-body"><ul><li data-ve-comment-id="5594a543" data-ve-pnum="137"><strong>Server-clock anchoring</strong> (<code>presence-tracker SKILL.md:30</code>, <code>state-thresholds.md</code> §&quot;Server-clock anchored idle computation&quot;). The decision to return both <code>last_user_input_epoch</code> and <code>server_now_epoch</code> in the SAME response is the correct fix for crisis B8 — the client never has to reason about its own clock.</li><li data-ve-comment-id="21e439b4" data-ve-pnum="138"><strong>R6 v3 routing constraint enforcement at composition time</strong> (<code>reversibility-matrix.md:65</code>, <code>decision-flow.md:46</code>, persona:104-110). Whitelist-based recipient check makes the rule a protocol-level invariant rather than a behavioural guideline.</li><li data-ve-comment-id="3f717dee" data-ve-pnum="139"><strong>Snapshot rule on matrix read</strong> (<code>decision-flow.md:50-52</code>). Closes crisis F5 (concurrent edit during decision) without requiring a mutex.</li><li data-ve-comment-id="6d78499e" data-ve-pnum="140"><strong>Hard-floor as a separate gate before the matrix</strong> (<code>SKILL.md:25-26</code>, <code>decision-flow.md:18-20</code>). Belt-and-suspenders: even if the matrix is mis-edited and a row that should be <code>W</code> becomes <code>R</code>, the seven hard-floor categories still fire.</li><li data-ve-comment-id="b856505d" data-ve-pnum="141"><strong>Fail-soft hook design</strong> (despite finding 1.2). Predicted error classes are caught explicitly; the design intent is correct, only the catch list needs broadening.</li><li data-ve-comment-id="3256b34f" data-ve-pnum="142"><strong>No cue parsing in phase 1</strong> (persona:317). Closes the prompt injection vector that an HMAC-less cue would otherwise create.</li></ul>
+<hr></div>
+  <div class="ve-finding-thread">
+    
+    <textarea class="ve-finding-reply" data-ve-finding-reply
+              data-ve-finding-id="finding-8"
+              placeholder="Reply to this finding…" rows="3"></textarea>
+  </div>
+</section>
+
+<section data-ve-finding-id="finding-9">
+  <h2>8. Recommended fix order</h2>
+  <div class="ve-finding-meta" data-ve-comment-id="5942fb25"></div>
+  <fieldset class="ve-decision" data-anchor-id="ve-finding-9"
+            role="radiogroup" aria-label="Decision for finding-9">
+    <legend class="ve-sr-only">Decision for finding-9</legend>
+    <input type="checkbox" class="ve-sr-only"
+           data-decision="approve" data-anchor-id="ve-finding-9"
+           tabindex="-1" aria-hidden="true">
+    <input type="checkbox" class="ve-sr-only"
+           data-decision="reject" data-anchor-id="ve-finding-9"
+           tabindex="-1" aria-hidden="true">
+    <button type="button" class="ve-segment ve-segment-skip"
+            data-decision="skip" role="radio" aria-checked="true"
+            tabindex="0">Skip</button>
+    <button type="button" class="ve-segment ve-segment-approve"
+            data-decision="approve" role="radio" aria-checked="false"
+            tabindex="-1">Approve</button>
+    <button type="button" class="ve-segment ve-segment-reject"
+            data-decision="reject" role="radio" aria-checked="false"
+            tabindex="-1">Reject</button>
+  </fieldset>
+  <div class="ve-finding-body"><p data-ve-comment-id="1fb2bf45" data-ve-pnum="143">The CRITICAL-first ordering matches blast-radius. Items in <code>[]</code> are optional follow-ups.</p>
+<ol><li data-ve-comment-id="213b7441" data-ve-pnum="144"><strong>(CRITICAL)</strong> Patch <code>amama_user_prompt_submit.py</code> to skip system-prefixed prompts. (~10 LoC + a comment.) This unblocks the entire phase-1 architecture in production.</li><li data-ve-comment-id="1cd442bf" data-ve-pnum="145"><strong>(HIGH 1.2)</strong> Wrap the hook&#x27;s <code>__main__</code> in a <code>BaseException</code>-catching try/except + explicit <code>sys.exit(0)</code>. (~5 LoC.)</li><li data-ve-comment-id="720ebf3c" data-ve-pnum="146"><strong>(HIGH 2.1)</strong> Add <code>curl --max-time 2</code> to <code>presence-tracker</code> step 3. (Doc-only edit.)</li><li data-ve-comment-id="3864fb08" data-ve-pnum="147"><strong>(HIGH 3.1)</strong> Rewrite the &quot;phase 3 is when this becomes active&quot; passages in <code>autonomous-fallback/SKILL.md</code>, <code>decision-flow.md</code> (×2 places), and the TRDD&#x27;s §2 deferred-table. (Doc-only edits, ~20 LoC.)</li><li data-ve-comment-id="7677f1aa" data-ve-pnum="148"><strong>(MEDIUM 2.2)</strong> Spell out the override-file fail-soft contract. (Doc-only.)</li><li data-ve-comment-id="ee40f67b" data-ve-pnum="149"><strong>(MEDIUM 2.3)</strong> Pin the audit-log row format used to determine &quot;last recorded state&quot;. (Doc-only.)</li><li data-ve-comment-id="7aa67228" data-ve-pnum="150"><strong>(MEDIUM 2.4)</strong> Optional: add a <code>SessionStart:compact</code> hook that writes a <code>last-compaction-at.ts</code> marker; have presence-tracker step 1 check it. (~30 LoC + doc.)</li><li data-ve-comment-id="d8d915c4" data-ve-pnum="151"><strong>(MEDIUM 3.2)</strong> Optional: thread <code>state</code> from persona to skill, OR add a turn-scoped cache in presence-tracker. (~15 LoC.)</li><li data-ve-comment-id="ee8a827a" data-ve-pnum="152"><strong>(LOW)</strong> Items 1.3, 3.3, 3.4, 5.2 — small doc/code tweaks, batch into one cleanup commit.</li><li data-ve-comment-id="6a6e19ac" data-ve-pnum="153"><strong>(NIT)</strong> Items 1.4, 1.5, 2.5, 3.5, 4.2 — schedule with phase 1.5 or phase 2 since they depend on those phases anyway.</li></ol>
+<p data-ve-comment-id="4d7aa800" data-ve-pnum="154">If the user wants ONE fix tonight, it is item 1. Without it, phase-1&#x27;s autonomous-fallback path is unreachable in production — which is also the safest possible failure mode (everything escalates), but it makes phase-1 a no-op from the user&#x27;s standpoint.</p>
+<hr></div>
+  <div class="ve-finding-thread">
+    
+    <textarea class="ve-finding-reply" data-ve-finding-reply
+              data-ve-finding-id="finding-9"
+              placeholder="Reply to this finding…" rows="3"></textarea>
+  </div>
+</section>
+
+<section data-ve-finding-id="finding-10">
+  <h2>9. Items NOT covered by this review</h2>
+  <div class="ve-finding-meta" data-ve-comment-id="c0502655"></div>
+  <fieldset class="ve-decision" data-anchor-id="ve-finding-10"
+            role="radiogroup" aria-label="Decision for finding-10">
+    <legend class="ve-sr-only">Decision for finding-10</legend>
+    <input type="checkbox" class="ve-sr-only"
+           data-decision="approve" data-anchor-id="ve-finding-10"
+           tabindex="-1" aria-hidden="true">
+    <input type="checkbox" class="ve-sr-only"
+           data-decision="reject" data-anchor-id="ve-finding-10"
+           tabindex="-1" aria-hidden="true">
+    <button type="button" class="ve-segment ve-segment-skip"
+            data-decision="skip" role="radio" aria-checked="true"
+            tabindex="0">Skip</button>
+    <button type="button" class="ve-segment ve-segment-approve"
+            data-decision="approve" role="radio" aria-checked="false"
+            tabindex="-1">Approve</button>
+    <button type="button" class="ve-segment ve-segment-reject"
+            data-decision="reject" role="radio" aria-checked="false"
+            tabindex="-1">Reject</button>
+  </fieldset>
+  <div class="ve-finding-body"><ul><li data-ve-comment-id="fa1a56cf" data-ve-pnum="155">TRDD §3-§9 sections that describe phase-1 (file roles, schemas, test scenarios, security, change log). Skim suggests they are internally consistent but pre-pivot — that drift mirrors finding 3.1.</li><li data-ve-comment-id="e74f491f" data-ve-pnum="156">Server-side <code>lib/communication-graph.ts::validateMessageRoute()</code> — task #6 still pending. Not in scope for this review.</li><li data-ve-comment-id="424843ef" data-ve-pnum="157">The five other audit reports under <code>reports/assistant-manager-audit/</code>. Phase-1 closed Gap A and Gap B partially; Gap C (multi-team fleet view) is phase 4.</li><li data-ve-comment-id="388e749b" data-ve-pnum="158">The plugin-fixer agent&#x27;s TOC trims in unrelated skills shipped in the same v2.8.0/2.9.0 stack. Mechanical fixes, no behavioural change.</li></ul>
+<hr>
+<p data-ve-comment-id="21ca2349" data-ve-pnum="159"><strong>End of review.</strong> No code changes were made. All findings are reading-only. Empirical verification (especially of finding 1.1) is gated by AID-auth registration; until then, finding 1.1 should be treated as &quot;very likely real, fix preemptively&quot;.</p></div>
+  <div class="ve-finding-thread">
+    
+    <textarea class="ve-finding-reply" data-ve-finding-reply
+              data-ve-finding-id="finding-10"
+              placeholder="Reply to this finding…" rows="3"></textarea>
+  </div>
+</section>
+
+  </article>
+</main>
+<script src="amvcp-runtime.js"></script>
+</body>
+</html>
