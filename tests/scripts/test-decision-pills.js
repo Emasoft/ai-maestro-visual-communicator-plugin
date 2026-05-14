@@ -183,36 +183,25 @@ async function testDecisionWithComment(page) {
   const flipped = await setDecisionToggle(page, 'finding-3', 'approve');
 
   // Step 2: open the comment modal on a paragraph inside Finding 3's
-  // section. The simplest deterministic anchor is the "The driver
-  // attaches a comment to one of the table rows above." paragraph.
+  // section. The hover-pill UI was removed (duplicated the bubble
+  // handle); tests now open the modal via the __veOpenCommentModal
+  // hook exposed by bootEverything().
   const t = await page.evaluate(() => {
     const sec = document.querySelector('section[data-ve-finding-id="finding-3"]');
     if (!sec) return null;
     const p = sec.querySelector('p[data-ve-comment-id]');
     if (!p) return null;
     p.scrollIntoView({ block: 'center' });
-    const r = p.getBoundingClientRect();
-    return { px: r.x + 60, py: r.y + 8, cid: p.getAttribute('data-ve-comment-id') };
+    const cid = p.getAttribute('data-ve-comment-id');
+    if (typeof window.__veOpenCommentModal === 'function') {
+      window.__veOpenCommentModal(p);
+    }
+    return { cid: cid };
   });
   if (!t) {
     record('modal_decision_with_comment', 'FAIL', 'open modal in finding-3', 'anchor not found');
     return;
   }
-  await page.mouse.move(t.px, t.py);
-  await page.waitForTimeout(400);
-  const pill = await page.evaluate(() => {
-    const el = document.querySelector('.ve-comment-pill');
-    if (!el) return null;
-    const r = el.getBoundingClientRect();
-    return { cx: r.x + r.width / 2, cy: r.y + r.height / 2, opacity: el.style.opacity };
-  });
-  if (!pill || pill.opacity === '0') {
-    record('modal_decision_with_comment', 'FAIL', 'open modal in finding-3', 'pill missing');
-    return;
-  }
-  await page.mouse.move(pill.cx, pill.cy, { steps: 8 });
-  await page.waitForTimeout(150);
-  await page.mouse.down(); await page.mouse.up();
   await page.waitForTimeout(400);
 
   // Step 3: type and click ANSWER.
@@ -327,37 +316,23 @@ async function testDecisionSummaryPersisted(page) {
   await setDecisionToggle(page, 'finding-2', 'reject');
   await page.waitForTimeout(200);
 
-  // Step 2 — open the modal on a finding-3 paragraph (any anchor in
-  // the page does — the summary covers ALL findings on the page,
-  // not just the modal's anchor).
+  // Step 2 — open the modal on a finding-3 paragraph via the
+  // __veOpenCommentModal hook (hover-pill UI was removed).
   const t = await page.evaluate(() => {
     const sec = document.querySelector('section[data-ve-finding-id="finding-3"]');
     if (!sec) return null;
     const p = sec.querySelector('p[data-ve-comment-id]');
     if (!p) return null;
     p.scrollIntoView({ block: 'center' });
-    const r = p.getBoundingClientRect();
-    return { px: r.x + 60, py: r.y + 8 };
+    if (typeof window.__veOpenCommentModal === 'function') {
+      window.__veOpenCommentModal(p);
+    }
+    return { ok: true };
   });
   if (!t) {
     record('modal_decision_summary_persisted', 'FAIL', 'open modal in finding-3', 'anchor not found');
     return;
   }
-  await page.mouse.move(t.px, t.py);
-  await page.waitForTimeout(400);
-  const pill = await page.evaluate(() => {
-    const el = document.querySelector('.ve-comment-pill');
-    if (!el) return null;
-    const r = el.getBoundingClientRect();
-    return { cx: r.x + r.width / 2, cy: r.y + r.height / 2, opacity: el.style.opacity };
-  });
-  if (!pill || pill.opacity === '0') {
-    record('modal_decision_summary_persisted', 'FAIL', 'open modal in finding-3', 'pill missing');
-    return;
-  }
-  await page.mouse.move(pill.cx, pill.cy, { steps: 8 });
-  await page.waitForTimeout(150);
-  await page.mouse.down(); await page.mouse.up();
   await page.waitForTimeout(400);
 
   // Step 3 — click DONE. closeCommentModal() calls postPageSummary().

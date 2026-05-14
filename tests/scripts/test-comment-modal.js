@@ -33,6 +33,12 @@ async function setup(page) {
 }
 
 async function hoverThenClickPill(page, anchorSelector) {
+  // Renamed-in-place — the legacy ".ve-comment-pill" hover UI was
+  // removed because it duplicated the bubble handle (.ve-comment-handle)
+  // that real users see. Tests now bypass the (gone) pill UI and call
+  // the runtime\'s exposed __veOpenCommentModal hook directly with the
+  // anchor element — exercising the SAME modal-state path the bubble
+  // handle\'s click triggers in production.
   const t = await page.evaluate((sel) => {
     const el = document.querySelector(sel);
     if (!el) return null;
@@ -41,19 +47,13 @@ async function hoverThenClickPill(page, anchorSelector) {
     return { px: r.x + 60, py: r.y + 8, cid: el.getAttribute('data-ve-comment-id') };
   }, anchorSelector);
   if (!t) return null;
-  await page.mouse.move(t.px, t.py);
-  await page.waitForTimeout(400);
-  const pill = await page.evaluate(() => {
-    const el = document.querySelector('.ve-comment-pill');
-    if (!el) return null;
-    const r = el.getBoundingClientRect();
-    return { cx: r.x + r.width / 2, cy: r.y + r.height / 2, opacity: el.style.opacity };
-  });
-  if (!pill || pill.opacity === '0') return null;
-  await page.mouse.move(pill.cx, pill.cy, { steps: 8 });
-  await page.waitForTimeout(150);
-  await page.mouse.down();
-  await page.mouse.up();
+  await page.evaluate((sel) => {
+    const el = document.querySelector(sel);
+    if (!el) return;
+    if (typeof window.__veOpenCommentModal === 'function') {
+      window.__veOpenCommentModal(el);
+    }
+  }, anchorSelector);
   await page.waitForTimeout(400);
   return t;
 }
@@ -101,22 +101,29 @@ async function writeAgentReply(page, threadId, turn, text) {
 // ── Tests ───────────────────────────────────────────────────────────
 
 async function testHoverPillAppears(page) {
-  // Hovering a paragraph shows the comment pill (opacity:1 within ~400ms).
+  // The hover-pill UI was removed (it duplicated the bubble handle
+  // that real users see). The replacement contract: openCommentModal
+  // is reachable via window.__veOpenCommentModal and opens the modal
+  // when called with a [data-ve-comment-id] anchor element.
   await setup(page);
-  const t = await page.evaluate(() => {
+  const result = await page.evaluate(() => {
+    if (typeof window.__veOpenCommentModal !== 'function') {
+      return { ok: false, reason: 'no __veOpenCommentModal hook exposed' };
+    }
     const p = document.querySelector('p[data-ve-comment-id]');
+    if (!p) return { ok: false, reason: 'no anchor found' };
     p.scrollIntoView({ block: 'center' });
-    const r = p.getBoundingClientRect();
-    return { px: r.x + 60, py: r.y + 8 };
+    window.__veOpenCommentModal(p);
+    const modal = document.querySelector('.ve-comment-modal');
+    return {
+      ok: !!modal && getComputedStyle(modal).display !== 'none',
+      reason: modal ? 'modal opened' : 'modal not rendered'
+    };
   });
-  await page.mouse.move(t.px, t.py);
-  await page.waitForTimeout(450);
-  const pill = await page.evaluate(() => {
-    const el = document.querySelector('.ve-comment-pill');
-    return el ? { opacity: el.style.opacity, text: el.textContent } : null;
-  });
-  const ok = pill && pill.opacity === '1' && /Comment this/.test(pill.text);
-  record('modal_hover_pill_appears', ok ? 'PASS' : 'FAIL', 'hover paragraph → pill visible', JSON.stringify(pill));
+  record('modal_hover_pill_appears',
+    result.ok ? 'PASS' : 'FAIL',
+    'modal opens via __veOpenCommentModal hook (hover-pill removed)',
+    result.reason);
 }
 
 async function testHoverBridgeAndClick(page) {

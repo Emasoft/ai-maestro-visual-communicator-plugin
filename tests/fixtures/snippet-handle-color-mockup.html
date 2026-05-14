@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Text-snippet handle — Option A teal in light + dark</title>
+<style>
+  /* Both halves of the page each declare their own theme via class. */
+  body {
+    margin:0; padding:0;
+    font:17px/1.6 ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    min-height: 100vh;
+  }
+  .pane { padding: 32px 24px; min-width: 0; overflow-x: auto; }
+
+  /* ── LIGHT theme tokens (left pane) ───────────────────────────────── */
+  .pane-light {
+    --bg:#faf6ee; --text:#1f1a14;
+    --ve-accent:#b8861f;
+    --ve-decision-approve-bg:#3a6b5c;     /* deep teal (existing approve color) */
+    --ve-decision-reject-bg:#a84a32;
+    --ve-snippet-handle-bg:#3a6b5c;        /* OPTION A — teal chip on light */
+    --ve-snippet-handle-fg:#fbfaf6;        /* cream text on teal chip */
+    --ve-snippet-highlight: rgba(58, 107, 92, 0.22);   /* selection paint */
+    --ve-snippet-highlight-border: #3a6b5c;
+    --ve-text-base:#1f1a14;
+    --ve-grid-line: rgba(184,134,31,0.16);
+    --ve-bg-block: rgba(184,134,31,0.04);
+    --ve-bg-block-border: rgba(184,134,31,0.18);
+    background: var(--bg);
+    background-image:
+      linear-gradient(to right, var(--ve-grid-line) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--ve-grid-line) 1px, transparent 1px);
+    background-size: 24px 24px;
+    color: var(--text);
+  }
+
+  /* ── DARK theme tokens (right pane) ───────────────────────────────── */
+  .pane-dark {
+    --bg:#1a1612; --text:#ede5dd;
+    --ve-accent:#e0bf5b;                    /* warmer gold for dark */
+    --ve-decision-approve-bg:#5fb09a;       /* brighter teal for dark */
+    --ve-decision-reject-bg:#d56b4a;        /* brighter rust for dark */
+    --ve-snippet-handle-bg:#5fb09a;         /* OPTION A — teal chip on dark */
+    --ve-snippet-handle-fg:#0e1a17;         /* deep teal-ink text on bright chip */
+    --ve-snippet-highlight: rgba(95, 176, 154, 0.28); /* additive paint */
+    --ve-snippet-highlight-border: #5fb09a;
+    --ve-text-base:#ede5dd;
+    --ve-grid-line: rgba(224,191,91,0.10);
+    --ve-bg-block: rgba(224,191,91,0.05);
+    --ve-bg-block-border: rgba(224,191,91,0.18);
+    background: var(--bg);
+    background-image:
+      linear-gradient(to right, var(--ve-grid-line) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--ve-grid-line) 1px, transparent 1px);
+    background-size: 24px 24px;
+    color: var(--text);
+  }
+
+  h1 { font-style: italic; font-weight: 500; margin: 0 0 8px; color:var(--ve-accent); font-size: 22px; }
+  h2 { margin: 24px 0 10px; font-size: 16px; color:var(--ve-accent); }
+  p { margin: 10px 0; line-height: 1.65; font-size: 15px; }
+  table { border-collapse: collapse; width:100%; margin: 8px 0; }
+  th, td {
+    border: 1px solid color-mix(in srgb, var(--ve-accent) 28%, transparent);
+    padding: 8px 12px; font-size: 14px;
+  }
+  thead th {
+    border-bottom: 2px solid var(--ve-accent);
+    background: color-mix(in srgb, var(--ve-accent) 10%, transparent);
+    text-align: left; font-weight: 600;
+  }
+  tbody tr:nth-child(even) { background: color-mix(in srgb, var(--ve-accent) 6%, transparent); }
+
+  .demo-block {
+    position:relative;
+    margin: 24px 0;
+    padding: 14px 18px;
+    background: var(--ve-bg-block);
+    border: 1px solid var(--ve-bg-block-border);
+    border-radius: 10px;
+  }
+  .demo-block::before {
+    content: attr(data-label);
+    position:absolute;
+    top:-10px; left:14px;
+    background: var(--bg);
+    padding: 0 8px;
+    font: 600 10px/1.4 ui-sans-serif, system-ui, sans-serif;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    color: color-mix(in srgb, var(--ve-accent) 80%, transparent);
+  }
+
+  /* Selected-text paint — uses the snippet-highlight token so it tints
+     toward the chip color (teal) in both themes. */
+  .mock-text-selected {
+    background: var(--ve-snippet-highlight);
+    border-bottom: 1.5px solid var(--ve-snippet-highlight-border);
+    border-radius: 2px 2px 0 0;
+    padding: 1px 0;
+    position: relative;
+  }
+  /* Pressed item-state — gold tint in both themes (item handle stays gold) */
+  tr[data-mock-pressed="1"] {
+    background: color-mix(in srgb, var(--ve-accent) 22%, transparent) !important;
+    box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--ve-accent) 60%, transparent);
+  }
+
+  /* The chips — gold for items, teal for text snippets. */
+  .chip-handle {
+    position: absolute;
+    width:28px; height:22px;
+    display:inline-flex; align-items:center; justify-content:center;
+    border:0; border-radius:6px; padding:0;
+    font:600 13px/1 ui-sans-serif, system-ui, sans-serif;
+    cursor:pointer;
+    box-shadow:0 3px 10px rgba(0,0,0,0.34);
+    transform:translateY(-50%);
+    z-index:2;
+    user-select:none;
+  }
+  .chip-gold {
+    background:var(--ve-accent);
+    color: var(--ve-text-base);
+  }
+  .chip-teal {
+    background:var(--ve-snippet-handle-bg);
+    color:var(--ve-snippet-handle-fg);
+  }
+  .anchor-above {
+    position: absolute;
+    left: var(--anchor-x, 0);
+    top: -10px;
+  }
+
+  .legend-block {
+    margin: 8px 0 20px;
+    padding: 10px 12px;
+    background: color-mix(in srgb, var(--ve-accent) 6%, transparent);
+    border-radius: 8px;
+    font-size: 13px;
+  }
+  .legend {
+    display:inline-flex; align-items:center; gap:8px;
+    margin: 4px 12px 4px 0;
+  }
+  .legend .swatch {
+    width: 28px; height: 22px; border-radius: 6px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.24);
+    display:inline-flex; align-items:center; justify-content:center;
+    font:600 13px/1 ui-sans-serif, system-ui, sans-serif;
+  }
+  .preview-note {
+    margin-top:8px; font-size:12px;
+    color:color-mix(in srgb, var(--text) 60%, transparent);
+  }
+  .pane-divider-label {
+    display: block;
+    margin: 0 0 8px; padding: 4px 8px;
+    border-radius: 4px;
+    font: 600 11px/1.4 ui-sans-serif, system-ui, sans-serif;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--ve-text-base);
+    background: color-mix(in srgb, var(--ve-snippet-handle-bg) 18%, transparent);
+    border: 1px solid var(--ve-snippet-handle-bg);
+    width: fit-content;
+  }
+</style>
+</head>
+<body>
+
+<!-- ─── LIGHT pane (left) ────────────────────────────────────────────── -->
+<div class="pane pane-light">
+  <span class="pane-divider-label">Light theme</span>
+  <h1>Option A — teal chip (light)</h1>
+
+  <div class="legend-block">
+    <div class="legend"><span class="swatch chip-gold">💬</span><strong>Gold</strong> = item handle</div>
+    <div class="legend"><span class="swatch chip-teal">💬</span><strong>Teal #3a6b5c</strong> = text-snippet handle</div>
+  </div>
+
+  <h2>1 — text snippet only</h2>
+  <div class="demo-block" data-label="drag-select a phrase">
+    <p style="position:relative;">
+      The renderer must NOT add <span class="mock-text-selected">numeric prefixes to paragraphs<button class="chip-handle chip-teal anchor-above" style="--anchor-x: 4px;" title="Comment on this snippet">💬</button></span>, list items, table rows, or headings.
+    </p>
+  </div>
+
+  <h2>2 — item + text both selected</h2>
+  <div class="demo-block" data-label="row pressed + snippet drag-selected">
+    <table>
+      <thead><tr><th>Severity</th><th>Headline</th></tr></thead>
+      <tbody>
+        <tr style="position:relative;">
+          <td>HIGH</td>
+          <td style="position:relative;">
+            <button class="chip-handle chip-gold" style="left:-40px; top:50%;" title="Comment on this row">💬</button>
+            No <span class="mock-text-selected">curl --max-time<button class="chip-handle chip-teal anchor-above" style="--anchor-x: 4px;" title="Comment on this snippet">💬</button></span> specified — request can hang.
+          </td>
+        </tr>
+        <tr><td>MEDIUM</td><td>Override-file malformed-YAML behaviour unspecified.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>3 — group of selected rows + snippet inside</h2>
+  <div class="demo-block" data-label="3 rows pressed, snippet inside row 2">
+    <table>
+      <thead><tr><th>Severity</th><th>Headline</th></tr></thead>
+      <tbody>
+        <tr data-mock-pressed="1" style="position:relative;">
+          <td>HIGH</td>
+          <td style="position:relative;">
+            <button class="chip-handle chip-gold" style="left:-40px; top:50%;" title="Comment on these 3 rows">💬</button>
+            First selected row.
+          </td>
+        </tr>
+        <tr data-mock-pressed="1">
+          <td>HIGH</td>
+          <td style="position:relative;">
+            No <span class="mock-text-selected">curl --max-time<button class="chip-handle chip-teal anchor-above" style="--anchor-x: 4px;" title="Comment on snippet">💬</button></span> specified.
+          </td>
+        </tr>
+        <tr data-mock-pressed="1"><td>MEDIUM</td><td>Third selected row.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p class="preview-note">Light: deep teal <code>#3a6b5c</code> on cream bg. Subtractive selection paint (`rgba(58,107,92,0.22)`).</p>
+</div>
+
+
+<!-- ─── DARK pane (right) ────────────────────────────────────────────── -->
+<div class="pane pane-dark">
+  <span class="pane-divider-label">Dark theme</span>
+  <h1>Option A — teal chip (dark)</h1>
+
+  <div class="legend-block">
+    <div class="legend"><span class="swatch chip-gold">💬</span><strong>Gold</strong> = item handle</div>
+    <div class="legend"><span class="swatch chip-teal">💬</span><strong>Teal #5fb09a</strong> = text-snippet handle</div>
+  </div>
+
+  <h2>1 — text snippet only</h2>
+  <div class="demo-block" data-label="drag-select a phrase">
+    <p style="position:relative;">
+      The renderer must NOT add <span class="mock-text-selected">numeric prefixes to paragraphs<button class="chip-handle chip-teal anchor-above" style="--anchor-x: 4px;" title="Comment on this snippet">💬</button></span>, list items, table rows, or headings.
+    </p>
+  </div>
+
+  <h2>2 — item + text both selected</h2>
+  <div class="demo-block" data-label="row pressed + snippet drag-selected">
+    <table>
+      <thead><tr><th>Severity</th><th>Headline</th></tr></thead>
+      <tbody>
+        <tr style="position:relative;">
+          <td>HIGH</td>
+          <td style="position:relative;">
+            <button class="chip-handle chip-gold" style="left:-40px; top:50%;" title="Comment on this row">💬</button>
+            No <span class="mock-text-selected">curl --max-time<button class="chip-handle chip-teal anchor-above" style="--anchor-x: 4px;" title="Comment on this snippet">💬</button></span> specified — request can hang.
+          </td>
+        </tr>
+        <tr><td>MEDIUM</td><td>Override-file malformed-YAML behaviour unspecified.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>3 — group of selected rows + snippet inside</h2>
+  <div class="demo-block" data-label="3 rows pressed, snippet inside row 2">
+    <table>
+      <thead><tr><th>Severity</th><th>Headline</th></tr></thead>
+      <tbody>
+        <tr data-mock-pressed="1" style="position:relative;">
+          <td>HIGH</td>
+          <td style="position:relative;">
+            <button class="chip-handle chip-gold" style="left:-40px; top:50%;" title="Comment on these 3 rows">💬</button>
+            First selected row.
+          </td>
+        </tr>
+        <tr data-mock-pressed="1">
+          <td>HIGH</td>
+          <td style="position:relative;">
+            No <span class="mock-text-selected">curl --max-time<button class="chip-handle chip-teal anchor-above" style="--anchor-x: 4px;" title="Comment on snippet">💬</button></span> specified.
+          </td>
+        </tr>
+        <tr data-mock-pressed="1"><td>MEDIUM</td><td>Third selected row.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p class="preview-note">Dark: brighter teal <code>#5fb09a</code> (lifted ~25% toward white, slight desaturation shift) on near-black bg. Additive selection paint (`rgba(95,176,154,0.28)`). Cream-on-teal text fg flips to deep-teal-ink-on-bright-chip for legibility.</p>
+</div>
+
+</body>
+</html>

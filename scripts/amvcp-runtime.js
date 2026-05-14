@@ -285,12 +285,55 @@
       '  --ve-overlay-hover: rgba(255,255,255,0.10);',
       '  --ve-overlay-selected: rgba(255,255,255,0.05);',
       '  --ve-glow-hover: 0 0 8px var(--ve-accent, currentColor);',
+      // Code-block soft-wrap "extra indent" marker — paints the 2ch
+      // hanging-indent zone on wrapped continuation rows in a darker
+      // shade so the user can distinguish it from real source-code
+      // whitespace. Dark theme: subtractive (push toward black).
+      '  --ve-code-wrap-marker: rgba(0,0,0,0.35);',
+      // Text-snippet handle (single chip that floats above drag-/multi-click-
+      // selected text). Distinct from the gold item-handle so the user can
+      // tell ATOMIC-ITEM selection from TEXT-RANGE selection at a glance.
+      // Defaults are DARK theme (brighter teal lifted toward white so it
+      // reads with equivalent perceived contrast on a near-black bg). The
+      // :root[data-ve-theme="light"] block below mirrors with the deeper
+      // teal that matches the existing Approve mini-segment color.
+      '  --ve-snippet-handle-bg: #5fb09a;',                      // dark theme
+      '  --ve-snippet-handle-fg: #0e1a17;',                      // dark theme — deep ink on bright chip
+      '  --ve-snippet-highlight: rgba(95,176,154,0.28);',        // additive paint
+      '  --ve-snippet-highlight-border: #5fb09a;',
+      // Per-element 3-state mini decision switch — symbol colors.
+      // Symbols are unicode glyphs (✘ deny, ﹅ skip, ✔︎ approve) that share
+      // a SINGLE muted icon color when unselected, then take per-symbol
+      // semantic colors when selected (red / blue / green). Background
+      // ring tints in the same hue at 15% to keep the segment visible
+      // without harsh contrast that previously washed out the glyph.
+      // Dark theme defaults (lifted toward white for equivalent contrast).
+      '  --ve-decision-mini-icon-fg: color-mix(in srgb, var(--text, #ede5dd) 50%, transparent);',
+      '  --ve-decision-skip-symbol: #5fa3d8;',                    // bright blue for dark bg
+      '  --ve-decision-approve-symbol: #5fb09a;',                 // bright green/teal for dark bg
+      '  --ve-decision-deny-symbol: #d56b4a;',                    // bright red/rust for dark bg
       '}',
       ':root[data-ve-theme="light"] {',
       '  --ve-brightness-hover: 0.77;',     // 1/1.30 — perceptual mirror of dark hover
       '  --ve-brightness-selected: 0.87;',  // 1/1.15 — perceptual mirror of dark selected
       '  --ve-overlay-hover: rgba(0,0,0,0.10);',
       '  --ve-overlay-selected: rgba(0,0,0,0.05);',
+      // Light theme: additive on cream — push toward warm brown so the
+      // wrap-indent marker visibly contrasts against the page bg.
+      '  --ve-code-wrap-marker: rgba(110,77,24,0.22);',
+      // Light-theme snippet handle: deep teal #3a6b5c on cream → matches
+      // the existing Approve mini-segment color. Subtractive selection
+      // paint (alpha tints toward the chip color rather than away).
+      '  --ve-snippet-handle-bg: #3a6b5c;',
+      '  --ve-snippet-handle-fg: #fbfaf6;',                      // cream text on deep teal
+      '  --ve-snippet-highlight: rgba(58,107,92,0.22);',         // subtractive paint
+      '  --ve-snippet-highlight-border: #3a6b5c;',
+      // Light-theme mini-switch symbol colors — deeper saturated tones
+      // for adequate contrast on cream/light backgrounds.
+      '  --ve-decision-mini-icon-fg: color-mix(in srgb, var(--text, #1f1a14) 45%, transparent);',
+      '  --ve-decision-skip-symbol: #3464a8;',                    // deep blue for light bg
+      '  --ve-decision-approve-symbol: #3a6b5c;',                 // deep teal-green for light bg
+      '  --ve-decision-deny-symbol: #a84a32;',                    // deep rust-red for light bg
       '}',
       // Headings on light pages: 8% darker than the inner-border accent.
       // Same tonal family but reads as the next step down on the warm
@@ -347,6 +390,15 @@
       // Outer scrollers stay on the document. Horizontal scroll appears
       // on the root window when content is wider than the viewport.
       'html, body { overflow-x:auto; }',
+      // Reserve enough left-padding on body so the floating
+      // .ve-comment-handle (28px wide, sits at left:-40px from its
+      // parent atom — paragraph, row, list-item) never gets clipped
+      // against the viewport edge in narrow viewports. The handle
+      // needs ≥40px of breathing room to its parent\'s left; with
+      // 48px body padding-left + 4px parent default = clean display.
+      // Renderer ships body with padding:32px 24px — overrides the
+      // horizontal axis only, keeping vertical 32px untouched.
+      'body { padding-left:48px !important; padding-right:24px !important; }',
       // Renderer-supplied <main> often has `max-width: 86ch`. Lift the
       // ceiling so wide content can push the column open.
       'main, .ve-main { max-width:none !important; }',
@@ -360,11 +412,23 @@
       'table {',
       '  border-collapse:collapse;',
       '  border:1px solid color-mix(in srgb, var(--ve-accent, #b8861f) 35%, transparent);',
+      // RESPONSIVE: fill available width, let auto-layout distribute
+      // remaining space across columns. The chip column is fixed at 86px
+      // so File / Component get the rest. `max-width:none !important`
+      // (above) keeps the option to extend if content REQUIRES it (long
+      // unwrappable strings), but width:100% prevents the table from
+      // being wider than viewport when content CAN wrap.
+      '  width:100%;',
       '}',
       'th, td {',
       '  border:1px solid color-mix(in srgb, var(--ve-accent, #b8861f) 22%, transparent);',
       '  padding:8px 12px;',
       '  vertical-align:top;',
+      // Allow long unbreakable strings (file paths, URLs, hashes) to
+      // wrap mid-token instead of forcing the table wider than viewport.
+      // `overflow-wrap:anywhere` is the modern, well-supported way.
+      '  overflow-wrap:anywhere;',
+      '  word-break:break-word;',
       '}',
       'thead th {',
       '  background:color-mix(in srgb, var(--ve-accent, #b8861f) 14%, transparent);',
@@ -385,22 +449,58 @@
       // becomes pointer to advertise interactivity.
       'tr[data-ve-comment-id], li[data-ve-comment-id], p[data-ve-comment-id] {',
       '  cursor:pointer;',
-      '  transition:background 120ms ease;',
+      '  transition:background 120ms ease, box-shadow 120ms ease, outline-color 120ms ease;',
       '}',
+      // ─── 3-state visual model (normal · selected ±Δ · hover ±Δ + glow) ───
+      // Per the user spec: every interactive atom has THREE visually
+      // distinct states. The selected delta is a clear bg/outline shift;
+      // hover ALWAYS adds an outer glow on top of whatever bg state is
+      // currently active. This means hover-over-selected reads as
+      // "selected AND focused" — distinct from both plain selected and
+      // plain hovered.
+      //
+      // STATE 2: Hover UNSELECTED — soft bg + outer glow halo.
       'tr[data-ve-comment-id]:hover:not([data-ve-pressed="1"]) {',
       '  background:color-mix(in srgb, var(--ve-accent, #b8861f) 14%, transparent) !important;',
+      '  box-shadow:0 0 10px color-mix(in srgb, var(--ve-accent, #b8861f) 45%, transparent);',
       '}',
       'li[data-ve-comment-id]:hover:not([data-ve-pressed="1"]),',
       'p[data-ve-comment-id]:hover:not([data-ve-pressed="1"]) {',
-      '  background:color-mix(in srgb, var(--ve-accent, #b8861f) 12%, transparent);',
-      '  box-shadow:0 0 6px color-mix(in srgb, var(--ve-accent, #b8861f) 30%, transparent);',
+      '  background:color-mix(in srgb, var(--ve-accent, #b8861f) 14%, transparent);',
+      '  box-shadow:0 0 10px color-mix(in srgb, var(--ve-accent, #b8861f) 45%, transparent);',
       '}',
+      // STATE 3: Selected — strong bg tint + visible accent outline,
+      // NO glow (glow is reserved for hover). The outline + brighter
+      // bg makes "selected" unambiguous against both "normal" and
+      // "hover".
       'tr[data-ve-pressed="1"], li[data-ve-pressed="1"], p[data-ve-pressed="1"] {',
-      '  background:color-mix(in srgb, var(--ve-accent, #b8861f) 28%, transparent) !important;',
+      '  background:color-mix(in srgb, var(--ve-accent, #b8861f) 32%, transparent) !important;',
+      '  outline:1px solid color-mix(in srgb, var(--ve-accent, #b8861f) 70%, transparent);',
+      '  outline-offset:2px;',
       '}',
-      // Container outer ring when ANY atom is pressed inside it. CSS
-      // :has() is supported in Safari 15.4+ / Chromium 105+ (2022).
-      'table:has(tr[data-ve-pressed="1"]),',
+      // STATE 4: Hover OVER selected — strongest bg + outline + glow.
+      // Reads as "I\'m hovering an already-selected item" — clicks would
+      // toggle off, so the visual must clearly say "this is the one
+      // you\'re about to act on AND it\'s already selected".
+      'tr[data-ve-pressed="1"]:hover, li[data-ve-pressed="1"]:hover, p[data-ve-pressed="1"]:hover {',
+      '  background:color-mix(in srgb, var(--ve-accent, #b8861f) 40%, transparent) !important;',
+      '  outline:2px solid color-mix(in srgb, var(--ve-accent, #b8861f) 85%, transparent);',
+      '  outline-offset:2px;',
+      '  box-shadow:0 0 14px color-mix(in srgb, var(--ve-accent, #b8861f) 55%, transparent);',
+      '}',
+      // Tables get an ALWAYS-ON outer ring — per the universal selection
+      // model, a table is NOT a selectable atom (only its rows are), so
+      // a selection-conditional outline gives the wrong cue. The ring
+      // is purely decorative chrome that frames the data; rows light up
+      // independently when pressed via their own data-ve-pressed paint.
+      'table {',
+      '  outline:2px solid var(--ve-accent-dark, #6e4d18);',
+      '  outline-offset:3px;',
+      '}',
+      // Other containers (lists, sections, finding bodies) keep the
+      // selection-driven ring because their child atoms (li / p) are
+      // grouped into the comment-handle anchor — the ring helps the user
+      // see "this group of paragraphs is what the gold handle refers to".
       'ul:has(li[data-ve-pressed="1"]),',
       'ol:has(li[data-ve-pressed="1"]),',
       'section:has(> p[data-ve-pressed="1"]),',
@@ -679,23 +779,53 @@
       // viewport edge).
       '[data-ve-prose] [data-ve-id]:hover { outline:none; box-shadow:inset 4px 0 0 currentColor; padding-left:8px; }',
       '[data-ve-prose] [data-ve-id] { transition:padding 120ms ease, box-shadow 120ms ease; padding-left:0; }',
-      // Floating "Ask about this snippet" popup that appears over a
-      // mouse text selection.
+      // Text-selection bubble handle — same compact 28×22 rounded-rect
+      // shape as the gold element handle (.ve-comment-handle), but
+      // teal-colored so the user knows it represents a TEXT SELECTION
+      // (independent from the per-atom element selection). Both handles
+      // can coexist; clicking each opens its own comment thread (text
+      // snippet vs atom group). NO emoji label — clean badge matches
+      // the element handle for consistency.
       '[data-ve-snippet-popup] {',
       '  position:absolute; z-index:2147483646;',
-      '  background:#15171c; color:#fff;',
-      '  border:1px solid rgba(255,255,255,0.1); border-radius:8px;',
-      '  padding:6px; box-shadow:0 8px 24px rgba(0,0,0,0.35);',
-      '  font:13px/1 system-ui,-apple-system,sans-serif;',
+      '  width:28px; height:22px;',
+      '  display:inline-flex; align-items:center; justify-content:center;',
+      '  background:var(--ve-snippet-handle-bg, #3a6b5c);',
+      '  color:var(--ve-snippet-handle-fg, #fbfaf6);',
+      '  border:0; border-radius:6px; padding:0;',
+      '  cursor:pointer; user-select:none;',
+      '  box-shadow:0 3px 10px rgba(0,0,0,0.34);',
+      '  transition:filter 120ms ease, transform 120ms ease;',
       '  animation:veSlideUp 140ms ease-out both;',
       '}',
-      '[data-ve-snippet-popup] button {',
-      '  background:#fff; color:#0f1115; border:0; cursor:pointer;',
-      '  padding:7px 14px; border-radius:6px; font:600 13px/1 inherit;',
+      '[data-ve-snippet-popup]:hover { filter:brightness(1.08); }',
+      '[data-ve-snippet-popup]:active { transform:scale(0.97); }',
+      '[data-ve-snippet-popup]:focus-visible {',
+      '  outline:2px solid var(--ve-snippet-handle-bg, #3a6b5c);',
+      '  outline-offset:2px;',
       '}',
-      '[data-ve-snippet-popup] button + button {',
-      '  margin-left:6px; background:transparent; color:#fff;',
-      '  border:1px solid rgba(255,255,255,0.18); font-weight:500;',
+      // Native browser text-selection tint — matches the snippet handle
+      // color (teal) so users see "the selection IS what the snippet
+      // handle would reference if you clicked it".
+      // Paints in BOTH themes via the --ve-snippet-highlight token.
+      '::selection {',
+      '  background: var(--ve-snippet-highlight, rgba(58,107,92,0.22));',
+      '  color: inherit;',
+      '}',
+      '::-moz-selection {',
+      '  background: var(--ve-snippet-highlight, rgba(58,107,92,0.22));',
+      '  color: inherit;',
+      '}',
+      // CSS Custom Highlight API — paints the preserved snippet range
+      // in the same teal band as ::selection but survives focus
+      // changes (when the modal\'s textarea steals focus, ::selection
+      // disappears but ::highlight() does not). Chrome 105+, Safari
+      // 17.2+; older browsers see no highlight while modal is open
+      // (selection still restored on close, so this is a graceful
+      // visual-only degradation).
+      '::highlight(ve-snippet-active) {',
+      '  background: var(--ve-snippet-highlight, rgba(58,107,92,0.22));',
+      '  color: inherit;',
       '}',
       // ─── Phase 5: table row/column handles ────────────────────────────
       // Wrapper provides a 24-px phantom hit-zone outside the table so
@@ -864,6 +994,15 @@
       '  margin:0;',
       '  counter-reset:ve-code-line;',
       '  border:1px solid var(--ve-accent, #b8861f);',
+      // SOFT WRAP — long code lines that would otherwise overflow the
+      // viewport now wrap inside the block. Per the user spec: no
+      // horizontal scrollbar, no nested scrollview (you can\'t select
+      // what you can\'t see). The hanging indent on .ve-code-content
+      // (below) visually distinguishes wrapped continuations from new
+      // source lines.
+      '  white-space:pre-wrap;',
+      '  word-break:break-word;',
+      '  overflow-wrap:anywhere;',
       // 1.5px blur is just enough to soften the body-grid lines under
       // the pre without erasing them. 6px (earlier) was too aggressive —
       // the grid disappeared completely.
@@ -875,31 +1014,47 @@
       '  --ve-brightness-hover:1;',
       '  --ve-brightness-selected:1;',
       '}',
-      // The code block as a WHOLE is NOT a selectable element — only
-      // its individual lines are selectable. So no hover highlight, no
-      // hover outline. The outer dark-brown ring appears EXCLUSIVELY
-      // when at least one line in the block is selected, as a feedback
-      // affordance for "this block has active selection".
+      // ─── Code block 3-state model ───────────────────────────────────
+      // Same normal · selected ±Δ · hover ±Δ + glow rule as paragraphs
+      // above. Block-level transitions ride on the .ve-code-block
+      // wrapper so the WHOLE block reads as one unit (not just the
+      // selected line).
       //
-      // The pre still carries a `data-ve-id` (used as a stable block ID
-      // for the codeline:<blockId>:<line> selection entries and for
-      // the snippet-selection codeId payload), which means the generic
-      // [data-ve-id]:hover/focus rules above WOULD draw a gold outline
-      // on hover. Suppress that explicitly — the local CSS-variable
-      // overrides on the pre already neutralise the bg overlay / glow /
-      // brightness side-effects.
-      '.ve-code-block > pre:hover,',
-      '.ve-code-block > pre:focus-visible {',
-      '  outline:none !important;',
+      // The pre carries a `data-ve-id` so the generic [data-ve-id]:hover
+      // rule would normally apply too. The CSS-variable overrides on
+      // the pre (above: --ve-overlay-hover:transparent, --ve-glow-hover:
+      // none, --ve-brightness-hover:1) neutralise the generic rule\'s
+      // bg overlay / glow / brightness side-effects so only the outline
+      // remains — which our STATE rules below override with stronger
+      // accent + glow values.
+      // CSS :has() is the native selector; supported in WKWebView (iTerm2)
+      // since Safari 15.4 (2022) and Chromium 105 (2022).
+      '.ve-code-block { transition:box-shadow 120ms ease, outline-color 120ms ease; }',
+      '.ve-code-block > pre { transition:outline-color 120ms ease, box-shadow 120ms ease; }',
+      // STATE 2: Hover UNSELECTED block — accent outline + glow halo,
+      // signals "you can click a line here to select it". !important
+      // because the generic [data-ve-id]:hover rule above sets outline
+      // unconditionally too — without !important, source order wins
+      // and ours doesn\'t reliably take effect.
+      '.ve-code-block:hover:not(:has(.ve-code-line[data-ve-pressed="1"])) > pre {',
+      '  outline:2px solid color-mix(in srgb, var(--ve-accent, #b8861f) 60%, transparent) !important;',
+      '  outline-offset:3px !important;',
+      '  box-shadow:0 0 16px color-mix(in srgb, var(--ve-accent, #b8861f) 45%, transparent) !important;',
+      '}',
+      // STATE 3: Selected (≥1 line pressed) — strong gold outline,
+      // no glow. Uses --ve-accent (the warm gold) instead of the
+      // previous near-invisible --ve-accent-dark so the selection
+      // reads clearly on dark backgrounds.
+      '.ve-code-block:has(.ve-code-line[data-ve-pressed="1"]) > pre {',
+      '  outline:2px solid var(--ve-accent, #b8861f) !important;',
+      '  outline-offset:3px !important;',
       '  box-shadow:none !important;',
       '}',
-      // CSS :has() is the native selector; supported in WKWebView (iTerm2)
-      // since Safari 15.4 (2022) and Chromium 105 (2022). Higher
-      // specificity than the :hover override above, so selected + hovered
-      // still shows the outer ring.
-      '.ve-code-block:has(.ve-code-line[data-ve-pressed="1"]) > pre {',
-      '  outline:2px solid var(--ve-accent-dark, #6e4d18) !important;',
-      '  outline-offset:3px;',
+      // STATE 4: Hover OVER selected block — outline + glow halo.
+      '.ve-code-block:hover:has(.ve-code-line[data-ve-pressed="1"]) > pre {',
+      '  outline:2px solid var(--ve-accent, #b8861f) !important;',
+      '  outline-offset:3px !important;',
+      '  box-shadow:0 0 20px color-mix(in srgb, var(--ve-accent, #b8861f) 60%, transparent) !important;',
       '}',
       // Opt-in blueprint theme for code blocks — author adds the class
       // `ve-blueprint` to the .ve-code-block (or any ancestor) when they
@@ -918,17 +1073,89 @@
       // display:block so each line\'s highlight covers the full row width
       // (not just the inline-text width). No literal `\n` is needed
       // between sibling spans — the block layout creates the line break.
-      '.ve-code-line { display:block; counter-increment:ve-code-line; }',
-      // The gutter cell is a REAL inline-block span so click events can
-      // distinguish "user clicked the line number to select the line"
-      // from "user clicked the code text to text-select / copy". The
-      // line number itself is generated by the ::before pseudo + counter
-      // — no JS-side numbering, no nested text element.
+      // Block layout with absolute-positioned linenum + hanging indent.
+      // Why not flex: a flex layout treats the content as its own block
+      // formatting context, which means the source\'s leading whitespace
+      // (8-space indent for inner-function lines) is preserved on the
+      // FIRST visual line but the wrapped continuation collapses back to
+      // column 0 of the flex item — losing both the source indent AND
+      // the wanted hanging-indent marker. With the block approach below,
+      // the WHOLE line (linenum + content) lives in one block formatting
+      // context: padding-left reserves room for the absolute linenum +
+      // 2ch of hanging space, and text-indent:-2ch pulls the first line
+      // back so its leading whitespace renders unchanged. Wrapped
+      // continuations naturally start at padding-left (i.e. 2ch right
+      // of where the first line\'s text starts), giving the visual
+      // "this is a continuation" marker the user wants.
+      '.ve-code-line {',
+      '  display:block;',
+      '  position:relative;',
+      '  counter-increment:ve-code-line;',
+      // Per-line dynamic hanging indent. --ve-code-indent is set inline
+      // by initCodeGutter to (source-leading-whitespace + 2). Default
+      // to 2 for safety if the var is missing. The math:
+      //   • padding-left = gutter (4.2ch) + indent ch → wrap goes here
+      //   • text-indent = -indent ch → first line pulled back to gutter
+      // Net effect: the source\'s leading whitespace renders at its
+      // natural position on the first visual line, and any wrap
+      // continuation starts at (source-indent + 2ch) past the gutter,
+      // which is always 2ch right of where the first line\'s visible
+      // text begins — the universal "this is a wrap" affordance.
+      '  padding-left:calc(4.2ch + var(--ve-code-indent, 2) * 1ch);',
+      '  text-indent:calc(var(--ve-code-indent, 2) * -1ch);',
+      '  white-space:pre-wrap;',
+      '  word-break:break-word;',
+      '  overflow-wrap:anywhere;',
+      // EMPTY-LINE GUARD: source lines that contain only whitespace
+      // (or are empty) would otherwise collapse to height 0 because
+      // the absolute-positioned linenum is out of flow and the inline
+      // content span has nothing to render. Matching the surrounding
+      // 1.55 line-height keeps blank lines visible AND keeps the
+      // drag-paint hit-test correct (drag from line N to line N+2
+      // through an empty line N+1 must not skip line N+1).
+      '  min-height:1.55em;',
+      // ─── WRAP-CONTINUATION MARKER ────────────────────────────────────
+      // Paint a darker 2ch vertical stripe at the wrap-indent column.
+      // The stripe is positioned to start at y=1.55em (the first row\'s
+      // height) and cover the area below — so it ONLY visible on
+      // wrapped continuation rows, never on the first visual row.
+      // Width = 2ch (the hanging-indent amount). Position X = the same
+      // column where wrap continuations start (padding-left). Color
+      // comes from --ve-code-wrap-marker (subtractive on dark, brown
+      // tint on light) so wrap-indent space reads visually distinct
+      // from real source-code whitespace.
+      '  background-image:linear-gradient(',
+      '    to right,',
+      '    transparent 0,',
+      '    transparent calc(4.2ch + (var(--ve-code-indent, 2) - 2) * 1ch),',
+      '    var(--ve-code-wrap-marker, rgba(0,0,0,0.30)) calc(4.2ch + (var(--ve-code-indent, 2) - 2) * 1ch),',
+      '    var(--ve-code-wrap-marker, rgba(0,0,0,0.30)) calc(4.2ch + var(--ve-code-indent, 2) * 1ch),',
+      '    transparent calc(4.2ch + var(--ve-code-indent, 2) * 1ch)',
+      '  );',
+      '  background-position:0 1.55em;',                            // skip the first visual row
+      '  background-repeat:no-repeat;',
+      '  background-size:100% calc(100% - 1.55em);',                // covers row 2 → end
+      '}',
+      // Linenum gutter — ABSOLUTE-positioned so it overlays the first
+      // ~4ch of the line\'s padding-left area without participating in
+      // inline flow (which would interact with text-indent and break
+      // the hanging indent calculation).
+      // top:0; bottom:0 stretches the bbox to the FULL HEIGHT of the
+      // parent .ve-code-line — critical because drag-paint uses
+      // elementFromPoint(x, y) on every intermediate position; if the
+      // linenum was just its intrinsic line-height (~18px), a drag
+      // through the middle of a wrapped line would miss the linenum
+      // and the drag-paint would skip that line. Full-height bbox
+      // ensures the leftmost gutter column always catches drag hits.
       '.ve-code-linenum {',
-      '  display:inline-block; box-sizing:border-box;',
+      '  position:absolute;',
+      '  left:0; top:0; bottom:0;',
+      '  display:flex; align-items:flex-start; justify-content:flex-end;',
+      '  box-sizing:border-box;',
       '  min-width:3.5ch; padding:0 0.6ch 0 0.3ch;',
-      '  margin-right:0.8ch;',
       '  text-align:right;',
+      '  text-indent:0;',                                         // re-zero so the parent\'s -2ch doesn\'t shift the gutter
+      '  white-space:nowrap;',
       '  color:color-mix(in srgb, currentColor 50%, transparent);',
       '  border-right:1px solid color-mix(in srgb, currentColor 18%, transparent);',
       // WebKit (iTerm2 WKWebView, Safari) requires the -webkit- prefix
@@ -940,6 +1167,11 @@
       '  cursor:pointer;',
       '  transition:background 100ms ease, color 100ms ease;',
       '}',
+      // Content — inline span; no special styling needed (the line\'s
+      // padding-left + text-indent does all the hanging-indent work).
+      // Kept as a wrapper so DOM tools can target "just the code text"
+      // when needed.
+      '.ve-code-content { display:inline; }',
       '.ve-code-linenum::before { content:counter(ve-code-line); }',
       '.ve-code-linenum:hover {',
       '  background:color-mix(in srgb, var(--ve-accent, #b8861f) 18%, transparent);',
@@ -984,6 +1216,37 @@
       // at left:-32px → needs ≥36px of free margin to its left). Without
       // this, narrow viewports / tight body padding clip the handle.
       '.ve-code-block { position:relative; margin-left:40px; }',
+      // Copy-to-clipboard button — floats top-right of every .ve-code-block.
+      // Subdued by default (opacity 0.55) so it never competes with the code
+      // visually; lights up on hover. Briefly flips to a checkmark + green
+      // bg when the copy succeeds. The button is excluded from atom-
+      // selection via [data-ve-overlay="1"] so clicking it never toggles
+      // line selection, and from text-snippet via the same selector.
+      '.ve-code-copy-btn {',
+      '  position:absolute; top:6px; right:6px; z-index:3;',
+      '  width:28px; height:24px;',
+      '  display:inline-flex; align-items:center; justify-content:center;',
+      '  background:color-mix(in srgb, var(--ve-control-bg, #fbfaf6) 86%, transparent);',
+      '  color:var(--ve-control-fg, var(--text, #14110b));',
+      '  border:1px solid color-mix(in srgb, var(--ve-control-border, #d6d1c5) 60%, transparent);',
+      '  border-radius:5px;',
+      '  cursor:pointer;',
+      '  font:600 15px/1 ui-sans-serif,system-ui,sans-serif;',
+      '  opacity:0.55;',
+      '  transition:opacity 120ms ease, background 120ms ease, color 120ms ease;',
+      '  user-select:none; -webkit-user-select:none;',
+      '}',
+      '.ve-code-copy-btn:hover {',
+      '  opacity:1;',
+      '  background:var(--ve-accent, #b8861f);',
+      '  color:var(--ve-sel-text, #14110b);',
+      '}',
+      '.ve-code-copy-btn--success {',
+      '  opacity:1 !important;',
+      '  background:var(--ve-decision-approve-symbol, #3a6b5c) !important;',
+      '  color:#fff !important;',
+      '  border-color:var(--ve-decision-approve-symbol, #3a6b5c) !important;',
+      '}',
       // Compact rounded-rect tag — slightly wider than tall (badge shape).
       // Sits OUTSIDE the .ve-code-block with a clear gap to the block's
       // left border; the block's own `margin-left:40px` (set above) gives
@@ -1390,59 +1653,102 @@
       '.ve-decision-mini {',
       '  display:inline-flex; align-items:center; vertical-align:middle;',
       '  margin-left:0.5em;',
-      '  border:0; padding:1px;',
-      '  border-radius:5px;',
-      '  background:color-mix(in srgb, var(--ve-control-border, #d6d1c5) 28%, transparent);',
+      // Removed parent pill background — now each segment owns its own
+      // visible bounds so all 3 read as equal-sized buttons. Tiny gap
+      // between segments via padding+gap so they don\'t merge visually.
+      '  border:0; padding:0;',
+      '  gap:2px;',
+      '  background:transparent;',
       '  font:600 9px/1 ui-sans-serif,system-ui,sans-serif;',
       '  letter-spacing:0.06em; text-transform:uppercase;',
       '  user-select:none;',
       '}',
       '.ve-decision-mini-seg {',
       '  display:inline-flex; align-items:center; justify-content:center;',
-      '  width:14px; height:14px;',
+      // Relative sizing: chip scales with its own font-size so it stays
+      // readable at any zoom level / user font-size preference. 1.4em
+      // ≈ 24px at the 17px base, gives a thumb-tappable target while
+      // still being compact enough to ride at the right edge of a row.
+      '  width:1.4em; height:1.4em;',
       '  border:0; outline:0; margin:0;',
-      '  background:transparent;',
-      '  color:color-mix(in srgb, var(--text, currentColor) 50%, transparent);',
-      '  border-radius:3px;',
+      // STRONG visible button-frame on UNSELECTED segments so all 3
+      // segments read as equal-sized boxes regardless of selection
+      // state. Solid bg + visible inset stroke (not transparent tint)
+      // — previous 18% bg was invisible against the page background
+      // so unselected glyphs looked like floating icons, making the
+      // selected segment appear "bigger" than the others.
+      '  background:color-mix(in srgb, var(--ve-control-border, #d6d1c5) 55%, transparent);',
+      '  box-shadow:inset 0 0 0 1px color-mix(in srgb, var(--text, currentColor) 22%, transparent);',
+      '  color:var(--ve-decision-mini-icon-fg, color-mix(in srgb, var(--text, currentColor) 55%, transparent));',
+      '  border-radius:0.25em;',                                 // also relative — scales with chip
       '  cursor:pointer;',
-      '  transition:background 120ms ease, color 120ms ease;',
+      // 17px base size so the SESAME DOT (U+FE45 — a naturally thin/tiny
+      // Japanese emphasis stroke) reads alongside the heavier ✔︎ and ✘
+      // glyphs. Override the parent pill\'s 9px font + uppercase
+      // letter-spacing inheritance.
+      '  font:600 17px/1 ui-sans-serif,system-ui,sans-serif;',
+      '  letter-spacing:0;',
+      '  text-transform:none;',
+      '  transition:background 120ms ease, color 120ms ease, box-shadow 120ms ease;',
       '}',
+      // Hover on UNSELECTED: subtle bg lift + slight icon brighten so the
+      // affordance reads as "you can click me" without committing color
+      // semantics yet.
       '.ve-decision-mini-seg:hover:not([aria-checked="true"]) {',
       '  background:color-mix(in srgb, var(--text, currentColor) 8%, transparent);',
-      '  color:var(--text, currentColor);',
+      '  color:color-mix(in srgb, var(--text, currentColor) 80%, transparent);',
       '}',
-      '.ve-decision-mini-seg[aria-checked="true"] {',
-      '  background:var(--ve-decision-skip-bg, var(--ve-control-bg, #fbfaf6));',
-      '  color:var(--ve-control-fg, var(--text, currentColor));',
-      '  box-shadow:0 1px 2px rgba(0,0,0,0.14);',
+      // SELECTED: per-symbol semantic color (red ✘ / blue ﹅ / green ✔︎)
+      // applied to BOTH the icon AND a soft 15% bg ring + 35% inset stroke
+      // so the segment is unambiguously "the chosen one" without harsh
+      // color-on-color contrast that previously washed out the glyph.
+      '.ve-decision-mini-skip[aria-checked="true"] {',
+      '  color:var(--ve-decision-skip-symbol, #3464a8);',
+      '  background:color-mix(in srgb, var(--ve-decision-skip-symbol, #3464a8) 15%, transparent);',
+      '  box-shadow:inset 0 0 0 1px color-mix(in srgb, var(--ve-decision-skip-symbol, #3464a8) 38%, transparent);',
       '}',
       '.ve-decision-mini-approve[aria-checked="true"] {',
-      '  background:var(--ve-decision-approve-bg, #3a6b5c);',
-      '  color:var(--ve-decision-approve-fg, #fbfaf6);',
+      '  color:var(--ve-decision-approve-symbol, #3a6b5c);',
+      '  background:color-mix(in srgb, var(--ve-decision-approve-symbol, #3a6b5c) 15%, transparent);',
+      '  box-shadow:inset 0 0 0 1px color-mix(in srgb, var(--ve-decision-approve-symbol, #3a6b5c) 38%, transparent);',
       '}',
       '.ve-decision-mini-deny[aria-checked="true"] {',
-      '  background:var(--ve-decision-reject-bg, #a84a32);',
-      '  color:var(--ve-decision-reject-fg, #fbfaf6);',
+      '  color:var(--ve-decision-deny-symbol, #a84a32);',
+      '  background:color-mix(in srgb, var(--ve-decision-deny-symbol, #a84a32) 15%, transparent);',
+      '  box-shadow:inset 0 0 0 1px color-mix(in srgb, var(--ve-decision-deny-symbol, #a84a32) 38%, transparent);',
       '}',
+      // Hover on the SELECTED segment: brighten slightly so the user can
+      // tell their click will toggle to "deselect" if applicable.
+      '.ve-decision-mini-skip[aria-checked="true"]:hover,',
+      '.ve-decision-mini-approve[aria-checked="true"]:hover,',
+      '.ve-decision-mini-deny[aria-checked="true"]:hover { filter:brightness(1.10); }',
       // For table rows: append the mini-switch in a special <td> cell
       // at the row's far right. The CSS keeps it visually distinct
       // from data cells (no border-left, slightly tighter padding).
+      // Decision-mini cell — INHERITS the standard `th, td` border + padding
+      // + thead-th tint so the column looks like every other column (per
+      // user feedback: do NOT make this cell visually different from the
+      // rest of the table). Only overrides: text-align center for chip
+      // placement, width to host the chip, vertical-align middle so the
+      // chip sits in the row center instead of glued to the top.
       'td.ve-decision-mini-cell {',
-      '  border:0 !important;',
-      '  padding:4px 8px !important;',
-      '  background:transparent !important;',
-      '  width:48px;',
+      // Width is content-driven — the chip determines its own size via
+      // em units, the cell shrinks to fit. No hardcoded pixel width
+      // so the column adapts to font size, zoom, and viewport changes.
+      '  width:1%;',                                            // CSS trick: forces auto-layout to give cell its content width
+      '  white-space:nowrap;',                                  // chip stays on one line
+      '  padding:0.5em 0.6em;',                                 // relative padding, scales with cell font
       '  text-align:center;',
+      '  vertical-align:middle;',                               // chip centers vertically in the row
       '}',
+      // Header cell uses the SAME styling as every other thead th —
+      // inherits bg tint, border-bottom, font from `thead th` above.
+      // Adds center alignment + content-driven width.
       'th.ve-decision-mini-cell {',
-      '  border:0 !important;',
-      '  padding:4px 8px !important;',
-      '  background:transparent !important;',
-      '  width:48px;',
+      '  width:1%;',                                            // shrinks to header text width ("Your choice")
+      '  padding:0.5em 0.6em;',
       '  text-align:center;',
-      '  font-size:9px;',
-      '  font-weight:600;',
-      '  color:color-mix(in srgb, var(--text, currentColor) 60%, transparent);',
+      '  white-space:nowrap;',
       '}',
       // ─── Bulk-default switch (in .ve-report-banner) ────────────────────
       // Lets the user mark every decision-mini in one stroke (Skip /
@@ -1492,6 +1798,24 @@
       '  color:var(--text, currentColor);',
       '}',
       '.ve-bulk-default-seg:active { transform: scale(0.96); }',
+      // Symbol prefix doubles as a legend mapping the per-element mini-chip
+      // glyphs (﹅/✔︎/✘) to the plain-English labels (Skip/Approve/Deny).
+      // Each takes the same semantic color as the matching mini-segment.
+      '.ve-bulk-default-symbol {',
+      '  display:inline-block;',
+      '  font-size:14px; line-height:1;',
+      '  vertical-align:-1px;',
+      '  letter-spacing:0;',
+      '}',
+      '.ve-bulk-default-skip .ve-bulk-default-symbol {',
+      '  color:var(--ve-decision-skip-symbol, #3464a8);',
+      '}',
+      '.ve-bulk-default-approve .ve-bulk-default-symbol {',
+      '  color:var(--ve-decision-approve-symbol, #3a6b5c);',
+      '}',
+      '.ve-bulk-default-deny .ve-bulk-default-symbol {',
+      '  color:var(--ve-decision-deny-symbol, #a84a32);',
+      '}',
       '.ve-bulk-default-flash {',
       '  margin-left:4px;',
       '  font-size:11px; font-weight:500;',
@@ -4106,6 +4430,11 @@
 
   var snippetPopup = null;
   var snippetSeq = 0;
+  // Preserved across the snippet → modal → close cycle so the user
+  // never has to re-drag-select text just to add a second comment.
+  // Cleared only when the snippet is replaced (new drag-select) or
+  // when the page reloads.
+  var preservedSnippetRange = null;
 
   function clearSnippetPopup() {
     if (snippetPopup) {
@@ -4114,12 +4443,48 @@
     }
   }
 
+  // Apply a visible highlight over the saved Range that survives
+  // focus changes (the modal\'s textarea grabbing focus normally
+  // clears the document\'s text selection). Uses CSS Custom Highlight
+  // API where available (Chrome 105+, Safari 17.2+) — gracefully
+  // no-ops in older browsers (the user still sees their selection
+  // restored on modal close).
+  function applyPreservedSnippetHighlight(range) {
+    if (!range) return;
+    if (typeof CSS === 'undefined' || !CSS.highlights) return;
+    if (typeof Highlight === 'undefined') return;
+    try {
+      CSS.highlights.set('ve-snippet-active', new Highlight(range));
+    } catch (_) { /* range may have detached if DOM mutated */ }
+  }
+  function clearPreservedSnippetHighlight() {
+    if (typeof CSS === 'undefined' || !CSS.highlights) return;
+    try { CSS.highlights.delete('ve-snippet-active'); } catch (_) {}
+  }
+  function restorePreservedSelection() {
+    if (!preservedSnippetRange) return;
+    var sel = window.getSelection();
+    if (!sel) return;
+    try {
+      sel.removeAllRanges();
+      sel.addRange(preservedSnippetRange);
+    } catch (_) { /* range may have detached */ }
+  }
+
   function paragraphFromNode(node) {
     if (!node) return null;
     var el = node.nodeType === 3 ? node.parentElement : node;
     return el && el.closest ? el.closest('[data-ve-pnum]') : null;
   }
 
+  // Text-selection bubble handle — independent from the element-selection
+  // bubble handle (.ve-comment-handle). Both share the same compact
+  // bubble shape (28×22 rounded-rect badge), but use different colors
+  // so the user knows which kind of selection they\'re commenting on:
+  //   • element handle  → gold/amber (--ve-accent)         → atom comment thread
+  //   • text-snippet    → teal (--ve-snippet-handle-bg)    → text-range comment thread
+  // Both open the SAME modal but with different thread keys (group:… vs
+  // snippet:…) so the threads don\'t collide.
   function showSnippetPopup() {
     var sel = window.getSelection();
     if (!sel || sel.isCollapsed) { clearSnippetPopup(); return; }
@@ -4130,27 +4495,26 @@
     var anchor = range.commonAncestorContainer;
     var anchorEl = (anchor.nodeType === 3 ? anchor.parentElement : anchor);
 
-    // The popup activates inside any opt-in snippet source: prose
-    // containers, math formulas, TikZ diagrams, or anything explicitly
-    // marked with [data-ve-snippet-source].
+    // Activate inside any opt-in snippet source: prose, math, TikZ, or
+    // any rendered report (which means table cells too — the report
+    // wrapper has [data-ve-report] so text-select inside <td> qualifies).
     var snippetHost = anchorEl && anchorEl.closest
-      ? anchorEl.closest('[data-ve-prose], [data-ve-snippet-source], .ve-math, [data-ve-math], .ve-tikz, [data-ve-tikz]')
+      ? anchorEl.closest(
+          '[data-ve-prose], [data-ve-snippet-source], [data-ve-report], '
+          + '.ve-math, [data-ve-math], .ve-tikz, [data-ve-tikz]'
+        )
       : null;
     if (!snippetHost) { clearSnippetPopup(); return; }
 
-    // Detect whether we're inside a rendered math formula or a TikZ figure.
     var mathHost = anchorEl && anchorEl.closest
-      ? anchorEl.closest('.ve-math, [data-ve-math]')
-      : null;
+      ? anchorEl.closest('.ve-math, [data-ve-math]') : null;
     var tikzHost = anchorEl && anchorEl.closest
-      ? anchorEl.closest('.ve-tikz, [data-ve-tikz]')
-      : null;
+      ? anchorEl.closest('.ve-tikz, [data-ve-tikz]') : null;
 
     var paraEl = paragraphFromNode(range.startContainer) || paragraphFromNode(range.endContainer);
     var pnum = paraEl ? paraEl.getAttribute('data-ve-pnum') : null;
     var paraText = paraEl ? (paraEl.textContent || '').replace(/\s+/g, ' ').trim() : null;
 
-    // Math-mode payload preferences.
     var mathLatex = mathHost
       ? (mathHost.getAttribute('data-ve-math-source') || mathHost.getAttribute('data-tex') || null)
       : null;
@@ -4161,35 +4525,37 @@
     var rect = range.getBoundingClientRect();
     if (!rect || (!rect.width && !rect.height)) { clearSnippetPopup(); return; }
 
+    // Single-button bubble — same shape as .ve-comment-handle, distinct
+    // color via --ve-snippet-handle-bg. NO emoji label (matches the
+    // element handle\'s clean badge appearance).
     if (!snippetPopup) {
-      snippetPopup = document.createElement('div');
+      snippetPopup = document.createElement('button');
+      snippetPopup.type = 'button';
       snippetPopup.setAttribute('data-ve-snippet-popup', '');
+      snippetPopup.title = 'Comment on the selected text';
+      snippetPopup.setAttribute('aria-label', 'Open comment on the selected text snippet');
+      // 💬 emoji — same as the element handle for instant recognition.
+      // The teal background distinguishes "text snippet" from the gold
+      // element handle.
+      snippetPopup.textContent = '\u{1F4AC}';
       document.body.appendChild(snippetPopup);
     }
 
-    snippetPopup.innerHTML = '';
-    var btn = document.createElement('button');
-    btn.type = 'button';
-    btn.textContent = mathHost
-      ? 'Ask about this part of the formula'
-      : (tikzHost ? 'Ask about this part of the diagram' : 'Ask about this snippet');
-    var cancel = document.createElement('button');
-    cancel.type = 'button';
-    cancel.textContent = 'Cancel';
-    snippetPopup.appendChild(btn);
-    snippetPopup.appendChild(cancel);
+    var btn = snippetPopup;
 
-    var top = rect.top + window.scrollY - 44;
-    var left = rect.left + window.scrollX + (rect.width / 2) - (snippetPopup.offsetWidth / 2 || 90);
-    // If the preferred ABOVE position is off-screen at the top, flip
-    // BELOW the source rect — universal viewport-clamp then nudges
-    // it inward on the X axis if it would clip the right edge.
-    if (top < window.scrollY + 8) top = rect.bottom + window.scrollY + 8;
-    var pos = clampToViewport(snippetPopup, top, left, 8);
+    // Position chip ABOVE the selection by default; flip below if it would
+    // clip off the top of the viewport. Center horizontally on the rect mid.
+    var chipTop = rect.top + window.scrollY - 30;
+    var chipLeft = rect.left + window.scrollX + (rect.width / 2) - 14;
+    if (chipTop < window.scrollY + 8) chipTop = rect.bottom + window.scrollY + 8;
+    var pos = clampToViewport(snippetPopup, chipTop, chipLeft, 8);
     snippetPopup.style.top = pos.top + 'px';
     snippetPopup.style.left = pos.left + 'px';
 
-    btn.addEventListener('click', function () {
+    // Dedupe — chip is a singleton; clear stale click handler before re-binding.
+    if (btn._veSnippetClick) btn.removeEventListener('click', btn._veSnippetClick);
+
+    var onChipClick = function () {
       snippetSeq++;
       var truncated = text.length > 120 ? text.slice(0, 117) + '…' : text;
       var payload;
@@ -4198,55 +4564,85 @@
           id: (mathFormulaId || 've-math-?') + '-snippet-' + snippetSeq,
           type: isChem ? 'chem-snippet' : 'math-snippet',
           label: truncated,
-          data: {
-            text: text,
-            fullFormulaLatex: mathLatex,
-            fullFormulaLabel: mathFormulaLabel,
-            formulaId: mathFormulaId,
-            chem: !!isChem,
-            paragraphId: pnum,
-            paragraphNumber: pnum
-          }
+          data: { text: text, fullFormulaLatex: mathLatex, fullFormulaLabel: mathFormulaLabel,
+                  formulaId: mathFormulaId, chem: !!isChem,
+                  paragraphId: pnum, paragraphNumber: pnum }
         };
       } else if (tikzHost) {
-        var tikzSrc = tikzHost.getAttribute('data-ve-tikz-source')
-                   || tikzHost.getAttribute('data-tikz')
-                   || null;
+        var tikzSrc = tikzHost.getAttribute('data-ve-tikz-source') || tikzHost.getAttribute('data-tikz') || null;
         var tikzId = tikzHost.getAttribute('data-ve-id') || null;
         var tikzLabel = tikzHost.getAttribute('data-ve-label') || null;
         payload = {
           id: (tikzId || 've-tikz-?') + '-snippet-' + snippetSeq,
           type: 'tikz-snippet',
           label: truncated,
-          data: {
-            text: text,
-            fullDiagramLatex: tikzSrc,
-            fullDiagramLabel: tikzLabel,
-            diagramId: tikzId,
-            paragraphId: pnum,
-            paragraphNumber: pnum
-          }
+          data: { text: text, fullDiagramLatex: tikzSrc, fullDiagramLabel: tikzLabel,
+                  diagramId: tikzId, paragraphId: pnum, paragraphNumber: pnum }
         };
       } else {
         payload = {
           id: 've-snippet-' + (pnum || 'p?') + '-' + snippetSeq,
           type: 'text-snippet',
           label: truncated,
-          data: {
-            text: text,
-            paragraphId: pnum,
-            paragraphNumber: pnum,
-            paragraphText: paraText
-          }
+          data: { text: text, paragraphId: pnum, paragraphNumber: pnum, paragraphText: paraText }
         };
       }
-      postSelection(payload);
-      clearSnippetPopup();
-    });
-    cancel.addEventListener('click', function () {
-      clearSnippetPopup();
-      window.getSelection && window.getSelection().removeAllRanges();
-    });
+      var threadKey = (mathHost ? 'math' : (tikzHost ? 'tikz' : 'snippet'))
+        + ':' + (pnum || 'p?') + ':' + simpleHash(text);
+      // Save the Range BEFORE doing anything that might steal focus
+      // (modal open → textarea focus → window.getSelection() collapses).
+      // The saved Range is what we restore when the modal closes so the
+      // user can re-comment on the same text without re-dragging.
+      preservedSnippetRange = range.cloneRange();
+      // Visual highlight that survives focus changes — uses the CSS
+      // Custom Highlight API. The modal\'s textarea focus would
+      // normally clear the document\'s ::selection paint; ::highlight()
+      // is independent of the selection, so the teal band stays on
+      // the chosen text the whole time the modal is open.
+      applyPreservedSnippetHighlight(preservedSnippetRange);
+      // Build a transient invisible anchor element positioned EXACTLY
+      // over the selected text bbox. The connector-line code in
+      // updateConnectorLine() uses anchorEl.getBoundingClientRect() to
+      // draw the line — passing the snippet chip directly would draw
+      // to a 0×0 invisible point because we hide the chip on modal
+      // open. Instead, the transient anchor sits over the real text
+      // selection so the line points where the user expects.
+      var anchorRect = range.getBoundingClientRect();
+      var anchorDiv = document.createElement('div');
+      anchorDiv.setAttribute('data-ve-snippet-anchor', '1');
+      anchorDiv.setAttribute('data-ve-comment-id', threadKey);
+      anchorDiv.dataset.veSnippetPayload = JSON.stringify(payload);
+      anchorDiv.style.cssText =
+        'position:absolute;'
+        + 'pointer-events:none;'
+        + 'left:' + (anchorRect.left + window.scrollX) + 'px;'
+        + 'top:' + (anchorRect.top + window.scrollY) + 'px;'
+        + 'width:' + Math.max(8, anchorRect.width) + 'px;'
+        + 'height:' + Math.max(8, anchorRect.height) + 'px;'
+        + 'opacity:0;z-index:0;';
+      document.body.appendChild(anchorDiv);
+      btn.style.display = 'none';
+      try { openCommentModal(anchorDiv); }
+      catch (err) {
+        postSelection(payload);
+        clearSnippetPopup();
+        if (anchorDiv && anchorDiv.parentNode) anchorDiv.parentNode.removeChild(anchorDiv);
+      }
+    };
+    btn._veSnippetClick = onChipClick;
+    btn.addEventListener('click', onChipClick);
+  }
+
+  // 32-bit DJB2 hash → 8-char hex. Stable enough for thread-keying
+  // snippets by content; collisions are tolerable since snippets are
+  // already paragraph-scoped via the threadKey prefix.
+  function simpleHash(s) {
+    var h = 5381;
+    for (var i = 0; i < s.length; i++) {
+      h = ((h << 5) + h) + s.charCodeAt(i);
+      h = h | 0;
+    }
+    return ('00000000' + (h >>> 0).toString(16)).slice(-8);
   }
 
   // ─────────────────────────────────────────────────────────────────────
@@ -5527,6 +5923,14 @@
   }
 
   function initAllTableHandles() {
+    // Phase 5 row/column arrow handles are OBSOLETE in v4 report mode —
+    // the per-element comment chips (gold floating handle on the LEFT of
+    // any selected row group) are the only handle the user needs. Skip
+    // every table that lives under a [data-ve-report] root so reports
+    // don\'t carry redundant row-end / column-top arrows. Tables outside
+    // report mode (e.g. table-form widgets in regex-vis pages) keep the
+    // legacy handles so existing flows aren\'t broken.
+    if (document.querySelector('[data-ve-report]')) return;
     var tables = document.querySelectorAll('table');
     for (var i = 0; i < tables.length; i++) initTableHandles(tables[i]);
   }
@@ -5806,7 +6210,15 @@
     var tag = el.tagName;
     if (tag === 'TR' && el.hasAttribute('data-ve-comment-id')) return 'row';
     if (tag === 'LI' && el.hasAttribute('data-ve-comment-id')) return 'li';
-    if (tag === 'P'  && el.hasAttribute('data-ve-comment-id')) return 'para';
+    if (tag === 'P'  && el.hasAttribute('data-ve-comment-id')) {
+      // Markdown "fake heading" — `**Title**` on its own line —
+      // renders as <p><strong>Title</strong></p>. Visually it\'s a
+      // heading; user expects it NOT to be selectable, same as a real
+      // <h*>. See findCommentAnchor() for the matching gate on the
+      // hover/comment-handle path.
+      if (isFakeHeadingParagraph(el)) return null;
+      return 'para';
+    }
     if (tag === 'BLOCKQUOTE' && el.hasAttribute('data-ve-comment-id')) return 'bq';
     return null;
   }
@@ -5864,28 +6276,62 @@
   var atomDragStart = null;
 
   function setupAtomSelectionEvents() {
+    // Atom (row/paragraph/li) selection coexists with text selection.
+    // Disambiguation:
+    //   • plain CLICK (no drag, no text selected on mouseup) → toggle atom
+    //   • plain DRAG (mouse moved while button held)         → browser text
+    //     selection (snippet bubble handle appears on mouseup)
+    //   • SHIFT+drag                                          → atom paint
+    //     (multi-atom selection across consecutive rows / paragraphs)
+    // Critical: do NOT preventDefault on mousedown — that would kill the
+    // browser\'s native text-selection start. We defer the atom toggle to
+    // mouseup, gated on "no significant movement && no text actually
+    // selected by the user during this gesture".
     document.addEventListener('mousedown', function (ev) {
       if (ev.button !== 0) return;
-      // Don't hijack clicks inside the comment modal or any overlay.
-      if (ev.target.closest && ev.target.closest('[data-ve-overlay], .ve-comment-modal, .ve-comment-handle')) return;
+      if (ev.target.closest && ev.target.closest(
+        '[data-ve-overlay], .ve-comment-modal, .ve-comment-handle, '
+        + '.ve-decision-mini, .ve-decision-mini-cell, .ve-bulk-default, '
+        + '[data-ve-snippet-popup]'
+      )) return;
       var atom = findSelectableAtomFromEvent(ev.target);
       if (!atom) return;
-      // Don't hijack clicks on form controls / links inside the atom.
       var inner = ev.target.closest('a, button, input, textarea, select, label');
       if (inner && atom.el.contains(inner)) return;
-      ev.preventDefault();
       var startWasSelected = isAtomSelected(atom);
       atomDragStart = {
         kind: atom.kind,
+        atom: atom,
+        startKey: entryIdForAtom(atom),
         mode: startWasSelected ? 'deselect' : 'select',
+        startX: ev.clientX,
+        startY: ev.clientY,
+        moved: false,
+        shiftPaint: !!ev.shiftKey,
         painted: {},
       };
-      var key = entryIdForAtom(atom);
-      applyAtomPaint(atom, atomDragStart.mode);
-      atomDragStart.painted[key] = true;
+      // SHIFT+drag → paint mode: paint the START atom immediately and
+      // suppress text selection (matches the legacy multi-row paint UX).
+      if (atomDragStart.shiftPaint) {
+        ev.preventDefault();
+        applyAtomPaint(atom, atomDragStart.mode);
+        atomDragStart.painted[atomDragStart.startKey] = true;
+      }
     }, true);
     document.addEventListener('mousemove', function (ev) {
       if (!atomDragStart) return;
+      // Track whether the user moved the mouse meaningfully during this
+      // press — used by mouseup to decide click-vs-drag.
+      var dx = ev.clientX - atomDragStart.startX;
+      var dy = ev.clientY - atomDragStart.startY;
+      if (!atomDragStart.moved && (dx * dx + dy * dy) > 25) {  // >5px movement
+        atomDragStart.moved = true;
+      }
+      // Atom paint only when SHIFT is held (legacy multi-row painting).
+      // Without SHIFT, we let the browser do native text selection — the
+      // snippet bubble handle will appear on mouseup if any text got
+      // selected.
+      if (!atomDragStart.shiftPaint) return;
       if (typeof document.elementFromPoint !== 'function') return;
       var hover = document.elementFromPoint(ev.clientX, ev.clientY);
       if (!hover) return;
@@ -5897,6 +6343,16 @@
       atomDragStart.painted[key] = true;
     }, true);
     document.addEventListener('mouseup', function () {
+      if (!atomDragStart) return;
+      // SHIFT+drag already painted as it went — nothing to do on release.
+      // Plain click (no movement, no text selected) → toggle atom.
+      if (!atomDragStart.shiftPaint && !atomDragStart.moved) {
+        var sel = window.getSelection();
+        var hasText = sel && !sel.isCollapsed && sel.toString().length > 0;
+        if (!hasText) {
+          applyAtomPaint(atomDragStart.atom, atomDragStart.mode);
+        }
+      }
       atomDragStart = null;
     }, true);
   }
@@ -6056,10 +6512,28 @@
         // The linenum span is the click-detection target for drag-select
         // — clicks on the source text DON'T trigger line-select, leaving
         // text-selection-via-drag intact for code copy.
+        // Per-line dynamic hanging indent. The wrap continuation must
+        // appear MORE indented than the source\'s natural leading
+        // whitespace so the user reads it as "this is a wrap, not a
+        // new line". A fixed 2ch hanging indent fails when the source
+        // already starts with ≥2ch of indent (the wrap continuation
+        // would appear LEFT of the first line\'s text, looking like an
+        // outdent). Solution: count the source\'s leading whitespace,
+        // set --ve-code-indent = leading + 2 as a CSS var, and let the
+        // CSS apply that to padding-left + text-indent so the wrap
+        // continuation always sits at "source-indent + 2ch" past the
+        // gutter — i.e. always 2ch past where the first line\'s
+        // visible text actually begins.
+        var leadingMatch = (lineSrc[li] || '').match(/^[ \t]*/);
+        var leadingLen = leadingMatch ? leadingMatch[0].length : 0;
+        var indentVar = leadingLen + 2;
         newHTML += '<span class="ve-code-line" data-ve-block-id="'
-          + escapeHtml(blockId) + '" data-ve-line="' + (li + 1) + '">'
+          + escapeHtml(blockId) + '" data-ve-line="' + (li + 1) + '"'
+          + ' style="--ve-code-indent:' + indentVar + ';">'
           + '<span class="ve-code-linenum"></span>'
+          + '<span class="ve-code-content">'
           + escapeHtml(lineSrc[li])
+          + '</span>'
           + '</span>';
         // No literal `\n` between block spans — `display:block` on
         // .ve-code-line gives each line its own row. Adding `\n` would
@@ -6077,6 +6551,69 @@
     wrapper.setAttribute('data-ve-line-count', String(lineCount));
     pre.parentNode.insertBefore(wrapper, pre);
     wrapper.appendChild(pre);
+
+    // Stash the ORIGINAL source text on the wrapper. The copy button
+    // below uses this to send the user the unmodified source — never
+    // the rendered HTML (which would include line numbers as visible
+    // characters and would lose CSS-only soft-wrap fidelity).
+    wrapper.__veSourceText = raw;
+
+    // Copy-to-clipboard button — floating top-right of every code block.
+    // Click → writes raw source to clipboard. The line numbers come from
+    // a CSS `::before` counter and the wrap-indent comes from CSS
+    // padding — neither is part of the actual text content, so the
+    // clipboard payload is byte-identical to the source the renderer
+    // received.
+    var copyBtn = document.createElement('button');
+    copyBtn.type = 'button';
+    copyBtn.className = 've-code-copy-btn';
+    copyBtn.title = 'Copy code to clipboard';
+    copyBtn.setAttribute('aria-label', 'Copy code block to clipboard');
+    copyBtn.setAttribute('data-ve-overlay', '1');                  // exempts from atom-selection mousedown
+    // Inline SVG clipboard icon — guaranteed to render across every
+    // browser/font without depending on the system\'s monospace font
+    // fallback chain (the previous ⧉ U+29C9 glyph fell through to a
+    // missing-glyph box on iTerm\'s WebKit). Two SVGs cached as
+    // strings so we can swap on copy success without re-creating
+    // the button.
+    var SVG_CLIPBOARD = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">'
+      + '<path fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"'
+      +   ' d="M5 3h6a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z M6 2h4a1 1 0 0 1 1 1v1H5V3a1 1 0 0 1 1-1z"/>'
+      + '</svg>';
+    var SVG_CHECK = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">'
+      + '<path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"'
+      +   ' d="M3 8.5l3.5 3.5L13 5"/>'
+      + '</svg>';
+    copyBtn.innerHTML = SVG_CLIPBOARD;
+    copyBtn.addEventListener('click', function (ev) {
+      ev.preventDefault();
+      ev.stopPropagation();
+      var src = wrapper.__veSourceText || '';
+      var done = function () {
+        copyBtn.classList.add('ve-code-copy-btn--success');
+        copyBtn.innerHTML = SVG_CHECK;
+        setTimeout(function () {
+          copyBtn.classList.remove('ve-code-copy-btn--success');
+          copyBtn.innerHTML = SVG_CLIPBOARD;
+        }, 1200);
+      };
+      var fallback = function () {
+        var ta = document.createElement('textarea');
+        ta.value = src;
+        ta.style.cssText = 'position:fixed;left:-9999px;top:-9999px;';
+        document.body.appendChild(ta);
+        ta.select();
+        try { document.execCommand('copy'); done(); }
+        catch (_) { /* nothing else to try */ }
+        document.body.removeChild(ta);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(src).then(done).catch(fallback);
+      } else {
+        fallback();
+      }
+    });
+    wrapper.appendChild(copyBtn);
   }
 
   function initAllCodeGutters() {
@@ -6287,7 +6824,40 @@
         || tag === 'BUTTON' || tag === 'INPUT' || tag === 'SELECT') {
       return null;
     }
+    // Markdown "fake heading" detection — `**Heading**` on its own line
+    // renders as `<p><strong>Heading</strong></p>`, not as `<h1>`-`<h6>`.
+    // The user reads it as a heading; therefore it must NOT be
+    // selectable, same as a real <h*>. We detect by: the paragraph\'s
+    // entire visible content is one inline-level emphasis element
+    // (<strong>, <b>, <em>, <i>) with no other text nodes alongside.
+    if (tag === 'P' && isFakeHeadingParagraph(anchor)) return null;
     return anchor;
+  }
+
+  // True iff the paragraph contains exactly one emphasis element
+  // (<strong>/<b>/<em>/<i>) and no other visible text. Whitespace-only
+  // text nodes around the element are ignored. Used to identify
+  // markdown "fake headings" (`**Title**` on its own line) so they
+  // get the same non-selectable treatment as real <h*> tags.
+  function isFakeHeadingParagraph(p) {
+    if (!p || !p.childNodes) return false;
+    var emphasis = null;
+    for (var i = 0; i < p.childNodes.length; i++) {
+      var n = p.childNodes[i];
+      if (n.nodeType === 3) {
+        // Text node — must be whitespace-only.
+        if ((n.textContent || '').trim() !== '') return false;
+      } else if (n.nodeType === 1) {
+        var tagName = (n.tagName || '').toUpperCase();
+        if (tagName === 'STRONG' || tagName === 'B' || tagName === 'EM' || tagName === 'I') {
+          if (emphasis) return false;  // more than one emphasis sibling → real paragraph
+          emphasis = n;
+        } else {
+          return false;  // non-emphasis element (link, code span, image, etc.) → real paragraph
+        }
+      }
+    }
+    return !!emphasis;
   }
 
   // ── Hover affordance ────────────────────────────────────────────────
@@ -6295,39 +6865,16 @@
   var commentHoverTarget = null;
 
   function showCommentHoverPill(el) {
-    if (!el) return;
-    if (commentHoverTarget === el) return;
-    commentHoverTarget = el;
-    if (!commentHoverPill) {
-      commentHoverPill = document.createElement('button');
-      commentHoverPill.type = 'button';
-      commentHoverPill.className = 've-comment-pill';
-      commentHoverPill.setAttribute('data-ve-overlay', '1');
-      commentHoverPill.textContent = '💬 Comment this';
-      commentHoverPill.addEventListener('click', function (ev) {
-        ev.preventDefault();
-        ev.stopPropagation();
-        if (commentHoverTarget) openCommentModal(commentHoverTarget);
-      });
-      document.body.appendChild(commentHoverPill);
-    }
-    var rect = el.getBoundingClientRect();
-    var desiredTop = rect.top + window.scrollY + 4;
-    var desiredLeft = rect.right + window.scrollX - 130;
-    // In report mode the .ve-decision-mini occupies the row's right
-    // edge, so the hover-pill (default position = right inside-edge)
-    // would overlap the mini buttons and intercept clicks. Shift the
-    // pill ABOVE the row instead — it stays visible + clickable, and
-    // the mini buttons get their own clean target zone.
-    if (document.body.hasAttribute('data-ve-report')) {
-      desiredTop = rect.top + window.scrollY - 22;
-      desiredLeft = rect.left + window.scrollX + 8;
-    }
-    var pos = clampToViewport(commentHoverPill, desiredTop, desiredLeft, 8);
-    commentHoverPill.style.top = pos.top + 'px';
-    commentHoverPill.style.left = pos.left + 'px';
-    commentHoverPill.style.opacity = '1';
-    commentHoverPill.style.pointerEvents = 'auto';
+    // REMOVED per user request — this hover-pill ("💬 Comment this")
+    // duplicated the per-atom bubble handle (.ve-comment-handle).
+    // Both opened the same comment modal; having two affordances on
+    // the same element confused the UX. The bubble handle (gold for
+    // elements, teal for text snippets) is now the SOLE entry point.
+    // Function kept as a no-op so all existing call sites stay safe;
+    // tests open the modal via window.__veOpenCommentModal exposed
+    // from bootEverything().
+    actualHideCommentHoverPill();
+    if (el) commentHoverTarget = el;  // tracked for hover-debounce only
   }
 
   // Standard tooltip hover-bridge pattern: schedule the hide on mouseleave
@@ -6763,7 +7310,28 @@
       clearTimeout(commentModalState.pollHandle);
       commentModalState.pollHandle = null;
     }
-    if (commentModalState.anchorEl) commentModalState.anchorEl.removeAttribute('data-ve-comment-active');
+    if (commentModalState.anchorEl) {
+      commentModalState.anchorEl.removeAttribute('data-ve-comment-active');
+      // Snippet-anchor divs are transient placeholders created in
+      // showSnippetPopup() to give the connector line a real bbox to
+      // draw to (over the selected text). When the modal closes:
+      //   1. Remove the transient anchor div so it doesn\'t leak.
+      //   2. Restore the original text selection so the user can
+      //      re-comment on the same text without re-dragging. The
+      //      visual highlight (::highlight) stays applied while the
+      //      modal is open and is cleared here on close.
+      if (commentModalState.anchorEl.hasAttribute('data-ve-snippet-anchor')) {
+        if (commentModalState.anchorEl.parentNode) {
+          commentModalState.anchorEl.parentNode.removeChild(commentModalState.anchorEl);
+        }
+        // Restore the user\'s text selection so they can comment again
+        // on the same text. The ::selection paint comes back; the
+        // ::highlight overlay we used during the modal is no longer
+        // needed (selection paint covers the same bbox).
+        clearPreservedSnippetHighlight();
+        restorePreservedSelection();
+      }
+    }
     // If a drag was in progress when the close was triggered (e.g. user
     // clicked × mid-drag), tear it down explicitly — otherwise the
     // document-level mousemove/mouseup listeners would leak and the
@@ -7450,6 +8018,13 @@
     wireDecisionPills();         // TRDD-7a2dab03 v3 — per-element decision pills
     initReportMode();            // v4 — propagate data-ve-report to body
                                  // and inject .ve-decision-mini per atom
+    // Test hook — expose openCommentModal so headless tests can open
+    // the modal directly without going through the (now-removed)
+    // .ve-comment-pill hover UI. The bubble handle (.ve-comment-handle)
+    // remains the visible affordance for real users.
+    if (typeof window !== 'undefined') {
+      window.__veOpenCommentModal = openCommentModal;
+    }
   }
 
   // ─── v4 — Report mode init ───────────────────────────────────────────
@@ -7463,8 +8038,26 @@
     var report = document.querySelector('[data-ve-report]');
     if (!report) return;
     document.body.setAttribute('data-ve-report', '');
+    stripFakeHeadingCommentIds();
     injectDecisionMinis();
     injectBulkDefaultSwitch();
+  }
+
+  // Strip data-ve-comment-id from "fake heading" paragraphs (markdown
+  // `**Title**` → `<p><strong>Title</strong></p>`). Without this strip
+  // they keep the cursor:pointer + hover bg/glow that the generic
+  // `p[data-ve-comment-id]` CSS rules apply, even though
+  // findCommentAnchor() already excludes them from selection. The
+  // attribute removal makes them visually inert too, matching real
+  // <h*> tag behavior. Snippet text-drag selection still works
+  // normally inside them.
+  function stripFakeHeadingCommentIds() {
+    var ps = document.querySelectorAll('p[data-ve-comment-id]');
+    for (var i = 0; i < ps.length; i++) {
+      if (isFakeHeadingParagraph(ps[i])) {
+        ps[i].removeAttribute('data-ve-comment-id');
+      }
+    }
   }
 
   // Inject a "Set all decisions to: Skip / Approve / Deny" switch into the
@@ -7491,17 +8084,30 @@
     flash.className = 've-bulk-default-flash';
     flash.setAttribute('aria-live', 'polite');
 
+    // Each label is now ⟨colored unicode symbol⟩ + word, so the bulk
+    // switch ALSO works as a legend that maps the per-element mini-chip
+    // glyphs (﹅ blue / ✔︎ green / ✘ red) to their plain-English meaning.
     var specs = [
-      { value: 'skip',    text: 'Skip',    cls: 've-bulk-default-skip' },
-      { value: 'approve', text: 'Approve', cls: 've-bulk-default-approve' },
-      { value: 'deny',    text: 'Deny',    cls: 've-bulk-default-deny' },
+      { value: 'skip',    text: 'Skip',    symbol: '﹅', cls: 've-bulk-default-skip' },
+      { value: 'approve', text: 'Approve', symbol: '✔︎', cls: 've-bulk-default-approve' },
+      { value: 'deny',    text: 'Deny',    symbol: '✘', cls: 've-bulk-default-deny' },
     ];
     for (var i = 0; i < specs.length; i++) {
       (function (spec) {
         var btn = document.createElement('button');
         btn.type = 'button';
         btn.className = 've-bulk-default-seg ' + spec.cls;
-        btn.textContent = spec.text;
+        // Wrap the symbol in its own span so .ve-bulk-default-symbol CSS
+        // can color it independently of the surrounding word.
+        var sym = document.createElement('span');
+        sym.className = 've-bulk-default-symbol';
+        sym.textContent = spec.symbol;
+        var word = document.createElement('span');
+        word.className = 've-bulk-default-word';
+        word.textContent = spec.text;
+        btn.appendChild(sym);
+        btn.appendChild(document.createTextNode(' '));
+        btn.appendChild(word);
         btn.title = 'Mark every item as ' + spec.text + ' (replaces current selections)';
         btn.setAttribute('data-bulk-default', spec.value);
         btn.addEventListener('click', function (ev) {
@@ -7574,6 +8180,11 @@
       var atom = atoms[i];
       // Skip if already injected (idempotent on re-init).
       if (atom.querySelector(':scope > .ve-decision-mini, :scope > td.ve-decision-mini-cell')) continue;
+      // Skip "fake heading" paragraphs (`**Title**` rendered as
+      // <p><strong>Title</strong></p>) — visually they\'re headings,
+      // user expects no chip and no selection. Same gate as
+      // findCommentAnchor() / isSelectableAtom().
+      if (atom.tagName === 'P' && isFakeHeadingParagraph(atom)) continue;
       var key = atom.getAttribute('data-ve-pnum')
                 || atom.getAttribute('data-ve-comment-id')
                 || ('atom-' + i);
@@ -7596,7 +8207,7 @@
             var th = document.createElement('th');
             th.className = 've-decision-mini-cell';
             th.title = 'Skip / Approve / Deny';
-            th.textContent = 'S/A/D';
+            th.textContent = 'Your choice';
             headRow.appendChild(th);
           }
           if (table.dataset) table.dataset.veTableTag = tableId;
@@ -7616,9 +8227,15 @@
     span.setAttribute('role', 'radiogroup');
     span.setAttribute('data-ve-decision-key', key);
     var labels = [
-      { value: 'skip',    label: 'S', cls: 've-decision-mini-skip',    title: 'Skip — no opinion (default)' },
-      { value: 'approve', label: 'A', cls: 've-decision-mini-approve', title: 'Approve — accept this item' },
-      { value: 'deny',    label: 'D', cls: 've-decision-mini-deny',    title: 'Deny — reject this item' },
+      // Unicode glyphs (replace prior single-letter S/A/D which had a
+      // legibility bug — Skip selected painted white-on-white). Symbol
+      // semantics: ﹅ U+FE45 sesame-dot = neutral/skip (blue when picked),
+      // ✔︎ U+2714 + U+FE0E text-style check = approve (green), ✘ U+2718
+      // heavy ballot X = deny (red). Each segment\'s color comes from the
+      // symbol-color tokens defined in :root for both light and dark.
+      { value: 'skip',    label: '﹅',           cls: 've-decision-mini-skip',    title: 'Skip — no opinion (default)' },
+      { value: 'approve', label: '✔︎',     cls: 've-decision-mini-approve', title: 'Approve — accept this item' },
+      { value: 'deny',    label: '✘',           cls: 've-decision-mini-deny',    title: 'Deny — reject this item' },
     ];
     for (var i = 0; i < labels.length; i++) {
       var spec = labels[i];

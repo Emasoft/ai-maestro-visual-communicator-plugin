@@ -1,21 +1,39 @@
 -- Open a URL in a vertical iTerm2 split pane using the "Web Browser"
--- profile. Argument 1 = complete URL (`file://<abs-path>` for static
--- HTML/SVG, `http://localhost:<port>/...` for the runner's local server).
+-- profile.
+--
+-- USAGE:
+--     osascript open_preview.applescript <URL> [<caller-session-UUID>]
+--
+-- Argument 1 = complete URL (`file://<abs-path>` for static HTML/SVG,
+-- `http://localhost:<port>/...` for the runner's local server).
+--
+-- Argument 2 (optional but STRONGLY RECOMMENDED) = the calling shell's
+-- iTerm2 session UUID. iTerm2 exports it on every shell session as
+-- `$ITERM_SESSION_ID = w<W>t<T>p<P>:<UUID>`; the caller should strip the
+-- `wXtXpX:` prefix and pass just the UUID, e.g. in bash:
+--
+--     osascript open_preview.applescript "$URL" "${ITERM_SESSION_ID##*:}"
+--
+-- When the UUID is supplied we walk every iTerm window+tab+session and
+-- split the EXACT session that matches — guaranteeing the preview pane
+-- lands in the caller's own tab, not in whatever tab the user happens
+-- to have focused at the moment of dispatch (the original bug: a script
+-- called from a backgrounded Claude session opened the pane in a
+-- different tab where the user was actively typing).
+--
+-- When the UUID is omitted (legacy/manual osascript invocation) we fall
+-- back to splitting the current session of the current tab of the
+-- current window, with a stderr warning so the silent-tab-mismatch
+-- failure mode is at least loud when it happens.
 --
 -- Architecture: AppleScript creates the split-pane (the only thing
 -- iTerm2's AppleScript surface can do for Web-Browser sessions); the
 -- actual page navigation is delegated to the iTerm2 Python API via
--- `navigate_iterm2_browser_pane.py`. This is the official path —
--- iTerm2's sdef has no `URL`, `browse to`, or `load url` AppleScript
--- command; `write text URL` only writes to a SHELL session and
--- silently no-ops on a Web-Browser session, which is why the original
--- downloads_dev/iterm2-preview skill never actually navigated.
---
--- Defense-in-depth check: if iTerm2 is not running we abort with a clear
--- error before tell-block coercion happens. The Python-side
--- detect_iterm2.py script is the primary check (Step 0 in SKILL.md AND
--- in scripts/amvcp-select.py's iterm-or-chrome dispatch); this AppleScript
--- guard is the safety net for direct osascript invocations.
+-- `navigate_iterm2_browser_pane.py`. iTerm2's sdef has no `URL`,
+-- `browse to`, or `load url` AppleScript command; `write text URL`
+-- only writes to a SHELL session and silently no-ops on a Web-Browser
+-- session, which is why the original downloads_dev/iterm2-preview
+-- skill never actually navigated.
 on run argv
     if (count of argv) is 0 then
         error "open_preview.applescript: missing argument (complete URL — file:// or http://)"
@@ -36,14 +54,14 @@ on run argv
     -- We set BOTH keys defensively. Empirically iTerm2 sometimes dims even
     -- when `DimInactiveSplitPanes` is false because the dim *amount* is
     -- non-zero — `SplitPaneDimmingAmount = 0.0` is the belt-and-braces fix.
-    -- Both writes are idempotent (no-op when value is already what we want).
-    -- The change is live: iTerm2 reads these at render time, no restart
-    -- required. User can re-enable via Settings → Appearance → Dimming if
-    -- they want the old behaviour back.
     do shell script "defaults write com.googlecode.iterm2 DimInactiveSplitPanes -bool false"
     do shell script "defaults write com.googlecode.iterm2 SplitPaneDimmingAmount -float 0.0"
 
     set pageURL to item 1 of argv
+    set callerUUID to ""
+    if (count of argv) >= 2 then
+        set callerUUID to item 2 of argv
+    end if
 
     -- Target vanilla iTerm.app explicitly via its bundle id so this script
     -- doesn't get routed to a fork (e.g. iTermAI.app, bundle
@@ -51,17 +69,79 @@ on run argv
     -- iTerm-named apps registered. The vanilla bundle id is unambiguous.
     tell application id "com.googlecode.iterm2"
         activate
-        tell current window
-            tell current tab
-                tell current session
-                    set newPane to split vertically with profile "Web Browser"
-                end tell
-                -- Capture the new session's UUID for the Python navigation
-                -- step. iTerm2's `id` property on a session returns the same
-                -- UUID the Python API uses in `app.get_session_by_id(...)`.
-                set newSessionId to id of newPane
-            end tell
+
+        -- Locate the caller's session by UUID. iTerm2 sets a session
+        -- `id` property equal to its UUID (matching `$ITERM_SESSION_ID`
+        -- after the `wXtXpX:` prefix is stripped). We iterate every
+        -- window's tabs' sessions to find the one whose id matches.
+        -- Iteration is fast (typical iTerm: <10 windows × <20 tabs × <5
+        -- sessions = <1000 nodes) and unambiguous — no race against the
+        -- user changing focus mid-call.
+        set targetSession to missing value
+        set targetTab to missing value
+        if callerUUID is not "" then
+            repeat with w in windows
+                repeat with t in tabs of w
+                    repeat with s in sessions of t
+                        try
+                            if (id of s as string) is callerUUID then
+                                set targetSession to s
+                                set targetTab to t
+                                exit repeat
+                            end if
+                        end try
+                    end repeat
+                    if targetSession is not missing value then exit repeat
+                end repeat
+                if targetSession is not missing value then exit repeat
+            end repeat
+        end if
+
+        -- Fallback: caller didn't pass UUID, OR the UUID didn't match
+        -- any live session (caller's tab/window was closed since
+        -- launch). Use current-session-of-current-tab-of-current-window
+        -- with a log line so the user can debug "why did the pane
+        -- appear in tab X instead of tab Y".
+        if targetSession is missing value then
+            if callerUUID is "" then
+                log "open_preview.applescript: no caller UUID supplied — splitting CURRENT session (may land in wrong tab if focus changed)"
+            else
+                log "open_preview.applescript: caller UUID " & callerUUID & " not found — falling back to CURRENT session"
+            end if
+            set targetTab to current tab of current window
+            set targetSession to current session of targetTab
+        end if
+
+        -- ── GLOBAL SAFEGUARD: ONE PREVIEW PANE PER SHELL ────────────────
+        -- Before splitting, close any existing Web Browser sessions
+        -- (sessions with `tty = missing value`) in the caller\'s tab.
+        -- Without this, repeated open_preview calls from the same shell
+        -- stack panes side-by-side until the tab is unusable. Identifying
+        -- preview panes by absence-of-tty is the same heuristic
+        -- close_preview.applescript uses — shell sessions ALWAYS have a
+        -- /dev/ttysNN, Web Browser sessions never do.
+        tell targetTab
+            set staleSessions to {}
+            repeat with s in sessions
+                try
+                    set sTty to tty of s
+                    if sTty is missing value then
+                        set end of staleSessions to s
+                    end if
+                end try
+            end repeat
+            repeat with s in staleSessions
+                try
+                    tell s to close
+                end try
+            end repeat
         end tell
+
+        tell targetSession
+            set newPane to split vertically with profile "Web Browser"
+        end tell
+        -- Capture the new session's UUID for the Python navigation step.
+        set newSessionId to id of newPane
     end tell
 
     -- Hand off to the Python helper for actual page navigation. We pass
@@ -82,24 +162,15 @@ on run argv
     -- something went wrong.
     set scriptDir to (do shell script "dirname " & quoted form of (POSIX path of (path to me as text)))
     set navScript to scriptDir & "/navigate_iterm2_browser_pane.py"
-    -- Invoke via `uv run --script` so the iterm2 module is auto-installed
-    -- on first use (cached after that). The script itself uses a plain
-    -- `#!/usr/bin/env python3` shebang because CPV strict mode flags
-    -- non-Python shebangs as MINOR — the inline PEP 723 metadata block
-    -- (# /// script ... # ///) tells uv which deps to fetch.
     try
         do shell script "uv run --quiet --with iterm2 --script " & quoted form of navScript & " " & quoted form of newSessionId & " " & quoted form of pageURL & " " & quoted form of "amvcp Preview"
     on error errMsg
-        -- Surface the navigation error but DON'T abort — pane is open and
-        -- usable; user can navigate manually if Python API setup is missing.
         log "open_preview.applescript: navigation failed (" & errMsg & ") — pane open, navigate manually via URL bar"
     end try
 
     -- Return the new session UUID as the script's stdout. The runner
     -- (`scripts/amvcp-select.py:launch_iterm2_split`) captures this and
     -- passes it to `close_iterm2_pane()` on selection received, so the
-    -- preview pane auto-closes when the user clicks Submit/Exit (mirror
-    -- of how Chrome --app=URL mode kills its window on selection).
-    -- Manual ad-hoc users can ignore the trailing UUID line.
+    -- preview pane auto-closes when the user clicks Submit/Exit.
     return newSessionId
 end run
