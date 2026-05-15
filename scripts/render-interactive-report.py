@@ -24,8 +24,14 @@ emits the page with no prior rounds and the textareas pristine.
 
 `--out` defaults to <report>.html alongside the source.
 
-The generated page links the runtime as `<script src="amvcp-runtime.js">`
-by default. Override with `--runtime-url`.
+The generated page links the DESIGN.md style engine as
+`<script src="amvcp-designmd.js">` and the runtime as
+`<script src="amvcp-runtime.js">` (the engine MUST load first so
+`window.amvcpDesignMd` exists when the runtime boots). Override the
+two URLs with `--designmd-url` / `--runtime-url`. When either URL is a
+bare local filename, the matching file is copied from this script's
+`scripts/` directory next to the output HTML so the page is
+self-contained.
 """
 from __future__ import annotations
 
@@ -34,6 +40,7 @@ import hashlib
 import html
 import json
 import re
+import shutil
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -581,10 +588,58 @@ PAGE_TEMPLATE = """<!DOCTYPE html>
     {findings_html}
   </article>
 </main>
+<!-- The DESIGN.md style engine MUST load BEFORE the runtime so
+     window.amvcpDesignMd is installed by the time the runtime boots
+     and applies the page tokens. -->
+<script src="{designmd_url}"></script>
 <script src="{runtime_url}"></script>
 </body>
 </html>
 """
+
+
+def _is_bare_local_filename(url: str) -> bool:
+    """True when `url` is a plain filename the page expects to sit next to
+    the HTML (so the renderer should copy the asset there).
+
+    A bare local filename has no scheme (`http:`, `data:`, `//`), no path
+    separator, and is not empty. Anything else (a CDN URL, an absolute
+    path, a `../` reference) is the caller's responsibility — the
+    renderer leaves it untouched.
+    """
+    if not url:
+        return False
+    if "://" in url or url.startswith("//"):
+        return False
+    if "/" in url or "\\" in url:
+        return False
+    return True
+
+
+def _copy_asset_beside_output(url: str, out_dir: Path) -> None:
+    """Copy `scripts/<url>` next to the rendered HTML when `url` is a bare
+    local filename. Makes the output page self-contained.
+
+    Fail-fast: if the URL names a local file but the source asset is
+    missing under this script's `scripts/` directory, raise — a rendered
+    page that references a script that was never shipped is broken, and
+    silently emitting it would only surface as a blank page later.
+    """
+    if not _is_bare_local_filename(url):
+        return
+    src = Path(__file__).resolve().parent / url
+    if not src.exists():
+        raise FileNotFoundError(
+            f"render-interactive-report: cannot ship '{url}' — "
+            f"source asset not found at {src}"
+        )
+    dest = out_dir / url
+    # Skip the copy when source and destination are the same file (e.g.
+    # rendering straight into the scripts/ directory) so we never trip
+    # shutil's SameFileError.
+    if dest.resolve() == src.resolve():
+        return
+    shutil.copy2(src, dest)
 
 
 def render_finding_html(f: Finding, prior_rounds: list[dict]) -> str:
@@ -714,7 +769,15 @@ def render_finding_html(f: Finding, prior_rounds: list[dict]) -> str:
     )
 
 
-def render(report_md: str, replies: dict, *, title: str, runtime_url: str, mode: str = "finding") -> tuple[str, dict]:
+def render(
+    report_md: str,
+    replies: dict,
+    *,
+    title: str,
+    runtime_url: str,
+    designmd_url: str = "amvcp-designmd.js",
+    mode: str = "finding",
+) -> tuple[str, dict]:
     """Returns (html_doc, idmap). idmap maps every commentId → metadata."""
     _reset_idmap()
     rep = parse_report(report_md, mode=mode)
@@ -741,6 +804,7 @@ def render(report_md: str, replies: dict, *, title: str, runtime_url: str, mode:
         warning_block=warning_block,
         preamble_html=md_to_html(rep.preamble_md),
         findings_html="\n".join(findings_blocks),
+        designmd_url=html.escape(designmd_url),
         runtime_url=html.escape(runtime_url),
     )
     return page, dict(_idmap)
@@ -768,6 +832,15 @@ def main(argv: list[str] | None = None) -> int:
         "--runtime-url",
         default="amvcp-runtime.js",
         help="src for the <script> tag that loads the runtime (default: amvcp-runtime.js)",
+    )
+    p.add_argument(
+        "--designmd-url",
+        default="amvcp-designmd.js",
+        help=(
+            "src for the <script> tag that loads the DESIGN.md style "
+            "engine, emitted BEFORE the runtime script "
+            "(default: amvcp-designmd.js)"
+        ),
     )
     p.add_argument(
         "--mode",
@@ -811,9 +884,19 @@ def main(argv: list[str] | None = None) -> int:
         report_md, replies,
         title=title,
         runtime_url=args.runtime_url,
+        designmd_url=args.designmd_url,
         mode=args.mode,
     )
     out_path.write_text(html_doc, encoding="utf-8")
+    # Ship the engine + runtime with the page: when either URL is a bare
+    # local filename, copy the matching asset from this script's
+    # scripts/ directory next to the output HTML so the rendered page is
+    # self-contained (no separate copy step needed). The DESIGN.md
+    # engine MUST be present because the runtime calls into
+    # window.amvcpDesignMd on boot.
+    out_dir = out_path.resolve().parent
+    _copy_asset_beside_output(args.designmd_url, out_dir)
+    _copy_asset_beside_output(args.runtime_url, out_dir)
     # v2: write the idmap sidecar so the orchestrator can dereference
     # commentIds. Path is alongside the report (NOT the html) so the
     # mapping survives re-renders to different output locations.

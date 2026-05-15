@@ -42,19 +42,36 @@ PORT = 8767
 
 
 def sync_runtime_into_fixtures() -> None:
-    """Copy the production amvcp-runtime.js + amvcp-regex.* into fixtures/.
+    """Copy the production runtime + engine bundles into fixtures/.
 
-    The fixtures HTML uses bare relative URLs (`<script src="amvcp-runtime.js">`)
-    so they must sit beside the HTML files. This is the same dance
-    `tests_dev/` does — we replicate it under tests/ so the runner is
-    fully self-contained.
+    The fixtures HTML uses bare relative URLs (`<script src="amvcp-runtime.js">`,
+    `<script src="amvcp-designmd.js">`) so the bundles must sit beside the
+    HTML files. This is the same dance `tests_dev/` does — we replicate it
+    under tests/ so the runner is fully self-contained.
+
+    `amvcp-designmd.js` (the Phase-1b DESIGN.md style engine) is included
+    so the engine fixtures load the current source even on a checkout
+    where the `fixtures/amvcp-designmd.js` symlink is absent. When the
+    symlink IS present it already points at the source, so the copy is
+    skipped (it would otherwise be a no-op SameFileError).
     """
     src = PLUGIN_ROOT / "scripts"
-    for name in ("amvcp-runtime.js", "amvcp-regex.umd.js", "amvcp-regex.css"):
+    for name in (
+        "amvcp-runtime.js",
+        "amvcp-designmd.js",
+        "amvcp-regex.umd.js",
+        "amvcp-regex.css",
+    ):
         s = src / name
         d = FIXTURES / name
-        if s.exists():
-            shutil.copy2(s, d)
+        if not s.exists():
+            continue
+        # When `d` is a symlink back to `s` (the checked-in fixtures
+        # symlink), source and destination are the same file — skip to
+        # avoid shutil.SameFileError and to leave the symlink intact.
+        if d.exists() and d.resolve() == s.resolve():
+            continue
+        shutil.copy2(s, d)
 
 
 def regenerate_sample_report() -> None:

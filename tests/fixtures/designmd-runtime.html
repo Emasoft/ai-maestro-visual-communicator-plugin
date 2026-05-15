@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DESIGN.md engine runtime-integration fixture</title>
+<style>
+  body { margin: 0; padding: 32px 24px; background: #faf6ee; color: #1f1a14;
+         font: 16px/1.5 system-ui, -apple-system, sans-serif; }
+  main { max-width: 86ch; margin: 0 auto; }
+</style>
+</head>
+<body>
+<main>
+  <h1>DESIGN.md engine — runtime integration (Phase 1b)</h1>
+  <p>This fixture embeds a DESIGN.md block. On boot, amvcp-runtime.js parses
+     it, resolves the tokens for the active theme, and applies every
+     <code>--vc-*</code> custom property to <code>:root</code>.</p>
+  <p>The dev-browser test drives the engine via the
+     <code>window.__veDesignMd</code> hook: hot-swap a second DESIGN.md,
+     toggle the theme, drive the schema-generated controller pad, and
+     round-trip an Export.</p>
+</main>
+
+<!-- Embedded DESIGN.md — the engine's token source of truth for this
+     page. A distinct "Fixture-A" palette so the test can tell an
+     embedded apply apart from the runtime's built-in default. -->
+<script type="text/design-md" id="ve-designmd">
+---
+designmd_version: 1
+meta:
+  name: "Fixture A"
+  default_theme: light
+colors:
+  light:
+    canvas:          "#eef4ff"
+    surface:         "#ffffff"
+    surface-raised:  "#f7faff"
+    surface-sunken:  "#dde7fb"
+    content:         "#101828"
+    content-muted:   "#475467"
+    content-subtle:  "#98a2b3"
+    border:          "#d0d8e8"
+    border-strong:   "#aab6cf"
+    accent:          "#2e6fdb"
+    on-accent:       "#ffffff"
+    success:         "#1f8a5a"
+    warning:         "#b9770e"
+    danger:          "#c0392b"
+    info:            "#2e6fdb"
+  dark:
+    canvas:          "#0b1220"
+    surface:         "#141d2e"
+    surface-raised:  "#1c2740"
+    surface-sunken:  "#070b14"
+    content:         "#e7edf8"
+    content-muted:   "#aab6cf"
+    content-subtle:  "#6b7894"
+    border:          "#2a3550"
+    border-strong:   "#3f4d6f"
+    accent:          "#5a93f0"
+    on-accent:       "#0b1220"
+    success:         "#52b88a"
+    warning:         "#d8a13e"
+    danger:          "#e0685a"
+    info:            "#5a93f0"
+typography:
+  font-heading: "Iowan Old Style, Georgia, serif"
+  font-body:    "Inter, system-ui, sans-serif"
+  font-mono:    "JetBrains Mono, ui-monospace, monospace"
+  scale:        [12, 14, 16, 20, 24, 32, 48]
+  weight-regular: 400
+  weight-medium:  500
+  weight-bold:    700
+  line-height:    1.5
+spacing:
+  scale: [4, 8, 12, 16, 24, 32, 48, 64]
+radius:
+  none: 0
+  sm:   4
+  md:   8
+  lg:   12
+  xl:   16
+  full: 9999
+elevation:
+  shadow-sm: "0 1px 2px rgba(0,0,0,0.08)"
+  shadow-md: "0 4px 12px rgba(0,0,0,0.12)"
+  shadow-lg: "0 12px 32px rgba(0,0,0,0.18)"
+motion:
+  duration-fast:   120
+  duration-normal: 200
+  duration-slow:   400
+  easing-standard: "cubic-bezier(0.2,0,0,1)"
+  easing-accel:    "cubic-bezier(0.3,0,1,1)"
+  easing-decel:    "cubic-bezier(0,0,0,1)"
+---
+
+# Fixture A — embedded DESIGN.md
+
+The prose body is not parsed by the engine; only the YAML frontmatter
+above is the token source of truth.
+</script>
+
+<!-- The engine MUST load before the runtime so window.amvcpDesignMd
+     exists when amvcp-runtime.js boots. Served via the
+     tests/fixtures/amvcp-designmd.js symlink → ../../scripts/. -->
+<script src="amvcp-designmd.js"></script>
+<script src="amvcp-runtime.js"></script>
+</body>
+</html>

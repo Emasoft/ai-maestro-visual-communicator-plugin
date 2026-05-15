@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>DESIGN.md engine test fixture</title>
+<style>
+  body { margin: 0; padding: 32px; background: #faf6ee; color: #1f1a14;
+         font: 16px/1.5 system-ui, -apple-system, sans-serif; }
+  main { max-width: 86ch; margin: 0 auto; }
+  /* A dedicated probe element applyTokens() writes onto, so the test can
+     read the resulting --vc-* custom properties off a known node. */
+  #vc-probe { width: 1px; height: 1px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>DESIGN.md engine test fixture</h1>
+  <p>Loads scripts/amvcp-designmd.js as a browser global. The dev-browser
+     test drives <code>window.amvcpDesignMd</code> directly.</p>
+  <div id="vc-probe"></div>
+</main>
+<!-- Served via the tests/fixtures/amvcp-designmd.js symlink → ../../scripts/. -->
+<script src="amvcp-designmd.js"></script>
+</body>
+</html>

@@ -224,28 +224,69 @@
       // page to brand the runtime UI; set --ve-control-bg:transparent to
       // suppress runtime backgrounds entirely.
       ':root {',
+      // ─── DESIGN.md foundation bindings (Phase 1c) ────────────────────
+      // The runtime's hundreds of CSS rules read a handful of FOUNDATION
+      // tokens — the host palette (--bg/--surface/--text/--text-dim/
+      // --border/--border-bright/--accent), --ve-blueprint-bg, and the
+      // --ve-* control tokens below. Phase 1c sources each foundation
+      // token from the matching DESIGN.md token (--vc-*), keeping the
+      // historic hardcoded value as the var() fallback. The DESIGN.md
+      // engine (bootDesignMdEngine) always applies a token set — an
+      // embedded <script type="text/design-md">, or the built-in
+      // DEFAULT_DESIGNMD — so --vc-* are present on :root from frame 1
+      // and the fallbacks only matter if the engine script is absent.
+      // Hot-swapping a DESIGN.md re-sets the --vc-* values, and because
+      // every foundation token is `var(--vc-…)`, the whole page
+      // restyles live with no reload. Component CSS rules are NOT
+      // rewritten — they keep reading the foundation tokens unchanged.
+      //
+      // Host palette: --bg/--surface/--text/etc. are consumed by the
+      // runtime via `var(--bg, …)` but were never defined here before.
+      // Defining them now (sourced from --vc-color-*) is what lets a
+      // DESIGN.md drive page background, text colour and surfaces.
+      '  --bg: var(--vc-color-canvas, #faf6ee);',
+      '  --surface: var(--vc-color-surface, #ffffff);',
+      '  --text: var(--vc-color-content, #14110b);',
+      '  --text-dim: var(--vc-color-content-muted, #5b5343);',
+      '  --border: var(--vc-color-border, #e3dcc9);',
+      '  --border-bright: var(--vc-color-border-strong, #c9bfa3);',
+      '  --accent: var(--vc-color-accent, #b8861f);',
+      // The light-theme blueprint grid + the html background both read
+      // --ve-blueprint-bg; bind it to the canvas colour so the page
+      // base follows the DESIGN.md.
+      '  --ve-blueprint-bg: var(--vc-color-canvas, #faf6ee);',
       // --ve-accent is the single source of truth for the warm "honey
       // brown" tone used by selection cells, code-block borders, hover
       // outlines, etc. EVERY runtime CSS rule ultimately reads this.
-      // Setting it explicitly here guarantees that calls like
-      // `var(--ve-accent, currentColor)` (which exist for backwards
-      // compat) never silently fall back to currentColor — which on a
-      // light page = near-black text and made hover outlines look black.
+      // Phase 1c sources it from --vc-color-accent so a DESIGN.md
+      // recolours every accented surface; the hardcoded #b8861f stays
+      // as the fallback so calls like `var(--ve-accent, currentColor)`
+      // (which exist for backwards compat) never silently fall back to
+      // currentColor — which on a light page = near-black text and
+      // made hover outlines look black.
       // --ve-accent-dark is a slightly deeper brown used for the
       // outer ring on hover/focus, so the two-tone reads as "warm
       // brown getting deeper outside" instead of "gold inside, black
-      // outside".
-      '  --ve-accent: #b8861f;',
-      '  --ve-accent-dark: #6e4d18;',
-      '  --ve-control-bg: var(--surface, #ffffff);',
+      // outside". DESIGN.md has no dedicated dark-accent token, so it
+      // sources from --vc-color-border-strong (the deepest warm tone
+      // in the palette) and keeps #6e4d18 as the fallback.
+      '  --ve-accent: var(--vc-color-accent, #b8861f);',
+      '  --ve-accent-dark: var(--vc-color-border-strong, #6e4d18);',
+      '  --ve-control-bg: var(--vc-color-surface, var(--surface, #ffffff));',
       '  --ve-control-bg-hover: color-mix(in srgb, var(--ve-control-bg, #fff) 88%, var(--ve-accent, var(--accent, #555)) 12%);',
-      '  --ve-control-fg: var(--text, #14110b);',
-      '  --ve-control-fg-dim: var(--text-dim, color-mix(in srgb, var(--ve-control-fg, #14110b) 60%, transparent));',
-      '  --ve-control-border: var(--border, rgba(0,0,0,0.12));',
-      '  --ve-control-border-strong: var(--border-bright, color-mix(in srgb, var(--ve-control-border, rgba(0,0,0,0.12)) 100%, var(--ve-control-fg, #14110b) 18%));',
-      '  --ve-control-radius: 8px;',
-      '  --ve-control-radius-sm: 6px;',
-      '  --ve-control-font: inherit;',
+      '  --ve-control-fg: var(--vc-color-content, var(--text, #14110b));',
+      '  --ve-control-fg-dim: var(--vc-color-content-muted, var(--text-dim, color-mix(in srgb, var(--ve-control-fg, #14110b) 60%, transparent)));',
+      '  --ve-control-border: var(--vc-color-border, var(--border, rgba(0,0,0,0.12)));',
+      '  --ve-control-border-strong: var(--vc-color-border-strong, var(--border-bright, color-mix(in srgb, var(--ve-control-border, rgba(0,0,0,0.12)) 100%, var(--ve-control-fg, #14110b) 18%)));',
+      '  --ve-control-radius: var(--vc-radius-md, 8px);',
+      '  --ve-control-radius-sm: var(--vc-radius-sm, 6px);',
+      // Control + code-block fonts follow the DESIGN.md typography.
+      // --ve-control-font kept `inherit` as the fallback so a host page
+      // with no DESIGN.md engine still inherits its own body font.
+      // --ve-control-mono is referenced by the DESIGN.md panel rules
+      // (and any code chrome) — bind it to the mono family.
+      '  --ve-control-font: var(--vc-font-body, inherit);',
+      '  --ve-control-mono: var(--vc-font-mono, ui-monospace, Menlo, monospace);',
       '  --ve-control-shadow: 0 6px 22px rgba(0,0,0,0.16), 0 1px 2px rgba(0,0,0,0.08);',
       '  --ve-control-shadow-soft: 0 2px 8px rgba(0,0,0,0.10);',
       '  --ve-control-overlay-bg: color-mix(in srgb, var(--bg, #ffffff) 82%, transparent);',
@@ -7992,10 +8033,978 @@
     html.setAttribute('data-ve-theme', lum > 0.5 ? 'light' : 'dark');
   }
 
+  // ═══════════════════════════════════════════════════════════════════
+  // DESIGN.md realtime style engine — runtime integration (Phase 1b,
+  // TRDD-352ef46a).
+  //
+  // Phase 1a shipped scripts/amvcp-designmd.js — the parser + token
+  // mapper, exposed as window.amvcpDesignMd. Phase 1b wires it into the
+  // page: apply a DESIGN.md's tokens on boot, hot-swap a replacement
+  // DESIGN.md live, and surface every token in a floating
+  // style-controller pad generated from amvcpDesignMd.tokenSchema.
+  //
+  // Phase 1b ONLY ADDS the engine — it does NOT migrate the runtime's
+  // existing --ve-* component CSS to consume the --vc-* tokens (that is
+  // Phase 1c). The --vc-* custom properties land on :root so any future
+  // CSS, and any host page, can read them immediately.
+  // ═══════════════════════════════════════════════════════════════════
+
+  // The built-in default DESIGN.md. Used when the page embeds no
+  // <script type="text/design-md"> block, so the --vc-* tokens always
+  // resolve to a coherent, schema-valid set. It is a neutral warm
+  // scheme (the same "Heritage" palette the Phase-1a sample uses) with
+  // both light and dark fully defined — never one inferred from the
+  // other. Authored inline (no string-concat tricks) so it is trivially
+  // diffable and obviously valid against the canonical v1 schema.
+  var DEFAULT_DESIGNMD_TEXT = [
+    '---',
+    'designmd_version: 1',
+    'meta:',
+    '  name: "Visual Communicator default"',
+    '  default_theme: light',
+    'colors:',
+    '  light:',
+    '    canvas:          "#faf6ee"',
+    '    surface:         "#ffffff"',
+    '    surface-raised:  "#fffdf8"',
+    '    surface-sunken:  "#f1ece0"',
+    '    content:         "#1f1a14"',
+    '    content-muted:   "#5b5343"',
+    '    content-subtle:  "#8a8170"',
+    '    border:          "#e3dcc9"',
+    '    border-strong:   "#c9bfa3"',
+    '    accent:          "#b8861f"',
+    '    on-accent:       "#ffffff"',
+    '    success:         "#3a6b5c"',
+    '    warning:         "#a8791f"',
+    '    danger:          "#a84a32"',
+    '    info:            "#3464a8"',
+    '  dark:',
+    '    canvas:          "#16130d"',
+    '    surface:         "#211c14"',
+    '    surface-raised:  "#2a241a"',
+    '    surface-sunken:  "#0f0d09"',
+    '    content:         "#f3ecdd"',
+    '    content-muted:   "#b8ad96"',
+    '    content-subtle:  "#857c68"',
+    '    border:          "#3a3325"',
+    '    border-strong:   "#564c36"',
+    '    accent:          "#e0aa3e"',
+    '    on-accent:       "#16130d"',
+    '    success:         "#6fae9b"',
+    '    warning:         "#d8aa54"',
+    '    danger:          "#dd8068"',
+    '    info:            "#6f9bd8"',
+    'typography:',
+    '  font-heading: "Playfair Display, Georgia, serif"',
+    '  font-body:    "Inter, system-ui, sans-serif"',
+    '  font-mono:    "JetBrains Mono, ui-monospace, monospace"',
+    '  scale:        [12, 14, 16, 20, 24, 32, 48]',
+    '  weight-regular: 400',
+    '  weight-medium:  500',
+    '  weight-bold:    700',
+    '  line-height:    1.55',
+    'spacing:',
+    '  scale: [4, 8, 12, 16, 24, 32, 48, 64]',
+    'radius:',
+    '  none: 0',
+    '  sm:   4',
+    '  md:   8',
+    '  lg:   12',
+    '  xl:   16',
+    '  full: 9999',
+    'elevation:',
+    '  shadow-sm: "0 1px 2px rgba(0,0,0,0.08)"',
+    '  shadow-md: "0 4px 12px rgba(0,0,0,0.12)"',
+    '  shadow-lg: "0 12px 32px rgba(0,0,0,0.18)"',
+    'motion:',
+    '  duration-fast:   120',
+    '  duration-normal: 200',
+    '  duration-slow:   400',
+    '  easing-standard: "cubic-bezier(0.2,0,0,1)"',
+    '  easing-accel:    "cubic-bezier(0.3,0,1,1)"',
+    '  easing-decel:    "cubic-bezier(0,0,0,1)"',
+    '---',
+    '',
+    '# Visual Communicator — default design system',
+    '',
+    'This is the runtime built-in default DESIGN.md. A page that embeds',
+    'its own `<script type="text/design-md">` block overrides it; loading',
+    'a replacement through the style-controller pad replaces it live.'
+  ].join('\n');
+
+  // Engine state. `designmd` is the currently-applied parsed DESIGN.md
+  // (or null until the engine boots); `theme` is the theme its --vc-*
+  // colors were last resolved for. A hot-swap or a theme toggle mutates
+  // these in lockstep with what is actually on :root, so there is one
+  // source of truth — never a copy that can drift.
+  var veDesignMdState = {
+    designmd: null,
+    theme: 'light'
+  };
+
+  // The DOM id of the floating style-controller panel and its toggle.
+  var VE_DESIGNMD_PANEL_ID = 've-designmd-panel';
+  var VE_DESIGNMD_TOGGLE_ID = 've-designmd-toggle';
+
+  // Resolve the active theme the same way the rest of the runtime does:
+  // detectAndStampTheme() has already stamped data-ve-theme on <html>.
+  // Falls back to the DESIGN.md's own default_theme, then to 'light'.
+  function veDesignMdResolveTheme(designmd) {
+    var stamped = document.documentElement.getAttribute('data-ve-theme');
+    if (stamped === 'light' || stamped === 'dark') {
+      return stamped;
+    }
+    if (designmd && designmd.meta &&
+        (designmd.meta.default_theme === 'light' ||
+         designmd.meta.default_theme === 'dark')) {
+      return designmd.meta.default_theme;
+    }
+    return 'light';
+  }
+
+  // Apply a parsed designmd's tokens to :root for `theme`, and record
+  // both in veDesignMdState. This is the ONLY place --vc-* values are
+  // pushed to the document, so state and DOM never diverge. Throws if
+  // the engine module is missing — fail-fast, no silent no-op.
+  function veDesignMdApply(designmd, theme) {
+    var api = window.amvcpDesignMd;
+    if (!api || typeof api.resolveTokens !== 'function' ||
+        typeof api.applyTokens !== 'function') {
+      throw new Error(
+        'DESIGN.md engine: window.amvcpDesignMd is not loaded — the ' +
+        'amvcp-designmd.js script must load before amvcp-runtime.js'
+      );
+    }
+    var map = api.resolveTokens(designmd, theme);
+    api.applyTokens(map, document.documentElement);
+    veDesignMdState.designmd = designmd;
+    veDesignMdState.theme = theme;
+  }
+
+  // Parse `text` as a DESIGN.md and apply it for the current active
+  // theme. Returns the parser result { ok, designmd, errors }. On a
+  // parse failure NOTHING is applied (fail-fast — no partial token set);
+  // the caller surfaces `errors`.
+  function veDesignMdLoadText(text) {
+    var api = window.amvcpDesignMd;
+    if (!api || typeof api.parseDesignMd !== 'function') {
+      return {
+        ok: false,
+        designmd: null,
+        errors: ['DESIGN.md engine: window.amvcpDesignMd is not loaded']
+      };
+    }
+    var res = api.parseDesignMd(text);
+    if (!res.ok) {
+      // Fail loud: do not touch :root with a half-valid token set.
+      return res;
+    }
+    var theme = veDesignMdResolveTheme(res.designmd);
+    veDesignMdApply(res.designmd, theme);
+    return res;
+  }
+
+  // Read the embedded DESIGN.md, if the page ships one. The block is
+  // <script type="text/design-md" id="ve-designmd">…</script> — a
+  // non-executable script element, so its raw text is the DESIGN.md.
+  //
+  // The script-element wrapper inevitably introduces a leading newline
+  // (the `---` fence cannot sit on the same line as the opening `>` and
+  // stay readable) and usually a trailing newline before `</script>`.
+  // Neither is part of the DESIGN.md payload — its content runs from
+  // the `---` fence to the end of the prose — so the outer whitespace
+  // is trimmed here. parseDesignMd is fail-fast about a `---` not being
+  // on line 1, so this trim is what makes a hand-authored embedded
+  // block parse at all.
+  function veDesignMdReadEmbedded() {
+    var el = document.getElementById('ve-designmd');
+    if (el && el.getAttribute('type') === 'text/design-md') {
+      return String(el.textContent || '').replace(/^\s+/, '').replace(/\s+$/, '');
+    }
+    // Tolerate the id being on a differently-typed node only when the
+    // type explicitly marks it as DESIGN.md — otherwise ignore it.
+    var any = document.querySelector('script[type="text/design-md"]');
+    if (any) {
+      return String(any.textContent || '').replace(/^\s+/, '').replace(/\s+$/, '');
+    }
+    return null;
+  }
+
+  // Boot the DESIGN.md engine: apply the page's embedded DESIGN.md, or
+  // the built-in default when there is none, so --vc-* always resolve.
+  // A malformed embedded block is a hard error — the runtime logs it
+  // and falls back to the built-in default so the page still has a
+  // coherent token set, but it never silently applies a partial one.
+  function bootDesignMdEngine() {
+    if (!window.amvcpDesignMd) {
+      // The engine script was not shipped with the page. Phase 1b
+      // depends on it; without it --vc-* simply will not exist. Log
+      // once and continue — the runtime's existing --ve-* CSS is
+      // unaffected (Phase 1c is what makes --vc-* load-bearing).
+      if (window.console && console.warn) {
+        console.warn(
+          'DESIGN.md engine: amvcp-designmd.js not loaded — ' +
+          '--vc-* tokens will be absent. Ship it before amvcp-runtime.js.'
+        );
+      }
+      return;
+    }
+    var embedded = veDesignMdReadEmbedded();
+    if (embedded !== null) {
+      var res = veDesignMdLoadText(embedded);
+      if (res.ok) {
+        return;
+      }
+      // Embedded block is malformed — surface it, then fall through to
+      // the built-in default so the page is not left token-less.
+      if (window.console && console.error) {
+        console.error(
+          'DESIGN.md engine: embedded <script type="text/design-md"> ' +
+          'is malformed — using the built-in default instead:\n  ' +
+          (res.errors || []).join('\n  ')
+        );
+      }
+    }
+    var def = veDesignMdLoadText(DEFAULT_DESIGNMD_TEXT);
+    if (!def.ok && window.console && console.error) {
+      // The built-in default is authored against the schema, so this
+      // branch should be unreachable — log loudly if it ever is not.
+      console.error(
+        'DESIGN.md engine: built-in default failed to parse:\n  ' +
+        (def.errors || []).join('\n  ')
+      );
+    }
+  }
+
+  // ─── DESIGN.md token-path bridge ─────────────────────────────────────
+  //
+  // amvcpDesignMd.tokenSchema describes WHAT tokens exist; to read or
+  // write a token's VALUE in the in-memory designmd object we need the
+  // path into designmd.tokens. The schema's group + key determine it.
+  // `index` is meaningful only for indexed (scale-array) tokens.
+  //
+  // Returns an array of path segments, or null when the group is one
+  // the bridge does not handle (defensive — keeps an unexpected schema
+  // entry from throwing).
+  function veDesignMdTokenPath(entry, theme, index) {
+    var g = entry.group;
+    if (g === 'color') {
+      return ['colors', theme, entry.key];
+    }
+    if (g === 'typography') {
+      if (entry.indexed) {
+        return ['typography', 'scale', index];
+      }
+      return ['typography', entry.key];
+    }
+    if (g === 'spacing') {
+      return ['spacing', 'scale', index];
+    }
+    if (g === 'radius') {
+      return ['radius', entry.key];
+    }
+    if (g === 'elevation' || g === 'motion') {
+      return [g, entry.key];
+    }
+    return null;
+  }
+
+  // Read the raw value at a path in designmd.tokens. Returns undefined
+  // when any segment is missing (an optional token that the loaded
+  // DESIGN.md did not declare).
+  function veDesignMdReadPath(designmd, path) {
+    if (!designmd || !designmd.tokens || !path) {
+      return undefined;
+    }
+    var cur = designmd.tokens;
+    var i;
+    for (i = 0; i < path.length; i++) {
+      if (cur == null || typeof cur !== 'object') {
+        return undefined;
+      }
+      cur = cur[path[i]];
+    }
+    return cur;
+  }
+
+  // Write a raw value at a path in designmd.tokens. Only writes when
+  // every parent segment already exists — the controller never invents
+  // a token group that the loaded DESIGN.md omitted. Returns true on a
+  // successful write.
+  function veDesignMdWritePath(designmd, path, value) {
+    if (!designmd || !designmd.tokens || !path || path.length === 0) {
+      return false;
+    }
+    var cur = designmd.tokens;
+    var i;
+    for (i = 0; i < path.length - 1; i++) {
+      if (cur == null || typeof cur[path[i]] !== 'object') {
+        return false;
+      }
+      cur = cur[path[i]];
+    }
+    cur[path[path.length - 1]] = value;
+    return true;
+  }
+
+  // Coerce a control's string input back to the type the schema (and
+  // the YAML serializer) expect: numeric tokens become real numbers so
+  // serializeDesignMd emits them bare; everything else stays a string.
+  function veDesignMdCoerceValue(entry, rawString) {
+    if (entry.type === 'number' || entry.type === 'length') {
+      var n = parseFloat(rawString);
+      if (isNaN(n) || !isFinite(n)) {
+        return null;
+      }
+      return n;
+    }
+    return String(rawString);
+  }
+
+  // ─── Style-controller pad ────────────────────────────────────────────
+  //
+  // A floating panel, collapsed by default, generated ENTIRELY by
+  // iterating amvcpDesignMd.tokenSchema — there is no hardcoded control
+  // list, so a new token in the schema produces a new control with no
+  // change here. Editing a control immediately setProperty()s the one
+  // --vc-* var on :root (live restyle) and updates the in-memory
+  // designmd so an Export round-trips the edit.
+  function injectDesignMdControllerStyles() {
+    if (document.getElementById('__ve-designmd-styles')) {
+      return;
+    }
+    var s = document.createElement('style');
+    s.id = '__ve-designmd-styles';
+    // All chrome reads the existing --ve-control-* palette so the pad
+    // matches the rest of the runtime UI on both light and dark themes.
+    s.textContent = [
+      '#' + VE_DESIGNMD_TOGGLE_ID + ' {',
+      '  position:fixed; left:24px; bottom:24px; z-index:2147483646;',
+      '}',
+      '#' + VE_DESIGNMD_PANEL_ID + ' {',
+      '  position:fixed; left:24px; bottom:72px; z-index:2147483646;',
+      '  width:340px; max-height:78vh; display:none;',
+      '  flex-direction:column;',
+      '  background:var(--ve-control-overlay-bg, rgba(255,255,255,0.92));',
+      '  -webkit-backdrop-filter:var(--ve-control-overlay-blur, blur(10px));',
+      '  backdrop-filter:var(--ve-control-overlay-blur, blur(10px));',
+      '  border:1px solid var(--ve-control-border, rgba(0,0,0,0.12));',
+      '  border-radius:var(--ve-control-radius, 8px);',
+      '  box-shadow:var(--ve-control-shadow, 0 6px 22px rgba(0,0,0,0.16));',
+      '  color:var(--ve-control-fg, #14110b);',
+      '  font:13px/1.4 var(--ve-control-font, inherit);',
+      '}',
+      '#' + VE_DESIGNMD_PANEL_ID + '[data-open="1"] { display:flex; }',
+      '.ve-designmd-head {',
+      '  display:flex; align-items:center; gap:8px;',
+      '  padding:10px 12px;',
+      '  border-bottom:1px solid var(--ve-control-border, rgba(0,0,0,0.12));',
+      '}',
+      '.ve-designmd-title {',
+      '  font-weight:700; letter-spacing:0.02em; flex:1;',
+      '  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;',
+      '}',
+      '.ve-designmd-theme-toggle, .ve-designmd-close {',
+      '  appearance:none; -webkit-appearance:none; cursor:pointer;',
+      '  background:var(--ve-control-bg, #fff);',
+      '  color:var(--ve-control-fg, #14110b);',
+      '  border:1px solid var(--ve-control-border-strong, rgba(0,0,0,0.2));',
+      '  border-radius:var(--ve-control-radius-sm, 6px);',
+      '  font:600 12px/1 var(--ve-control-font, inherit);',
+      '  padding:5px 9px;',
+      '}',
+      '.ve-designmd-theme-toggle:hover, .ve-designmd-close:hover {',
+      '  background:var(--ve-control-bg-hover, #f0f0f0);',
+      '}',
+      '.ve-designmd-body { overflow:auto; padding:8px 12px 12px; }',
+      '.ve-designmd-load {',
+      '  border:1px dashed var(--ve-control-border-strong, rgba(0,0,0,0.2));',
+      '  border-radius:var(--ve-control-radius-sm, 6px);',
+      '  padding:8px; margin-bottom:10px;',
+      '}',
+      '.ve-designmd-load.ve-drag-over {',
+      '  background:var(--ve-control-bg-hover, #f0f0f0);',
+      '  border-color:var(--ve-accent, #b8861f);',
+      '}',
+      '.ve-designmd-load-row {',
+      '  display:flex; gap:6px; align-items:center; flex-wrap:wrap;',
+      '  margin-bottom:6px;',
+      '}',
+      '.ve-designmd-paste {',
+      '  width:100%; box-sizing:border-box; resize:vertical;',
+      '  min-height:48px;',
+      '  font:11px/1.4 var(--ve-control-mono, ui-monospace, monospace);',
+      '  background:var(--ve-control-bg, #fff);',
+      '  color:var(--ve-control-fg, #14110b);',
+      '  border:1px solid var(--ve-control-border, rgba(0,0,0,0.12));',
+      '  border-radius:var(--ve-control-radius-sm, 6px);',
+      '  padding:6px;',
+      '}',
+      '.ve-designmd-btn {',
+      '  appearance:none; -webkit-appearance:none; cursor:pointer;',
+      '  background:var(--ve-control-bg, #fff);',
+      '  color:var(--ve-control-fg, #14110b);',
+      '  border:1px solid var(--ve-control-border-strong, rgba(0,0,0,0.2));',
+      '  border-radius:var(--ve-control-radius-sm, 6px);',
+      '  font:600 12px/1 var(--ve-control-font, inherit);',
+      '  padding:6px 10px;',
+      '}',
+      '.ve-designmd-btn:hover { background:var(--ve-control-bg-hover, #f0f0f0); }',
+      '.ve-designmd-errors {',
+      '  display:none; margin-top:6px; padding:6px 8px;',
+      '  background:color-mix(in srgb, #c0392b 10%, transparent);',
+      '  border-left:3px solid #c0392b;',
+      '  border-radius:0 4px 4px 0;',
+      '  font:11px/1.4 var(--ve-control-mono, ui-monospace, monospace);',
+      '  color:var(--ve-control-fg, #14110b);',
+      '  white-space:pre-wrap;',
+      '}',
+      '.ve-designmd-errors[data-show="1"] { display:block; }',
+      '.ve-designmd-group { margin-bottom:8px; }',
+      '.ve-designmd-group-label {',
+      '  font-weight:700; text-transform:capitalize;',
+      '  letter-spacing:0.03em; font-size:11px;',
+      '  color:var(--ve-control-fg-dim, #777);',
+      '  margin:8px 0 4px;',
+      '}',
+      '.ve-designmd-control {',
+      '  display:flex; align-items:center; gap:8px;',
+      '  padding:3px 0;',
+      '}',
+      '.ve-designmd-control-label {',
+      '  flex:1; min-width:0;',
+      '  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;',
+      '  font-size:12px;',
+      '}',
+      '.ve-designmd-control input[type="color"] {',
+      '  width:34px; height:24px; padding:0; cursor:pointer;',
+      '  border:1px solid var(--ve-control-border, rgba(0,0,0,0.12));',
+      '  border-radius:4px; background:none;',
+      '}',
+      '.ve-designmd-control input[type="range"] { flex:1.4; min-width:60px; }',
+      '.ve-designmd-control input[type="number"] {',
+      '  width:62px;',
+      '}',
+      '.ve-designmd-control input[type="text"],',
+      '.ve-designmd-control select {',
+      '  flex:1.6; min-width:0;',
+      '}',
+      '.ve-designmd-control input[type="number"],',
+      '.ve-designmd-control input[type="text"],',
+      '.ve-designmd-control select {',
+      '  box-sizing:border-box;',
+      '  background:var(--ve-control-bg, #fff);',
+      '  color:var(--ve-control-fg, #14110b);',
+      '  border:1px solid var(--ve-control-border, rgba(0,0,0,0.12));',
+      '  border-radius:var(--ve-control-radius-sm, 6px);',
+      '  font:12px/1.3 var(--ve-control-font, inherit);',
+      '  padding:4px 6px;',
+      '}'
+    ].join('\n');
+    document.head.appendChild(s);
+  }
+
+  // Build (or rebuild) the body of the controller pad from the active
+  // designmd + tokenSchema. Called on first open and after every
+  // hot-swap / theme toggle so the controls always reflect what is
+  // actually on :root.
+  function veDesignMdRenderControls(panel) {
+    if (!panel) {
+      return;
+    }
+    var body = panel.querySelector('.ve-designmd-controls');
+    if (!body) {
+      return;
+    }
+    while (body.firstChild) {
+      body.removeChild(body.firstChild);
+    }
+    var api = window.amvcpDesignMd;
+    var designmd = veDesignMdState.designmd;
+    if (!api || !designmd) {
+      return;
+    }
+    var schema = api.tokenSchema || [];
+    var theme = veDesignMdState.theme;
+
+    // Group the schema entries by their `group` field, preserving the
+    // first-seen order so the pad reads color → typography → spacing →
+    // radius → elevation → motion (whatever order the schema declares).
+    var groupOrder = [];
+    var grouped = {};
+    var i;
+    for (i = 0; i < schema.length; i++) {
+      var g = schema[i].group;
+      if (!grouped[g]) {
+        grouped[g] = [];
+        groupOrder.push(g);
+      }
+      grouped[g].push(schema[i]);
+    }
+
+    var gi;
+    for (gi = 0; gi < groupOrder.length; gi++) {
+      var groupName = groupOrder[gi];
+      var section = document.createElement('div');
+      section.className = 've-designmd-group';
+      section.setAttribute('data-ve-designmd-group', groupName);
+      var label = document.createElement('div');
+      label.className = 've-designmd-group-label';
+      label.textContent = groupName;
+      section.appendChild(label);
+
+      var entries = grouped[groupName];
+      var ei;
+      for (ei = 0; ei < entries.length; ei++) {
+        veDesignMdAppendControlsForEntry(section, entries[ei], designmd, theme);
+      }
+      body.appendChild(section);
+    }
+  }
+
+  // Append one (or, for indexed scale tokens, several) control rows for
+  // a single tokenSchema entry. Indexed entries expand to one row per
+  // array element of the live designmd value.
+  function veDesignMdAppendControlsForEntry(section, entry, designmd, theme) {
+    if (entry.indexed) {
+      var basePath = veDesignMdTokenPath(entry, theme, 0);
+      // The array lives at the path minus its trailing index segment.
+      var arrPath = basePath ? basePath.slice(0, basePath.length - 1) : null;
+      var arr = veDesignMdReadPath(designmd, arrPath);
+      if (Object.prototype.toString.call(arr) !== '[object Array]') {
+        return;
+      }
+      var idx;
+      for (idx = 0; idx < arr.length; idx++) {
+        var cssVar = entry.cssVar.replace('<i>', String(idx));
+        var labelText = entry.group + '.' + entry.key + '[' + idx + ']';
+        section.appendChild(
+          veDesignMdBuildControlRow(entry, designmd, theme, idx, cssVar, labelText)
+        );
+      }
+      return;
+    }
+    // Non-indexed: a single control. An optional token absent from the
+    // loaded DESIGN.md is skipped — the controller never fabricates a
+    // value for a token the document did not declare.
+    var path = veDesignMdTokenPath(entry, theme, null);
+    var value = veDesignMdReadPath(designmd, path);
+    if (value === undefined) {
+      return;
+    }
+    section.appendChild(
+      veDesignMdBuildControlRow(entry, designmd, theme, null, entry.cssVar, entry.key)
+    );
+  }
+
+  // Build one control row: a label plus the typed input dictated by the
+  // schema entry's `type`. `index` is non-null only for indexed tokens;
+  // `cssVar` is the concrete (index-substituted) CSS custom property
+  // this control drives; `labelText` is the row caption.
+  function veDesignMdBuildControlRow(entry, designmd, theme, index, cssVar, labelText) {
+    var row = document.createElement('div');
+    row.className = 've-designmd-control';
+    row.setAttribute('data-ve-designmd-control', cssVar);
+
+    var label = document.createElement('span');
+    label.className = 've-designmd-control-label';
+    label.textContent = labelText;
+    row.appendChild(label);
+
+    var path = veDesignMdTokenPath(entry, theme, index);
+    var rawValue = veDesignMdReadPath(designmd, path);
+
+    // Per the schema's type: color→color input, length/number→number,
+    // select→dropdown, text/shadow/easing→text input.
+    var input;
+    if (entry.type === 'color') {
+      input = document.createElement('input');
+      input.type = 'color';
+      // <input type=color> only accepts #rrggbb — use the value when it
+      // is one, otherwise fall back to a neutral grey so the swatch is
+      // still operable (the live --vc-* var keeps the original string).
+      input.value = /^#[0-9a-fA-F]{6}$/.test(String(rawValue))
+        ? String(rawValue)
+        : '#888888';
+    } else if (entry.type === 'length' || entry.type === 'number') {
+      input = document.createElement('input');
+      input.type = 'number';
+      input.value = String(rawValue);
+      input.step = 'any';
+    } else if (entry.type === 'select') {
+      input = document.createElement('select');
+      // The v1 schema declares no select tokens; the branch exists so a
+      // future select token renders without a code change. With no
+      // option metadata the current value is the sole option.
+      var opt = document.createElement('option');
+      opt.value = String(rawValue);
+      opt.textContent = String(rawValue);
+      input.appendChild(opt);
+      input.value = String(rawValue);
+    } else {
+      // text / shadow / easing — a free-text input.
+      input = document.createElement('input');
+      input.type = 'text';
+      input.value = String(rawValue);
+    }
+    input.className = 've-designmd-input';
+    input.setAttribute('data-ve-designmd-cssvar', cssVar);
+
+    // Editing a control: write the in-memory designmd AND push the one
+    // --vc-* var to :root immediately (live restyle). 'input' fires on
+    // every keystroke / slider drag so the page tracks the edit live.
+    input.addEventListener('input', function () {
+      veDesignMdHandleControlEdit(entry, designmd, theme, index, cssVar, input.value);
+    });
+    row.appendChild(input);
+    return row;
+  }
+
+  // Apply one control's edit: coerce the value to the schema's type,
+  // write it into the in-memory designmd, and setProperty the matching
+  // --vc-* var on :root with the unit the schema specifies. This keeps
+  // ONE source of truth — the designmd object — and the live :root in
+  // sync, so a later Export serializes exactly what the user sees.
+  function veDesignMdHandleControlEdit(entry, designmd, theme, index, cssVar, rawString) {
+    var coerced = veDesignMdCoerceValue(entry, rawString);
+    if (coerced === null) {
+      // A non-numeric value typed into a numeric control — ignore it
+      // rather than corrupt the designmd; the input keeps the bad text
+      // so the user can correct it.
+      return;
+    }
+    var path = veDesignMdTokenPath(entry, theme, index);
+    veDesignMdWritePath(designmd, path, coerced);
+    // The CSS var carries the schema's unit suffix ('px' / 'ms' / '').
+    var cssValue = String(coerced) + (entry.unit || '');
+    document.documentElement.style.setProperty(cssVar, cssValue);
+  }
+
+  // Show / clear the parser-error area inside the pad. Errors are shown
+  // verbatim from the parser so a malformed DESIGN.md tells the user
+  // exactly what is wrong — and crucially, no partial token set is ever
+  // applied (veDesignMdLoadText already guarantees that).
+  function veDesignMdShowErrors(panel, errors) {
+    if (!panel) {
+      return;
+    }
+    var box = panel.querySelector('.ve-designmd-errors');
+    if (!box) {
+      return;
+    }
+    if (!errors || errors.length === 0) {
+      box.textContent = '';
+      box.setAttribute('data-show', '0');
+      return;
+    }
+    box.textContent = 'DESIGN.md not applied — ' + errors.length +
+      ' error' + (errors.length === 1 ? '' : 's') + ':\n• ' +
+      errors.join('\n• ');
+    box.setAttribute('data-show', '1');
+  }
+
+  // Hot-swap entry point: parse + apply `text`, then refresh the pad. On
+  // success the error area clears and every control re-reads the new
+  // values; on failure the errors show and :root is left untouched.
+  function veDesignMdHotSwap(panel, text) {
+    var res = veDesignMdLoadText(text);
+    if (res.ok) {
+      veDesignMdShowErrors(panel, null);
+      veDesignMdSyncPanelTitle(panel);
+      veDesignMdRenderControls(panel);
+    } else {
+      veDesignMdShowErrors(panel, res.errors);
+    }
+    return res;
+  }
+
+  // Update the panel's title strip to the active DESIGN.md's name +
+  // the theme its colors are currently resolved for.
+  function veDesignMdSyncPanelTitle(panel) {
+    if (!panel) {
+      return;
+    }
+    var titleEl = panel.querySelector('.ve-designmd-title');
+    if (!titleEl) {
+      return;
+    }
+    var name = 'DESIGN.md';
+    if (veDesignMdState.designmd && veDesignMdState.designmd.meta &&
+        veDesignMdState.designmd.meta.name) {
+      name = veDesignMdState.designmd.meta.name;
+    }
+    titleEl.textContent = name + '  ·  ' + veDesignMdState.theme;
+    var toggle = panel.querySelector('.ve-designmd-theme-toggle');
+    if (toggle) {
+      // The button switches TO the other theme — label it accordingly.
+      toggle.textContent = veDesignMdState.theme === 'light'
+        ? 'Dark' : 'Light';
+    }
+  }
+
+  // Toggle the active theme: re-stamp data-ve-theme on <html> and
+  // re-resolve + re-apply the SAME designmd for the new theme (only the
+  // colors differ — typography/spacing/radius are theme-agnostic).
+  function veDesignMdToggleTheme(panel) {
+    if (!veDesignMdState.designmd) {
+      return;
+    }
+    var next = veDesignMdState.theme === 'light' ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-ve-theme', next);
+    veDesignMdApply(veDesignMdState.designmd, next);
+    veDesignMdSyncPanelTitle(panel);
+    veDesignMdRenderControls(panel);
+  }
+
+  // Export the current in-memory designmd as DESIGN.md text via the
+  // engine's serializeDesignMd, then offer it as a download AND copy it
+  // to the clipboard. The serialized text round-trips through
+  // parseDesignMd (Phase-1a guarantee), so the exported file is itself
+  // a valid DESIGN.md.
+  function veDesignMdExport() {
+    var api = window.amvcpDesignMd;
+    if (!api || typeof api.serializeDesignMd !== 'function' ||
+        !veDesignMdState.designmd) {
+      return null;
+    }
+    var text = api.serializeDesignMd(veDesignMdState.designmd);
+    // Download via a transient object-URL anchor.
+    try {
+      var blob = new Blob([text], { type: 'text/markdown' });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = 'DESIGN.md';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      // Revoke on the next tick so the click's navigation has resolved.
+      setTimeout(function () { URL.revokeObjectURL(url); }, 0);
+    } catch (e) {
+      // A sandbox with no Blob/URL support — clipboard copy below still
+      // gives the user the text, so this is non-fatal.
+      if (window.console && console.warn) {
+        console.warn('DESIGN.md export: download unavailable — ' + e);
+      }
+    }
+    // Copy-to-clipboard — same pattern the runtime uses elsewhere.
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function () {}, function () {});
+    }
+    return text;
+  }
+
+  // Wire the hot-swap controls inside the load box: file picker,
+  // drag-and-drop of a .md file onto the box, and paste of DESIGN.md
+  // text into the textarea + an Apply button.
+  function veDesignMdWireLoadControls(panel) {
+    var loadBox = panel.querySelector('.ve-designmd-load');
+    var fileInput = panel.querySelector('.ve-designmd-file');
+    var pasteArea = panel.querySelector('.ve-designmd-paste');
+    var applyBtn = panel.querySelector('.ve-designmd-apply-paste');
+    if (!loadBox) {
+      return;
+    }
+
+    // (a) File picker.
+    if (fileInput) {
+      fileInput.addEventListener('change', function () {
+        var file = fileInput.files && fileInput.files[0];
+        if (!file) {
+          return;
+        }
+        var reader = new FileReader();
+        reader.onload = function () {
+          veDesignMdHotSwap(panel, String(reader.result || ''));
+        };
+        reader.readAsText(file);
+      });
+    }
+
+    // (b) Drag-and-drop of a .md file onto the load box.
+    loadBox.addEventListener('dragover', function (ev) {
+      ev.preventDefault();
+      loadBox.classList.add('ve-drag-over');
+    });
+    loadBox.addEventListener('dragleave', function () {
+      loadBox.classList.remove('ve-drag-over');
+    });
+    loadBox.addEventListener('drop', function (ev) {
+      ev.preventDefault();
+      loadBox.classList.remove('ve-drag-over');
+      var dt = ev.dataTransfer;
+      if (!dt) {
+        return;
+      }
+      var file = dt.files && dt.files[0];
+      if (file) {
+        var reader = new FileReader();
+        reader.onload = function () {
+          veDesignMdHotSwap(panel, String(reader.result || ''));
+        };
+        reader.readAsText(file);
+        return;
+      }
+      // Some sources drop plain text rather than a file.
+      var text = dt.getData ? dt.getData('text/plain') : '';
+      if (text) {
+        veDesignMdHotSwap(panel, text);
+      }
+    });
+
+    // (c) Paste into the textarea + Apply.
+    if (applyBtn && pasteArea) {
+      applyBtn.addEventListener('click', function () {
+        var text = pasteArea.value || '';
+        if (text.replace(/\s+/g, '') === '') {
+          veDesignMdShowErrors(panel, ['paste area is empty']);
+          return;
+        }
+        veDesignMdHotSwap(panel, text);
+      });
+    }
+  }
+
+  // Build the floating style-controller pad: a toggle button + the
+  // collapsible panel. Idempotent — a second call is a no-op.
+  function injectDesignMdControllerPad() {
+    if (!document.body) {
+      return;
+    }
+    if (!window.amvcpDesignMd) {
+      // No engine → no tokens → nothing for the pad to control.
+      return;
+    }
+    if (document.getElementById(VE_DESIGNMD_TOGGLE_ID)) {
+      return;
+    }
+    injectDesignMdControllerStyles();
+
+    // Toggle button — collapsed state is the default.
+    var toggle = document.createElement('button');
+    toggle.id = VE_DESIGNMD_TOGGLE_ID;
+    toggle.type = 'button';
+    toggle.className = 've-floating-btn ve-floating-btn--ghost';
+    toggle.setAttribute('data-ve-overlay', '1');
+    toggle.textContent = 'Style';
+    toggle.setAttribute('aria-expanded', 'false');
+
+    // The panel.
+    var panel = document.createElement('div');
+    panel.id = VE_DESIGNMD_PANEL_ID;
+    panel.setAttribute('data-open', '0');
+    panel.setAttribute('role', 'dialog');
+    panel.setAttribute('aria-label', 'DESIGN.md style controller');
+
+    var head = document.createElement('div');
+    head.className = 've-designmd-head';
+    var title = document.createElement('span');
+    title.className = 've-designmd-title';
+    title.textContent = 'DESIGN.md';
+    var themeBtn = document.createElement('button');
+    themeBtn.type = 'button';
+    themeBtn.className = 've-designmd-theme-toggle';
+    themeBtn.textContent = 'Dark';
+    var closeBtn = document.createElement('button');
+    closeBtn.type = 'button';
+    closeBtn.className = 've-designmd-close';
+    closeBtn.textContent = '✕';
+    closeBtn.setAttribute('aria-label', 'Close style controller');
+    head.appendChild(title);
+    head.appendChild(themeBtn);
+    head.appendChild(closeBtn);
+
+    var bodyWrap = document.createElement('div');
+    bodyWrap.className = 've-designmd-body';
+
+    // Load box — file picker + drag-drop hint + paste textarea.
+    var loadBox = document.createElement('div');
+    loadBox.className = 've-designmd-load';
+    var loadRow = document.createElement('div');
+    loadRow.className = 've-designmd-load-row';
+    var fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.className = 've-designmd-file';
+    fileInput.accept = '.md,text/markdown,text/plain';
+    var dropHint = document.createElement('span');
+    dropHint.style.cssText = 'font-size:11px;color:var(--ve-control-fg-dim,#777);';
+    dropHint.textContent = 'or drop a .md file here';
+    loadRow.appendChild(fileInput);
+    loadRow.appendChild(dropHint);
+    var pasteArea = document.createElement('textarea');
+    pasteArea.className = 've-designmd-paste';
+    pasteArea.setAttribute('placeholder', 'or paste DESIGN.md text…');
+    var applyPaste = document.createElement('button');
+    applyPaste.type = 'button';
+    applyPaste.className = 've-designmd-btn ve-designmd-apply-paste';
+    applyPaste.textContent = 'Apply pasted DESIGN.md';
+    applyPaste.style.cssText = 'margin-top:6px;';
+    var errors = document.createElement('div');
+    errors.className = 've-designmd-errors';
+    errors.setAttribute('data-show', '0');
+    loadBox.appendChild(loadRow);
+    loadBox.appendChild(pasteArea);
+    loadBox.appendChild(applyPaste);
+    loadBox.appendChild(errors);
+
+    // Export button.
+    var exportBtn = document.createElement('button');
+    exportBtn.type = 'button';
+    exportBtn.className = 've-designmd-btn ve-designmd-export';
+    exportBtn.textContent = 'Export DESIGN.md';
+    exportBtn.style.cssText = 'margin-bottom:10px;';
+
+    // The schema-generated controls live here.
+    var controls = document.createElement('div');
+    controls.className = 've-designmd-controls';
+
+    bodyWrap.appendChild(loadBox);
+    bodyWrap.appendChild(exportBtn);
+    bodyWrap.appendChild(controls);
+
+    panel.appendChild(head);
+    panel.appendChild(bodyWrap);
+
+    document.body.appendChild(toggle);
+    document.body.appendChild(panel);
+
+    // Wiring.
+    function openPanel() {
+      panel.setAttribute('data-open', '1');
+      toggle.setAttribute('aria-expanded', 'true');
+      // Build the controls lazily on first open so a page that never
+      // opens the pad pays nothing for it.
+      veDesignMdSyncPanelTitle(panel);
+      veDesignMdRenderControls(panel);
+    }
+    function closePanel() {
+      panel.setAttribute('data-open', '0');
+      toggle.setAttribute('aria-expanded', 'false');
+    }
+    toggle.addEventListener('click', function () {
+      if (panel.getAttribute('data-open') === '1') {
+        closePanel();
+      } else {
+        openPanel();
+      }
+    });
+    closeBtn.addEventListener('click', closePanel);
+    themeBtn.addEventListener('click', function () {
+      veDesignMdToggleTheme(panel);
+    });
+    exportBtn.addEventListener('click', veDesignMdExport);
+    veDesignMdWireLoadControls(panel);
+  }
+
   function bootEverything() {
     detectAndStampTheme();   // MUST run before injectStyles so the
                              // :root[data-ve-theme="light"] overrides
                              // resolve to the right values from frame 1.
+    // Apply the DESIGN.md tokens right after the theme is known and
+    // before injectStyles(), so --vc-* are on :root from frame 1 —
+    // detectAndStampTheme() decides which theme's colors resolve.
+    bootDesignMdEngine();
     injectStyles();
     isTouchDevice(); // Phase 7: stamp body[data-ve-touch="1"] early so the
                      // CSS that ups handle hit-zones is in effect by the
@@ -8018,12 +9027,30 @@
     wireDecisionPills();         // TRDD-7a2dab03 v3 — per-element decision pills
     initReportMode();            // v4 — propagate data-ve-report to body
                                  // and inject .ve-decision-mini per atom
+    injectDesignMdControllerPad(); // Phase 1b — floating DESIGN.md style pad
     // Test hook — expose openCommentModal so headless tests can open
     // the modal directly without going through the (now-removed)
     // .ve-comment-pill hover UI. The bubble handle (.ve-comment-handle)
     // remains the visible affordance for real users.
     if (typeof window !== 'undefined') {
       window.__veOpenCommentModal = openCommentModal;
+      // Phase 1b test hook — exposes the DESIGN.md engine state and the
+      // hot-swap / theme / export entry points so headless tests can
+      // drive the engine without simulating file pickers and drops.
+      window.__veDesignMd = {
+        state: veDesignMdState,
+        loadText: veDesignMdLoadText,
+        hotSwap: function (text) {
+          var panel = document.getElementById(VE_DESIGNMD_PANEL_ID);
+          return veDesignMdHotSwap(panel, text);
+        },
+        toggleTheme: function () {
+          var panel = document.getElementById(VE_DESIGNMD_PANEL_ID);
+          veDesignMdToggleTheme(panel);
+        },
+        exportText: veDesignMdExport,
+        defaultText: DEFAULT_DESIGNMD_TEXT
+      };
     }
   }
 
