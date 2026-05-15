@@ -32,6 +32,15 @@ two URLs with `--designmd-url` / `--runtime-url`. When either URL is a
 bare local filename, the matching file is copied from this script's
 `scripts/` directory next to the output HTML so the page is
 self-contained.
+
+In addition, every Phase 2 module bundle (`amvcp-<module>.js` and its
+matching `.css` sibling, when present) found in this script's
+`scripts/` directory is also copied next to the rendered HTML and
+referenced by the page in the runtime's auto-init order: tokens →
+token-sheet → layout → typography → animation → interactive → tables
+→ code-highlight → chart → diagram → icon-svg → wireframe → slide →
+report-doc. The runtime is defensively guarded so missing modules
+no-op cleanly; this integration is purely additive.
 """
 from __future__ import annotations
 
@@ -66,6 +75,46 @@ META_COMMENT_RE = re.compile(
 ATTR_RE = re.compile(r'(\w+)\s*=\s*"([^"]*)"')
 
 VALID_SEVERITY = {"critical", "major", "minor", "info"}
+
+
+# ─────────────────────────────────────────────────────────────────────
+# Phase 2 module bundles.
+#
+# These are the optional `amvcp-<module>.js` (and matching `.css`) files
+# the runtime auto-initialises when it finds them on the page. They live
+# in this script's `scripts/` directory; the renderer copies any that
+# exist next to the rendered HTML (same idempotent shutil.copy2 dance the
+# runtime + DESIGN.md engine already use) and injects a co-located
+# `<script src="…">` (and `<link rel="stylesheet">` for modules that ship
+# CSS) into the page head/body.
+#
+# ORDER MATTERS — typography depends on tokens, animation depends on
+# tokens, etc. Each module is also defensively guarded inside the runtime
+# so a missing one just no-ops, but rendering them in dependency order
+# avoids any chance of a token-consuming module booting before tokens
+# itself has installed.
+#
+# Each entry is a base name; the renderer probes `scripts/<base>.js` and
+# `scripts/<base>.css` and ships whichever variants exist. A module named
+# here that is NOT present in `scripts/` is silently skipped — these
+# bundles are optional capabilities, not hard runtime requirements (the
+# runtime + DESIGN.md engine remain the only mandatory pair).
+PHASE2_MODULE_ORDER: tuple[str, ...] = (
+    "amvcp-tokens",
+    "amvcp-token-sheet",
+    "amvcp-layout",
+    "amvcp-typography",
+    "amvcp-animation",
+    "amvcp-interactive",
+    "amvcp-tables",
+    "amvcp-code-highlight",
+    "amvcp-chart",
+    "amvcp-diagram",
+    "amvcp-icon-svg",
+    "amvcp-wireframe",
+    "amvcp-slide",
+    "amvcp-report-doc",
+)
 
 
 @dataclass
@@ -524,6 +573,7 @@ PAGE_TEMPLATE = """<!DOCTYPE html>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{title}</title>
+{module_css_block}
 <style>
   :root {{
     --bg:#faf6ee; --text:#1f1a14;
@@ -588,10 +638,16 @@ PAGE_TEMPLATE = """<!DOCTYPE html>
     {findings_html}
   </article>
 </main>
-<!-- The DESIGN.md style engine MUST load BEFORE the runtime so
-     window.amvcpDesignMd is installed by the time the runtime boots
-     and applies the page tokens. -->
+<!-- The DESIGN.md style engine MUST load BEFORE every Phase 2 module
+     bundle (those modules consume the design tokens it installs) and
+     BEFORE the runtime (the runtime calls into window.amvcpDesignMd on
+     boot). The Phase 2 modules then load in dependency order (tokens →
+     layout → typography → animation → interactive → tables →
+     code-highlight → chart → diagram → icon-svg → wireframe → slide →
+     report-doc). The runtime tag is last so every module global it may
+     auto-init is already installed when it boots. -->
 <script src="{designmd_url}"></script>
+{module_js_block}
 <script src="{runtime_url}"></script>
 </body>
 </html>
@@ -640,6 +696,69 @@ def _copy_asset_beside_output(url: str, out_dir: Path) -> None:
     if dest.resolve() == src.resolve():
         return
     shutil.copy2(src, dest)
+
+
+def _ship_phase2_modules(out_dir: Path) -> list[tuple[str, str | None]]:
+    """Co-locate every Phase 2 module bundle (and its CSS sibling, when
+    present) next to the rendered HTML and return the ordered list of
+    `(js_url, css_url_or_None)` pairs the page should reference.
+
+    Probes `scripts/<base>.js` and `scripts/<base>.css` for each entry in
+    `PHASE2_MODULE_ORDER`. Modules that have no `.js` counterpart on disk
+    are silently skipped — these bundles are optional capabilities that
+    light up extra runtime behaviour, not hard requirements; the runtime
+    is defensively guarded so a missing module no-ops cleanly.
+
+    The copy mechanism is the same shutil.copy2 dance used for the
+    runtime + DESIGN.md engine: idempotent (overwrites on every render so
+    a refreshed source bundle propagates to the rendered page), and
+    SameFileError-safe when the renderer is run inside `scripts/` itself.
+    """
+    src_dir = Path(__file__).resolve().parent
+    shipped: list[tuple[str, str | None]] = []
+    for base in PHASE2_MODULE_ORDER:
+        js_name = f"{base}.js"
+        js_src = src_dir / js_name
+        if not js_src.exists():
+            # Optional module — skip silently. The runtime no-ops on
+            # missing module globals.
+            continue
+        js_dest = out_dir / js_name
+        if js_dest.resolve() != js_src.resolve():
+            shutil.copy2(js_src, js_dest)
+        css_url: str | None = None
+        css_name = f"{base}.css"
+        css_src = src_dir / css_name
+        if css_src.exists():
+            css_dest = out_dir / css_name
+            if css_dest.resolve() != css_src.resolve():
+                shutil.copy2(css_src, css_dest)
+            css_url = css_name
+        shipped.append((js_name, css_url))
+    return shipped
+
+
+def _render_module_tags(modules: list[tuple[str, str | None]]) -> tuple[str, str]:
+    """Build the `<link rel="stylesheet">` block (for the head) and the
+    `<script src="…">` block (for above the runtime tag) from the list of
+    shipped Phase 2 modules.
+
+    CSS goes into `<head>` so first-paint already has the module styles;
+    JS goes immediately BEFORE the runtime tag so module globals are
+    installed when the runtime boots and auto-initialises them.
+    """
+    if not modules:
+        return "", ""
+    css_lines = [
+        f'<link rel="stylesheet" href="{html.escape(css_url)}">'
+        for _, css_url in modules
+        if css_url
+    ]
+    js_lines = [
+        f'<script src="{html.escape(js_url)}"></script>'
+        for js_url, _ in modules
+    ]
+    return "\n".join(css_lines), "\n".join(js_lines)
 
 
 def render_finding_html(f: Finding, prior_rounds: list[dict]) -> str:
@@ -777,8 +896,14 @@ def render(
     runtime_url: str,
     designmd_url: str = "amvcp-designmd.js",
     mode: str = "finding",
+    phase2_modules: list[tuple[str, str | None]] | None = None,
 ) -> tuple[str, dict]:
-    """Returns (html_doc, idmap). idmap maps every commentId → metadata."""
+    """Returns (html_doc, idmap). idmap maps every commentId → metadata.
+
+    `phase2_modules` is the ordered list of `(js_url, css_url_or_None)`
+    pairs from `_ship_phase2_modules()`; pass `None` to render with no
+    Phase 2 module tags (the runtime + DESIGN.md engine still load).
+    """
     _reset_idmap()
     rep = parse_report(report_md, mode=mode)
     prior = (replies or {}).get("findings", {})
@@ -799,6 +924,10 @@ def render(
         )
         warning_block = f"<div>{items}</div>"
 
+    module_css_block, module_js_block = _render_module_tags(
+        phase2_modules or []
+    )
+
     page = PAGE_TEMPLATE.format(
         title=html.escape(title),
         warning_block=warning_block,
@@ -806,6 +935,8 @@ def render(
         findings_html="\n".join(findings_blocks),
         designmd_url=html.escape(designmd_url),
         runtime_url=html.escape(runtime_url),
+        module_css_block=module_css_block,
+        module_js_block=module_js_block,
     )
     return page, dict(_idmap)
 
@@ -880,12 +1011,21 @@ def main(argv: list[str] | None = None) -> int:
             title = report_path.stem
 
     out_path = Path(args.out) if args.out else report_path.with_suffix(".html")
+    out_dir = out_path.resolve().parent
+    # Phase 2 INTEGRATION — ship every optional `amvcp-<module>.{js,css}`
+    # bundle that exists in `scripts/` next to the rendered HTML, in
+    # dependency order, so the runtime can auto-init each one. Modules
+    # missing from disk are silently skipped (the runtime is defensively
+    # guarded). This MUST happen before `render()` so the returned list
+    # determines which `<script>`/`<link>` tags the page references.
+    phase2_modules = _ship_phase2_modules(out_dir)
     html_doc, idmap = render(
         report_md, replies,
         title=title,
         runtime_url=args.runtime_url,
         designmd_url=args.designmd_url,
         mode=args.mode,
+        phase2_modules=phase2_modules,
     )
     out_path.write_text(html_doc, encoding="utf-8")
     # Ship the engine + runtime with the page: when either URL is a bare
@@ -894,7 +1034,6 @@ def main(argv: list[str] | None = None) -> int:
     # self-contained (no separate copy step needed). The DESIGN.md
     # engine MUST be present because the runtime calls into
     # window.amvcpDesignMd on boot.
-    out_dir = out_path.resolve().parent
     _copy_asset_beside_output(args.designmd_url, out_dir)
     _copy_asset_beside_output(args.runtime_url, out_dir)
     # v2: write the idmap sidecar so the orchestrator can dereference

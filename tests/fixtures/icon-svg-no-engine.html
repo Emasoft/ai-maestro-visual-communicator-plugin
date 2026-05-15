@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>icon-svg fixture — no DESIGN.md engine</title>
+<style>
+  /* NO amvcp-designmd.js is loaded here. The icon-svg module must still
+     render every authored SVG correctly via the var(--vc-…, <hex>)
+     fallback chain — the SPECIFIED engine-absent contract
+     (icon-svg-spec.md §7). This fixture exercises exactly that path. */
+  html, body { overflow-x: auto; }
+  body {
+    margin: 0; padding: 32px;
+    background: #faf6ee; color: #1f1a14;
+    font: 16px/1.55 system-ui, sans-serif;
+  }
+  main { max-width: 80ch; margin: 0 auto; }
+  .scene-slot { width: 320px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>icon-svg — no engine (fallback-hex) fixture</h1>
+  <p>Loads <strong>only</strong> <code>amvcp-icon-svg.js</code>. No
+     DESIGN.md engine. Every authored SVG must still render with valid
+     computed fills via the documented fallback hexes.</p>
+
+  <figure class="scene-slot">
+    <script type="application/icon-svg+json" id="scene-noengine">
+    {
+      "viewBox": [0, 0, 1000, 1000],
+      "ariaLabel": "No-engine scene",
+      "primitives": [
+        { "type": "process",  "id": "ne-p", "x": 80,  "y": 120, "w": 380, "h": 200, "label": "Process" },
+        { "type": "database", "id": "ne-d", "x": 540, "y": 120, "w": 380, "h": 260, "label": "Store", "variant": "info" }
+      ]
+    }
+    </script>
+  </figure>
+</main>
+
+<!-- Manual-init so the test controls timing; NO engine script. -->
+<script>window.__isvgManualInit = true;</script>
+<script src="amvcp-icon-svg.js"></script>
+<script>
+(function () {
+  function boot() {
+    try {
+      window.amvcpIconSvg.injectIconSvgCSS(document);
+      window.amvcpIconSvg.init(document);
+      window.__isvgFixtureReady = true;
+    } catch (e) {
+      window.__isvgFixtureError = String(e && e.message || e);
+    }
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot);
+  } else {
+    boot();
+  }
+})();
+</script>
+</body>
+</html>

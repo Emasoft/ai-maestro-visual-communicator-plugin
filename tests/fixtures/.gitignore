@@ -3,5 +3,16 @@ amvcp-runtime.js
 amvcp-designmd.js
 amvcp-regex.umd.js
 amvcp-regex.css
+amvcp-tokens.js
+amvcp-token-sheet.js
+amvcp-tokens.css
+# Phase-2 modules whose fixtures-side entries are non-symlink stale copies
+# kept fresh by run-tests.py's sync_runtime_into_fixtures() — symlinks
+# would be cleaner but the copies pre-date the symlink convention.
+amvcp-interactive.js
+amvcp-interactive.css
+amvcp-layout.js
+amvcp-layout.css
+amvcp-tables.js
 sample-report.html
 sample-report.idmap.json

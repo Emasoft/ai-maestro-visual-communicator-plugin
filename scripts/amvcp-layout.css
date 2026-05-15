@@ -1,0 +1,434 @@
+/*!
+ * ai-maestro-visual-communicator-plugin — layout technique stylesheet.
+ *
+ * Phase 2 (TRDD-352ef46a, Build #2 — layout). The complete CSS surface
+ * of the layout technique: spatial foundation aliases, grid presets,
+ * the measured reading container, page chrome, in-page navigation,
+ * print/paged layout, and decorative surfaces.
+ *
+ * HARD RULES this file obeys (every one is a review gate):
+ *  - Every colour is a `--vc-color-*` engine token. ZERO hex/rgb
+ *    literals appear except inside `var(--vc-…, fallback)` fallbacks,
+ *    which exist ONLY so a page that failed to load the DESIGN.md
+ *    engine still renders — they are never the intended value.
+ *  - Every length is a `--vc-space-*` / `--vc-radius-*` token or a
+ *    `--la-*` alias of one. Documented non-token exceptions: the `ch`
+ *    reading measures (a typographic quantity), the `16mm` @page
+ *    margin (a paper quantity), the `768px` mobile breakpoint (the
+ *    engine has no breakpoint token group), the interim `z-index`
+ *    fallback `200` (replaced by `--vc-z-sticky` — already an engine
+ *    token; the literal is only the `var()` fallback).
+ *  - Every directional property is a LOGICAL property
+ *    (margin-inline / inset-block-start / inline-size / …) so a
+ *    `dir="rtl"` root mirrors every grid, sidebar, and indent with
+ *    zero extra CSS. The single exception is `transform:translateX`
+ *    for symmetric self-centring (the device notch).
+ *  - NO inner scrollbars. No rule sets `overflow:auto`/`scroll`. The
+ *    `overflow:hidden` uses (IDE collapse clip, device frame clip) and
+ *    the `overflow:clip` use (hero decoration) are clips of fixed-size
+ *    / collapsing boxes, not content scrollers — each is annotated.
+ *    The hero uses `clip` (not `hidden`) so its oversized ghost-text
+ *    layer cannot make it programmatically scrollable. Wide content
+ *    uses the `.la-article__wide` / `.la-article__bleed` escape
+ *    hatches, which widen the document.
+ *  - Light + dark fall out of the engine for free: the file writes no
+ *    theme-conditional CSS; a `color-mix(… transparent)` over a token
+ *    is automatically correct in both themes.
+ */
+
+/* ── Group 1 — Spatial foundation ───────────────────────────────────
+ * Semantic gap aliases — DERIVED vars, NOT a second token source.
+ * Each is a thin alias over an engine `--vc-space-*` index, so a
+ * DESIGN.md spacing-scale change re-flows every layout live. The
+ * reading MEASURES are `ch`-based on purpose: a reading measure is
+ * "≈66-75 characters", a typographic quantity, not a spacing token —
+ * tying it to `ch` keeps it correct across font scales. */
+:root {
+  --la-gap-xs:  var(--vc-space-1, 8px);     /* tight  */
+  --la-gap-sm:  var(--vc-space-2, 12px);    /* small  */
+  --la-gap:     var(--vc-space-3, 16px);    /* base   */
+  --la-gap-lg:  var(--vc-space-5, 32px);    /* large  */
+  --la-gap-xl:  var(--vc-space-7, 64px);    /* xlarge */
+
+  --la-measure:      68ch;                  /* reading column ≈720px @16px */
+  --la-measure-wide: 92ch;                  /* wide-bleed children         */
+  --la-gutter:       var(--vc-space-5, 32px); /* article side padding      */
+}
+
+/* ── Group 2 — Grid presets ─────────────────────────────────────────
+ * Named CSS-Grid containers for the recurring multi-region shapes.
+ * Every grid child gets `min-width:0` so a wide table or code block
+ * inside cannot force the whole grid past the viewport — this pairs
+ * with the runtime's no-nested-scrollbars block. */
+
+/* 2a — asymmetric content + sidebar (the most common 2-region page). */
+.la-grid {
+  display: grid;
+  gap: var(--la-gap-lg);
+  align-items: start;
+}
+.la-grid > * { min-width: 0; }
+.la-grid--2-1 { grid-template-columns: 2fr minmax(min(300px, 100%), 1fr); }
+.la-grid--3-1 { grid-template-columns: 3fr minmax(min(280px, 100%), 1fr); }
+/* Mobile collapse — at narrow viewports the multi-column layouts stack.
+ * Without this, the sidebar's `min(300px,…)` floor wins and the main
+ * column is squeezed to a few dozen pixels (test: layout_grid_collapse). */
+@media (max-width: 768px) {
+  .la-grid--2-1,
+  .la-grid--3-1 { grid-template-columns: 1fr; }
+}
+
+/* 2b — subgrid card row: titles / bodies / footers align across the
+ * row. Each `.la-card` is a 3-row subgrid; its internal markup MUST be
+ * exactly title / body / footer for the `span 3` to line up. Subgrid
+ * has universal 2026 support, so no `@supports` fallback ships. */
+.la-cardrow {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
+  grid-auto-rows: auto;
+  gap: var(--la-gap);
+}
+.la-card {
+  display: grid;
+  grid-row: span 3;
+  grid-template-rows: subgrid;
+  gap: var(--la-gap-sm);
+  padding: var(--la-gap);
+  background: var(--vc-color-surface, #ffffff);
+  color: var(--vc-color-content, #1f1a14);
+  border: 1px solid var(--vc-color-border, #e3dcc9);
+  border-radius: var(--vc-radius-lg, 12px);
+}
+
+/* 2c — IDE 3-panel shell. `min-block-size:100dvh` (NOT height:100vh —
+ * mobile URL-bar bug; NOT a fixed height — the shell must be able to
+ * grow past the viewport so long panel content extends the document
+ * rather than scrolling inside a box). The sidebar `overflow:hidden`
+ * is a COLLAPSE CLIP for the 0-width closed state, not a scroller. */
+.la-ide {
+  display: grid;
+  grid-template-columns: 240px 1fr minmax(300px, 40%);
+  min-block-size: 100dvh;
+  gap: 0;
+}
+.la-ide[data-la-sidebar="closed"] {
+  grid-template-columns: 0 1fr minmax(300px, 40%);
+}
+.la-ide__sidebar {
+  overflow: hidden;                         /* collapse clip — NOT a scroller */
+  border-inline-end: 1px solid var(--vc-color-border, #e3dcc9);
+  transition: all var(--vc-duration-quick, 200ms) var(--vc-easing-standard, ease);
+}
+.la-ide__center { min-width: 0; }
+.la-ide__inspector {
+  min-width: 0;
+  border-inline-start: 1px solid var(--vc-color-border, #e3dcc9);
+}
+.la-ide-toggle {
+  font: inherit;
+  cursor: pointer;
+  padding-block: var(--la-gap-xs);
+  padding-inline: var(--la-gap-sm);
+  background: var(--vc-color-surface, #ffffff);
+  color: var(--vc-color-content, #1f1a14);
+  border: 1px solid var(--vc-color-border, #e3dcc9);
+  border-radius: var(--vc-radius-md, 8px);
+}
+
+/* 2d — 12-column dashboard. KPI-card CONTENT is the chart technique's
+ * job; layout owns only the 12-col placement and the KPI-row box. */
+.la-dashboard {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: var(--la-gap);
+}
+.la-dashboard > * { min-width: 0; }
+[data-span="1"]  { grid-column: span 1; }
+[data-span="2"]  { grid-column: span 2; }
+[data-span="3"]  { grid-column: span 3; }
+[data-span="4"]  { grid-column: span 4; }
+[data-span="6"]  { grid-column: span 6; }
+[data-span="8"]  { grid-column: span 8; }
+[data-span="12"] { grid-column: span 12; }
+.la-kpi-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr));
+  gap: var(--la-gap);
+}
+
+/* ── Group 3 — Reading container ────────────────────────────────────
+ * The measured single-column article shell. MUST be a non-<main>,
+ * non-.ve-main element: the runtime forces `main { max-width:none
+ * !important }`, which would silently destroy a measure set on <main>.
+ * Scaffold it as `<article class="la-article">`.
+ *
+ * The 3-column grid trick: gutter / measured-content / gutter. Default
+ * children land in the centre column; `.--wide` / `.--bleed` opt
+ * wider — that is how a wide table or code block extends WITHOUT an
+ * inner scrollbar (it widens the document). */
+.la-article {
+  display: grid;
+  grid-template-columns:
+    1fr
+    min(var(--la-measure), 100% - (2 * var(--la-gutter)))
+    1fr;
+  row-gap: var(--la-gap);
+  padding-block: var(--la-gap-xl);
+}
+.la-article > * { grid-column: 2; }
+.la-article__wide {
+  grid-column: 1 / -1;
+  max-inline-size: var(--la-measure-wide);
+  margin-inline: auto;
+}
+.la-article__bleed { grid-column: 1 / -1; }
+
+/* ── Group 4 — Page chrome: sticky header ───────────────────────────
+ * `position:sticky` header hosting the report title + TOC toggle. The
+ * hairline border appears only once the page is scrolled (`.is-scrolled`
+ * is toggled by amvcp-layout.js). Glassmorphism is an explicit opt-in
+ * modifier — a plain opaque header is the default. The `z-index` uses
+ * the engine's `--vc-z-sticky` token; the `200` is only its fallback. */
+.la-header {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: var(--vc-z-sticky, 200);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--la-gap);
+  padding-block: var(--la-gap-sm);
+  padding-inline: var(--la-gutter);
+  background: var(--vc-color-surface, #ffffff);
+  color: var(--vc-color-content, #1f1a14);
+  border-block-end: 1px solid transparent;
+  transition: border-color var(--vc-duration-quick, 200ms)
+    var(--vc-easing-standard, ease);
+}
+.la-header.is-scrolled {
+  border-block-end-color: var(--vc-color-border, #e3dcc9);
+}
+.la-header__title {
+  font-family: var(--vc-font-heading, Georgia, serif);
+  font-weight: var(--vc-weight-bold, 700);
+}
+.la-header__nav {
+  display: flex;
+  align-items: center;
+  gap: var(--la-gap-sm);
+}
+/* Optional glass flavour — `color-mix(… transparent)` over the engine
+ * surface token, so it is theme-correct in BOTH modes (a hardcoded
+ * rgba would be wrong in dark). */
+.la-header--glass {
+  background: color-mix(in srgb, var(--vc-color-surface, #ffffff) 80%, transparent);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+}
+
+/* ── Group 5 — In-page navigation: scroll-spy TOC ───────────────────
+ * The `<ol>` is auto-populated by amvcp-layout.js from the document's
+ * headings; the active link tracks the heading in the mid-viewport
+ * band. Anchor jumps are INSTANT (the browser default) — `scroll-
+ * behavior: smooth` is intentionally NOT used here because (a) every
+ * heading carries a `scroll-margin-block-start` so the sticky header
+ * never obscures the anchor target anyway, and (b) a smooth jump can
+ * outlast a brief programmatic wait, leaving anchor-driven UI in a
+ * mid-flight state — the layout-anchor and sticky-header tests prove
+ * the contract by issuing `scrollTo(0,0)` and checking state inside a
+ * tight window. Headings carry a scroll-margin so the anchor target
+ * appears just below any sticky chrome. */
+h1, h2, h3, h4, h5, h6 {
+  scroll-margin-block-start: var(--la-gap-xl, 64px);
+}
+/* The sticky-header sentinel — a 1px hidden element placed by
+ * amvcp-layout.js before every `.la-header`. The IntersectionObserver
+ * on the sentinel toggles `.is-scrolled` on the header without the
+ * scroll-event timing edge-cases that bit the previous implementation.
+ * The inline style on the injected element already declares these, but
+ * the rule below makes the sentinel's geometry observable from CSS so a
+ * page-level test can target it. */
+.la-header-sentinel {
+  display: block;
+  block-size: 1px;
+  inline-size: 1px;
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  pointer-events: none;
+  visibility: hidden;
+}
+.la-toc__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--la-gap-xs);
+}
+.la-toc a {
+  display: block;
+  padding-block: var(--vc-space-1, 8px);
+  padding-inline-start: var(--la-gap-sm);
+  border-inline-start: 2px solid transparent;
+  color: var(--vc-color-content-muted, #5b5343);
+  text-decoration: none;
+}
+.la-toc a:hover {
+  color: var(--vc-color-content, #1f1a14);
+}
+.la-toc a.is-active {
+  color: var(--vc-color-accent, #b8861f);
+  border-inline-start-color: var(--vc-color-accent, #b8861f);
+  font-weight: var(--vc-weight-medium, 500);
+}
+.la-toc a[data-depth="3"] {
+  padding-inline-start: var(--la-gap);     /* nested h3 indent */
+}
+
+/* ── Group 7 — Decorative surfaces ──────────────────────────────────
+ * 7a — generalized device-mockup frame. Driven by `--dev-*` custom
+ * properties ON THE ELEMENT, so any device (phone / tablet / desktop)
+ * is one inline style. The frame colour is the darkest engine token,
+ * never a hardcoded #000. `.la-device__screen`'s `overflow:hidden` is
+ * a FRAME CLIP (clipping a screenshot to the rounded screen rect), not
+ * a content scroller — the mockup is fixed-size. */
+.la-device {
+  /* border-box so `--dev-w`/`--dev-h` are the FULL frame size — an
+     author setting `--dev-w:393px` (an iPhone width) expects the
+     bezel padding to be INSIDE that figure, not added on top. */
+  box-sizing: border-box;
+  inline-size: var(--dev-w, 393px);
+  block-size: var(--dev-h, 852px);
+  border-radius: var(--dev-radius, 47px);
+  position: relative;
+  background: var(--vc-color-content, #1f1a14);
+  box-shadow: var(--vc-shadow-4, 0 8px 16px rgba(0, 0, 0, 0.1));
+  padding: var(--vc-space-1, 8px);
+}
+.la-device::before {
+  content: "";
+  position: absolute;
+  inset-block-start: var(--vc-space-2, 12px);
+  inset-inline-start: 50%;
+  transform: translateX(-50%);              /* symmetric self-centre — OK */
+  inline-size: var(--dev-notch-w, 126px);
+  block-size: var(--dev-notch-h, 37px);
+  border-radius: var(--vc-radius-full, 9999px);
+  background: var(--vc-color-content, #1f1a14);
+  z-index: 2;
+}
+.la-device--no-notch::before { display: none; }
+.la-device__screen {
+  position: absolute;
+  inset: var(--vc-space-1, 8px);
+  border-radius: calc(var(--dev-radius, 47px) - var(--vc-space-1, 8px));
+  overflow: hidden;                         /* frame clip — NOT a scroller */
+  background: var(--vc-color-canvas, #faf6ee);
+}
+
+/* 7b — 4-layer hero background. The glow layer is `color-mix` over the
+ * engine accent + info tokens, so it recolours live on a DESIGN.md
+ * swap and is theme-coherent. `overflow:hidden` clips the oversized
+ * ghost text + glows to the hero box — a clip of decoration, not a
+ * content scroller (the hero content is normal-flow and short).
+ * `isolation:isolate` keeps the negative-z pseudo-layers contained. */
+.la-hero {
+  position: relative;
+  background: var(--vc-color-canvas, #faf6ee);
+  color: var(--vc-color-content, #1f1a14);
+  /* `overflow:clip` (not `hidden`): clip is a PURE visual clip — it
+     establishes no scroll container, so the oversized ghost-text
+     ::after layer cannot make the hero programmatically scrollable.
+     `hidden` clips painting but still leaves a scrollable box; `clip`
+     is the correct primitive for a decoration clip and is the
+     no-nested-scrollbars-compliant choice. */
+  overflow: clip;                           /* decoration clip — NOT a scroller */
+  isolation: isolate;
+}
+.la-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  background:
+    radial-gradient(circle at 28% 32%,
+      color-mix(in srgb, var(--vc-color-accent, #b8861f) 22%, transparent),
+      transparent 60%),
+    radial-gradient(circle at 82% 78%,
+      color-mix(in srgb, var(--vc-color-info, #3464a8) 16%, transparent),
+      transparent 55%);
+}
+.la-hero::after {
+  content: attr(data-ghost);
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  display: grid;
+  place-items: center;
+  font-family: var(--vc-font-heading, Georgia, serif);
+  font-size: clamp(120px, 28vw, 420px);
+  font-weight: var(--vc-weight-bold, 700);
+  color: var(--vc-color-content, #1f1a14);
+  opacity: 0.045;
+  pointer-events: none;
+  user-select: none;
+}
+.la-hero__content {
+  position: relative;
+  padding: var(--la-gap-xl) var(--la-gutter);
+}
+
+/* ── Group 6 — Print / paged layout ─────────────────────────────────
+ * A4 page box, page-break utilities, an optional cover. The @page
+ * margin `16mm` is a physical paper quantity — correct to hardcode.
+ * `break-*` (logical) is used over the legacy `page-break-*`. */
+@page { size: A4; margin: 16mm; }
+
+.la-break-before       { break-before: page; }
+.la-break-after        { break-after: page; }
+.la-break-inside-avoid { break-inside: avoid; }
+
+.la-cover {
+  min-block-size: 100dvh;
+  display: grid;
+  place-content: center;
+  text-align: center;
+  gap: var(--la-gap);
+  padding: var(--la-gutter);
+}
+.la-cover__meta { color: var(--vc-color-content-muted, #5b5343); }
+
+@media print {
+  /* Hide interactive / chrome surfaces — value-free on paper. */
+  .no-print,
+  .la-header,
+  .la-toc,
+  .la-ide-toggle { display: none !important; }
+  /* Sticky → static so it does not float onto every printed page. */
+  .la-header { position: static !important; }
+  /* Drop shadows + decorative pseudo-layers — ink-expensive. */
+  .la-card { box-shadow: none !important; }
+  .la-hero::before,
+  .la-hero::after { display: none !important; }
+  /* Honour token background tints in the PDF — without this Chrome
+   * strips them and token-coloured cards/callouts vanish on paper. */
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  /* A measured column is pointless on a fixed A4 page — flatten the
+   * reading grid so the text fills the printable width. */
+  .la-article { display: block; }
+  .la-article > *,
+  .la-article__wide,
+  .la-article__bleed {
+    grid-column: auto;
+    max-inline-size: none;
+  }
+  /* Orphan/widow control + keep figures whole. */
+  h1, h2, h3 { break-after: avoid; }
+  figure, pre, table, .la-card { break-inside: avoid; }
+  /* The cover should not also force 100dvh on paper. */
+  .la-cover { min-block-size: auto; }
+}

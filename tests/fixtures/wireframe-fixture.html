@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>wireframe skill test fixture</title>
+
+<!-- The wireframe skill's own stylesheet — the 19-class kit, the 4
+     archetypes, the 4 device-frame bezels, and the fidelity-ramp
+     row. Served via the tests/fixtures/amvcp-wireframe.css symlink
+     -> ../../scripts/amvcp-wireframe.css. -->
+<link rel="stylesheet" href="amvcp-wireframe.css">
+
+<style>
+  /* Per the no-nested-scrollbars rule: only the document scrolls. */
+  html, body { overflow-x: auto; }
+  body {
+    margin: 0;
+    padding: 32px;
+    background: var(--vc-color-canvas, #faf6ee);
+    color: var(--vc-color-content, #1f1a14);
+    font: 16px/1.55 var(--vc-font-body, system-ui, sans-serif);
+  }
+  main { max-width: 1180px; margin: 0 auto; }
+  h1, h2 { font-family: var(--vc-font-heading, Georgia, serif); }
+  h2 {
+    font-size: 18px; margin-top: 36px;
+    border-bottom: 1px solid var(--vc-color-border, #e3dcc9);
+    padding-bottom: 6px;
+  }
+  section { margin-block: 20px; }
+  p.note {
+    color: var(--vc-color-content-muted, #5b5343);
+    font-size: 14px;
+  }
+  /* Section divider for the demo bands. */
+  .demo-band {
+    padding: 12px 0;
+  }
+  /* The fidelity-ramp tests need a wide canvas — let the page widen
+     past the viewport rather than introduce an inner scroller. */
+</style>
+</head>
+<body>
+<main>
+  <h1>Wireframe skill test fixture</h1>
+  <p class="note">Loads <code>amvcp-designmd.js</code> then
+     <code>amvcp-wireframe.js</code> as browser globals.
+     <code>window.__wfManualInit</code> is set so the test drives
+     <code>init()</code> deterministically AFTER the engine has applied
+     the embedded DESIGN.md tokens. The DESIGN.md uses a vivid magenta
+     accent (<code>#cc4488</code>) so desaturation is observable: at
+     fidelity <code>wireframe</code> every kit block paints grey, even
+     though <code>--vc-color-accent</code> is bright magenta.</p>
+
+  <!-- ════════════════════════════════════════════════════════════════
+       Section A — multi-screen anchor navigation, web archetype
+       data-wf-nav="scroll" — every screen stacked, anchors do native
+       fragment scroll. Demonstrates the kit (.wf-header / .wf-nav /
+       .wf-card / .wf-button / .wf-text) inside .wf-archetype--web.
+       ═══════════════════════════════════════════════════════════════ -->
+  <h2>Section A — web archetype, anchor-nav (scroll mode)</h2>
+  <section class="demo-band">
+    <div class="wf-root wf-archetype--web"
+         data-wf-root data-wf-fidelity="wireframe" data-wf-nav="scroll"
+         id="wf-web-root">
+
+      <section class="wf-screen" id="screen-home" data-ve-id="screen-home"
+               data-ve-type="wireframe-screen">
+        <div class="wf-header">
+          <div class="wf-text" data-wf-lines="1" style="width: 120px"></div>
+          <div class="wf-nav">
+            <div class="wf-nav-item">Home</div>
+            <div class="wf-nav-item">Docs</div>
+            <div class="wf-nav-item">Pricing</div>
+          </div>
+        </div>
+        <div class="wf-main">
+          <div class="wf-card" id="card-home" data-ve-id="card-home"
+               data-ve-type="wireframe-block">
+            <div class="wf-card__title wf-text" data-wf-lines="1">
+              Card title
+            </div>
+            <div class="wf-text" data-wf-lines="3"></div>
+            <div class="wf-card__actions">
+              <a class="wf-button" href="#screen-detail">Go to detail</a>
+              <a class="wf-button wf-button--ghost" href="#screen-form">
+                Go to form
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="wf-screen" id="screen-detail" data-ve-id="screen-detail"
+               data-ve-type="wireframe-screen">
+        <div class="wf-main">
+          <div class="wf-card">
+            <div class="wf-card__title wf-text" data-wf-lines="1">
+              Detail screen
+            </div>
+            <div class="wf-text" data-wf-lines="4"></div>
+            <div class="wf-image" style="height: 120px"></div>
+            <div class="wf-card__actions">
+              <a class="wf-button wf-button--ghost" href="#screen-home">
+                Back
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="wf-screen" id="screen-form" data-ve-id="screen-form"
+               data-ve-type="wireframe-screen">
+        <div class="wf-main">
+          <div class="wf-card">
+            <div class="wf-card__title wf-text" data-wf-lines="1">
+              Form screen
+            </div>
+            <div class="wf-label">Name</div>
+            <input class="wf-input" id="form-input" placeholder="Type…">
+            <div class="wf-label">Tags</div>
+            <div>
+              <span class="wf-chip">design</span>
+              <span class="wf-chip">prototype</span>
+              <span class="wf-chip">wireframe</span>
+            </div>
+            <div class="wf-card__actions">
+              <button class="wf-button">Submit</button>
+              <a class="wf-button wf-button--ghost" href="#screen-home">
+                Cancel
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════════════════════════════
+       Section B — paged navigation (pure CSS :target)
+       data-wf-nav="paged" — only the :target screen is visible.
+       ═══════════════════════════════════════════════════════════════ -->
+  <h2>Section B — web archetype, paged nav (CSS :target)</h2>
+  <section class="demo-band">
+    <div class="wf-root wf-archetype--web"
+         data-wf-root data-wf-fidelity="wireframe" data-wf-nav="paged"
+         id="wf-paged-root">
+      <section class="wf-screen" id="paged-1" data-ve-id="paged-1"
+               data-ve-type="wireframe-screen">
+        <div class="wf-card">
+          <div class="wf-card__title wf-text" data-wf-lines="1">
+            Paged step 1
+          </div>
+          <a class="wf-button" href="#paged-2">Next</a>
+        </div>
+      </section>
+      <section class="wf-screen" id="paged-2" data-ve-id="paged-2"
+               data-ve-type="wireframe-screen">
+        <div class="wf-card">
+          <div class="wf-card__title wf-text" data-wf-lines="1">
+            Paged step 2
+          </div>
+          <a class="wf-button wf-button--ghost" href="#paged-1">Back</a>
+        </div>
+      </section>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════════════════════════════
+       Section C — desktop app chrome archetype (titlebar + traffic
+       lights + sidebar + main + statusbar)
+       ═══════════════════════════════════════════════════════════════ -->
+  <h2>Section C — desktop app chrome archetype</h2>
+  <section class="demo-band">
+    <div class="wf-root wf-archetype--app"
+         data-wf-root data-wf-fidelity="wireframe" id="wf-app-root">
+      <div class="wf-titlebar" id="wf-app-titlebar">
+        <div class="wf-traffic-lights" id="wf-app-lights">
+          <span></span><span></span><span></span>
+        </div>
+        <div class="wf-text" data-wf-lines="1" style="width: 160px"></div>
+        <span></span>
+      </div>
+      <div class="wf-sidebar" id="wf-app-sidebar">
+        <div class="wf-nav-item">Inbox</div>
+        <div class="wf-nav-item is-active" aria-current="page">Files</div>
+        <div class="wf-nav-item">Settings</div>
+      </div>
+      <div class="wf-main" id="wf-app-main">
+        <div class="wf-card">
+          <div class="wf-card__title wf-text" data-wf-lines="1">
+            Files
+          </div>
+          <div class="wf-table">
+            <div class="wf-table-row wf-table-row--head">
+              <div>Name</div><div>Size</div><div>Modified</div>
+            </div>
+            <div class="wf-table-row">
+              <div>doc-1.md</div><div>4 KB</div><div>1d</div>
+            </div>
+            <div class="wf-table-row">
+              <div>image.png</div><div>120 KB</div><div>3h</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="wf-statusbar" id="wf-app-statusbar">
+        <div class="wf-text" data-wf-lines="1" style="width: 200px"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════════════════════════════
+       Section D — mobile archetype inside an iOS device frame
+       ═══════════════════════════════════════════════════════════════ -->
+  <h2>Section D — mobile archetype inside an iOS frame</h2>
+  <section class="demo-band">
+    <div class="wf-frame wf-frame--ios" id="wf-ios-frame">
+      <div class="wf-frame__island" aria-hidden="true"></div>
+      <div class="wf-frame__statusbar">
+        <span class="wf-frame__time">9:41</span>
+        <span class="wf-frame__indicators" aria-hidden="true"></span>
+      </div>
+      <div class="wf-frame__content">
+        <div class="wf-archetype--mobile wf-root"
+             data-wf-root data-wf-fidelity="wireframe"
+             id="wf-mobile-root">
+          <div class="wf-header">
+            <div class="wf-text" data-wf-lines="1" style="width: 60%"></div>
+          </div>
+          <div class="wf-main">
+            <div class="wf-card">
+              <div class="wf-card__title wf-text" data-wf-lines="1">
+                Welcome
+              </div>
+              <div class="wf-text" data-wf-lines="2"></div>
+              <button class="wf-button">Get started</button>
+            </div>
+          </div>
+          <div class="wf-nav">
+            <div class="wf-nav-item">Home</div>
+            <div class="wf-nav-item">Search</div>
+            <div class="wf-nav-item">Profile</div>
+          </div>
+        </div>
+      </div>
+      <div class="wf-frame__home" aria-hidden="true"></div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════════════════════════════
+       Section E — Android, MacBook, and browser frames (visible together
+       so the test can verify all four bezels render)
+       ═══════════════════════════════════════════════════════════════ -->
+  <h2>Section E — Android / MacBook / browser frames</h2>
+  <section class="demo-band">
+    <div class="wf-frame wf-frame--android" id="wf-android-frame">
+      <div class="wf-frame__island" aria-hidden="true"></div>
+      <div class="wf-frame__content">
+        <div class="wf-archetype--mobile wf-root"
+             data-wf-root data-wf-fidelity="wireframe">
+          <div class="wf-main">
+            <div class="wf-card">
+              <div class="wf-text" data-wf-lines="2"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="wf-frame wf-frame--macbook" id="wf-macbook-frame">
+      <div class="wf-frame__island" aria-hidden="true"></div>
+      <div class="wf-frame__content">
+        <div class="wf-root" data-wf-root data-wf-fidelity="wireframe">
+          <div class="wf-card">
+            <div class="wf-card__title wf-text" data-wf-lines="1">
+              MacBook screen
+            </div>
+            <div class="wf-text" data-wf-lines="3"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="wf-frame wf-frame--browser" id="wf-browser-frame">
+      <div class="wf-frame__chromebar">
+        <span></span><span></span><span></span>
+        <div class="wf-frame__url">example.com</div>
+      </div>
+      <div class="wf-frame__content">
+        <div class="wf-root" data-wf-root data-wf-fidelity="wireframe">
+          <div class="wf-card">
+            <div class="wf-card__title wf-text" data-wf-lines="1">
+              Browser viewport
+            </div>
+            <div class="wf-text" data-wf-lines="2"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════════════════════════════
+       Section F — fidelity ramp (4 stages side-by-side of the same
+       screen). The test verifies saturation rises monotonically.
+       ═══════════════════════════════════════════════════════════════ -->
+  <h2>Section F — fidelity ramp (wireframe → low → mid → hi)</h2>
+  <section class="demo-band">
+    <div class="wf-ramp" id="wf-ramp">
+      <figure class="wf-ramp__stage">
+        <div class="wf-root" data-wf-root data-wf-fidelity="wireframe"
+             id="ramp-wireframe">
+          <div class="wf-card">
+            <div class="wf-card__title wf-text" data-wf-lines="1">
+              Stage
+            </div>
+            <button class="wf-button" id="ramp-btn-wireframe">CTA</button>
+          </div>
+        </div>
+        <figcaption>Wireframe</figcaption>
+      </figure>
+      <figure class="wf-ramp__stage">
+        <div class="wf-root" data-wf-root data-wf-fidelity="low"
+             id="ramp-low">
+          <div class="wf-card">
+            <div class="wf-card__title wf-text" data-wf-lines="1">
+              Stage
+            </div>
+            <button class="wf-button" id="ramp-btn-low">CTA</button>
+          </div>
+        </div>
+        <figcaption>Low-fi</figcaption>
+      </figure>
+      <figure class="wf-ramp__stage">
+        <div class="wf-root" data-wf-root data-wf-fidelity="mid"
+             id="ramp-mid">
+          <div class="wf-card">
+            <div class="wf-card__title wf-text" data-wf-lines="1">
+              Stage
+            </div>
+            <button class="wf-button" id="ramp-btn-mid">CTA</button>
+          </div>
+        </div>
+        <figcaption>Mid-fi</figcaption>
+      </figure>
+      <figure class="wf-ramp__stage">
+        <div class="wf-root" data-wf-root data-wf-fidelity="hi"
+             id="ramp-hi">
+          <div class="wf-card">
+            <div class="wf-card__title wf-text" data-wf-lines="1">
+              Stage
+            </div>
+            <button class="wf-button" id="ramp-btn-hi">CTA</button>
+          </div>
+        </div>
+        <figcaption>Hi-fi</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════════════════════════════
+       Section G — fidelity slider (one screen + a slider that sweeps
+       data-wf-fidelity through the 4 stages live)
+       ═══════════════════════════════════════════════════════════════ -->
+  <h2>Section G — fidelity slider</h2>
+  <section class="demo-band">
+    <div class="wf-fidelity-control">
+      <div class="wf-root" data-wf-root data-wf-fidelity="wireframe"
+           id="slider-target">
+        <div class="wf-card">
+          <div class="wf-card__title wf-text" data-wf-lines="1">
+            Slider target
+          </div>
+          <div class="wf-text" data-wf-lines="2"></div>
+          <button class="wf-button" id="slider-btn">Action</button>
+        </div>
+      </div>
+      <input type="range" min="0" max="3" step="1" value="0"
+             class="wf-fidelity-slider" data-wf-target="slider-target"
+             id="fidelity-slider"
+             aria-label="Fidelity">
+      <div class="wf-fidelity-ticks" aria-hidden="true">
+        <span>Wireframe</span><span>Low</span><span>Mid</span><span>Hi</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════════════════════════════
+       Section H — modal archetype (wf-overlay + centered wf-modal)
+       ═══════════════════════════════════════════════════════════════ -->
+  <h2>Section H — modal archetype (overlay + centered modal)</h2>
+  <section class="demo-band" style="position: relative; height: 320px">
+    <div class="wf-archetype--modal wf-root"
+         data-wf-root data-wf-fidelity="wireframe" id="wf-modal-root">
+      <div class="wf-overlay"></div>
+      <div class="wf-modal" id="wf-modal-block">
+        <div class="wf-card__title wf-text" data-wf-lines="1">
+          Confirm action
+        </div>
+        <div class="wf-text" data-wf-lines="2"></div>
+        <div class="wf-modal__actions">
+          <button class="wf-button">OK</button>
+          <button class="wf-button wf-button--ghost">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════════════════════════════
+       Section I — placeholder text + image kit blocks (data-wf-lines
+       and the diagonal-cross hatch). Visible for the test that asserts
+       the --wf-lines property mirroring works.
+       ═══════════════════════════════════════════════════════════════ -->
+  <h2>Section I — placeholder text + image kit blocks</h2>
+  <section class="demo-band">
+    <div class="wf-root" data-wf-root data-wf-fidelity="wireframe"
+         id="wf-kit-root">
+      <div class="wf-card">
+        <div class="wf-text" data-wf-lines="1" id="text-1"></div>
+        <div class="wf-text" data-wf-lines="3" id="text-3"></div>
+        <div class="wf-text" data-wf-lines="5" id="text-5"></div>
+        <div class="wf-image" style="height: 100px" id="kit-image"></div>
+        <div class="wf-divider"></div>
+        <div class="wf-avatar" id="kit-avatar"></div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- The DESIGN.md the engine themes the page from. The vivid magenta
+     accent (#cc4488) is intentional: at data-wf-fidelity="wireframe"
+     every kit block must paint grey even though --vc-color-accent
+     resolves to magenta — that proves the desaturation engine is
+     doing its job. -->
+<script type="text/design-md" id="ve-designmd">
+designmd_version: 1
+meta:
+  name: "Wireframe Fixture"
+  default_theme: light
+colors:
+  light:
+    canvas: "#faf6ee"
+    surface: "#ffffff"
+    surface-raised: "#fffdf8"
+    surface-sunken: "#f1ece0"
+    content: "#1f1a14"
+    content-muted: "#5b5343"
+    content-subtle: "#8a8170"
+    border: "#e3dcc9"
+    border-strong: "#c9bfa3"
+    accent: "#cc4488"
+    on-accent: "#ffffff"
+    success: "#3a6b5c"
+    warning: "#a8791f"
+    danger: "#a84a32"
+    info: "#3464a8"
+  dark:
+    canvas: "#1b1813"
+    surface: "#262119"
+    surface-raised: "#2f2920"
+    surface-sunken: "#15120d"
+    content: "#f3ecdd"
+    content-muted: "#b5ab93"
+    content-subtle: "#857c66"
+    border: "#3a3327"
+    border-strong: "#564c39"
+    accent: "#e87bb0"
+    on-accent: "#1b1813"
+    success: "#6db89c"
+    warning: "#d8a83f"
+    danger: "#d8765c"
+    info: "#6d9cd8"
+typography:
+  font-heading: "Playfair Display, Georgia, serif"
+  font-body: "Inter, system-ui, sans-serif"
+  font-mono: "JetBrains Mono, ui-monospace, monospace"
+  scale: [12, 14, 16, 20, 24, 32, 48]
+  weight-regular: 400
+  weight-medium: 500
+  weight-bold: 700
+  line-height: 1.55
+spacing:
+  scale: [4, 8, 12, 16, 24, 32, 48, 64]
+radius:
+  none: 0
+  sm: 4
+  md: 8
+  lg: 12
+  xl: 16
+  full: 9999
+motion:
+  duration-fast: 120
+  duration-slow: 400
+  easing-standard: "cubic-bezier(0.2,0,0,1)"
+  easing-decel: "cubic-bezier(0,0,0,1)"
+</script>
+
+<!-- Manual-init: this fixture controls the engine -> tokens ->
+     wireframe-init order so the desaturation engine reads the
+     real (post-engine) --vc-color-* set, not the bare fallbacks. -->
+<script>window.__wfManualInit = true;</script>
+<!-- Served via the tests/fixtures/amvcp-{designmd,wireframe}.js
+     symlinks -> ../../scripts/. -->
+<script src="amvcp-designmd.js"></script>
+<script src="amvcp-wireframe.js"></script>
+<script>
+// Self-contained boot — the runtime is intentionally NOT loaded so the
+// fixture exercises wireframe in isolation (the runtime's job is only
+// the boot one-liner the spec describes). The boot sequence:
+//   1. Parse the embedded DESIGN.md.
+//   2. Resolve the active-theme token map via the engine.
+//   3. Apply the tokens onto :root so every var(--vc-color-*) resolves.
+//   4. Init the wireframe module — its desaturation engine reads off
+//      :root and re-publishes the scoped grayscale set onto every
+//      [data-wf-root]. This is the order that mirrors the runtime.
+(function () {
+  function boot() {
+    try {
+      var raw = document.getElementById('ve-designmd').textContent;
+      var parsed = window.amvcpDesignMd.parseDesignMd('---\n' + raw + '\n---\n');
+      if (!parsed.ok) {
+        window.__wfFixtureError = 'parse: ' + parsed.errors.join('; ');
+        return;
+      }
+      window.__wfFixtureDesignMd = parsed.designmd;
+      var theme = parsed.designmd.meta.default_theme || 'light';
+      document.documentElement.setAttribute('data-ve-theme', theme);
+      var map = window.amvcpDesignMd.resolveTokens(parsed.designmd, theme);
+      window.amvcpDesignMd.applyTokens(map, document.documentElement);
+      // Engine tokens applied -> now the wireframe init.
+      window.amvcpWireframe.init(document);
+      window.__wfFixtureReady = true;
+    } catch (e) {
+      window.__wfFixtureError = String(e && e.message || e);
+    }
+  }
+  // Re-resolve + re-apply for a theme toggle (the theme test uses this).
+  // After re-applying tokens, dispatch the runtime's theme-change
+  // event so the wireframe module re-desaturates off the new theme.
+  window.__wfApplyTheme = function (theme) {
+    var dm = window.__wfFixtureDesignMd;
+    if (!dm) { return false; }
+    document.documentElement.setAttribute('data-ve-theme', theme);
+    var map = window.amvcpDesignMd.resolveTokens(dm, theme);
+    window.amvcpDesignMd.applyTokens(map, document.documentElement);
+    document.dispatchEvent(new Event('ve:themechange'));
+    return true;
+  };
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot);
+  } else {
+    boot();
+  }
+})();
+</script>
+</body>
+</html>

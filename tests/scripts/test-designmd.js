@@ -138,8 +138,13 @@ async function testResolveLightAndDark(page) {
       lightText2: light['--vc-text-2'],
       radiusFull: light['--vc-radius-full'],
       space3: light['--vc-space-3'],
-      durationFast: light['--vc-duration-fast'],
-      shadowSm: light['--vc-shadow-sm'],
+      // motion duration-quick is 200ms; elevation shadow-1 is a present
+      // optional token — both exercise the expanded engine groups.
+      durationQuick: light['--vc-duration-quick'],
+      shadow1: light['--vc-shadow-1'],
+      // z-index + code are the new optional groups added by design-tokens.
+      zModal: light['--vc-z-modal'],
+      codeKeyword: light['--vc-code-keyword'],
       lightKeyCount: Object.keys(light).length,
       darkKeyCount: Object.keys(dark).length
     };
@@ -154,8 +159,11 @@ async function testResolveLightAndDark(page) {
     && res.lightText2 === '16px'
     && res.radiusFull === '9999px'
     && res.space3 === '16px'
-    && res.durationFast === '120ms'
-    && res.shadowSm === '0 1px 2px rgba(0,0,0,0.08)'
+    && res.durationQuick === '200ms'
+    && res.shadow1 === '0 1px 2px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.10)'
+    // z-index emits a raw integer (no unit); code emits a color string.
+    && res.zModal === '400'
+    && res.codeKeyword === '#a8791f'
     // Both maps must have the same key set (only values differ).
     && res.lightKeyCount === res.darkKeyCount
     && res.lightKeyCount > 0;

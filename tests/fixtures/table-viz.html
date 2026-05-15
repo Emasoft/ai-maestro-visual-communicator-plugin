@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>table visualize module — test fixture</title>
+<style>
+  /* The fixture's own page chrome. The TABLE styling is the module's
+     job — this stylesheet only sets the page background / text so the
+     fixture is legible; both come from --vc-* tokens (applied at boot)
+     with a light fallback. */
+  html, body { overflow-x: auto; }
+  body {
+    margin: 0;
+    padding: 32px;
+    background: var(--vc-color-canvas, #faf6ee);
+    color: var(--vc-color-content, #1f1a14);
+    font: var(--vc-text-2, 16px)/1.5 var(--vc-font-body, system-ui, sans-serif);
+  }
+  main { max-width: none; }
+  h1 { font-family: var(--vc-font-heading, Georgia, serif); }
+  h2 {
+    font-family: var(--vc-font-heading, Georgia, serif);
+    margin-top: 40px;
+    border-bottom: 1px solid var(--vc-color-border, #e3dcc9);
+    padding-bottom: 6px;
+  }
+  /* Baseline table chrome — the real runtime ships this; the fixture
+     reproduces a minimal version so the module's modes render on top of
+     a sane baseline without loading the whole 9k-line runtime. Every
+     value is a --vc-* token with a light fallback. */
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 12px 0;
+    font-size: var(--vc-text-2, 16px);
+  }
+  th, td {
+    border: 1px solid var(--vc-color-border, #e3dcc9);
+    padding: var(--vc-space-1, 8px) var(--vc-space-2, 12px);
+    text-align: left;
+    overflow-wrap: anywhere;
+  }
+  thead th {
+    background: var(--vc-color-surface-sunken, #f1ece0);
+    border-bottom: 2px solid var(--vc-color-border-strong, #c9bfa3);
+  }
+  tbody tr:nth-child(even) {
+    background: color-mix(in srgb, var(--vc-color-accent, #b8861f) 6%, transparent);
+  }
+  /* Probe element applyTokens() writes onto in the schema-less path. */
+  #vc-probe { width: 1px; height: 1px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>table visualize module — test fixture</h1>
+  <p>Self-contained: loads only <code>amvcp-designmd.js</code> +
+     <code>amvcp-tables.js</code> (not the full runtime). The boot script
+     below parses the inline DESIGN.md, applies the light theme, then
+     calls <code>amvcpTables.init()</code>.</p>
+
+  <h2>1 — Data table (click-to-sort, numeric auto-detect)</h2>
+  <table id="t-data" data-ve-table="data" data-ve-label="Regional revenue">
+    <thead>
+      <tr>
+        <th scope="col">Region</th>
+        <th scope="col">Revenue</th>
+        <th scope="col">Growth %</th>
+        <th scope="col" data-ve-nosort>Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr data-ve-id="row:t-data:0"><td>EMEA</td><td>1,240,000</td><td>12.4</td><td>strong</td></tr>
+      <tr data-ve-id="row:t-data:1"><td>APAC</td><td>980,500</td><td>8.1</td><td>steady</td></tr>
+      <tr data-ve-id="row:t-data:2" data-ve-pressed="1"><td>AMER</td><td>2,030,000</td><td>15.7</td><td>lead</td></tr>
+      <tr data-ve-id="row:t-data:3"><td>LATAM</td><td>410,250</td><td>5.3</td><td>emerging</td></tr>
+      <tr data-ve-id="row:t-data:4"><td>MEA</td><td>295,000</td><td>9.9</td><td>watch</td></tr>
+    </tbody>
+  </table>
+
+  <h2>2 — Big-data table (virtualization, frozen header + column)</h2>
+  <table id="t-virtual" data-ve-table="data"
+         data-ve-table-virtual="1" data-ve-freeze-cols="1"
+         data-ve-label="Synthetic 400-row table">
+    <thead>
+      <tr>
+        <th scope="col">ID</th>
+        <th scope="col">Name</th>
+        <th scope="col">Score</th>
+        <th scope="col">Status</th>
+      </tr>
+    </thead>
+    <tbody id="t-virtual-body">
+      <!-- 400 rows injected by the boot script below -->
+    </tbody>
+  </table>
+
+  <h2>3 — Matrix / checklist table</h2>
+  <table id="t-matrix" data-ve-table="matrix" data-ve-matrix-summary
+         data-ve-label="Component coverage matrix">
+    <thead>
+      <tr>
+        <th scope="col">Component</th>
+        <th scope="col">Light</th>
+        <th scope="col">Dark</th>
+        <th scope="col">Mobile</th>
+        <th scope="col">RTL</th>
+        <th scope="col">A11y</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <th scope="row">Button</th>
+        <td data-ve-val="pass"></td>
+        <td data-ve-val="pass"></td>
+        <td data-ve-val="pass"></td>
+        <td data-ve-val="partial"></td>
+        <td data-ve-val="pass"></td>
+      </tr>
+      <tr>
+        <th scope="row">Modal</th>
+        <td data-ve-val="pass"></td>
+        <td data-ve-val="pass"></td>
+        <td data-ve-val="fail"></td>
+        <td data-ve-val="fail"></td>
+        <td data-ve-val="partial"></td>
+      </tr>
+      <tr>
+        <th scope="row">Table</th>
+        <td data-ve-val="pass"></td>
+        <td data-ve-val="pass"></td>
+        <td data-ve-val="partial"></td>
+        <td data-ve-val="na"></td>
+        <td data-ve-val="pass"></td>
+      </tr>
+    </tbody>
+    <tfoot>
+      <tr>
+        <th scope="row">P/F/~</th>
+        <td></td><td></td><td></td><td></td><td></td>
+      </tr>
+    </tfoot>
+  </table>
+
+  <h2>4 — Comparison table (icon headers, emphasis column)</h2>
+  <table id="t-compare" data-ve-table="compare" data-ve-table-csv="1"
+         data-ve-label="Option comparison">
+    <thead>
+      <tr>
+        <th scope="col">Criterion</th>
+        <th scope="col" data-ve-col-icon="◇">Option A</th>
+        <th scope="col" data-ve-col-icon="◆" data-ve-col-emphasis="1">Option B</th>
+        <th scope="col" data-ve-col-icon="○">Option C</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><th scope="row">Setup cost</th><td>Low</td><td>Medium</td><td>High</td></tr>
+      <tr><th scope="row">Scalability</th><td>Limited</td><td>Strong</td><td>Strong</td></tr>
+      <tr><th scope="row">Maintenance</th><td>Heavy</td><td>Light</td><td>Medium</td></tr>
+    </tbody>
+  </table>
+
+  <h2>5 — Grouped-header table (thead colspan → grid map)</h2>
+  <table id="t-grouped" data-ve-table="data" data-ve-label="Grouped header">
+    <thead>
+      <tr>
+        <th scope="col" rowspan="2">Item</th>
+        <th scope="colgroup" colspan="2">Q1</th>
+        <th scope="colgroup" colspan="2">Q2</th>
+      </tr>
+      <tr>
+        <th scope="col">Plan</th>
+        <th scope="col">Actual</th>
+        <th scope="col">Plan</th>
+        <th scope="col">Actual</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>Widgets</td><td>100</td><td>92</td><td>120</td><td>131</td></tr>
+      <tr><td>Gadgets</td><td>80</td><td>88</td><td>90</td><td>76</td></tr>
+    </tbody>
+  </table>
+
+  <h2>6 — Body-rowspan table (sort declines)</h2>
+  <table id="t-rowspan" data-ve-table="data" data-ve-label="Body rowspan">
+    <thead>
+      <tr><th scope="col">Group</th><th scope="col">Member</th><th scope="col">Count</th></tr>
+    </thead>
+    <tbody>
+      <tr><td rowspan="2">Alpha</td><td>One</td><td>10</td></tr>
+      <tr><td>Two</td><td>20</td></tr>
+      <tr><td>Beta</td><td>Three</td><td>30</td></tr>
+    </tbody>
+  </table>
+
+  <h2>7 — CSV-button table (copy-as-CSV)</h2>
+  <table id="t-csv" data-ve-table="data" data-ve-table-csv="1"
+         data-ve-label="CSV export demo">
+    <thead>
+      <tr><th scope="col">Name</th><th scope="col">Quote</th><th scope="col">Amount</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Plain</td><td>simple value</td><td>100</td></tr>
+      <tr><td>Comma, here</td><td>has, commas</td><td>250</td></tr>
+      <tr><td>Quote &quot;mark&quot;</td><td>she said &quot;hi&quot;</td><td>375</td></tr>
+    </tbody>
+  </table>
+
+  <div id="vc-probe"></div>
+</main>
+
+<!-- Inline DESIGN.md — the boot script parses this so applyTokens can
+     theme the page from real tokens. Mirrors tests/fixtures/sample-DESIGN.md. -->
+<script type="text/plain" id="design-md">---
+designmd_version: 1
+meta:
+  name: "Heritage"
+  default_theme: light
+colors:
+  light:
+    canvas:          "#faf6ee"
+    surface:         "#ffffff"
+    surface-raised:  "#fffdf8"
+    surface-sunken:  "#f1ece0"
+    content:         "#1f1a14"
+    content-muted:   "#5b5343"
+    content-subtle:  "#8a8170"
+    border:          "#e3dcc9"
+    border-strong:   "#c9bfa3"
+    accent:          "#b8861f"
+    on-accent:       "#ffffff"
+    success:         "#3a6b5c"
+    warning:         "#a8791f"
+    danger:          "#a84a32"
+    info:            "#3464a8"
+  dark:
+    canvas:          "#16130d"
+    surface:         "#211c14"
+    surface-raised:  "#2a241a"
+    surface-sunken:  "#0f0d09"
+    content:         "#f3ecdd"
+    content-muted:   "#b8ad96"
+    content-subtle:  "#857c68"
+    border:          "#3a3325"
+    border-strong:   "#564c36"
+    accent:          "#e0aa3e"
+    on-accent:       "#16130d"
+    success:         "#6fae9b"
+    warning:         "#d8aa54"
+    danger:          "#dd8068"
+    info:            "#6f9bd8"
+typography:
+  font-heading: "Playfair Display, Georgia, serif"
+  font-body:    "system-ui, -apple-system, Segoe UI, sans-serif"
+  font-mono:    "JetBrains Mono, ui-monospace, monospace"
+  scale:        [12, 14, 16, 20, 24, 32, 48]
+  weight-regular: 400
+  weight-medium:  500
+  weight-bold:    700
+  line-height:    1.55
+spacing:
+  scale: [4, 8, 12, 16, 24, 32, 48, 64]
+radius:
+  none: 0
+  sm:   4
+  md:   8
+  lg:   12
+  xl:   16
+  full: 9999
+motion:
+  duration-fast:     100
+  duration-quick:    200
+  easing-standard:   "cubic-bezier(0.2,0,0,1)"
+---
+
+# Heritage prose body — not parsed by the engine.
+</script>
+
+<script src="amvcp-designmd.js"></script>
+<script src="amvcp-tables.js"></script>
+<script>
+(function () {
+  // Populate the 400-row virtual table BEFORE init() runs so the module
+  // captures every row.
+  var vbody = document.getElementById('t-virtual-body');
+  if (vbody) {
+    var i;
+    for (i = 0; i < 400; i++) {
+      var tr = document.createElement('tr');
+      tr.setAttribute('data-ve-id', 'row:t-virtual:' + i);
+      tr.innerHTML =
+        '<td>' + (1000 + i) + '</td>' +
+        '<td>Item ' + i + '</td>' +
+        '<td>' + ((i * 37) % 1000) + '</td>' +
+        '<td>' + (i % 3 === 0 ? 'active' : 'idle') + '</td>';
+      vbody.appendChild(tr);
+    }
+  }
+
+  // Theme helper exposed on window so the dev-browser test can toggle
+  // between light and dark by re-resolving + re-applying the tokens.
+  var designText = document.getElementById('design-md').textContent;
+  var parsed = window.amvcpDesignMd
+    ? window.amvcpDesignMd.parseDesignMd(designText) : null;
+
+  window.__veApplyTheme = function (theme) {
+    if (!parsed || !parsed.ok) {
+      return false;
+    }
+    var map = window.amvcpDesignMd.resolveTokens(parsed.designmd, theme);
+    window.amvcpDesignMd.applyTokens(map, document.documentElement);
+    return true;
+  };
+
+  // Apply the light theme, then enhance the tables.
+  window.__veApplyTheme('light');
+  if (window.amvcpTables && typeof window.amvcpTables.init === 'function') {
+    window.amvcpTables.init();
+  }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>interactive-control widgets — self-contained fixture</title>
+
+<!-- Embedded DESIGN.md token source. The interactive module parses this
+     on boot (no runtime present) and applies the --vc-* tokens to :root.
+     Theme tests hot-swap light <-> dark by re-resolving this. -->
+<script type="text/design-md" id="ic-designmd">
+---
+designmd_version: 1
+meta:
+  name: "Heritage"
+  default_theme: light
+colors:
+  light:
+    canvas:          "#faf6ee"
+    surface:         "#ffffff"
+    surface-raised:  "#fffdf8"
+    surface-sunken:  "#f1ece0"
+    content:         "#1f1a14"
+    content-muted:   "#5b5343"
+    content-subtle:  "#8a8170"
+    border:          "#e3dcc9"
+    border-strong:   "#c9bfa3"
+    accent:          "#b8861f"
+    on-accent:       "#ffffff"
+    success:         "#3a6b5c"
+    warning:         "#a8791f"
+    danger:          "#a84a32"
+    info:            "#3464a8"
+  dark:
+    canvas:          "#16130d"
+    surface:         "#211c14"
+    surface-raised:  "#2a241a"
+    surface-sunken:  "#0f0d09"
+    content:         "#f3ecdd"
+    content-muted:   "#b8ad96"
+    content-subtle:  "#857c68"
+    border:          "#3a3325"
+    border-strong:   "#564c36"
+    accent:          "#e0aa3e"
+    on-accent:       "#16130d"
+    success:         "#6fae9b"
+    warning:         "#d8aa54"
+    danger:          "#dd8068"
+    info:            "#6f9bd8"
+typography:
+  font-heading: "Playfair Display, Georgia, serif"
+  font-body:    "system-ui, -apple-system, Segoe UI, sans-serif"
+  font-mono:    "JetBrains Mono, ui-monospace, monospace"
+  scale:        [12, 14, 16, 20, 24, 32, 48]
+  weight-regular: 400
+  weight-medium:  500
+  weight-bold:    700
+  line-height:    1.55
+spacing:
+  scale: [4, 8, 12, 16, 24, 32, 48, 64]
+radius:
+  none: 0
+  sm:   4
+  md:   8
+  lg:   12
+  xl:   16
+  full: 9999
+elevation:
+  shadow-0: "none"
+  shadow-1: "0 1px 2px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.10)"
+  shadow-2: "0 2px 4px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.12)"
+  shadow-3: "0 4px 8px rgba(0,0,0,0.08), 0 8px 20px rgba(0,0,0,0.14)"
+  shadow-4: "0 8px 16px rgba(0,0,0,0.10), 0 16px 40px rgba(0,0,0,0.18)"
+  shadow-border: "0 0 0 1px rgba(0,0,0,0.08)"
+motion:
+  duration-instant:  50
+  duration-fast:     100
+  duration-quick:    200
+  duration-base:     300
+  duration-moderate: 400
+  duration-slow:     500
+  duration-lazy:     700
+  duration-glacial:  1000
+  easing-standard:         "cubic-bezier(0.2,0,0,1)"
+  easing-decel:            "cubic-bezier(0,0,0,1)"
+  easing-accel:            "cubic-bezier(0.3,0,1,1)"
+  easing-emphasized-decel: "cubic-bezier(0.05,0.7,0.1,1)"
+  easing-emphasized-accel: "cubic-bezier(0.3,0,0.8,0.15)"
+  easing-spring:           "cubic-bezier(0.175,0.885,0.32,1.275)"
+  easing-bounce:           "cubic-bezier(0.34,1.56,0.64,1)"
+  easing-linear:           "linear"
+z-index:
+  behind:   -1
+  base:     0
+  raised:   10
+  dropdown: 100
+  sticky:   200
+  overlay:  300
+  modal:    400
+  toast:    500
+  tooltip:  600
+---
+
+# Heritage — interactive-control fixture
+</script>
+
+<!-- The embedded JSON data model — one block per page, id="ic-data".
+     The vlist list intentionally has > 200 items so the virtualized
+     path (not the plain-render path) is exercised. -->
+<script type="application/json" id="ic-data">
+{
+  "tabs": [
+    { "id": "tab-overview", "label": "Overview" },
+    { "id": "tab-detail",   "label": "Detail" },
+    { "id": "tab-notes",    "label": "Notes" }
+  ],
+  "steps": [
+    { "id": "s-plan",  "label": "Plan",  "state": "done" },
+    { "id": "s-build", "label": "Build", "state": "active" },
+    { "id": "s-test",  "label": "Test",  "state": "pending" },
+    { "id": "s-ship",  "label": "Ship",  "state": "pending" }
+  ],
+  "filters": [
+    { "id": "flt-all",  "label": "All",  "tag": "*" },
+    { "id": "flt-bug",  "label": "Bugs", "tag": "bug" },
+    { "id": "flt-perf", "label": "Perf", "tag": "perf" }
+  ],
+  "list": { "rowHeight": 32, "items": [] },
+  "board": {
+    "title": "Sprint triage",
+    "columns": [
+      { "id": "now",  "label": "Now" },
+      { "id": "next", "label": "Next" },
+      { "id": "done", "label": "Done" }
+    ],
+    "cards": [
+      { "id": "c1", "col": "now",  "title": "Fix login bug",   "note": "blocks release" },
+      { "id": "c2", "col": "now",  "title": "Cache warmup",    "note": "" },
+      { "id": "c3", "col": "next", "title": "Audit deps",      "note": "low priority" },
+      { "id": "c4", "col": "done", "title": "Ship v1.2.10",    "note": "done" }
+    ]
+  }
+}
+</script>
+
+<link rel="stylesheet" href="amvcp-interactive.css">
+<style>
+  /* Fixture page chrome — themed off the engine tokens. */
+  html, body { overflow-x: auto; }
+  body {
+    margin: 0;
+    padding: var(--vc-space-5, 32px);
+    background: var(--vc-color-canvas, #faf6ee);
+    color: var(--vc-color-content, #1f1a14);
+    font: var(--vc-text-2, 16px)/1.55 var(--vc-font-body, system-ui, sans-serif);
+  }
+  main { max-width: none; }
+  h1 {
+    font: var(--vc-weight-bold, 700) var(--vc-text-5, 32px)/1.2
+          var(--vc-font-heading, Georgia, serif);
+  }
+  h2 {
+    margin-top: var(--vc-space-6, 48px);
+    font: var(--vc-weight-bold, 700) var(--vc-text-3, 20px)/1.2
+          var(--vc-font-heading, Georgia, serif);
+    color: var(--vc-color-content, #1f1a14);
+    border-bottom: 1px solid var(--vc-color-border, #e3dcc9);
+    padding-bottom: var(--vc-space-1, 8px);
+  }
+
+  /* ── Per-page CSS-only show/hide rules ──────────────────────────────
+     The renderer emits these into the scaffold (one rule pair per tab /
+     filter). They are NOT in amvcp-interactive.css because the selector
+     ids are page-specific. With JS off, these alone drive the widgets. */
+
+  /* Tabs: one #tab-N:checked ~ … rule per tab. */
+  #tab-overview:checked ~ .ic-tabpanels .ic-tabpanel[data-tab="tab-overview"],
+  #tab-detail:checked   ~ .ic-tabpanels .ic-tabpanel[data-tab="tab-detail"],
+  #tab-notes:checked    ~ .ic-tabpanels .ic-tabpanel[data-tab="tab-notes"] {
+    display: block;
+  }
+  /* Active-tab styling — :checked drives the matching label. */
+  #tab-overview:checked ~ .ic-tablist .ic-tab[for="tab-overview"],
+  #tab-detail:checked   ~ .ic-tablist .ic-tab[for="tab-detail"],
+  #tab-notes:checked    ~ .ic-tablist .ic-tab[for="tab-notes"] {
+    color: var(--ve-control-fg, #14110b);
+    border-bottom-color: var(--vc-color-accent, #b8861f);
+  }
+
+  /* Filter pills: "All" shows everything; a tag filter shows only its
+     matching .ic-filtered blocks. */
+  #flt-all:checked ~ .ic-filtered { display: block; }
+  #flt-bug:checked  ~ .ic-filtered                        { display: none; }
+  #flt-bug:checked  ~ .ic-filtered[data-filter-tag="bug"]  { display: block; }
+  #flt-perf:checked ~ .ic-filtered                         { display: none; }
+  #flt-perf:checked ~ .ic-filtered[data-filter-tag="perf"] { display: block; }
+</style>
+</head>
+<body>
+<main>
+  <h1>interactive-control widgets</h1>
+  <p>Self-contained fixture — loads <code>amvcp-designmd.js</code> +
+     <code>amvcp-interactive.js</code> only (no runtime). Proves the
+     standalone boot path: the module parses the embedded DESIGN.md,
+     applies <code>--vc-*</code> tokens, injects the foundation
+     bindings, and wires every widget.</p>
+
+  <!-- ── §1 tabs ──────────────────────────────────────────────────── -->
+  <h2>Tabs (CSS-only baseline + JS ARIA)</h2>
+  <div class="ic-tabs" data-ic-persist data-id="report-tabs">
+    <input class="ic-tab-radio" type="radio" name="report-tabs" id="tab-overview" checked>
+    <input class="ic-tab-radio" type="radio" name="report-tabs" id="tab-detail">
+    <input class="ic-tab-radio" type="radio" name="report-tabs" id="tab-notes">
+    <div class="ic-tablist">
+      <label class="ic-tab" for="tab-overview">Overview</label>
+      <label class="ic-tab" for="tab-detail">Detail</label>
+      <label class="ic-tab" for="tab-notes">Notes</label>
+    </div>
+    <div class="ic-tabpanels">
+      <section class="ic-tabpanel" data-tab="tab-overview">
+        <p>Overview panel — the default tab. Switching is pure CSS;
+           the JS layer only adds ARIA + persistence.</p>
+      </section>
+      <section class="ic-tabpanel" data-tab="tab-detail">
+        <p>Detail panel content.</p>
+      </section>
+      <section class="ic-tabpanel" data-tab="tab-notes">
+        <p>Notes panel with a draft-restoring textarea:</p>
+        <textarea data-ic-draft data-id="report-notes-draft"
+                  rows="3" style="width:100%;box-sizing:border-box"
+                  placeholder="Type — autosaved after 500 ms"></textarea>
+      </section>
+    </div>
+  </div>
+
+  <!-- ── §1 accordion ─────────────────────────────────────────────── -->
+  <h2>Accordion (native &lt;details&gt;, single-open)</h2>
+  <div class="ic-accordion" data-ic-accordion="single">
+    <details class="ic-acc-item" open>
+      <summary class="ic-acc-head">First section</summary>
+      <div class="ic-acc-body">Native disclosure — keyboard- and
+        screen-reader-native, zero JS for the toggle.</div>
+    </details>
+    <details class="ic-acc-item">
+      <summary class="ic-acc-head">Second section</summary>
+      <div class="ic-acc-body">Opening this closes the first
+        (single-open mode adds that JS behaviour).</div>
+    </details>
+    <details class="ic-acc-item">
+      <summary class="ic-acc-head">Third section</summary>
+      <div class="ic-acc-body">Third body.</div>
+    </details>
+  </div>
+
+  <!-- ── §1 modal ─────────────────────────────────────────────────── -->
+  <h2>Modal (:target, CSS-only)</h2>
+  <p><a class="ic-modal-open" href="#ic-modal-demo">Open the modal</a></p>
+  <div class="ic-modal" id="ic-modal-demo" role="dialog" aria-modal="true"
+       aria-labelledby="ic-modal-demo-title">
+    <div class="ic-modal-card">
+      <h2 id="ic-modal-demo-title">Modal title</h2>
+      <div class="ic-modal-body">
+        <p>A <code>:target</code>-driven modal. No inner scrollbar — a
+           tall modal grows the page.</p>
+      </div>
+      <a class="ic-modal-close" href="#" aria-label="Close">&times;</a>
+    </div>
+    <a class="ic-modal-scrim" href="#" aria-label="Close" tabindex="-1"></a>
+  </div>
+
+  <!-- ── §2 filter pills ──────────────────────────────────────────── -->
+  <h2>Filter pills (segmented control)</h2>
+  <div class="ic-filterbar" data-ic-persist data-id="findings-filter"
+       role="radiogroup" aria-label="Filter findings">
+    <span class="ic-pill-group">
+      <input class="ic-pill-radio" type="radio" name="findings-filter"
+             id="flt-all" value="*" checked>
+      <label class="ic-pill" for="flt-all">All
+        <span class="ic-pill-count"></span></label>
+      <input class="ic-pill-radio" type="radio" name="findings-filter"
+             id="flt-bug" value="bug">
+      <label class="ic-pill" for="flt-bug">Bugs
+        <span class="ic-pill-count"></span></label>
+      <input class="ic-pill-radio" type="radio" name="findings-filter"
+             id="flt-perf" value="perf">
+      <label class="ic-pill" for="flt-perf">Perf
+        <span class="ic-pill-count"></span></label>
+    </span>
+  </div>
+  <div class="ic-filtered" data-filter-tag="bug">Bug finding — null deref.</div>
+  <div class="ic-filtered" data-filter-tag="perf">Perf finding — N+1 query.</div>
+  <div class="ic-filtered" data-filter-tag="bug">Bug finding — race condition.</div>
+  <div class="ic-filtered" data-filter-tag="perf">Perf finding — unbatched render.</div>
+
+  <!-- ── §3 stepper ───────────────────────────────────────────────── -->
+  <h2>Progressive stepper</h2>
+  <ol class="ic-stepper" data-ic-persist data-id="deploy-flow"
+      data-ic-orient="vertical" data-ic-model-key="steps">
+    <li class="ic-step ic-step--pending">
+      <span class="ic-step-marker" aria-hidden="true"></span>
+      <span class="ic-step-label">Plan</span>
+    </li>
+    <li class="ic-step ic-step--pending">
+      <span class="ic-step-marker" aria-hidden="true"></span>
+      <span class="ic-step-label">Build</span>
+    </li>
+    <li class="ic-step ic-step--pending">
+      <span class="ic-step-marker" aria-hidden="true"></span>
+      <span class="ic-step-label">Test</span>
+    </li>
+    <li class="ic-step ic-step--pending">
+      <span class="ic-step-marker" aria-hidden="true"></span>
+      <span class="ic-step-label">Ship</span>
+    </li>
+  </ol>
+
+  <!-- ── §5 live-tweak ────────────────────────────────────────────── -->
+  <h2>Live-tweak visualizer</h2>
+  <div class="ic-tweak" data-ic-tweak data-id="border-demo">
+    <div class="ic-tweak-controls">
+      <label class="ic-tweak-row">
+        <span>Radius</span>
+        <input type="range" min="0" max="48" value="8"
+               data-ic-prop="--demo-radius" data-ic-unit="px">
+        <output class="ic-tweak-val"></output>
+      </label>
+      <label class="ic-tweak-row">
+        <span>Style</span>
+        <select data-ic-class-group="ic-demo-style">
+          <option value="ic-demo-style--solid">Solid</option>
+          <option value="ic-demo-style--dashed">Dashed</option>
+          <option value="ic-demo-style--dotted">Dotted</option>
+        </select>
+      </label>
+    </div>
+    <div class="ic-tweak-stage" data-ic-stage>
+      <div class="ic-demo-box ic-demo-style--solid"
+           style="border-radius:var(--demo-radius,8px)">Preview</div>
+    </div>
+  </div>
+
+  <!-- ── §6 Kanban ────────────────────────────────────────────────── -->
+  <h2>Drag-reorder Kanban</h2>
+  <div class="ic-board" data-ic-board data-ic-persist data-id="sprint-triage">
+    <div class="ic-col" data-col="now">
+      <div class="ic-col-head">Now <span class="ic-col-count">0</span></div>
+      <div class="ic-col-body"></div>
+    </div>
+    <div class="ic-col" data-col="next">
+      <div class="ic-col-head">Next <span class="ic-col-count">0</span></div>
+      <div class="ic-col-body"></div>
+    </div>
+    <div class="ic-col" data-col="done">
+      <div class="ic-col-head">Done <span class="ic-col-count">0</span></div>
+      <div class="ic-col-body"></div>
+    </div>
+  </div>
+  <button class="ic-board-export" type="button">Copy as Markdown</button>
+
+  <!-- ── §4 virtualized list ──────────────────────────────────────── -->
+  <h2>Virtualized list (window-scrolled, &gt; 200 rows)</h2>
+  <div class="ic-vlist" data-ic-vlist data-id="big-log"
+       data-ic-model="ic-data" data-ic-model-key="list"></div>
+  <noscript>
+    <!-- JS-off fallback — a static plain list so the report is never
+         blank without JS. The renderer emits the first ~200 items. -->
+    <ul class="ic-vlist-plain">
+      <li class="ic-vrow">row 1</li>
+      <li class="ic-vrow">row 2</li>
+      <li class="ic-vrow">row 3 (… first ~200 items, static)</li>
+    </ul>
+  </noscript>
+</main>
+
+<!-- DESIGN.md token engine — installs window.amvcpDesignMd. -->
+<script src="amvcp-designmd.js"></script>
+<!-- interactive-control widgets — installs window.amvcpInteractive. -->
+<script src="amvcp-interactive.js"></script>
+<script>
+  // The vlist needs > 200 items to exercise the virtualized path. The
+  // model is embedded as JSON above; we top up the list array here (a
+  // 600-row literal in the JSON block would bloat the fixture) and the
+  // module is told to re-init the vlist once the data is in place.
+  (function () {
+    var modelEl = document.getElementById('ic-data');
+    var model = JSON.parse(modelEl.textContent);
+    var items = [];
+    for (var i = 1; i <= 600; i++) { items.push('log line ' + i); }
+    model.list.items = items;
+    modelEl.textContent = JSON.stringify(model);
+    // Re-run the vlist initializer now that the model is populated.
+    function initBig() {
+      var vlistEl = document.querySelector('[data-ic-vlist]');
+      if (vlistEl && window.amvcpInteractive) {
+        try { window.amvcpInteractive.initVList(vlistEl); } catch (e) {}
+      }
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initBig);
+    } else {
+      initBig();
+    }
+  })();
+</script>
+</body>
+</html>

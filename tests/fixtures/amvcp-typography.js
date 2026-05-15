@@ -1,0 +1,1 @@
+../../skills/amvcp-typography/scripts/amvcp-typography.js

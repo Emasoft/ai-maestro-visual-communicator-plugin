@@ -1,0 +1,522 @@
+/*!
+ * ai-maestro-visual-communicator-plugin — interactive-control widget CSS.
+ *
+ * Phase 2 styling spine for the seven interactive-control widgets. Every
+ * rule themes off the Phase-1 DESIGN.md token engine: it references the
+ * runtime's `--ve-*` FOUNDATION tokens (each bridged to a `--vc-*`
+ * DESIGN.md token), or a `--vc-*` token directly with a mandatory
+ * `var(…, #fallback)` slot for semantic-state colors not yet bridged.
+ *
+ * Invariants enforced here:
+ *   - Zero raw hex outside a `var(…, #fallback)` fallback slot.
+ *   - Zero raw px for sizes that scale — `--vc-space-*` / `--vc-radius-*`
+ *     / `em`. Raw `1px` is permitted only for hairline borders.
+ *   - No nested scrollbars — no `overflow:auto` inner box anywhere. Tall
+ *     content grows the page; the virtualized list is window-scrolled.
+ *   - Light + dark by construction — colors come from `--vc-*`, which
+ *     the engine mirrors per theme; no rule branches on theme.
+ *   - CSS-only baseline — tabs / accordion / modal / filter pills work
+ *     with JS disabled; this stylesheet IS that baseline.
+ */
+
+/* ── §1a — accordion (native <details>) ──────────────────────────────── */
+
+.ic-accordion {
+  display: block;
+  margin: var(--vc-space-3, 16px) 0;
+}
+.ic-acc-item {
+  border: 1px solid var(--ve-control-border, #e3dcc9);
+  border-radius: var(--vc-radius-md, 8px);
+  margin-bottom: var(--vc-space-1, 8px);
+  background: var(--ve-control-bg, #ffffff);
+}
+.ic-acc-head {
+  cursor: pointer;
+  user-select: none;
+  padding: var(--vc-space-2, 12px) var(--vc-space-3, 16px);
+  font: var(--vc-weight-medium, 500) var(--vc-text-2, 16px)/1.3
+        var(--ve-control-font, inherit);
+  color: var(--ve-control-fg, #14110b);
+}
+.ic-acc-head:focus-visible {
+  outline: 2px solid var(--vc-color-accent, #b8861f);
+  outline-offset: 2px;
+}
+.ic-acc-body {
+  padding: 0 var(--vc-space-3, 16px) var(--vc-space-3, 16px);
+  color: var(--ve-control-fg, #14110b);
+  font: var(--vc-weight-regular, 400) var(--vc-text-1, 14px)/1.55
+        var(--ve-control-font, inherit);
+}
+
+/* ── §1a — tabs (radio + :checked + sibling combinator) ──────────────── */
+
+.ic-tabs {
+  display: block;
+  margin: var(--vc-space-3, 16px) 0;
+}
+/* Visually-hidden radios — drive the panel switch, never seen. */
+.ic-tab-radio {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+  width: 1px;
+  height: 1px;
+}
+.ic-tablist {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--vc-space-1, 8px);
+  border-bottom: 1px solid var(--ve-control-border, #e3dcc9);
+}
+.ic-tab {
+  padding: var(--vc-space-1, 8px) var(--vc-space-3, 16px);
+  font: var(--vc-weight-medium, 500) var(--vc-text-2, 16px)/1.2
+        var(--ve-control-font, inherit);
+  color: var(--ve-control-fg-dim, #5b5343);
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  user-select: none;
+  margin-bottom: -1px;
+}
+.ic-tab:focus-within,
+.ic-tab:focus-visible {
+  outline: 2px solid var(--vc-color-accent, #b8861f);
+  outline-offset: 2px;
+}
+.ic-tabpanels {
+  padding-top: var(--vc-space-3, 16px);
+}
+/* Panels hidden by default; the matching :checked radio reveals one.
+   The renderer emits one `#tab-N:checked ~ …` rule pair per tab — the
+   per-page rules live in the scaffold, not here. */
+.ic-tabpanel {
+  display: none;
+  color: var(--ve-control-fg, #14110b);
+  font: var(--vc-weight-regular, 400) var(--vc-text-1, 14px)/1.55
+        var(--ve-control-font, inherit);
+}
+
+/* ── §1a — modal (:target) ───────────────────────────────────────────── */
+
+.ic-modal-open {
+  color: var(--vc-color-accent, #b8861f);
+  cursor: pointer;
+}
+.ic-modal {
+  display: none;
+}
+/* :target reveals the modal — a CSS-only open with no JS. */
+.ic-modal:target {
+  display: grid;
+  place-items: center;
+  position: fixed;
+  inset: 0;
+  z-index: var(--vc-z-modal, 400);
+  padding: var(--vc-space-4, 24px);
+}
+.ic-modal-scrim {
+  position: fixed;
+  inset: 0;
+  /* color-mix follows the theme automatically — the scrim darkens the
+     page using the content color, no theme branch needed. */
+  background: color-mix(in srgb,
+              var(--vc-color-content, #000000) 55%, transparent);
+}
+.ic-modal-card {
+  position: relative;
+  z-index: 1;
+  background: var(--vc-color-surface-raised, var(--surface, #ffffff));
+  color: var(--vc-color-content, var(--text, #14110b));
+  border: 1px solid var(--ve-control-border, #e3dcc9);
+  border-radius: var(--vc-radius-lg, 12px);
+  box-shadow: var(--vc-shadow-3, 0 12px 32px rgba(0, 0, 0, 0.18));
+  padding: var(--vc-space-4, 24px);
+  max-width: 32rem;
+  /* NO max-height + overflow:auto — a tall modal grows and the
+     document's own scrollbar handles it (no-nested-scrollbars). */
+}
+.ic-modal-card h2 {
+  margin-top: 0;
+  font: var(--vc-weight-bold, 700) var(--vc-text-4, 24px)/1.2
+        var(--vc-font-heading, inherit);
+  color: var(--vc-color-content, #14110b);
+}
+.ic-modal-body {
+  font: var(--vc-weight-regular, 400) var(--vc-text-1, 14px)/1.55
+        var(--ve-control-font, inherit);
+}
+.ic-modal-close {
+  position: absolute;
+  top: var(--vc-space-2, 12px);
+  right: var(--vc-space-2, 12px);
+  width: 1.8em;
+  height: 1.8em;
+  display: grid;
+  place-items: center;
+  border-radius: var(--vc-radius-full, 9999px);
+  color: var(--ve-control-fg-dim, #5b5343);
+  text-decoration: none;
+  font-size: var(--vc-text-3, 20px);
+  line-height: 1;
+}
+.ic-modal-close:hover {
+  background: color-mix(in srgb,
+              var(--vc-color-content, #000000) 8%, transparent);
+}
+
+/* ── §2 — filter pills / segmented control ───────────────────────────── */
+
+.ic-filterbar {
+  display: flex;
+  flex-wrap: wrap;          /* wraps to rows — never an x-scroller */
+  gap: var(--vc-space-1, 8px);
+  margin: var(--vc-space-3, 16px) 0;
+}
+/* display:contents — the wrapper is groupable in the markup but
+   visually transparent, so the pills become direct flex children. */
+.ic-pill-group {
+  display: contents;
+}
+.ic-pill-radio {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+  width: 1px;
+  height: 1px;
+}
+.ic-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--vc-space-0, 4px);
+  padding: var(--vc-space-1, 8px) var(--vc-space-2, 12px);
+  border: 1px solid var(--ve-control-border, #e3dcc9);
+  border-radius: var(--vc-radius-full, 9999px);
+  font: var(--vc-weight-medium, 500) var(--vc-text-1, 14px)/1.2
+        var(--ve-control-font, inherit);
+  color: var(--ve-control-fg-dim, #5b5343);
+  background: var(--ve-control-bg, #ffffff);
+  cursor: pointer;
+  user-select: none;
+  transition: background var(--vc-duration-fast, 120ms)
+              var(--vc-easing-standard, ease),
+              color var(--vc-duration-fast, 120ms)
+              var(--vc-easing-standard, ease);
+}
+.ic-pill-radio:checked + .ic-pill {
+  background: var(--vc-color-accent, #b8861f);
+  color: var(--vc-color-on-accent, #ffffff);
+  border-color: var(--vc-color-accent, #b8861f);
+}
+.ic-pill-radio:focus-visible + .ic-pill {
+  outline: 2px solid var(--vc-color-accent, #b8861f);
+  outline-offset: 2px;
+}
+.ic-pill-count {
+  display: inline-block;
+  min-width: 1.4em;
+  padding: 0 var(--vc-space-0, 4px);
+  border-radius: var(--vc-radius-full, 9999px);
+  background: color-mix(in srgb,
+              var(--ve-control-fg, #14110b) 12%, transparent);
+  font-size: 0.85em;
+  text-align: center;
+}
+/* The tagged content blocks. Resting style is "visible" — the per-tag
+   hide rules below knock out non-matching blocks when a pill is active. */
+.ic-filtered {
+  margin: var(--vc-space-1, 8px) 0;
+}
+/* CSS-only show/hide via :has() + the radio's `value` attribute.
+   :has() lets the rule reach UP from the checked pill to a common
+   ancestor (:root) and then back DOWN to the .ic-filtered blocks, so
+   the technique works regardless of where the .ic-filterbar sits
+   relative to the .ic-filtered blocks in the DOM tree. We key on the
+   radio's `value` (the tag itself) rather than its `id`, so the SAME
+   CSS works on every page — no renderer-emitted per-page selectors
+   needed. The "*" value (i.e. the "All" pill) does not fire any rule,
+   so every block stays visible by default. The supported tag list is
+   hardcoded here — extending it with a new tag requires adding ONE
+   line below; the corresponding `data-filter-tag` and pill `value` on
+   the page need no other coordination. */
+:root:has(.ic-pill-radio[value="bug"]:checked)
+  .ic-filtered:not([data-filter-tag="bug"]) { display: none; }
+:root:has(.ic-pill-radio[value="perf"]:checked)
+  .ic-filtered:not([data-filter-tag="perf"]) { display: none; }
+:root:has(.ic-pill-radio[value="security"]:checked)
+  .ic-filtered:not([data-filter-tag="security"]) { display: none; }
+:root:has(.ic-pill-radio[value="warning"]:checked)
+  .ic-filtered:not([data-filter-tag="warning"]) { display: none; }
+:root:has(.ic-pill-radio[value="info"]:checked)
+  .ic-filtered:not([data-filter-tag="info"]) { display: none; }
+:root:has(.ic-pill-radio[value="todo"]:checked)
+  .ic-filtered:not([data-filter-tag="todo"]) { display: none; }
+:root:has(.ic-pill-radio[value="done"]:checked)
+  .ic-filtered:not([data-filter-tag="done"]) { display: none; }
+
+/* ── §3 — progressive stepper ────────────────────────────────────────── */
+
+.ic-stepper {
+  list-style: none;
+  margin: var(--vc-space-3, 16px) 0;
+  padding: 0;
+  display: flex;
+  gap: var(--vc-space-2, 12px);
+}
+.ic-stepper[data-ic-orient="vertical"] {
+  flex-direction: column;
+}
+.ic-stepper[data-ic-orient="horizontal"] {
+  flex-direction: row;
+}
+.ic-step {
+  display: flex;
+  align-items: center;
+  gap: var(--vc-space-2, 12px);
+}
+.ic-step-marker {
+  width: 1.5em;
+  height: 1.5em;
+  flex: none;
+  border-radius: var(--vc-radius-full, 9999px);
+  border: 2px solid var(--ve-control-border-strong, #c9bfa3);
+  background: var(--ve-control-bg, #ffffff);
+}
+.ic-step-label {
+  font: var(--vc-weight-medium, 500) var(--vc-text-2, 16px)/1.3
+        var(--ve-control-font, inherit);
+  color: var(--ve-control-fg-dim, #8a8170);
+}
+.ic-step--done .ic-step-marker {
+  background: var(--vc-color-success, #3a6b5c);
+  border-color: var(--vc-color-success, #3a6b5c);
+}
+.ic-step--failed .ic-step-marker {
+  background: var(--vc-color-danger, #a84a32);
+  border-color: var(--vc-color-danger, #a84a32);
+}
+.ic-step--active .ic-step-marker {
+  border-color: var(--vc-color-accent, #b8861f);
+  /* a transparent top edge makes the spin visible as it rotates */
+  border-top-color: transparent;
+  animation: ic-spin 0.9s linear infinite;
+}
+.ic-step--done .ic-step-label,
+.ic-step--active .ic-step-label {
+  color: var(--ve-control-fg, #14110b);
+}
+.ic-step--done {
+  cursor: pointer;        /* done steps are click-to-navigate */
+}
+.ic-step--done:focus-visible {
+  outline: 2px solid var(--vc-color-accent, #b8861f);
+  outline-offset: 2px;
+}
+
+/* ── §4 — virtualized list ───────────────────────────────────────────── */
+
+/* The .ic-vlist gets an explicit total height from JS so the DOCUMENT
+   scrollbar reflects the full list; visible rows are absolutely
+   positioned inside. There is intentionally NO overflow rule — the
+   page scrolls, never an inner box (no-nested-scrollbars). */
+.ic-vlist {
+  display: block;
+  margin: var(--vc-space-3, 16px) 0;
+  border: 1px solid var(--ve-control-border, #e3dcc9);
+  border-radius: var(--vc-radius-md, 8px);
+}
+.ic-vlist-plain {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.ic-vrow {
+  display: flex;
+  align-items: center;
+  padding: 0 var(--vc-space-3, 16px);
+  font: var(--vc-weight-regular, 400) var(--vc-text-1, 14px)/1.4
+        var(--ve-control-mono, ui-monospace, Menlo, monospace);
+  color: var(--ve-control-fg, #14110b);
+  border-bottom: 1px solid color-mix(in srgb,
+                 var(--ve-control-border, #e3dcc9) 60%, transparent);
+}
+.ic-vlist-plain .ic-vrow {
+  min-height: 2em;
+}
+
+/* ── §5 — live-tweak visualizer ──────────────────────────────────────── */
+
+.ic-tweak {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--vc-space-4, 24px);
+  margin: var(--vc-space-3, 16px) 0;
+  padding: var(--vc-space-3, 16px);
+  border: 1px solid var(--ve-control-border, #e3dcc9);
+  border-radius: var(--vc-radius-md, 8px);
+  background: var(--ve-control-bg, #ffffff);
+}
+.ic-tweak-controls {
+  display: flex;
+  flex-direction: column;
+  gap: var(--vc-space-2, 12px);
+  min-width: 14rem;
+  flex: 1 1 14rem;
+}
+.ic-tweak-row {
+  display: flex;
+  align-items: center;
+  gap: var(--vc-space-2, 12px);
+  font: var(--vc-weight-regular, 400) var(--vc-text-1, 14px)/1.3
+        var(--ve-control-font, inherit);
+  color: var(--ve-control-fg, #14110b);
+}
+.ic-tweak-row > span:first-child {
+  min-width: 5rem;
+  color: var(--ve-control-fg-dim, #5b5343);
+}
+.ic-tweak-row input[type="range"] {
+  flex: 1;
+  accent-color: var(--vc-color-accent, #b8861f);
+}
+.ic-tweak-row select {
+  flex: 1;
+  padding: var(--vc-space-0, 4px) var(--vc-space-1, 8px);
+  border: 1px solid var(--ve-control-border, #e3dcc9);
+  border-radius: var(--vc-radius-sm, 4px);
+  background: var(--ve-control-bg, #ffffff);
+  color: var(--ve-control-fg, #14110b);
+  font: inherit;
+}
+.ic-tweak-val {
+  min-width: 3.5rem;
+  font-family: var(--ve-control-mono, ui-monospace, Menlo, monospace);
+  color: var(--ve-control-fg-dim, #5b5343);
+}
+.ic-tweak-stage {
+  flex: 1 1 14rem;
+  display: grid;
+  place-items: center;
+  padding: var(--vc-space-4, 24px);
+  background: var(--vc-color-surface-sunken, #f1ece0);
+  border-radius: var(--vc-radius-sm, 4px);
+}
+.ic-demo-box {
+  padding: var(--vc-space-4, 24px);
+  background: var(--vc-color-accent, #b8861f);
+  color: var(--vc-color-on-accent, #ffffff);
+  font: var(--vc-weight-medium, 500) var(--vc-text-2, 16px)/1.3
+        var(--ve-control-font, inherit);
+}
+.ic-demo-style--solid  { border: 3px solid var(--vc-color-content, #14110b); }
+.ic-demo-style--dashed { border: 3px dashed var(--vc-color-content, #14110b); }
+.ic-demo-style--dotted { border: 3px dotted var(--vc-color-content, #14110b); }
+
+/* ── §6 — drag reorder list / Kanban ─────────────────────────────────── */
+
+/* Columns sit in a flex row; each .ic-col-body grows with its cards so
+   the PAGE scrolls. If many columns overflow the viewport width the
+   page gets ONE horizontal scrollbar — allowed for a non-wrappable
+   widget (the no-nested-scrollbars rule's documented exception). */
+.ic-board {
+  display: flex;
+  gap: var(--vc-space-3, 16px);
+  margin: var(--vc-space-3, 16px) 0;
+  align-items: flex-start;
+}
+.ic-col {
+  flex: 1 1 14rem;
+  min-width: 12rem;
+  background: var(--vc-color-surface-sunken, #f1ece0);
+  border: 1px solid var(--ve-control-border, #e3dcc9);
+  border-radius: var(--vc-radius-md, 8px);
+  padding: var(--vc-space-2, 12px);
+}
+.ic-col.ic-drag-over {
+  border-color: var(--vc-color-accent, #b8861f);
+  box-shadow: 0 0 0 2px var(--vc-color-accent, #b8861f);
+}
+.ic-col-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font: var(--vc-weight-bold, 700) var(--vc-text-1, 14px)/1.2
+        var(--ve-control-font, inherit);
+  color: var(--ve-control-fg, #14110b);
+  margin-bottom: var(--vc-space-2, 12px);
+}
+.ic-col-count {
+  min-width: 1.6em;
+  padding: 0 var(--vc-space-0, 4px);
+  border-radius: var(--vc-radius-full, 9999px);
+  background: color-mix(in srgb,
+              var(--ve-control-fg, #14110b) 12%, transparent);
+  font-size: 0.85em;
+  text-align: center;
+}
+.ic-col-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--vc-space-1, 8px);
+  min-height: 2em;
+}
+.ic-card {
+  background: var(--vc-color-surface-raised, var(--surface, #ffffff));
+  border: 1px solid var(--ve-control-border, #e3dcc9);
+  border-radius: var(--vc-radius-sm, 4px);
+  box-shadow: var(--vc-shadow-1, 0 1px 2px rgba(0, 0, 0, 0.08));
+  padding: var(--vc-space-2, 12px);
+  cursor: grab;
+}
+.ic-card.ic-dragging {
+  opacity: 0.5;
+  cursor: grabbing;
+}
+.ic-card-title {
+  font: var(--vc-weight-medium, 500) var(--vc-text-1, 14px)/1.3
+        var(--ve-control-font, inherit);
+  color: var(--ve-control-fg, #14110b);
+}
+.ic-card-note {
+  margin-top: var(--vc-space-0, 4px);
+  font: var(--vc-weight-regular, 400) var(--vc-text-0, 12px)/1.4
+        var(--ve-control-font, inherit);
+  color: var(--ve-control-fg-dim, #5b5343);
+}
+.ic-card-note:focus-visible {
+  outline: 2px solid var(--vc-color-accent, #b8861f);
+  outline-offset: 2px;
+}
+.ic-board-export {
+  margin: var(--vc-space-2, 12px) 0;
+  padding: var(--vc-space-1, 8px) var(--vc-space-3, 16px);
+  border: 1px solid var(--ve-control-border, #e3dcc9);
+  border-radius: var(--vc-radius-sm, 4px);
+  background: var(--ve-control-bg, #ffffff);
+  color: var(--ve-control-fg, #14110b);
+  font: var(--vc-weight-medium, 500) var(--vc-text-1, 14px)/1.2
+        var(--ve-control-font, inherit);
+  cursor: pointer;
+}
+.ic-board-export:hover {
+  border-color: var(--vc-color-accent, #b8861f);
+}
+.ic-board-export:focus-visible {
+  outline: 2px solid var(--vc-color-accent, #b8861f);
+  outline-offset: 2px;
+}
+.ic-toast {
+  position: fixed;
+  left: 50%;
+  bottom: var(--vc-space-4, 24px);
+  transform: translateX(-50%);
+  z-index: var(--vc-z-toast, 500);
+  padding: var(--vc-space-2, 12px) var(--vc-space-4, 24px);
+  background: var(--vc-color-content, #14110b);
+  color: var(--vc-color-canvas, #faf6ee);
+  border-radius: var(--vc-radius-md, 8px);
+  box-shadow: var(--vc-shadow-3, 0 12px 32px rgba(0, 0, 0, 0.18));
+  font: var(--vc-weight-medium, 500) var(--vc-text-1, 14px)/1.2
+        var(--ve-control-font, inherit);
+}

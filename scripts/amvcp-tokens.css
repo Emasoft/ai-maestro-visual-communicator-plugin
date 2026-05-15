@@ -1,0 +1,706 @@
+/*!
+ * ai-maestro-visual-communicator-plugin — design-tokens stylesheet.
+ *
+ * Phase 2 Build #1 (design-tokens). Three things in one file:
+ *   1. The DERIVED token tier — --vc-state-* / --vc-focus-ring /
+ *      --vc-selection-bg, computed once with color-mix off the engine's
+ *      theme-flipping base tokens, so they flip per theme automatically
+ *      (never a @media prefers-color-scheme fork, never a .dark block).
+ *   2. The component tier — the .vc-state interaction overlay, the
+ *      data-vc-role role-map family, and the token contact-sheet chrome.
+ *   3. The Tailwind-shaped .vc-* utility classes — one class per --vc-*
+ *      token, namespaced `vc-` so they never collide with a host page's
+ *      real Tailwind.
+ *
+ * Everything is keyed off the engine's --vc-* custom properties — ZERO
+ * hardcoded brand colors / sizes. The only literals are the fixed MD3
+ * state-layer opacities (0.08 / 0.10 / 0.38 / 0.16) which are ratios,
+ * not visual values, and are correctly fixed.
+ *
+ * @layer order: ve-primitive < ve-semantic < ve-component. The --vc-*
+ * primitives are set as inline style on :root by the engine's
+ * applyTokens (inline always wins), so they sit ABOVE every layer —
+ * correct: they are the primitive tier and must override everything.
+ *
+ * No nested scrollbars: html,body get overflow-x:auto and NO inner
+ * element introduces its own scroller. Wide content (the color grid,
+ * the code <pre>) extends the document's single scroll axis.
+ */
+
+@layer ve-primitive, ve-semantic, ve-component;
+
+/* ─── ve-semantic — the derived token tier ─────────────────────────── */
+
+@layer ve-semantic {
+  :root {
+    /* State-layer opacities (MD3). Fixed ratios — not brand values. */
+    --vc-state-hover-opacity: 0.08;
+    --vc-state-focus-opacity: 0.10;
+    --vc-state-pressed-opacity: 0.10;
+    --vc-state-disabled-opacity: 0.38;
+    --vc-state-drag-opacity: 0.16;
+
+    /* Focus ring + text-selection — keyed to the brand accent, mixed
+       against transparent so they read on both light and dark. */
+    --vc-focus-ring: 0 0 0 3px
+      color-mix(in srgb, var(--vc-color-accent, #2e6fdb) 45%, transparent);
+    --vc-selection-bg:
+      color-mix(in srgb, var(--vc-color-accent, #2e6fdb) 20%, transparent);
+
+    /* Semantic-state sub-tokens (DM-07 layer 5). The engine ships one
+       color per state role; the bg/fg/border/icon split is derived here
+       with color-mix against --vc-color-surface, which itself flips per
+       theme — so every derivation flips automatically, no fork. */
+    --vc-state-success-fg: var(--vc-color-success);
+    --vc-state-success-bg: color-mix(in srgb,
+      var(--vc-color-success) 12%, var(--vc-color-surface));
+    --vc-state-success-border: color-mix(in srgb,
+      var(--vc-color-success) 32%, var(--vc-color-surface));
+    --vc-state-success-icon: var(--vc-color-success);
+
+    --vc-state-warning-fg: var(--vc-color-warning);
+    --vc-state-warning-bg: color-mix(in srgb,
+      var(--vc-color-warning) 12%, var(--vc-color-surface));
+    --vc-state-warning-border: color-mix(in srgb,
+      var(--vc-color-warning) 32%, var(--vc-color-surface));
+    --vc-state-warning-icon: var(--vc-color-warning);
+
+    --vc-state-danger-fg: var(--vc-color-danger);
+    --vc-state-danger-bg: color-mix(in srgb,
+      var(--vc-color-danger) 12%, var(--vc-color-surface));
+    --vc-state-danger-border: color-mix(in srgb,
+      var(--vc-color-danger) 32%, var(--vc-color-surface));
+    --vc-state-danger-icon: var(--vc-color-danger);
+
+    --vc-state-info-fg: var(--vc-color-info);
+    --vc-state-info-bg: color-mix(in srgb,
+      var(--vc-color-info) 12%, var(--vc-color-surface));
+    --vc-state-info-border: color-mix(in srgb,
+      var(--vc-color-info) 32%, var(--vc-color-surface));
+    --vc-state-info-icon: var(--vc-color-info);
+
+    /* Dark-text hierarchy (DT-08) — a 3-tier on-surface set, useful on
+       any surface because it mixes content against surface. */
+    --vc-on-surface-strong: var(--vc-color-content);
+    --vc-on-surface-medium: color-mix(in srgb,
+      var(--vc-color-content) 72%, var(--vc-color-surface));
+    --vc-on-surface-subtle: color-mix(in srgb,
+      var(--vc-color-content) 48%, var(--vc-color-surface));
+  }
+
+  ::selection {
+    background: var(--vc-selection-bg);
+  }
+}
+
+/* ─── ve-component — interaction-state overlay ─────────────────────── */
+
+@layer ve-component {
+  /* The .vc-state interaction overlay (DT-03 + DT-21). A ::before
+     currentColor layer at a fixed opacity — works on ANY base color
+     because currentColor adapts: on a dark surface a light currentColor
+     at 8% lightens, on a light surface a dark currentColor darkens.
+     Zero theme-specific code — this is exactly why the technique uses
+     an opacity overlay rather than fixed hover colors. */
+  .vc-state {
+    position: relative;
+  }
+  .vc-state::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: currentColor;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--vc-duration-quick, 200ms)
+      var(--vc-easing-standard, ease);
+  }
+  .vc-state:hover::before {
+    opacity: var(--vc-state-hover-opacity);
+  }
+  .vc-state:focus-visible::before {
+    opacity: var(--vc-state-focus-opacity);
+  }
+  .vc-state:active::before {
+    opacity: var(--vc-state-pressed-opacity);
+  }
+  .vc-state[aria-disabled="true"] {
+    opacity: var(--vc-state-disabled-opacity);
+    pointer-events: none;
+  }
+  .vc-state:focus-visible {
+    outline: none;
+    box-shadow: var(--vc-focus-ring);
+  }
+
+  /* The contact-sheet forces the hover/focus/pressed states statically
+     for the side-by-side state demo — the same overlay opacities. */
+  .vc-state-demo-hover::before {
+    opacity: var(--vc-state-hover-opacity);
+  }
+  .vc-state-demo-focus {
+    box-shadow: var(--vc-focus-ring);
+  }
+  .vc-state-demo-focus::before {
+    opacity: var(--vc-state-focus-opacity);
+  }
+  .vc-state-demo-pressed::before {
+    opacity: var(--vc-state-pressed-opacity);
+  }
+  .vc-state-demo-disabled {
+    opacity: var(--vc-state-disabled-opacity);
+  }
+}
+
+/* ─── ve-component — scoped-theme marker (DT-06) ───────────────────── */
+
+@layer ve-component {
+  /* A documented marker for per-section scoped theming. Call
+     amvcpDesignMd.applyTokens(map, sectionEl) with this element as the
+     rootEl — the --vc-* vars land on its inline style, descendants
+     inherit, the rest of the page does not. This class itself only
+     establishes a positioning context; the theming is the applyTokens
+     call. See references/preset-library.md. */
+  .vc-theme-scope {
+    position: relative;
+  }
+}
+
+/* ─── ve-component — the token contact sheet ───────────────────────── */
+
+@layer ve-component {
+  /* No nested scrollbars — the document is the only scroller. */
+  .vc-sheet,
+  .vc-sheet * {
+    box-sizing: border-box;
+  }
+
+  .vc-sheet {
+    display: block;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: var(--vc-space-5, 32px) var(--vc-space-4, 24px);
+    background: var(--vc-color-canvas, #faf6ee);
+    color: var(--vc-color-content, #1f1a14);
+    font-family: var(--vc-font-body, system-ui, sans-serif);
+    font-size: var(--vc-text-2, 16px);
+    line-height: var(--vc-line-height, 1.55);
+  }
+
+  /* Header strip — doc title + theme toggle. */
+  .vc-sheet-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--vc-space-2, 12px);
+    padding-bottom: var(--vc-space-3, 16px);
+    border-bottom: 2px solid var(--vc-color-border, #e3dcc9);
+    margin-bottom: var(--vc-space-5, 32px);
+  }
+  .vc-sheet-doc-title {
+    margin: 0;
+    font-family: var(--vc-font-heading, Georgia, serif);
+    font-size: var(--vc-text-5, 32px);
+    font-weight: var(--vc-weight-bold, 700);
+    color: var(--vc-color-content, #1f1a14);
+  }
+  .vc-sheet-theme-toggle {
+    appearance: none;
+    border: 1px solid var(--vc-color-border-strong, #c9bfa3);
+    border-radius: var(--vc-radius-md, 8px);
+    padding: var(--vc-space-1, 8px) var(--vc-space-3, 16px);
+    background: var(--vc-color-surface, #fff);
+    color: var(--vc-color-content, #1f1a14);
+    font: inherit;
+    font-size: var(--vc-text-1, 14px);
+    cursor: pointer;
+  }
+
+  /* A panel — one per token group. */
+  .vc-sheet-panel {
+    margin-bottom: var(--vc-space-6, 48px);
+  }
+  .vc-sheet-panel-head {
+    margin-bottom: var(--vc-space-3, 16px);
+  }
+  .vc-sheet-panel-title {
+    margin: 0;
+    font-family: var(--vc-font-heading, Georgia, serif);
+    font-size: var(--vc-text-4, 24px);
+    font-weight: var(--vc-weight-bold, 700);
+    color: var(--vc-color-content, #1f1a14);
+  }
+  .vc-sheet-panel-sub {
+    margin: var(--vc-space-0, 4px) 0 0;
+    font-size: var(--vc-text-1, 14px);
+    color: var(--vc-color-content-muted, #5b5343);
+  }
+  .vc-sheet-theme-subhead {
+    margin: var(--vc-space-3, 16px) 0 var(--vc-space-2, 12px);
+    font-size: var(--vc-text-1, 14px);
+    font-weight: var(--vc-weight-medium, 500);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--vc-color-content-subtle, #8a8170);
+  }
+
+  /* A wrapping grid — wraps so the page extends, never an inner scroll. */
+  .vc-sheet-grid {
+    display: grid;
+    gap: var(--vc-space-2, 12px);
+  }
+
+  /* Color grid — 4 columns, wraps. */
+  .vc-sheet-color-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .vc-sheet-swatch {
+    appearance: none;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    border: 1px solid var(--vc-color-border, #e3dcc9);
+    border-radius: var(--vc-radius-md, 8px);
+    background: var(--vc-color-surface, #fff);
+    color: var(--vc-color-content, #1f1a14);
+    font: inherit;
+    cursor: pointer;
+    overflow: hidden;
+    text-align: left;
+  }
+  .vc-sheet-swatch-face {
+    display: block;
+    aspect-ratio: 1 / 1;
+    width: 100%;
+    border-bottom: 1px solid var(--vc-color-border, #e3dcc9);
+  }
+  .vc-sheet-swatch-label {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: var(--vc-space-1, 8px);
+  }
+  .vc-sheet-swatch-name {
+    font-size: var(--vc-text-1, 14px);
+    font-weight: var(--vc-weight-medium, 500);
+  }
+  .vc-sheet-swatch-hex,
+  .vc-sheet-swatch-contrast {
+    font-family: var(--vc-font-mono, monospace);
+    font-size: var(--vc-text-0, 12px);
+    color: var(--vc-color-content-muted, #5b5343);
+  }
+  .vc-sheet-swatch-contrast[data-vc-contrast-warn] {
+    color: var(--vc-color-danger, #a84a32);
+    font-weight: var(--vc-weight-bold, 700);
+  }
+  .vc-sheet-swatch[data-vc-contrast-warn] {
+    border-color: var(--vc-color-danger, #a84a32);
+  }
+
+  /* Typography specimens. */
+  .vc-sheet-type-specimen,
+  .vc-sheet-font-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--vc-space-0, 4px);
+    width: 100%;
+    margin-bottom: var(--vc-space-2, 12px);
+    padding: var(--vc-space-2, 12px);
+    border: 1px solid var(--vc-color-border, #e3dcc9);
+    border-radius: var(--vc-radius-md, 8px);
+    background: var(--vc-color-surface, #fff);
+    color: var(--vc-color-content, #1f1a14);
+    font: inherit;
+    cursor: pointer;
+    text-align: left;
+  }
+  .vc-sheet-type-sample {
+    font-family: var(--vc-font-heading, Georgia, serif);
+    font-weight: var(--vc-weight-medium, 500);
+    color: var(--vc-color-content, #1f1a14);
+    /* Wide specimens wrap — text is the one thing allowed to wrap. */
+    overflow-wrap: anywhere;
+  }
+  .vc-sheet-font-sample {
+    font-size: var(--vc-text-3, 20px);
+  }
+  .vc-sheet-type-meta,
+  .vc-sheet-font-meta {
+    font-family: var(--vc-font-mono, monospace);
+    font-size: var(--vc-text-0, 12px);
+    color: var(--vc-color-content-muted, #5b5343);
+  }
+
+  /* Spacing bars — true pixel width. */
+  .vc-sheet-space-row {
+    display: flex;
+    align-items: center;
+    gap: var(--vc-space-2, 12px);
+    width: 100%;
+    margin-bottom: var(--vc-space-1, 8px);
+    padding: var(--vc-space-1, 8px);
+    border: 1px solid var(--vc-color-border, #e3dcc9);
+    border-radius: var(--vc-radius-sm, 4px);
+    background: var(--vc-color-surface, #fff);
+    color: var(--vc-color-content, #1f1a14);
+    font: inherit;
+    cursor: pointer;
+    text-align: left;
+  }
+  .vc-sheet-space-bar {
+    display: block;
+    height: 12px;
+    flex: 0 0 auto;
+    background: var(--vc-color-accent, #b8861f);
+    border-radius: var(--vc-radius-sm, 4px);
+  }
+  .vc-sheet-space-meta {
+    font-family: var(--vc-font-mono, monospace);
+    font-size: var(--vc-text-0, 12px);
+    color: var(--vc-color-content-muted, #5b5343);
+  }
+
+  /* Radius grid. */
+  .vc-sheet-radius-grid {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+  .vc-sheet-radius-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--vc-space-1, 8px);
+    padding: var(--vc-space-2, 12px);
+    border: 1px solid var(--vc-color-border, #e3dcc9);
+    border-radius: var(--vc-radius-md, 8px);
+    background: var(--vc-color-surface, #fff);
+    color: var(--vc-color-content, #1f1a14);
+    font: inherit;
+    cursor: pointer;
+  }
+  .vc-sheet-radius-box {
+    width: 56px;
+    height: 56px;
+    background: var(--vc-color-accent, #b8861f);
+  }
+  .vc-sheet-radius-meta {
+    font-family: var(--vc-font-mono, monospace);
+    font-size: var(--vc-text-0, 12px);
+    color: var(--vc-color-content-muted, #5b5343);
+  }
+
+  /* Elevation grid. */
+  .vc-sheet-elevation-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .vc-sheet-elevation-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--vc-space-3, 16px);
+    padding: var(--vc-space-3, 16px);
+    border: none;
+    background: transparent;
+    color: var(--vc-color-content, #1f1a14);
+    font: inherit;
+    cursor: pointer;
+  }
+  .vc-sheet-elevation-card {
+    width: 100%;
+    height: 72px;
+    background: var(--vc-color-surface, #fff);
+    border-radius: var(--vc-radius-md, 8px);
+  }
+  .vc-sheet-elevation-meta {
+    font-family: var(--vc-font-mono, monospace);
+    font-size: var(--vc-text-0, 12px);
+    color: var(--vc-color-content-muted, #5b5343);
+  }
+
+  /* Motion chips. */
+  .vc-sheet-motion-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .vc-sheet-motion-chip {
+    display: flex;
+    align-items: center;
+    gap: var(--vc-space-2, 12px);
+    padding: var(--vc-space-2, 12px);
+    border: 1px solid var(--vc-color-border, #e3dcc9);
+    border-radius: var(--vc-radius-md, 8px);
+    background: var(--vc-color-surface, #fff);
+    color: var(--vc-color-content, #1f1a14);
+    font: inherit;
+    cursor: pointer;
+    overflow: hidden;
+  }
+  .vc-sheet-motion-dot {
+    flex: 0 0 auto;
+    width: 20px;
+    height: 20px;
+    border-radius: var(--vc-radius-full, 9999px);
+    background: var(--vc-color-accent, #b8861f);
+  }
+  .vc-sheet-motion-meta {
+    font-family: var(--vc-font-mono, monospace);
+    font-size: var(--vc-text-0, 12px);
+    color: var(--vc-color-content-muted, #5b5343);
+  }
+
+  /* Z-index stack diagram — overlapping plates. */
+  .vc-sheet-zstack {
+    position: relative;
+    height: 260px;
+    margin-top: var(--vc-space-2, 12px);
+  }
+  .vc-sheet-zplate {
+    position: absolute;
+    width: 200px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--vc-color-border-strong, #c9bfa3);
+    border-radius: var(--vc-radius-md, 8px);
+    background: var(--vc-color-surface-raised, #fffdf8);
+    color: var(--vc-color-content, #1f1a14);
+    box-shadow: var(--vc-shadow-2, 0 4px 12px rgba(0, 0, 0, 0.12));
+    font: inherit;
+    cursor: pointer;
+  }
+  .vc-sheet-zplate-label {
+    font-family: var(--vc-font-mono, monospace);
+    font-size: var(--vc-text-0, 12px);
+  }
+
+  /* Interaction-state demo row. */
+  .vc-sheet-state-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--vc-space-2, 12px);
+  }
+  .vc-sheet-state-btn {
+    appearance: none;
+    padding: var(--vc-space-1, 8px) var(--vc-space-3, 16px);
+    border: 1px solid var(--vc-color-border-strong, #c9bfa3);
+    border-radius: var(--vc-radius-md, 8px);
+    background: var(--vc-color-accent, #b8861f);
+    color: var(--vc-color-on-accent, #fff);
+    font: inherit;
+    font-size: var(--vc-text-1, 14px);
+    cursor: pointer;
+  }
+
+  /* Code panel — <pre> with overflow:visible (no inner scrollbar). */
+  .vc-sheet-code {
+    margin: 0 0 var(--vc-space-3, 16px);
+    padding: var(--vc-space-3, 16px);
+    border: 1px solid var(--vc-color-border, #e3dcc9);
+    border-radius: var(--vc-radius-md, 8px);
+    background: var(--vc-color-surface-sunken, #f1ece0);
+    color: var(--vc-color-content, #1f1a14);
+    font-family: var(--vc-font-mono, monospace);
+    font-size: var(--vc-text-1, 14px);
+    /* Wide code extends the page — the document scroll handles it. */
+    overflow: visible;
+    white-space: pre;
+  }
+  .vc-tok-keyword { color: var(--vc-code-keyword, var(--vc-color-accent)); }
+  .vc-tok-string { color: var(--vc-code-string, var(--vc-color-success)); }
+  .vc-tok-number { color: var(--vc-code-number, var(--vc-color-danger)); }
+  .vc-tok-comment {
+    color: var(--vc-code-comment, var(--vc-color-content-subtle));
+    font-style: italic;
+  }
+  .vc-tok-type { color: var(--vc-code-type, var(--vc-color-info)); }
+  .vc-tok-variable {
+    color: var(--vc-code-variable, var(--vc-color-content));
+  }
+  .vc-tok-function {
+    color: var(--vc-code-function, var(--vc-color-accent));
+  }
+  .vc-tok-operator {
+    color: var(--vc-code-operator, var(--vc-color-content-muted));
+  }
+  .vc-tok-punctuation {
+    color: var(--vc-code-punctuation, var(--vc-color-content-subtle));
+  }
+  .vc-sheet-code-legend {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .vc-sheet-code-chip {
+    display: flex;
+    align-items: center;
+    gap: var(--vc-space-1, 8px);
+    padding: var(--vc-space-1, 8px);
+    border: 1px solid var(--vc-color-border, #e3dcc9);
+    border-radius: var(--vc-radius-sm, 4px);
+    background: var(--vc-color-surface, #fff);
+    color: var(--vc-color-content, #1f1a14);
+    font: inherit;
+    cursor: pointer;
+  }
+  .vc-sheet-code-dot {
+    width: 16px;
+    height: 16px;
+    flex: 0 0 auto;
+    border-radius: var(--vc-radius-sm, 4px);
+  }
+  .vc-sheet-code-chip-meta {
+    font-family: var(--vc-font-mono, monospace);
+    font-size: var(--vc-text-0, 12px);
+    color: var(--vc-color-content-muted, #5b5343);
+  }
+
+  /* Semantic-roles panel — chip rows. */
+  .vc-sheet-roles-label {
+    margin: var(--vc-space-3, 16px) 0 var(--vc-space-1, 8px);
+    font-size: var(--vc-text-1, 14px);
+    font-weight: var(--vc-weight-medium, 500);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--vc-color-content-subtle, #8a8170);
+  }
+  .vc-sheet-roles-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--vc-space-1, 8px);
+  }
+  .vc-sheet-role-chip {
+    padding: var(--vc-space-0, 4px) var(--vc-space-2, 12px);
+    border: 1px solid var(--vc-color-border, #e3dcc9);
+    border-radius: var(--vc-radius-full, 9999px);
+    font-size: var(--vc-text-1, 14px);
+    font-weight: var(--vc-weight-medium, 500);
+  }
+  .vc-sheet-note {
+    color: var(--vc-color-content-muted, #5b5343);
+    font-size: var(--vc-text-1, 14px);
+  }
+
+  /* Copied-tooltip — flashed by the click-to-copy handler. */
+  [data-vc-copy] {
+    position: relative;
+  }
+  [data-vc-copy][data-vc-copied]::after {
+    content: attr(data-vc-copied);
+    position: absolute;
+    top: var(--vc-space-1, 8px);
+    right: var(--vc-space-1, 8px);
+    z-index: var(--vc-z-tooltip, 600);
+    padding: 2px var(--vc-space-1, 8px);
+    border-radius: var(--vc-radius-sm, 4px);
+    background: var(--vc-color-content, #1f1a14);
+    color: var(--vc-color-canvas, #faf6ee);
+    font-family: var(--vc-font-body, system-ui, sans-serif);
+    font-size: var(--vc-text-0, 12px);
+    pointer-events: none;
+  }
+
+  /* A slop-alert marker stamped by lintLiveDocument — a dashed outline
+     so a reviewer sees flagged elements without the page restyling. */
+  [data-vc-slop-alert] {
+    outline: 2px dashed var(--vc-color-danger, #a84a32);
+    outline-offset: 2px;
+  }
+}
+
+/* ─── ve-component — Tailwind-shaped utility classes (DT-20/DM-15) ──── */
+/*
+ * One utility class per --vc-* token, namespaced `vc-` so they never
+ * collide with a host page's real Tailwind. LLM-emitted HTML can use the
+ * familiar shapes (.vc-bg-canvas, .vc-text-muted) and still be 100%
+ * token-driven — zero raw hexes.
+ */
+
+@layer ve-component {
+  /* Background colors. */
+  .vc-bg-canvas { background: var(--vc-color-canvas); }
+  .vc-bg-surface { background: var(--vc-color-surface); }
+  .vc-bg-surface-raised { background: var(--vc-color-surface-raised); }
+  .vc-bg-surface-sunken { background: var(--vc-color-surface-sunken); }
+  .vc-bg-accent { background: var(--vc-color-accent); }
+  .vc-bg-success { background: var(--vc-state-success-bg); }
+  .vc-bg-warning { background: var(--vc-state-warning-bg); }
+  .vc-bg-danger { background: var(--vc-state-danger-bg); }
+  .vc-bg-info { background: var(--vc-state-info-bg); }
+
+  /* Text colors. */
+  .vc-text { color: var(--vc-color-content); }
+  .vc-text-muted { color: var(--vc-color-content-muted); }
+  .vc-text-subtle { color: var(--vc-color-content-subtle); }
+  .vc-text-accent { color: var(--vc-color-accent); }
+  .vc-text-on-accent { color: var(--vc-color-on-accent); }
+  .vc-text-success { color: var(--vc-color-success); }
+  .vc-text-warning { color: var(--vc-color-warning); }
+  .vc-text-danger { color: var(--vc-color-danger); }
+  .vc-text-info { color: var(--vc-color-info); }
+
+  /* Borders. */
+  .vc-border { border: 1px solid var(--vc-color-border); }
+  .vc-border-strong { border: 1px solid var(--vc-color-border-strong); }
+
+  /* Radius. */
+  .vc-rounded-none { border-radius: var(--vc-radius-none); }
+  .vc-rounded-sm { border-radius: var(--vc-radius-sm); }
+  .vc-rounded-md { border-radius: var(--vc-radius-md); }
+  .vc-rounded-lg { border-radius: var(--vc-radius-lg); }
+  .vc-rounded-xl { border-radius: var(--vc-radius-xl); }
+  .vc-rounded-full { border-radius: var(--vc-radius-full); }
+
+  /* Elevation. */
+  .vc-shadow-0 { box-shadow: var(--vc-shadow-0); }
+  .vc-shadow-1 { box-shadow: var(--vc-shadow-1); }
+  .vc-shadow-2 { box-shadow: var(--vc-shadow-2); }
+  .vc-shadow-3 { box-shadow: var(--vc-shadow-3); }
+  .vc-shadow-4 { box-shadow: var(--vc-shadow-4); }
+  .vc-shadow-border { box-shadow: var(--vc-shadow-border); }
+
+  /* Typography. */
+  .vc-font-heading { font-family: var(--vc-font-heading); }
+  .vc-font-body { font-family: var(--vc-font-body); }
+  .vc-font-mono { font-family: var(--vc-font-mono); }
+  .vc-text-0 { font-size: var(--vc-text-0); }
+  .vc-text-1 { font-size: var(--vc-text-1); }
+  .vc-text-2 { font-size: var(--vc-text-2); }
+  .vc-text-3 { font-size: var(--vc-text-3); }
+  .vc-text-4 { font-size: var(--vc-text-4); }
+  .vc-text-5 { font-size: var(--vc-text-5); }
+  .vc-text-6 { font-size: var(--vc-text-6); }
+  .vc-weight-regular { font-weight: var(--vc-weight-regular); }
+  .vc-weight-medium { font-weight: var(--vc-weight-medium); }
+  .vc-weight-bold { font-weight: var(--vc-weight-bold); }
+
+  /* Padding (the spacing scale). */
+  .vc-p-0 { padding: var(--vc-space-0); }
+  .vc-p-1 { padding: var(--vc-space-1); }
+  .vc-p-2 { padding: var(--vc-space-2); }
+  .vc-p-3 { padding: var(--vc-space-3); }
+  .vc-p-4 { padding: var(--vc-space-4); }
+  .vc-p-5 { padding: var(--vc-space-5); }
+  .vc-p-6 { padding: var(--vc-space-6); }
+  .vc-p-7 { padding: var(--vc-space-7); }
+
+  /* Gap (the spacing scale). */
+  .vc-gap-1 { gap: var(--vc-space-1); }
+  .vc-gap-2 { gap: var(--vc-space-2); }
+  .vc-gap-3 { gap: var(--vc-space-3); }
+  .vc-gap-4 { gap: var(--vc-space-4); }
+}
+
+/* ─── reduced-motion — kill the .vc-state overlay transition ───────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .vc-state::before {
+    transition: none;
+  }
+  /* The motion-panel chips do not animate under reduced-motion; they
+     are wired off in JS (attachMotionDemo early-returns). The dot's
+     transition is also nulled here as a belt-and-braces guard. */
+  .vc-sheet-motion-dot {
+    transition: none !important;
+  }
+}

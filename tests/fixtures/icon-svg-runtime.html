@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>icon-svg skill test fixture</title>
+<style>
+  /* Baseline page chrome — themed off the DESIGN.md engine's --vc-*
+     color tokens so a light<->dark toggle is observable. The icon-svg
+     skill injects its own stylesheet on boot; this block is only the
+     page scaffold. */
+  html, body { overflow-x: auto; }
+  body {
+    margin: 0;
+    padding: 32px;
+    background: var(--vc-color-canvas, #faf6ee);
+    color: var(--vc-color-content, #1f1a14);
+    font: 16px/1.55 var(--vc-font-body, system-ui, sans-serif);
+  }
+  main { max-width: 92ch; margin: 0 auto; }
+  h1, h2 { font-family: var(--vc-font-heading, Georgia, serif); }
+  h2 { margin-block: 36px 12px;
+       border-bottom: 1px solid var(--vc-color-border, #e3dcc9);
+       padding-bottom: 6px; }
+  section { margin-block: 20px; }
+  .row { display: flex; flex-wrap: wrap; gap: 24px;
+         align-items: flex-start; }
+  .demo-card {
+    padding: 16px;
+    background: var(--vc-color-surface, #ffffff);
+    border: 1px solid var(--vc-color-border, #e3dcc9);
+    border-radius: var(--vc-radius-md, 8px);
+  }
+  .demo-card > figcaption, .caption {
+    font-size: 13px; color: var(--vc-color-content-muted, #5b5343);
+    margin-bottom: 8px;
+  }
+  /* the scene-SVG demos sit in a fixed-width card so the screenshot is
+     stable; the .isvg-scene class (injected) caps + centers them. */
+  .scene-slot { width: 320px; }
+  .frame-slot { transform-origin: top left; }
+  /* shrink the big desktop/phone frames so both themes fit one shot */
+  .frame-slot--phone { transform: scale(0.42); height: 380px; }
+  .frame-slot--desktop { transform: scale(0.46); height: 240px; }
+  .frame-body {
+    font: 14px/1.5 var(--vc-font-body, system-ui, sans-serif);
+    color: var(--vc-color-content, #1f1a14);
+  }
+  .frame-body h3 { margin: 0 0 8px;
+    font-family: var(--vc-font-heading, Georgia, serif); }
+  .annotated-wrap { max-width: 460px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>icon-svg skill test fixture</h1>
+  <p>Loads <code>amvcp-designmd.js</code> then
+     <code>amvcp-icon-svg.js</code> as browser globals.
+     <code>window.__isvgManualInit</code> is set so the test drives
+     <code>injectIconSvgCSS</code> + <code>init</code>
+     deterministically. The DESIGN.md below themes every authored SVG;
+     a theme toggle restyles them with zero per-theme authoring.</p>
+
+  <!-- ── Scene-graph fenced blocks — the icon-svg compiler turns each
+       into a themed, selectable <svg>. ───────────────────────────── -->
+  <h2>Scene-graph — 5 node primitives</h2>
+  <div class="row">
+    <figure class="demo-card scene-slot">
+      <figcaption>process · database · decision · external · network</figcaption>
+      <script type="application/icon-svg+json" id="scene-nodes">
+      {
+        "viewBox": [0, 0, 1000, 1000],
+        "ariaLabel": "All five node primitives",
+        "primitives": [
+          { "type": "process",  "id": "ingest", "x": 60,  "y": 60,  "w": 380, "h": 150, "label": "Ingest" },
+          { "type": "database", "id": "store",  "x": 560, "y": 60,  "w": 380, "h": 230, "label": "Store", "variant": "info" },
+          { "type": "decision", "id": "valid",  "x": 320, "y": 360, "w": 320, "h": 280, "label": "Valid?", "variant": "warning" },
+          { "type": "external", "id": "vendor", "x": 60,  "y": 740, "w": 380, "h": 180, "label": "Vendor API" },
+          { "type": "network",  "id": "edge",   "x": 560, "y": 700, "w": 380, "h": 240, "label": "CDN", "variant": "success" }
+        ]
+      }
+      </script>
+    </figure>
+
+    <figure class="demo-card scene-slot">
+      <figcaption>&lt;defs&gt;&lt;use&gt; reuse — 3 identical process nodes</figcaption>
+      <script type="application/icon-svg+json" id="scene-reuse">
+      {
+        "viewBox": [0, 0, 1000, 1000],
+        "ariaLabel": "Three identical process nodes via defs/use",
+        "primitives": [
+          { "type": "process", "id": "step-a", "x": 250, "y": 60,  "w": 500, "h": 200, "label": "Step A" },
+          { "type": "process", "id": "step-b", "x": 250, "y": 400, "w": 500, "h": 200, "label": "Step A" },
+          { "type": "process", "id": "step-c", "x": 250, "y": 740, "w": 500, "h": 200, "label": "Step A" }
+        ]
+      }
+      </script>
+    </figure>
+  </div>
+
+  <!-- ── Logo composition blocks ───────────────────────────────────── -->
+  <h2>Logo composition blocks (6)</h2>
+  <div class="row">
+    <figure class="demo-card scene-slot">
+      <figcaption>mask-cutout · arc-bite · zig-zag</figcaption>
+      <script type="application/icon-svg+json" id="scene-logo-a">
+      {
+        "viewBox": [0, 0, 1000, 1000],
+        "ariaLabel": "Mask cutout, arc bite, zig-zag logo blocks",
+        "primitives": [
+          { "type": "logo", "id": "lg-mask", "kind": "mask-cutout", "x": 40,  "y": 350, "w": 280, "h": 280 },
+          { "type": "logo", "id": "lg-arc",  "kind": "arc-bite",    "x": 360, "y": 350, "w": 280, "h": 280 },
+          { "type": "logo", "id": "lg-zig",  "kind": "zig-zag",     "x": 680, "y": 350, "w": 280, "h": 280 }
+        ]
+      }
+      </script>
+    </figure>
+
+    <figure class="demo-card scene-slot">
+      <figcaption>stacked-rects · tint-hierarchy · current-color</figcaption>
+      <script type="application/icon-svg+json" id="scene-logo-b">
+      {
+        "viewBox": [0, 0, 1000, 1000],
+        "ariaLabel": "Stacked rects, tint hierarchy, currentColor logo blocks",
+        "primitives": [
+          { "type": "logo", "id": "lg-stack", "kind": "stacked-rects",  "x": 40,  "y": 350, "w": 280, "h": 280 },
+          { "type": "logo", "id": "lg-tint",  "kind": "tint-hierarchy", "x": 360, "y": 350, "w": 280, "h": 280 },
+          { "type": "logo", "id": "lg-curr",  "kind": "current-color",  "x": 680, "y": 350, "w": 280, "h": 280 }
+        ]
+      }
+      </script>
+    </figure>
+  </div>
+
+  <!-- ── clip-path shape library (P3) ──────────────────────────────── -->
+  <h2>clip-path shape library (CSS-only)</h2>
+  <section>
+    <div class="row" id="shape-row">
+      <span class="isvg-shape isvg-shape-triangle-up" title="triangle-up"></span>
+      <span class="isvg-shape isvg-shape-arrow-right" title="arrow-right"></span>
+      <span class="isvg-shape isvg-shape-chevron" title="chevron"></span>
+      <span class="isvg-shape isvg-shape-parallelogram" title="parallelogram"></span>
+      <span class="isvg-shape isvg-shape-hexagon" title="hexagon"></span>
+      <span class="isvg-shape isvg-shape-star" title="star"></span>
+    </div>
+  </section>
+
+  <!-- ── image hotspot annotation ──────────────────────────────────── -->
+  <h2>Image hotspot annotation</h2>
+  <section>
+    <figure class="isvg-annotated annotated-wrap" data-ve-id="anatomy-fig"
+            data-ve-type="figure" id="annotated-fig">
+      <!-- A small inline-SVG data-URI image so the fixture is fully
+           self-contained (no external asset fetch). -->
+      <img id="annotated-img" alt="System architecture diagram"
+        src="data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns='http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20width='460'%20height='280'%3E%3Crect%20width='460'%20height='280'%20fill='%23e8e2d2'%2F%3E%3Crect%20x='40'%20y='40'%20width='150'%20height='90'%20rx='8'%20fill='%23c9bfa3'%2F%3E%3Crect%20x='270'%20y='150'%20width='150'%20height='90'%20rx='8'%20fill='%23c9bfa3'%2F%3E%3C%2Fsvg%3E">
+      <button class="isvg-hotspot" style="--x:.30; --y:.30"
+              data-ve-id="hotspot-cache" data-ve-type="hotspot"
+              aria-label="Cache layer">1</button>
+      <button class="isvg-hotspot" style="--x:.74; --y:.70"
+              data-ve-id="hotspot-db" data-ve-type="hotspot"
+              aria-label="Database">2</button>
+    </figure>
+  </section>
+
+  <!-- ── device frames — built by deviceFrame() on boot ────────────── -->
+  <h2>Device frames (4 presets)</h2>
+  <div class="row">
+    <div class="frame-slot frame-slot--phone" id="frame-ios-slot"></div>
+    <div class="frame-slot frame-slot--phone" id="frame-android-slot"></div>
+  </div>
+  <div class="row">
+    <div class="frame-slot frame-slot--desktop" id="frame-mac-slot"></div>
+    <div class="frame-slot frame-slot--desktop" id="frame-browser-slot"></div>
+  </div>
+
+  <div style="height: 120px;"></div>
+</main>
+
+<!-- The DESIGN.md the engine themes the page from. -->
+<script type="text/design-md" id="ve-designmd">
+designmd_version: 1
+meta:
+  name: "Icon-SVG Fixture"
+  default_theme: light
+colors:
+  light:
+    canvas: "#faf6ee"
+    surface: "#ffffff"
+    surface-raised: "#fffdf8"
+    surface-sunken: "#f1ece0"
+    content: "#1f1a14"
+    content-muted: "#5b5343"
+    content-subtle: "#8a8170"
+    border: "#e3dcc9"
+    border-strong: "#c9bfa3"
+    accent: "#b8861f"
+    on-accent: "#ffffff"
+    success: "#3a6b5c"
+    warning: "#a8791f"
+    danger: "#a84a32"
+    info: "#3464a8"
+  dark:
+    canvas: "#1b1813"
+    surface: "#262119"
+    surface-raised: "#2f2920"
+    surface-sunken: "#15120d"
+    content: "#f3ecdd"
+    content-muted: "#b5ab93"
+    content-subtle: "#857c66"
+    border: "#3a3327"
+    border-strong: "#564c39"
+    accent: "#d8a83f"
+    on-accent: "#1b1813"
+    success: "#6db89c"
+    warning: "#d8a83f"
+    danger: "#d8765c"
+    info: "#6d9cd8"
+typography:
+  font-heading: "Playfair Display, Georgia, serif"
+  font-body: "Inter, system-ui, sans-serif"
+  font-mono: "JetBrains Mono, ui-monospace, monospace"
+  scale: [12, 14, 16, 20, 24, 32, 48]
+  weight-regular: 400
+  weight-medium: 500
+  weight-bold: 700
+  line-height: 1.55
+spacing:
+  scale: [4, 8, 12, 16, 24, 32, 48, 64]
+radius:
+  none: 0
+  sm: 4
+  md: 8
+  lg: 12
+  xl: 16
+  full: 9999
+motion:
+  duration-fast: 120
+  duration-slow: 400
+  easing-standard: "cubic-bezier(0.2,0,0,1)"
+  easing-decel: "cubic-bezier(0,0,0,1)"
+</script>
+
+<!-- Manual-init: the test controls engine -> tokens -> icon-svg order. -->
+<script>window.__isvgManualInit = true;</script>
+<!-- Served via the tests/fixtures/amvcp-*.js symlinks -> ../../scripts/. -->
+<script src="amvcp-designmd.js"></script>
+<script src="amvcp-icon-svg.js"></script>
+<script>
+// Apply the embedded DESIGN.md on load (the runtime would normally do
+// this; this fixture is self-contained — no runtime). Then inject the
+// icon-svg CSS, build the four device frames, and init the module so it
+// compiles the scene-graph fenced blocks. Errors surface on window for
+// the test to read.
+(function () {
+  function frameBody(title, text) {
+    var d = document.createElement('div');
+    d.className = 'frame-body';
+    d.innerHTML = '<h3>' + title + '</h3><p>' + text + '</p>';
+    return d;
+  }
+  function boot() {
+    try {
+      var raw = document.getElementById('ve-designmd').textContent;
+      var parsed = window.amvcpDesignMd.parseDesignMd(
+        '---\n' + raw + '\n---\n');
+      if (!parsed.ok) {
+        window.__isvgFixtureError = 'parse: ' + parsed.errors.join('; ');
+        return;
+      }
+      window.__isvgFixtureDesignMd = parsed.designmd;
+      var theme = parsed.designmd.meta.default_theme || 'light';
+      document.documentElement.setAttribute('data-ve-theme', theme);
+      var map = window.amvcpDesignMd.resolveTokens(parsed.designmd,
+        theme);
+      window.amvcpDesignMd.applyTokens(map, document.documentElement);
+
+      // Engine tokens applied -> now inject the icon-svg CSS and init
+      // (init compiles the scene-graph fenced blocks).
+      window.amvcpIconSvg.injectIconSvgCSS(document);
+
+      // Build the 4 device frames into their slots.
+      var iv = window.amvcpIconSvg;
+      document.getElementById('frame-ios-slot').appendChild(
+        iv.deviceFrame({ kind: 'ios',
+          content: frameBody('iOS mockup',
+            'A phone screen with Dynamic Island, status bar, and '
+            + 'home indicator.') }));
+      document.getElementById('frame-android-slot').appendChild(
+        iv.deviceFrame({ kind: 'android',
+          content: frameBody('Android mockup',
+            'A phone screen with punch-hole camera and gesture '
+            + 'bar.') }));
+      document.getElementById('frame-mac-slot').appendChild(
+        iv.deviceFrame({ kind: 'mac', title: 'Report.app',
+          content: frameBody('macOS window',
+            'A desktop window with title bar and traffic '
+            + 'lights.') }));
+      document.getElementById('frame-browser-slot').appendChild(
+        iv.deviceFrame({ kind: 'browser', title: 'Visual Report',
+          url: 'https://example.com/report',
+          content: frameBody('Browser window',
+            'A browser window with tab strip and URL bar.') }));
+
+      iv.init(document);
+      window.__isvgFixtureReady = true;
+    } catch (e) {
+      window.__isvgFixtureError = String(e && e.message || e);
+    }
+  }
+  // Re-resolve + re-apply for a theme toggle (the dual-theme test and
+  // the screenshot pass both use this).
+  window.__isvgApplyTheme = function (theme) {
+    var dm = window.__isvgFixtureDesignMd;
+    if (!dm) { return false; }
+    document.documentElement.setAttribute('data-ve-theme', theme);
+    var map = window.amvcpDesignMd.resolveTokens(dm, theme);
+    window.amvcpDesignMd.applyTokens(map, document.documentElement);
+    return true;
+  };
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot);
+  } else {
+    boot();
+  }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>diagram skill test fixture</title>
+<style>
+  /* The diagram module reads every token via var(--vc-…, fallback), so
+     it renders correctly with NO DESIGN.md. This fixture supplies the
+     full --vc-* palette via two :root blocks (light default + a
+     data-ve-theme="dark" override) so a light<->dark toggle is
+     observable and the theme tests can assert real token flips. */
+  :root,
+  html[data-ve-theme="light"] {
+    --vc-color-canvas: #faf6ee;
+    --vc-color-surface: #ffffff;
+    --vc-color-surface-raised: #fffdf8;
+    --vc-color-surface-sunken: #f1ece0;
+    --vc-color-content: #1f1a14;
+    --vc-color-content-muted: #5b5343;
+    --vc-color-content-subtle: #8a8170;
+    --vc-color-border: #e3dcc9;
+    --vc-color-border-strong: #c9bfa3;
+    --vc-color-accent: #b8861f;
+    --vc-color-on-accent: #ffffff;
+    --vc-color-success: #3a6b5c;
+    --vc-color-warning: #a8791f;
+    --vc-color-danger: #a84a32;
+    --vc-color-info: #3464a8;
+    --vc-font-heading: "Playfair Display, Georgia, serif";
+    --vc-font-body: "Inter, system-ui, sans-serif";
+    --vc-font-mono: "JetBrains Mono, ui-monospace, monospace";
+    --vc-text-0: 12px;
+    --vc-text-1: 14px;
+    --vc-text-2: 16px;
+    --vc-text-3: 20px;
+    --vc-weight-regular: 400;
+    --vc-weight-medium: 500;
+    --vc-weight-bold: 700;
+    --vc-radius-none: 0;
+    --vc-radius-sm: 4px;
+    --vc-radius-md: 8px;
+    --vc-radius-lg: 12px;
+    --vc-radius-xl: 16px;
+    --vc-radius-full: 9999px;
+    --vc-duration-fast: 120ms;
+    --vc-duration-slow: 400ms;
+    --vc-easing-decel: cubic-bezier(0,0,0,1);
+  }
+  html[data-ve-theme="dark"] {
+    --vc-color-canvas: #1b1813;
+    --vc-color-surface: #262119;
+    --vc-color-surface-raised: #2f2920;
+    --vc-color-surface-sunken: #15120d;
+    --vc-color-content: #f3ecdd;
+    --vc-color-content-muted: #b5ab93;
+    --vc-color-content-subtle: #857c66;
+    --vc-color-border: #3a3327;
+    --vc-color-border-strong: #564c39;
+    --vc-color-accent: #d8a83f;
+    --vc-color-on-accent: #1b1813;
+    --vc-color-success: #6db89c;
+    --vc-color-warning: #d8a83f;
+    --vc-color-danger: #d8765c;
+    --vc-color-info: #6d9cd8;
+  }
+  html, body { overflow-x: auto; }
+  body {
+    margin: 0;
+    padding: 32px;
+    background: var(--vc-color-canvas, #faf6ee);
+    color: var(--vc-color-content, #1f1a14);
+    font: 16px/1.55 var(--vc-font-body, system-ui, sans-serif);
+  }
+  main { max-width: 1100px; margin: 0 auto; }
+  h1, h2 { font-family: var(--vc-font-heading, Georgia, serif); }
+  h2 { font-size: 18px; margin-top: 36px;
+       border-bottom: 1px solid var(--vc-color-border, #e3dcc9);
+       padding-bottom: 6px; }
+  section { margin-block: 20px; }
+  p.note { color: var(--vc-color-content-muted, #5b5343);
+           font-size: 14px; }
+  /* The reveal fixture needs a tall spacer so its scene starts well
+     below the fold. */
+  .spacer { height: 1600px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Diagram skill test fixture</h1>
+  <p class="note">Loads <code>amvcp-diagram.js</code> as a browser global.
+     <code>window.__vcDiagramManualInit</code> is set so the test drives
+     <code>injectDiagramCSS</code> + <code>init</code> deterministically.
+     The module is fully defensive — it renders with no DESIGN.md engine
+     present, reading every token via <code>var(--vc-…, fallback)</code>.</p>
+
+  <h2>process-flow preset</h2>
+  <section>
+    <div class="ve-scene-graph" id="scene-flow"
+         data-ve-scene-preset="process-flow">
+      <script type="application/json">
+      {
+        "version": 1,
+        "preset": "process-flow",
+        "grid": 4,
+        "width": 1040,
+        "height": 240,
+        "nodes": [
+          { "id": "start",  "type": "start",      "label": "Start" },
+          { "id": "ingest", "type": "process",    "label": "Ingest data",
+            "role": "service" },
+          { "id": "check",  "type": "decision",   "label": "Valid?" },
+          { "id": "store",  "type": "subprocess", "label": "Persist",
+            "role": "data" },
+          { "id": "done",   "type": "end",        "label": "Complete" }
+        ],
+        "edges": [
+          { "from": "start",  "to": "ingest" },
+          { "from": "ingest", "to": "check" },
+          { "from": "check",  "to": "store", "label": "yes" },
+          { "from": "store",  "to": "done" },
+          { "from": "check",  "to": "start", "label": "no",
+            "style": "dashed", "route": "loop" }
+        ]
+      }
+      </script>
+    </div>
+  </section>
+
+  <h2>architecture-canvas preset (grid background, role-tinted layers)</h2>
+  <section>
+    <div class="ve-scene-graph" id="scene-arch"
+         data-ve-scene-preset="architecture-canvas">
+      <script type="application/json">
+      {
+        "version": 1,
+        "preset": "free",
+        "grid": 4,
+        "width": 900,
+        "height": 420,
+        "background": "grid",
+        "groups": [
+          { "id": "g-client",  "label": "Client",   "role": "client",
+            "x": 40,  "y": 40,  "w": 800, "h": 90 },
+          { "id": "g-service", "label": "Service",  "role": "service",
+            "x": 40,  "y": 160, "w": 800, "h": 90 },
+          { "id": "g-data",    "label": "Data",     "role": "data",
+            "x": 40,  "y": 280, "w": 800, "h": 100 }
+        ],
+        "nodes": [
+          { "id": "web",  "type": "process", "label": "Web app",
+            "role": "client",  "x": 80,  "y": 60 },
+          { "id": "api",  "type": "process", "label": "API gateway",
+            "role": "service", "x": 80,  "y": 175 },
+          { "id": "auth", "type": "process", "label": "Auth service",
+            "role": "service", "x": 320, "y": 175 },
+          { "id": "db",   "type": "subprocess", "label": "Postgres",
+            "role": "data",    "x": 80,  "y": 295 },
+          { "id": "s3",   "type": "external",  "label": "Object store",
+            "role": "external","x": 560, "y": 295 }
+        ],
+        "edges": [
+          { "from": "web",  "to": "api",  "route": "bezier" },
+          { "from": "api",  "to": "auth", "route": "ortho" },
+          { "from": "api",  "to": "db",   "route": "bezier" },
+          { "from": "auth", "to": "s3",   "route": "bezier",
+            "style": "dotted" }
+        ]
+      }
+      </script>
+    </div>
+  </section>
+
+  <h2>phase-graph preset (click a node to highlight its chain)</h2>
+  <section>
+    <div class="ve-scene-graph" id="scene-phase"
+         data-ve-scene-preset="phase-graph">
+      <script type="application/json">
+      {
+        "version": 1,
+        "preset": "phase-graph",
+        "grid": 4,
+        "width": 1000,
+        "height": 360,
+        "nodes": [
+          { "id": "p1", "type": "card", "label": "Design",
+            "detail": "2 weeks" },
+          { "id": "p2", "type": "card", "label": "Build engine",
+            "detail": "3 weeks", "role": "accent" },
+          { "id": "p3", "type": "card", "label": "Build UI",
+            "detail": "3 weeks" },
+          { "id": "p4", "type": "card", "label": "Integrate",
+            "detail": "1 week" },
+          { "id": "p5", "type": "card", "label": "Ship",
+            "detail": "2 days", "role": "data" }
+        ],
+        "edges": [
+          { "from": "p1", "to": "p2", "route": "bezier" },
+          { "from": "p1", "to": "p3", "route": "bezier" },
+          { "from": "p2", "to": "p4", "route": "bezier" },
+          { "from": "p3", "to": "p4", "route": "bezier" },
+          { "from": "p4", "to": "p5", "route": "bezier" }
+        ]
+      }
+      </script>
+    </div>
+  </section>
+
+  <h2>theme preset — blueprint (scoped --vc-* override on the wrapper)</h2>
+  <section>
+    <div class="ve-scene-graph" id="scene-blueprint"
+         data-ve-scene-preset="process-flow"
+         data-ve-scene-theme="blueprint">
+      <script type="application/json">
+      {
+        "version": 1,
+        "preset": "process-flow",
+        "width": 700,
+        "height": 200,
+        "nodes": [
+          { "id": "in",  "type": "start",   "label": "Input" },
+          { "id": "amp", "type": "process", "label": "Amplify",
+            "role": "service" },
+          { "id": "out", "type": "end",     "label": "Output" }
+        ],
+        "edges": [
+          { "from": "in",  "to": "amp" },
+          { "from": "amp", "to": "out" }
+        ]
+      }
+      </script>
+    </div>
+  </section>
+
+  <h2>theme preset — hand-drawn (SVG feTurbulence filter, no rough.js)</h2>
+  <section>
+    <div class="ve-scene-graph" id="scene-handdrawn"
+         data-ve-scene-preset="process-flow"
+         data-ve-scene-theme="hand-drawn">
+      <script type="application/json">
+      {
+        "version": 1,
+        "preset": "process-flow",
+        "width": 700,
+        "height": 200,
+        "nodes": [
+          { "id": "h1", "type": "start",   "label": "Sketch" },
+          { "id": "h2", "type": "process", "label": "Refine" },
+          { "id": "h3", "type": "end",     "label": "Done" }
+        ],
+        "edges": [
+          { "from": "h1", "to": "h2" },
+          { "from": "h2", "to": "h3" }
+        ]
+      }
+      </script>
+    </div>
+  </section>
+
+  <h2>animated edges — flow / particle / pulse</h2>
+  <section>
+    <div class="ve-scene-graph" id="scene-anim"
+         data-ve-scene-preset="free">
+      <script type="application/json">
+      {
+        "version": 1,
+        "preset": "free",
+        "width": 760,
+        "height": 280,
+        "nodes": [
+          { "id": "a", "type": "process", "label": "Source",
+            "x": 40,  "y": 30 },
+          { "id": "b", "type": "process", "label": "Flow",
+            "x": 380, "y": 30,  "role": "service" },
+          { "id": "c", "type": "process", "label": "Particle",
+            "x": 40,  "y": 170, "role": "data" },
+          { "id": "d", "type": "process", "label": "Pulse",
+            "x": 380, "y": 170, "role": "accent" }
+        ],
+        "edges": [
+          { "from": "a", "to": "b", "animate": "flow" },
+          { "from": "a", "to": "c", "animate": "particle" },
+          { "from": "c", "to": "d", "animate": "pulse" }
+        ]
+      }
+      </script>
+    </div>
+  </section>
+
+  <h2>fail-fast — a dangling edge paints a red error, never a blank SVG</h2>
+  <section>
+    <div class="ve-scene-graph" id="scene-bad"
+         data-ve-scene-preset="free">
+      <script type="application/json">
+      {
+        "version": 1,
+        "preset": "free",
+        "width": 600,
+        "height": 200,
+        "nodes": [
+          { "id": "ok", "type": "process", "label": "OK", "x": 40, "y": 60 }
+        ],
+        "edges": [
+          { "from": "ok", "to": "missing" }
+        ]
+      }
+      </script>
+    </div>
+  </section>
+
+  <h2>ASCII diagram fallback (no-JS, copy-pasteable, page-expanding)</h2>
+  <section>
+    <pre class="ve-ascii-diagram" id="ascii-1"
+         data-ve-ascii-style="detailed" data-ve-ascii-selectable="1">
+&#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;  1. Request   &#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;  2. Process   &#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;
+&#9474; Client &#9474;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9474; Gateway  &#9474;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9474; Service &#9474;
+&#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;               &#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;               &#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;
+</pre>
+  </section>
+
+  <div class="spacer"></div>
+
+  <h2>scroll-reveal — edges draw on when scrolled into view</h2>
+  <section>
+    <div class="ve-scene-graph" id="scene-reveal"
+         data-ve-scene-preset="process-flow"
+         data-ve-scene-reveal="scroll">
+      <script type="application/json">
+      {
+        "version": 1,
+        "preset": "process-flow",
+        "width": 760,
+        "height": 200,
+        "nodes": [
+          { "id": "r1", "type": "start",   "label": "One" },
+          { "id": "r2", "type": "process", "label": "Two" },
+          { "id": "r3", "type": "end",     "label": "Three" }
+        ],
+        "edges": [
+          { "from": "r1", "to": "r2" },
+          { "from": "r2", "to": "r3" }
+        ]
+      }
+      </script>
+    </div>
+  </section>
+
+  <div style="height: 300px;"></div>
+</main>
+
+<!-- Manual-init: the test controls injectDiagramCSS + init ordering. -->
+<script>window.__vcDiagramManualInit = true;</script>
+<!-- Served via the tests/fixtures/amvcp-diagram.js symlink -> ../../scripts/. -->
+<script src="amvcp-diagram.js"></script>
+<script>
+// Self-contained boot — no runtime, no DESIGN.md engine. Inject the
+// diagram CSS and init the module. A theme toggle helper flips
+// data-ve-theme on <html> and re-themes every scene. Errors surface on
+// window for the test to read.
+(function () {
+  function boot() {
+    try {
+      document.documentElement.setAttribute('data-ve-theme', 'light');
+      window.amvcpDiagram.injectDiagramCSS(document);
+      window.amvcpDiagram.init(document);
+      window.__vcFixtureReady = true;
+    } catch (e) {
+      window.__vcFixtureError = String(e && e.message || e);
+    }
+  }
+  // Toggle the theme and re-theme every scene (test uses this).
+  window.__vcApplyTheme = function (theme) {
+    document.documentElement.setAttribute('data-ve-theme', theme);
+    window.amvcpDiagram.reThemeAll(document);
+    return true;
+  };
+  // Dispatch the engine's theme-change event (hot-swap test).
+  window.__vcFireThemeChange = function () {
+    document.dispatchEvent(new Event('vc:themechange'));
+  };
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot);
+  } else {
+    boot();
+  }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,237 @@
+/*!
+ * ai-maestro-visual-communicator-plugin — typography CSS layer.
+ *
+ * Phase 2 (typography skill). Maps the DESIGN.md engine's `--vc-*`
+ * typography tokens onto a fluid clamp() type-scale, a semantic
+ * element->token hierarchy, and a variable-font axis layer.
+ *
+ * This stylesheet is ADDITIVE and IDEMPOTENT: it only reads `--vc-*`
+ * tokens and only sets size / weight / font / leading / tracking — it
+ * sets NO `color` property anywhere, so it is automatically correct in
+ * both the light and dark themes (only `--vc-color-*` is themed; the
+ * typography tokens resolve identically for both). Loading it twice is
+ * a no-op (the :root rules just re-declare identical values).
+ *
+ * Token contract — every value below is one of:
+ *   - var(--vc-text-<i>)      the engine's px type scale (or this
+ *                             layer's clamp() redefinition of it)
+ *   - var(--vc-text-<i>-max)  the clamp() upper-bound mirror, set by
+ *                             amvcp-typography.js; falls back to the
+ *                             engine's default px literal
+ *   - var(--vc-weight-*)      semantic weights (engine 3 + this layer's
+ *                             4 new optional ones, each with a fallback)
+ *   - var(--vc-font-*)        the engine's font stacks
+ *   - var(--vc-line-height)   the engine's body leading
+ * NO hardcoded color. NO `overflow` rule. NO `white-space:nowrap` on
+ * headings. Compliant with no-nested-scrollbars.md.
+ */
+
+/* ── Sub-technique C — variable-font axis tokens ──────────────────────
+   The optical-size masters. `opsz` picks the font's display optical
+   master for large type and its text master for body type. Plain
+   :root so they apply whether or not the fluid layer is opted into. */
+:root {
+  --vc-opsz-display: 72;   /* optical master for >=48px display type */
+  --vc-opsz-text:    16;   /* optical master for body / small type   */
+}
+
+/* ── Sub-technique A — fluid type-scale layer ─────────────────────────
+   Re-defines the engine's --vc-text-<i> as clamp() expressions, gated
+   on the opt-in `data-ve-type-scale` attribute on <html>. Absent the
+   attribute, the engine's static px scale is used unchanged (the fluid
+   layer is opt-in, fail-soft).
+
+   Each clamp() is: min . preferred(viewport-relative) . max
+   - max  is var(--vc-text-<i>-max, <literal>) — anchored to the engine
+          token (the JS calculator mirrors --vc-text-<i> into
+          --vc-text-<i>-max); the <literal> fallback is the engine's
+          DEFAULT scale so the page is coherent even with the engine and
+          the JS calculator both absent. Never a broken var().
+   - min  is the readability floor for that step.
+   - preferred is the TY-01 canonical viewport curve — these constants
+          ARE the scale shape, not hardcoded sizes; switching the
+          data-ve-type-scale system regenerates the anchors above. */
+:root[data-ve-type-scale] {
+  --vc-text-0: clamp(11px, 0.70rem + 0.20vw, var(--vc-text-0-max, 12px));
+  --vc-text-1: clamp(12px, 0.78rem + 0.30vw, var(--vc-text-1-max, 14px));
+  --vc-text-2: clamp(14px, 0.88rem + 0.40vw, var(--vc-text-2-max, 16px));
+  --vc-text-3: clamp(16px, 0.95rem + 0.90vw, var(--vc-text-3-max, 20px));
+  --vc-text-4: clamp(20px, 1.05rem + 1.70vw, var(--vc-text-4-max, 24px));
+  --vc-text-5: clamp(24px, 1.20rem + 3.00vw, var(--vc-text-5-max, 32px));
+  --vc-text-6: clamp(32px, 1.40rem + 5.00vw, var(--vc-text-6-max, 48px));
+  /* hero display tier — one step above the engine's last scale step.
+     --vc-text-hero is an optional engine key (typography.scale-hero);
+     absent the engine emitting it, this clamp() literal is the value. */
+  --vc-text-hero: clamp(48px, 2.00rem + 7.20vw, 96px);
+}
+
+/* Height breakpoints — compact viewports shrink the hero tier so a
+   1920x1080-fit slide / dashboard header never overflows vertically. */
+@media (max-height: 700px) {
+  :root[data-ve-type-scale] {
+    --vc-text-hero: clamp(32px, 1.40rem + 5.00vw, 56px);
+  }
+}
+@media (max-height: 500px) {
+  :root[data-ve-type-scale] {
+    --vc-text-hero: clamp(24px, 1.00rem + 4.00vw, 40px);
+  }
+}
+
+/* ── Sub-technique B — semantic hierarchy contract ────────────────────
+   Element-level defaults: plain semantic HTML is correct with NO class.
+   Every size/weight/font/leading is a token; tracking values are the
+   per-role optical corrections from the contract table (spec §5.2). */
+
+h1 {
+  font-size: var(--vc-text-6);
+  font-weight: var(--vc-weight-bold, 700);
+  font-family: var(--vc-font-heading, inherit);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+h2 {
+  font-size: var(--vc-text-5);
+  font-weight: var(--vc-weight-bold, 700);
+  font-family: var(--vc-font-heading, inherit);
+  line-height: 1.20;
+  letter-spacing: -0.01em;
+}
+h3 {
+  font-size: var(--vc-text-4);
+  font-weight: var(--vc-weight-bold, 700);
+  font-family: var(--vc-font-heading, inherit);
+  line-height: 1.30;
+}
+h4 {
+  font-size: var(--vc-text-3);
+  /* heading weight sits between the engine's medium (500) and bold. */
+  font-weight: var(--vc-weight-heading, var(--vc-weight-medium, 500));
+  font-family: var(--vc-font-heading, inherit);
+  line-height: 1.35;
+}
+h5 {
+  font-size: var(--vc-text-2);
+  font-weight: var(--vc-weight-heading, var(--vc-weight-medium, 500));
+  font-family: var(--vc-font-heading, inherit);
+  line-height: 1.40;
+}
+h6 {
+  font-size: var(--vc-text-1);
+  font-weight: var(--vc-weight-heading, var(--vc-weight-medium, 500));
+  font-family: var(--vc-font-heading, inherit);
+  line-height: 1.40;
+}
+p {
+  font-size: var(--vc-text-2);
+  font-weight: var(--vc-weight-body, var(--vc-weight-regular, 400));
+  font-family: var(--vc-font-body, inherit);
+  line-height: var(--vc-line-height, 1.55);
+}
+small,
+.vc-type-caption {
+  font-size: var(--vc-text-0);
+  font-weight: var(--vc-weight-body, var(--vc-weight-regular, 400));
+  font-family: var(--vc-font-body, inherit);
+  line-height: 1.40;
+}
+
+/* Explicit utility classes for the three roles HTML has no native
+   element for: the page-title hero, the lead paragraph, the
+   badge/overline label. Everything else is a bare element above. */
+
+/* Page Title / hero — sub-technique A.5 display-tier optical correction:
+   at >=~96px browsers render type optically too loose; the negative
+   tracking corrects it. The display weight is the lightest of the
+   heading family (catalog: a display tier slightly lighter than bold). */
+.vc-type-hero {
+  font-size: var(--vc-text-hero);
+  font-weight: var(--vc-weight-display, var(--vc-weight-bold, 700));
+  font-family: var(--vc-font-heading, inherit);
+  line-height: 1.05;            /* display leading band */
+  letter-spacing: -0.04em;      /* TY-08 optical correction >=96px */
+}
+.vc-type-lead {
+  font-size: var(--vc-text-3);
+  font-weight: var(--vc-weight-body, var(--vc-weight-regular, 400));
+  font-family: var(--vc-font-body, inherit);
+  line-height: 1.60;
+}
+.vc-type-body-lg {
+  font-size: var(--vc-text-3);
+  font-weight: var(--vc-weight-body, var(--vc-weight-regular, 400));
+  font-family: var(--vc-font-body, inherit);
+  line-height: 1.60;
+}
+.vc-type-body-sm {
+  font-size: var(--vc-text-1);
+  font-weight: var(--vc-weight-body, var(--vc-weight-regular, 400));
+  font-family: var(--vc-font-body, inherit);
+  line-height: 1.50;
+}
+.vc-type-label,
+.vc-type-overline {
+  font-size: var(--vc-text-0);
+  font-weight: var(--vc-weight-label, var(--vc-weight-medium, 500));
+  font-family: var(--vc-font-body, inherit);
+  line-height: 1.40;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* ── Sub-technique C — variable-font axis layer ───────────────────────
+   `font-variation-settings` drives the wght+opsz axes WHEN the loaded
+   font is variable. It is paired with a static `font-weight` referring
+   to the SAME token, so:
+     - on a variable font: the variation-settings `wght` axis wins;
+     - on a static font:   only `font-weight` applies (the nearest
+                            available weight).
+   Both reference the same --vc-weight-* token so they never disagree.
+   This is the entire visual fallback — no JS needed for it. The JS
+   `supportsVariableFonts()` detect is diagnostic only. */
+
+.vc-type-hero,
+h1,
+h2 {
+  font-variation-settings:
+    "wght" var(--vc-weight-display, 480),
+    "opsz" var(--vc-opsz-display, 72);
+  /* static-font fallback weight — coexists with variation-settings. */
+  font-weight: var(--vc-weight-display, var(--vc-weight-bold, 700));
+}
+h3,
+h4,
+h5,
+h6 {
+  font-variation-settings:
+    "wght" var(--vc-weight-heading, 650),
+    "opsz" var(--vc-opsz-text, 16);
+  font-weight: var(--vc-weight-heading, var(--vc-weight-medium, 500));
+}
+.vc-type-label,
+.vc-type-overline {
+  font-variation-settings:
+    "wght" var(--vc-weight-label, 550),
+    "opsz" var(--vc-opsz-text, 16);
+  font-weight: var(--vc-weight-label, var(--vc-weight-medium, 500));
+}
+p,
+body,
+.vc-type-lead,
+.vc-type-body-lg,
+.vc-type-body-sm,
+small,
+.vc-type-caption {
+  font-variation-settings:
+    "wght" var(--vc-weight-body, 400),
+    "opsz" var(--vc-opsz-text, 16);
+  font-weight: var(--vc-weight-body, var(--vc-weight-regular, 400));
+}
+
+/* TY-10 — stylistic alternates. Optional, display-only, opt-in via the
+   .vc-type-alt class. On a font without `salt`/`ss*` features the
+   declaration is a no-op (the browser ignores unknown features), so it
+   is fail-soft by construction. */
+.vc-type-alt {
+  font-feature-settings: var(--vc-font-features, "salt" 1, "ss01" 1);
+}

@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>slide skill test fixture</title>
+<style>
+  /* The deck letterbox uses position:fixed inset:0 — we need a body that
+     fills the viewport so the fit math has a real container to measure.
+     The deck CSS is injected by amvcp-slide.js itself; this block only
+     handles page chrome and the standalone (test-harness) host. */
+  html, body {
+    margin: 0; padding: 0;
+    height: 100vh; min-height: 100vh;
+    background: var(--vc-color-canvas, #ffffff);
+    color: var(--vc-color-content, #1f1a14);
+    font: 16px/1.55 var(--vc-font-body, system-ui, sans-serif);
+    overflow-x: auto;            /* page-level — never inner */
+  }
+  /* The mount point — the slide module renders the .vsd-viewport into it
+     (or replaces its children). Letterbox bars are theme-aware via the
+     injected deck CSS. */
+  #deck-host { position: fixed; inset: 0; }
+</style>
+</head>
+<body>
+<div id="deck-host"></div>
+
+<!-- The DESIGN.md the engine themes the deck from. Both light + dark
+     palettes ship — every visual must be correct in both themes
+     (project memory: light_dark_themes). The slide CSS reads --vc-*
+     tokens via var(name, fallback), so a token-less DESIGN.md would
+     ALSO work; embedding one here exercises the engine -> tokens ->
+     slide-render integration end-to-end. -->
+<script type="text/design-md" id="ve-designmd">
+designmd_version: 1
+meta:
+  name: "Slide Fixture"
+  default_theme: light
+colors:
+  light:
+    canvas: "#faf6ee"
+    surface: "#ffffff"
+    surface-raised: "#fffdf8"
+    surface-sunken: "#f1ece0"
+    content: "#1f1a14"
+    content-muted: "#5b5343"
+    content-subtle: "#8a8170"
+    border: "#e3dcc9"
+    border-strong: "#c9bfa3"
+    accent: "#b8861f"
+    on-accent: "#ffffff"
+    success: "#3a6b5c"
+    warning: "#a8791f"
+    danger: "#a84a32"
+    info: "#3464a8"
+  dark:
+    canvas: "#1b1813"
+    surface: "#262119"
+    surface-raised: "#2f2920"
+    surface-sunken: "#15120d"
+    content: "#f3ecdd"
+    content-muted: "#b5ab93"
+    content-subtle: "#857c66"
+    border: "#3a3327"
+    border-strong: "#564c39"
+    accent: "#d8a83f"
+    on-accent: "#1b1813"
+    success: "#6db89c"
+    warning: "#d8a83f"
+    danger: "#d8765c"
+    info: "#6d9cd8"
+typography:
+  font-heading: "Playfair Display, Georgia, serif"
+  font-body: "Inter, system-ui, sans-serif"
+  font-mono: "JetBrains Mono, ui-monospace, monospace"
+  scale: [16, 20, 28, 40, 64, 96, 140]
+  weight-regular: 400
+  weight-medium: 500
+  weight-bold: 800
+  line-height: 1.3
+spacing:
+  scale: [4, 8, 12, 16, 24, 40, 64, 96, 160]
+radius:
+  none: 0
+  sm: 4
+  md: 10
+  lg: 20
+  xl: 32
+  full: 9999
+motion:
+  duration-fast: 160
+  duration-slow: 640
+  easing-standard: "cubic-bezier(0.16,1,0.3,1)"
+  easing-decel: "cubic-bezier(0,0,0,1)"
+</script>
+
+<!-- The deck JSON — six stage slides exercising a range of layouts and
+     block types. ASSERTION-EVIDENCE: every heading is a full declarative
+     sentence so the soft headline check passes by default. Slide #6 is a
+     deliberate weak-headline slide ("Q3 Results") so the test can assert
+     the soft warning fires WITHOUT throwing. -->
+<script type="application/json" id="vsd-deck">
+{
+  "kind": "deck",
+  "title": "Slide Fixture Deck",
+  "id": "slide-fixture-deck",
+  "aspect": "16:9",
+  "fit": "letterbox",
+  "mood": "editorial",
+  "transition": "crossfade",
+  "loop": false,
+  "slides": [
+    {
+      "layout": "manifesto",
+      "blocks": [
+        { "type": "eyebrow", "text": "Q3 2026 Engineering" },
+        { "type": "heading", "text": "Latency dropped 38% after the cache rewrite shipped." },
+        { "type": "text",    "text": "Every p99 path now clears 200ms — a margin we have not held since the platform launched." }
+      ]
+    },
+    {
+      "layout": "section-divider",
+      "numeral": "02",
+      "blocks": [
+        { "type": "eyebrow", "text": "Section Two" },
+        { "type": "heading", "text": "The architecture changes that made the win durable." }
+      ]
+    },
+    {
+      "layout": "metrics",
+      "blocks": [
+        { "type": "heading", "text": "Three numbers tell the whole quarter." },
+        { "type": "metric", "value": "38%",  "label": "p99 latency drop", "delta": "+12pts vs Q2" },
+        { "type": "metric", "value": "4.2k", "label": "requests/sec sustained" },
+        { "type": "metric", "value": "99.97%", "label": "availability" }
+      ]
+    },
+    {
+      "layout": "comparison",
+      "blocks": [
+        { "type": "heading", "text": "The cache rewrite simplified the hot path." },
+        { "type": "comparison",
+          "left":  { "title": "Before", "items": ["Per-request DB hit", "Manual TTL", "p99 = 410ms"] },
+          "right": { "title": "After",  "items": ["Single shared cache",  "Auto invalidation", "p99 = 254ms"] }
+        }
+      ]
+    },
+    {
+      "layout": "content",
+      "blocks": [
+        { "type": "heading", "text": "Three follow-ups carry into Q4 planning." },
+        { "type": "bullets", "items": [
+            { "text": "Roll the cache pattern to the search service" },
+            "Audit the long-tail endpoints we did not touch",
+            { "text": "Document the invalidation contract", "sub": "owner: platform team" }
+          ] },
+        { "type": "callout", "variant": "tip", "text": "Bring the proposal to the Q4 review on Oct 12." }
+      ]
+    },
+    {
+      "layout": "closing",
+      "blocks": [
+        { "type": "heading", "text": "Q3 Results" },
+        { "type": "text",    "text": "Questions and discussion." },
+        { "type": "quote",   "text": "Cache it once, serve it everywhere.", "cite": "Platform team motto" }
+      ]
+    }
+  ]
+}
+</script>
+
+<!-- Manual-init: the test controls engine -> tokens -> slide-render
+     ordering deterministically. Without this flag, amvcp-slide.js would
+     auto-boot on DOMContentLoaded and would try to mount on document.body
+     — we want the deck inside #deck-host. -->
+<script>window.__vsdManualInit = true;</script>
+<!-- Served via the tests/fixtures/amvcp-*.js symlinks -> ../../scripts/. -->
+<script src="amvcp-designmd.js"></script>
+<script src="amvcp-slide.js"></script>
+<script>
+// Fixture boot — apply the embedded DESIGN.md to :root, inject the deck
+// CSS, then render the embedded deck JSON into #deck-host and wire
+// navigation. Errors surface on window for the test to read.
+(function () {
+  function boot() {
+    try {
+      var raw = document.getElementById('ve-designmd').textContent;
+      var parsed = window.amvcpDesignMd.parseDesignMd('---\n' + raw + '\n---\n');
+      if (!parsed.ok) {
+        window.__vsdFixtureError = 'parse: ' + parsed.errors.join('; ');
+        return;
+      }
+      window.__vsdFixtureDesignMd = parsed.designmd;
+      var theme = parsed.designmd.meta.default_theme || 'light';
+      document.documentElement.setAttribute('data-ve-theme', theme);
+      var map = window.amvcpDesignMd.resolveTokens(parsed.designmd, theme);
+      window.amvcpDesignMd.applyTokens(map, document.documentElement);
+
+      // Engine tokens applied -> now the deck CSS + render + nav.
+      window.amvcpSlideDeck.injectSlideCSS(document);
+      var deckJson = document.getElementById('vsd-deck').textContent;
+      var host = document.getElementById('deck-host');
+      var viewport = window.amvcpSlideDeck.renderDeck(deckJson, host);
+      var deck = window.amvcpSlideDeck.createDeck(viewport);
+      // Stash the live deck so the test can drive go()/next()/prev().
+      window.__vsdFixtureDeck = deck;
+      window.__vsdFixtureViewport = viewport;
+      window.__vsdFixtureReady = true;
+    } catch (e) {
+      window.__vsdFixtureError = String(e && e.message || e);
+    }
+  }
+  // Re-resolve + re-apply for a theme toggle (the dark/light test uses this).
+  window.__vsdApplyTheme = function (theme) {
+    var dm = window.__vsdFixtureDesignMd;
+    if (!dm) { return false; }
+    document.documentElement.setAttribute('data-ve-theme', theme);
+    var map = window.amvcpDesignMd.resolveTokens(dm, theme);
+    window.amvcpDesignMd.applyTokens(map, document.documentElement);
+    return true;
+  };
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot);
+  } else {
+    boot();
+  }
+})();
+</script>
+</body>
+</html>

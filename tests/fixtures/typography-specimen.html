@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en" data-ve-type-scale="perfect-fourth">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Typography specimen — amvcp-typography test fixture</title>
+
+<!-- The DESIGN.md token block. The boot script below parses this,
+     resolves the active theme, and applies the --vc-* tokens. It
+     includes the OPTIONAL typography keys (scale-hero, the four
+     semantic weights, font-features) — but since the standalone
+     amvcp-designmd.js in this fixture does not yet allow-list them,
+     the boot script strips them out of the YAML it feeds the parser
+     and re-applies them as plain --vc-* custom properties afterwards.
+     This mirrors exactly how the typography CSS layer consumes those
+     tokens: via var(--vc-…, fallback). -->
+<script type="text/design-md" id="ve-designmd">
+---
+designmd_version: 1
+meta:
+  name: "Typography Specimen"
+  default_theme: light
+colors:
+  light:
+    canvas: "#ffffff"
+    surface: "#f7f7f8"
+    surface-raised: "#fefefe"
+    surface-sunken: "#eeeef0"
+    content: "#16181d"
+    content-muted: "#5b606b"
+    content-subtle: "#9098a3"
+    border: "#e1e3e8"
+    border-strong: "#c4c8d0"
+    accent: "#3a6df0"
+    on-accent: "#ffffff"
+    success: "#2e8b57"
+    warning: "#b8860b"
+    danger: "#b22222"
+    info: "#4682b4"
+  dark:
+    canvas: "#15171c"
+    surface: "#1d2027"
+    surface-raised: "#252932"
+    surface-sunken: "#101216"
+    content: "#eef0f4"
+    content-muted: "#a3aab6"
+    content-subtle: "#6d7480"
+    border: "#2c313b"
+    border-strong: "#3c424e"
+    accent: "#6f9bff"
+    on-accent: "#0b0d11"
+    success: "#5fbf8c"
+    warning: "#d8a93b"
+    danger: "#e07a6a"
+    info: "#76a9d8"
+typography:
+  font-heading: "Space Grotesk, Georgia, serif"
+  font-body: "IBM Plex Sans, system-ui, sans-serif"
+  font-mono: "JetBrains Mono, ui-monospace, monospace"
+  scale: [11, 12, 16, 21, 28, 38, 51]
+  weight-regular: 400
+  weight-medium: 500
+  weight-bold: 700
+  line-height: 1.55
+spacing:
+  scale: [4, 8, 12, 16, 24, 32, 48, 64]
+radius:
+  none: 0
+  sm: 4
+  md: 8
+  lg: 12
+  xl: 16
+  full: 9999
+---
+
+# Typography Specimen
+
+Living specimen of the amvcp typography token system.
+</script>
+
+<style>
+/* ── Page chrome — uses only --vc-color-* (themed) tokens. ──────────── */
+html, body { overflow-x: auto; }
+body {
+  margin: 0;
+  padding: 32px;
+  background: var(--vc-color-canvas, #ffffff);
+  color: var(--vc-color-content, #16181d);
+}
+main { max-width: 86ch; margin: 0 auto; }
+.vc-spec-row {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--vc-color-border, #e1e3e8);
+}
+.vc-spec-meta {
+  font-size: 12px;
+  color: var(--vc-color-content-subtle, #9098a3);
+  font-family: var(--vc-font-mono, ui-monospace, monospace);
+}
+.vc-spec-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: var(--vc-color-surface-sunken, #eeeef0);
+  color: var(--vc-color-content-muted, #5b606b);
+  font-family: var(--vc-font-mono, ui-monospace, monospace);
+  font-size: 12px;
+}
+.vc-weight-ladder span { display: block; padding: 4px 0; }
+
+/* ════════════════════════════════════════════════════════════════════
+   amvcp-typography.css — embedded inline (the skill's default delivery
+   mode). Kept byte-identical to skills/amvcp-typography/scripts/
+   amvcp-typography.css; the test asserts neither copy sets `color`.
+   ════════════════════════════════════════════════════════════════════ */
+
+:root {
+  --vc-opsz-display: 72;
+  --vc-opsz-text:    16;
+}
+
+:root[data-ve-type-scale] {
+  --vc-text-0: clamp(11px, 0.70rem + 0.20vw, var(--vc-text-0-max, 12px));
+  --vc-text-1: clamp(12px, 0.78rem + 0.30vw, var(--vc-text-1-max, 14px));
+  --vc-text-2: clamp(14px, 0.88rem + 0.40vw, var(--vc-text-2-max, 16px));
+  --vc-text-3: clamp(16px, 0.95rem + 0.90vw, var(--vc-text-3-max, 20px));
+  --vc-text-4: clamp(20px, 1.05rem + 1.70vw, var(--vc-text-4-max, 24px));
+  --vc-text-5: clamp(24px, 1.20rem + 3.00vw, var(--vc-text-5-max, 32px));
+  --vc-text-6: clamp(32px, 1.40rem + 5.00vw, var(--vc-text-6-max, 48px));
+  --vc-text-hero: clamp(48px, 2.00rem + 7.20vw, 96px);
+}
+
+@media (max-height: 700px) {
+  :root[data-ve-type-scale] {
+    --vc-text-hero: clamp(32px, 1.40rem + 5.00vw, 56px);
+  }
+}
+@media (max-height: 500px) {
+  :root[data-ve-type-scale] {
+    --vc-text-hero: clamp(24px, 1.00rem + 4.00vw, 40px);
+  }
+}
+
+h1 {
+  font-size: var(--vc-text-6);
+  font-weight: var(--vc-weight-bold, 700);
+  font-family: var(--vc-font-heading, inherit);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+h2 {
+  font-size: var(--vc-text-5);
+  font-weight: var(--vc-weight-bold, 700);
+  font-family: var(--vc-font-heading, inherit);
+  line-height: 1.20;
+  letter-spacing: -0.01em;
+}
+h3 {
+  font-size: var(--vc-text-4);
+  font-weight: var(--vc-weight-bold, 700);
+  font-family: var(--vc-font-heading, inherit);
+  line-height: 1.30;
+}
+h4 {
+  font-size: var(--vc-text-3);
+  font-weight: var(--vc-weight-heading, var(--vc-weight-medium, 500));
+  font-family: var(--vc-font-heading, inherit);
+  line-height: 1.35;
+}
+h5 {
+  font-size: var(--vc-text-2);
+  font-weight: var(--vc-weight-heading, var(--vc-weight-medium, 500));
+  font-family: var(--vc-font-heading, inherit);
+  line-height: 1.40;
+}
+h6 {
+  font-size: var(--vc-text-1);
+  font-weight: var(--vc-weight-heading, var(--vc-weight-medium, 500));
+  font-family: var(--vc-font-heading, inherit);
+  line-height: 1.40;
+}
+p {
+  font-size: var(--vc-text-2);
+  font-weight: var(--vc-weight-body, var(--vc-weight-regular, 400));
+  font-family: var(--vc-font-body, inherit);
+  line-height: var(--vc-line-height, 1.55);
+}
+small,
+.vc-type-caption {
+  font-size: var(--vc-text-0);
+  font-weight: var(--vc-weight-body, var(--vc-weight-regular, 400));
+  font-family: var(--vc-font-body, inherit);
+  line-height: 1.40;
+}
+
+.vc-type-hero {
+  font-size: var(--vc-text-hero);
+  font-weight: var(--vc-weight-display, var(--vc-weight-bold, 700));
+  font-family: var(--vc-font-heading, inherit);
+  line-height: 1.05;
+  letter-spacing: -0.04em;
+}
+.vc-type-lead {
+  font-size: var(--vc-text-3);
+  font-weight: var(--vc-weight-body, var(--vc-weight-regular, 400));
+  font-family: var(--vc-font-body, inherit);
+  line-height: 1.60;
+}
+.vc-type-body-lg {
+  font-size: var(--vc-text-3);
+  font-weight: var(--vc-weight-body, var(--vc-weight-regular, 400));
+  font-family: var(--vc-font-body, inherit);
+  line-height: 1.60;
+}
+.vc-type-body-sm {
+  font-size: var(--vc-text-1);
+  font-weight: var(--vc-weight-body, var(--vc-weight-regular, 400));
+  font-family: var(--vc-font-body, inherit);
+  line-height: 1.50;
+}
+.vc-type-label,
+.vc-type-overline {
+  font-size: var(--vc-text-0);
+  font-weight: var(--vc-weight-label, var(--vc-weight-medium, 500));
+  font-family: var(--vc-font-body, inherit);
+  line-height: 1.40;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.vc-type-hero,
+h1,
+h2 {
+  font-variation-settings:
+    "wght" var(--vc-weight-display, 480),
+    "opsz" var(--vc-opsz-display, 72);
+  font-weight: var(--vc-weight-display, var(--vc-weight-bold, 700));
+}
+h3,
+h4,
+h5,
+h6 {
+  font-variation-settings:
+    "wght" var(--vc-weight-heading, 650),
+    "opsz" var(--vc-opsz-text, 16);
+  font-weight: var(--vc-weight-heading, var(--vc-weight-medium, 500));
+}
+.vc-type-label,
+.vc-type-overline {
+  font-variation-settings:
+    "wght" var(--vc-weight-label, 550),
+    "opsz" var(--vc-opsz-text, 16);
+  font-weight: var(--vc-weight-label, var(--vc-weight-medium, 500));
+}
+p,
+body,
+.vc-type-lead,
+.vc-type-body-lg,
+.vc-type-body-sm,
+small,
+.vc-type-caption {
+  font-variation-settings:
+    "wght" var(--vc-weight-body, 400),
+    "opsz" var(--vc-opsz-text, 16);
+  font-weight: var(--vc-weight-body, var(--vc-weight-regular, 400));
+}
+.vc-type-alt {
+  font-feature-settings: var(--vc-font-features, "salt" 1, "ss01" 1);
+}
+</style>
+</head>
+<body>
+<main>
+  <!-- The full semantic-role specimen — one of every role in the
+       hierarchy contract (semantic-hierarchy.md §B.1). -->
+  <div class="vc-spec-row">
+    <div class="vc-type-hero" id="spec-hero">Hero display</div>
+    <span class="vc-spec-meta">.vc-type-hero · --vc-text-hero</span>
+  </div>
+  <div class="vc-spec-row">
+    <h1 id="spec-h1">Section Heading H1</h1>
+    <span class="vc-spec-meta">&lt;h1&gt; · --vc-text-6</span>
+  </div>
+  <div class="vc-spec-row">
+    <h2 id="spec-h2">Subsection Heading H2</h2>
+    <span class="vc-spec-meta">&lt;h2&gt; · --vc-text-5</span>
+  </div>
+  <div class="vc-spec-row">
+    <h3 id="spec-h3">Heading H3</h3>
+    <span class="vc-spec-meta">&lt;h3&gt; · --vc-text-4</span>
+  </div>
+  <div class="vc-spec-row">
+    <h4 id="spec-h4">Heading H4</h4>
+    <span class="vc-spec-meta">&lt;h4&gt; · --vc-text-3</span>
+  </div>
+  <div class="vc-spec-row">
+    <p class="vc-type-lead" id="spec-lead">
+      Lead paragraph — body large, looser leading.</p>
+    <span class="vc-spec-meta">.vc-type-lead · --vc-text-3</span>
+  </div>
+  <div class="vc-spec-row">
+    <p id="spec-body">Body copy. The quick brown fox jumps over the lazy
+      dog. This paragraph wraps naturally and extends the page rather
+      than introducing an inner scrollbar.</p>
+    <span class="vc-spec-meta">&lt;p&gt; · --vc-text-2</span>
+  </div>
+  <div class="vc-spec-row">
+    <p class="vc-type-body-sm" id="spec-body-sm">
+      Body small — secondary copy.</p>
+    <span class="vc-spec-meta">.vc-type-body-sm · --vc-text-1</span>
+  </div>
+  <div class="vc-spec-row">
+    <small id="spec-caption">Caption — fine print.</small>
+    <span class="vc-spec-meta">&lt;small&gt; · --vc-text-0</span>
+  </div>
+  <div class="vc-spec-row">
+    <span class="vc-type-label" id="spec-label">Badge label</span>
+    <span class="vc-spec-meta">.vc-type-label · --vc-text-0</span>
+  </div>
+
+  <!-- Weight ladder — the five semantic weights. -->
+  <div class="vc-spec-row vc-weight-ladder">
+    <span style="font-weight: var(--vc-weight-display, 480)">Display weight</span>
+    <span style="font-weight: var(--vc-weight-heading, 650)">Heading weight</span>
+    <span style="font-weight: var(--vc-weight-ui, 510)">UI weight</span>
+    <span style="font-weight: var(--vc-weight-label, 550)">Label weight</span>
+    <span style="font-weight: var(--vc-weight-body, 400)">Body weight</span>
+  </div>
+
+  <!-- Variable-font status badge — stamped by the typography JS. -->
+  <div class="vc-spec-row">
+    <span class="vc-spec-badge" id="spec-vfont-badge">variable-font: …</span>
+  </div>
+</main>
+
+<!-- Engine first, then the typography helper module. Both are plain
+     browser globals; no full runtime is loaded — this fixture is
+     self-contained per the parallel-safety rules. -->
+<script src="amvcp-designmd.js"></script>
+<script src="amvcp-typography.js"></script>
+<script>
+/* Fixture boot. The standalone amvcp-designmd.js engine is a pure API —
+   it does not auto-apply — so this fixture wires its own boot:
+     1. read the embedded <script type="text/design-md"> YAML;
+     2. the engine schema does not yet allow-list the optional
+        typography keys, so strip them from the YAML before parsing and
+        capture their values;
+     3. parse + resolve + apply the core token set via the engine;
+     4. apply the stripped optional typography tokens as plain --vc-*
+        custom properties (exactly how the CSS layer consumes them);
+     5. stamp the variable-font detection badge.
+   Exposes window.__veTypo for the dev-browser test harness. */
+(function () {
+  'use strict';
+  var engine = window.amvcpDesignMd;
+  var typo = window.amvcpTypography;
+
+  // The optional typography tokens the specimen wants. Kept here (not in
+  // the YAML) because the standalone engine's typography group does not
+  // allow-list them yet — the integration pass adds them to the schema.
+  // NOTE: --vc-text-hero deliberately omitted — the CSS layer above
+  // already defines a fluid clamp() (and a max-height breakpoint variant)
+  // for it; setting an inline `64px` here would freeze hero across every
+  // viewport and break the responsive clamp + height-breakpoint tests.
+  var OPTIONAL_TYPO_VARS = {
+    '--vc-weight-display': '480',
+    '--vc-weight-heading': '650',
+    '--vc-weight-ui': '510',
+    '--vc-weight-label': '550',
+    '--vc-font-features': '"salt" 1, "ss01" 1'
+  };
+
+  function applyOptionalTypoVars(root, scaleMap) {
+    var k;
+    for (k in OPTIONAL_TYPO_VARS) {
+      if (Object.prototype.hasOwnProperty.call(OPTIONAL_TYPO_VARS, k)) {
+        root.style.setProperty(k, OPTIONAL_TYPO_VARS[k]);
+      }
+    }
+    // Mirror the resolved --vc-text-<i> into --vc-text-<i>-max so the
+    // CSS clamp() upper bounds equal the DESIGN.md anchors.
+    var key;
+    for (key in scaleMap) {
+      if (Object.prototype.hasOwnProperty.call(scaleMap, key) &&
+          /^--vc-text-\d+$/.test(key)) {
+        root.style.setProperty(key + '-max', scaleMap[key]);
+      }
+    }
+  }
+
+  function boot() {
+    var root = document.documentElement;
+    var block = document.getElementById('ve-designmd');
+    // An embedded <script> block's textContent begins with the newline
+    // that follows the opening tag — strip leading blank lines so the
+    // `---` fence lands on line 1, which the engine requires.
+    var text = block ? block.textContent.replace(/^\s*\n/, '') : '';
+    var parsed = engine.parseDesignMd(text);
+    if (!parsed.ok) {
+      window.__veTypo = { ready: false, errors: parsed.errors };
+      return;
+    }
+    var theme = parsed.designmd.meta.default_theme;
+    var resolved = engine.resolveTokens(parsed.designmd, theme);
+    engine.applyTokens(resolved, root);
+    applyOptionalTypoVars(root, resolved);
+    root.setAttribute('data-ve-theme', theme);
+
+    // Variable-font detection badge.
+    var supported = typo.markVariableFontSupport(root);
+    var badge = document.getElementById('spec-vfont-badge');
+    if (badge) {
+      badge.textContent = 'variable-font: ' + (supported ? 'yes' : 'no');
+    }
+
+    // Expose the test hook — the dev-browser suite drives the engine
+    // round-trip and theme swaps through this.
+    window.__veTypo = {
+      ready: true,
+      engine: engine,
+      typo: typo,
+      designmd: parsed.designmd,
+      theme: theme,
+      // Re-apply a (possibly mutated) designmd through the engine, then
+      // re-mirror the scale-max vars. Used by the scale-switch test.
+      reapply: function (dmd, th) {
+        var r = engine.resolveTokens(dmd, th || theme);
+        engine.applyTokens(r, root);
+        applyOptionalTypoVars(root, r);
+        return r;
+      },
+      // Hot-swap a fresh DESIGN.md text — proves the live-restyle
+      // contract holds for typography tokens.
+      hotSwap: function (designmdText, th) {
+        var p = engine.parseDesignMd(designmdText);
+        if (!p.ok) { return { ok: false, errors: p.errors }; }
+        var useTheme = th || p.designmd.meta.default_theme;
+        var r = engine.resolveTokens(p.designmd, useTheme);
+        engine.applyTokens(r, root);
+        applyOptionalTypoVars(root, r);
+        window.__veTypo.designmd = p.designmd;
+        window.__veTypo.theme = useTheme;
+        return { ok: true };
+      }
+    };
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot);
+  } else {
+    boot();
+  }
+})();
+</script>
+</body>
+</html>

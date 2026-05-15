@@ -61,6 +61,22 @@ def sync_runtime_into_fixtures() -> None:
         "amvcp-designmd.js",
         "amvcp-regex.umd.js",
         "amvcp-regex.css",
+        # design-tokens (Phase 2 Build #1) bundles — the token-sheet
+        # fixture loads them as co-located <script>/<link> URLs, so they
+        # must sit beside the HTML the same way the runtime does.
+        "amvcp-tokens.js",
+        "amvcp-token-sheet.js",
+        "amvcp-tokens.css",
+        # Phase 2 modules whose fixtures use bare-name <script src="…">
+        # but whose fixtures/ entries are NON-SYMLINK copies committed
+        # before the symlink convention was established. Without this
+        # sync, edits to scripts/amvcp-{tables,interactive,layout}.js
+        # silently fail to reach the test page.
+        "amvcp-tables.js",
+        "amvcp-interactive.js",
+        "amvcp-interactive.css",
+        "amvcp-layout.js",
+        "amvcp-layout.css",
     ):
         s = src / name
         d = FIXTURES / name

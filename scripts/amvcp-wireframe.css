@@ -1,0 +1,871 @@
+/*!
+ * ai-maestro-visual-communicator-plugin — wireframe skill stylesheet.
+ *
+ * Phase 2 (visualizing backlog §11, TRDD-352ef46a). The bulk of the
+ * wireframe skill is CSS: the ~19-class semantic grayscale kit, the 4
+ * layout archetypes, the 4 device-frame bezels, and the fidelity ramp.
+ *
+ * Contract (wireframe-spec.md):
+ *   - ZERO hardcoded colors. Every color is var(--vc-color-*, <hex>);
+ *     the comma-fallback is graceful degradation of appearance only
+ *     (a standalone fixture with no DESIGN.md engine still renders a
+ *     legible grayscale wireframe). The ONE sanctioned non-token value
+ *     is the device-frame dark bezel gradient — device hardware is
+ *     dark in every theme; see the `wf-frame` section, deliberately
+ *     audited.
+ *   - ZERO hardcoded sizes in rule bodies. Geometry is --wf-* custom
+ *     properties whose defaults live in ONE :root block, themselves
+ *     calc()'d off --vc-space-*.
+ *   - Fidelity-lock. Every kit class is written as a child of a
+ *     [data-wf-fidelity="..."] attribute selector — fidelity is
+ *     enforced structurally, not by author discipline. At
+ *     data-wf-fidelity="wireframe": radius forced to 0, shadow
+ *     suppressed, color comes through the JS desaturation layer.
+ *   - No nested scrollbars. Frame content / ramp row / app sidebar
+ *     all overflow:visible — wide/tall content extends the page.
+ *   - Light + dark. Colors are --vc-color-* tokens; a theme flip
+ *     restyles every wireframe live. Device-statusbar glyph color
+ *     keys off [data-ve-theme].
+ *
+ * Companion: amvcp-wireframe.js (the fidelity engine + slider).
+ */
+
+/* ── geometry defaults — the ONLY place sizes are spelled out ─────────
+ *
+ * Every --wf-* size below is calc()'d off the DESIGN.md --vc-space-*
+ * scale so a denser spacing scale yields a denser wireframe. The raw
+ * px in each calc() is the engine-absent fallback for --vc-space-N.
+ * Rule bodies further down NEVER hardcode a px — they all read a
+ * --wf-* property. */
+:root {
+  /* app-chrome chrome dimensions */
+  --wf-titlebar-h:  calc(var(--vc-space-5, 32px) * 1.0);   /* ~32px */
+  --wf-statusbar-h: calc(var(--vc-space-4, 24px) * 1.0);   /* ~24px */
+  --wf-sidebar-w:   calc(var(--vc-space-6, 48px) * 5);     /* ~240px */
+  /* web archetype readable measure */
+  --wf-measure:     72ch;
+  /* mobile archetype column width */
+  --wf-mobile-w:    390px;
+  /* kit-block geometry */
+  --wf-block-pad:   var(--vc-space-3, 16px);
+  --wf-block-gap:   var(--vc-space-2, 12px);
+  --wf-bar-h:       calc(var(--vc-text-1, 14px) * 0.62);
+  --wf-avatar-d:    calc(var(--vc-space-5, 32px) * 1.25);  /* ~40px */
+  --wf-dot-d:       12px;   /* traffic-light / punch-hole dot diameter */
+  /* device-frame geometry presets — set per wf-frame--* below */
+  --wf-frame-w:      393px;
+  --wf-frame-h:      852px;
+  --wf-frame-radius: 47px;
+  --wf-frame-border: 12px;
+}
+
+/* ── no-nested-scrollbars guard ───────────────────────────────────────
+ *
+ * Mirrors the runtime's own guard block. Every wireframe container is
+ * normal document flow — a tall sidebar / long screen / wide ramp
+ * makes the PAGE tall or wide, never an inner scroll box. */
+.wf-root, .wf-screen, .wf-frame, .wf-frame__content,
+.wf-archetype, .wf-archetype--app, .wf-archetype--web,
+.wf-archetype--mobile, .wf-archetype--modal,
+.wf-ramp, .wf-ramp__stage, .wf-fidelity-control,
+[data-wf-fidelity] {
+  overflow: visible;
+  max-height: none;
+}
+
+/* ── wireframe root + screens ─────────────────────────────────────────
+ *
+ * .wf-root hosts one or more .wf-screen blocks. The grayscale
+ * fidelity-lock works because amvcp-wireframe.js publishes a
+ * desaturated --vc-color-* set onto [data-wf-root]; every rule below
+ * reads those (now-grey at wireframe fidelity) tokens. */
+.wf-root {
+  font-family: var(--vc-font-body, system-ui, sans-serif);
+  color: var(--vc-color-content, #1f1a14);
+  /* native smooth fragment scroll for data-wf-nav="scroll" */
+  scroll-behavior: smooth;
+}
+
+.wf-screen {
+  background: var(--vc-color-canvas, #faf6ee);
+  padding: var(--wf-block-pad);
+  /* scroll-margin so an anchored screen is not hidden under any
+     fixed header when jumped to via #fragment */
+  scroll-margin-top: var(--vc-space-4, 24px);
+}
+/* a screen separator in the default stacked (scroll) nav mode */
+.wf-root[data-wf-nav="scroll"] > .wf-screen + .wf-screen {
+  border-top: 2px dashed var(--vc-color-border, #e3dcc9);
+}
+
+/* ── multi-screen anchor navigation (spec §5.2) ───────────────────────
+ *
+ * Two modes, both ZERO JS:
+ *   scroll (default) — every screen stacked; <a href="#id"> does a
+ *                      native smooth fragment scroll.
+ *   paged            — pure CSS :target; only the :target screen is
+ *                      shown. Screen 1 shows when no fragment is set.
+ */
+.wf-root[data-wf-nav="paged"] > .wf-screen {
+  display: none;
+}
+.wf-root[data-wf-nav="paged"] > .wf-screen:target {
+  display: block;
+}
+/* No fragment set -> show the first screen. The :target-within trick:
+   when NO descendant is targeted, :has() is false and the first
+   screen is revealed. Browsers without :has() fall back to showing
+   nothing until a link is clicked — still JS-off-safe, just needs one
+   click to start; the :has() path is the progressive enhancement. */
+.wf-root[data-wf-nav="paged"]:not(:has(> .wf-screen:target))
+  > .wf-screen:first-of-type {
+  display: block;
+}
+
+/* ════════════════════════════════════════════════════════════════════
+ * THE 19-CLASS SEMANTIC KIT  (spec §5.1)
+ * Each block is a labelled grey placeholder. Geometry is shared; the
+ * [data-wf-fidelity] attribute selectors below it drive the per-stage
+ * color/radius/shadow treatment (the fidelity-lock).
+ * ════════════════════════════════════════════════════════════════════ */
+
+/* shared block skin — surface + 1px border, themed off --vc-* */
+.wf-card, .wf-input, .wf-modal, .wf-toast, .wf-chip,
+.wf-table, .wf-header, .wf-titlebar, .wf-statusbar,
+.wf-nav, .wf-sidebar, .wf-button {
+  background: var(--vc-color-surface, #ffffff);
+  border: 1px solid var(--vc-color-border, #e3dcc9);
+  box-sizing: border-box;
+}
+
+/* 1 — wf-header : top page band */
+.wf-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--wf-block-gap);
+  padding: var(--wf-block-pad);
+}
+
+/* 2 — wf-titlebar : OS window title bar (app archetype) */
+.wf-titlebar {
+  display: flex;
+  align-items: center;
+  gap: var(--wf-block-gap);
+  height: var(--wf-titlebar-h);
+  padding-inline: var(--vc-space-2, 12px);
+  background: var(--vc-color-surface-sunken, #f1ece0);
+}
+
+/* wf-traffic-lights : three dots inside a titlebar / browser chrome.
+   Grey at wireframe fidelity (no color leak); red/amber/green at mid+. */
+.wf-traffic-lights {
+  display: inline-flex;
+  gap: var(--vc-space-1, 8px);
+}
+.wf-traffic-lights > span {
+  width: var(--wf-dot-d);
+  height: var(--wf-dot-d);
+  border-radius: 50%;
+  background: var(--vc-color-border-strong, #c9bfa3);
+  display: inline-block;
+}
+
+/* 3 — wf-nav : horizontal nav row */
+.wf-nav {
+  display: flex;
+  align-items: center;
+  gap: var(--vc-space-3, 16px);
+  padding: var(--vc-space-2, 12px) var(--wf-block-pad);
+}
+/* 4 — wf-sidebar : vertical nav column */
+.wf-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--vc-space-1, 8px);
+  padding: var(--wf-block-pad);
+  background: var(--vc-color-surface-sunken, #f1ece0);
+}
+/* wf-nav-item : a single nav entry — short text-bar */
+.wf-nav-item {
+  display: block;
+  min-height: var(--vc-text-1, 14px);
+  padding: var(--vc-space-1, 8px) var(--vc-space-2, 12px);
+  color: var(--vc-color-content-muted, #5b5343);
+  text-decoration: none;
+  font-size: var(--vc-text-1, 14px);
+}
+.wf-nav-item[aria-current], .wf-nav-item.is-active {
+  color: var(--vc-color-content, #1f1a14);
+  font-weight: 600;
+}
+
+/* 5 — wf-main : primary content region */
+.wf-main {
+  padding: var(--wf-block-pad);
+  display: flex;
+  flex-direction: column;
+  gap: var(--vc-space-4, 24px);
+}
+
+/* 6 — wf-statusbar : bottom status strip */
+.wf-statusbar {
+  display: flex;
+  align-items: center;
+  gap: var(--wf-block-gap);
+  height: var(--wf-statusbar-h);
+  padding-inline: var(--vc-space-2, 12px);
+  background: var(--vc-color-surface-sunken, #f1ece0);
+  color: var(--vc-color-content-subtle, #8a8170);
+  font-size: var(--vc-text-0, 12px);
+}
+
+/* 7 — wf-card : content card */
+.wf-card {
+  padding: var(--wf-block-pad);
+  display: flex;
+  flex-direction: column;
+  gap: var(--wf-block-gap);
+}
+.wf-card__title {
+  font-weight: 600;
+  color: var(--vc-color-content, #1f1a14);
+}
+.wf-card__actions {
+  display: flex;
+  gap: var(--vc-space-2, 12px);
+  margin-top: var(--vc-space-1, 8px);
+}
+
+/* 8 — wf-button : button placeholder */
+.wf-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--vc-space-2, 12px) var(--vc-space-4, 24px);
+  font: inherit;
+  font-size: var(--vc-text-1, 14px);
+  color: var(--vc-color-content, #1f1a14);
+  cursor: pointer;
+  text-decoration: none;
+}
+.wf-button--ghost {
+  background: transparent;
+}
+
+/* 9 — wf-input : text input well */
+.wf-input {
+  display: block;
+  width: 100%;
+  min-height: calc(var(--vc-space-6, 48px) * 0.85);
+  padding: var(--vc-space-2, 12px);
+  background: var(--vc-color-surface-sunken, #f1ece0);
+  color: var(--vc-color-content-subtle, #8a8170);
+  font: inherit;
+  font-size: var(--vc-text-1, 14px);
+}
+
+/* 10 — wf-label : field / section label */
+.wf-label {
+  display: block;
+  font-size: var(--vc-text-0, 12px);
+  color: var(--vc-color-content-muted, #5b5343);
+  margin-bottom: var(--vc-space-1, 8px);
+}
+
+/* 11 — wf-text : N stacked placeholder bars.
+   The bar count is --wf-lines (mirrored from data-wf-lines by the JS).
+   A repeating-linear-gradient draws --wf-lines bars; the last bar is
+   shortened to 60% via a final ::after — the classic ragged-last-line
+   wireframe convention. With JS off, --wf-lines is unset and the
+   var() fallback (3) keeps a sensible placeholder block. */
+.wf-text {
+  --wf-line-h: var(--wf-bar-h);
+  --wf-line-gap: var(--vc-space-1, 8px);
+  display: block;
+  min-height: calc(
+    (var(--wf-line-h) + var(--wf-line-gap)) * var(--wf-lines, 3)
+  );
+  background-image: repeating-linear-gradient(
+    to bottom,
+    var(--vc-color-content-subtle, #8a8170) 0,
+    var(--vc-color-content-subtle, #8a8170) var(--wf-line-h),
+    transparent var(--wf-line-h),
+    transparent calc(var(--wf-line-h) + var(--wf-line-gap))
+  );
+  background-repeat: no-repeat;
+  background-size: 100% calc(
+    (var(--wf-line-h) + var(--wf-line-gap)) * var(--wf-lines, 3)
+  );
+  /* the rendered text itself is transparent — wf-text is a visual
+     placeholder; any literal text content is for the accessibility
+     tree / authoring readability, not for display */
+  color: transparent;
+}
+/* ragged last line — a 60%-width bar at the bottom of the stack */
+.wf-text::after {
+  content: "";
+  display: block;
+  height: var(--wf-line-h);
+  width: 60%;
+  background: var(--vc-color-content-subtle, #8a8170);
+  margin-top: calc(
+    (var(--wf-line-h) + var(--wf-line-gap)) * var(--wf-lines, 3)
+  );
+}
+/* a one-line wf-text (card title placeholder) — no ragged tail */
+.wf-text[data-wf-lines="1"]::after { display: none; }
+
+/* 12 — wf-image : image placeholder with the universal diagonal X */
+.wf-image {
+  display: block;
+  min-height: calc(var(--vc-space-7, 64px) * 2);
+  background-color: var(--vc-color-surface-sunken, #f1ece0);
+  border: 1px solid var(--vc-color-border, #e3dcc9);
+  background-image:
+    linear-gradient(135deg,
+      transparent calc(50% - 1px),
+      var(--vc-color-border, #e3dcc9) 50%,
+      transparent calc(50% + 1px)),
+    linear-gradient(45deg,
+      transparent calc(50% - 1px),
+      var(--vc-color-border, #e3dcc9) 50%,
+      transparent calc(50% + 1px));
+}
+
+/* 13 — wf-table : header row + body rows */
+.wf-table {
+  display: flex;
+  flex-direction: column;
+}
+.wf-table-row {
+  display: flex;
+  gap: var(--vc-space-3, 16px);
+  padding: var(--vc-space-2, 12px) var(--wf-block-pad);
+  border-bottom: 1px solid var(--vc-color-border, #e3dcc9);
+}
+.wf-table-row:last-child { border-bottom: 0; }
+.wf-table-row--head {
+  background: var(--vc-color-surface-sunken, #f1ece0);
+  font-weight: 600;
+  color: var(--vc-color-content, #1f1a14);
+}
+/* each cell is a short bar */
+.wf-table-row > * {
+  flex: 1;
+  min-height: var(--wf-bar-h);
+}
+
+/* 14 — wf-modal : centered dialog */
+.wf-modal {
+  position: relative;
+  z-index: 2;
+  width: min(440px, 90vw);
+  margin-inline: auto;
+  padding: var(--vc-space-4, 24px);
+  background: var(--vc-color-surface-raised, #fffdf8);
+  display: flex;
+  flex-direction: column;
+  gap: var(--wf-block-gap);
+}
+.wf-modal__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--vc-space-2, 12px);
+  margin-top: var(--vc-space-1, 8px);
+}
+
+/* 15 — wf-overlay : scrim behind a modal */
+.wf-overlay {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-block: var(--vc-space-6, 48px);
+  z-index: 1;
+  /* color-mix keeps the scrim themed off --vc-color-content; a
+     plain rgba would be a hardcoded color, which is forbidden */
+  background: color-mix(in srgb,
+    var(--vc-color-content, #1f1a14) 45%, transparent);
+}
+
+/* 16 — wf-toast : transient notification chip */
+.wf-toast {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--vc-space-2, 12px);
+  padding: var(--vc-space-2, 12px) var(--vc-space-3, 16px);
+  background: var(--vc-color-surface-raised, #fffdf8);
+  font-size: var(--vc-text-1, 14px);
+  color: var(--vc-color-content, #1f1a14);
+}
+
+/* 17 — wf-chip : tag / pill / badge */
+.wf-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: calc(var(--vc-space-1, 8px) * 0.5) var(--vc-space-2, 12px);
+  font-size: var(--vc-text-0, 12px);
+  color: var(--vc-color-content-muted, #5b5343);
+}
+
+/* 18 — wf-avatar : circular user placeholder.
+   Round at EVERY fidelity (avatars are round) — the wireframe-fidelity
+   radius-0 rule deliberately does NOT override this. */
+.wf-avatar {
+  width: var(--wf-avatar-d);
+  height: var(--wf-avatar-d);
+  border-radius: 50%;
+  background: var(--vc-color-border-strong, #c9bfa3);
+  border: 1px solid var(--vc-color-border, #e3dcc9);
+  display: inline-block;
+  flex: none;
+}
+
+/* 19 — wf-divider : horizontal rule */
+.wf-divider {
+  height: 0;
+  border: 0;
+  border-top: 1px solid var(--vc-color-border, #e3dcc9);
+  margin-block: var(--vc-space-3, 16px);
+}
+
+/* ════════════════════════════════════════════════════════════════════
+ * THE FIDELITY-LOCK  (spec §5.0)
+ * Every kit class is restated below as a child of a
+ * [data-wf-fidelity="..."] selector. A .wf-button inside a
+ * data-wf-fidelity="wireframe" subtree CANNOT show brand color —
+ * the matching rule paints none. An absent attribute defaults to
+ * `wireframe` via the :not([data-wf-fidelity]) group.
+ * ════════════════════════════════════════════════════════════════════ */
+
+/* --- fidelity = wireframe (and the no-attribute default) ----------- */
+/* radius forced to 0, shadows suppressed. Color is already grey
+   because amvcp-wireframe.js published a desaturated --vc-color-* set
+   onto [data-wf-root] — so these rules only need to kill radius and
+   shadow; the grey comes through the cascaded tokens. */
+[data-wf-fidelity="wireframe"] .wf-card,
+[data-wf-fidelity="wireframe"] .wf-button,
+[data-wf-fidelity="wireframe"] .wf-input,
+[data-wf-fidelity="wireframe"] .wf-modal,
+[data-wf-fidelity="wireframe"] .wf-toast,
+[data-wf-fidelity="wireframe"] .wf-chip,
+[data-wf-fidelity="wireframe"] .wf-image,
+[data-wf-fidelity="wireframe"] .wf-table,
+[data-wf-fidelity="wireframe"] .wf-header,
+[data-wf-fidelity="wireframe"] .wf-titlebar,
+[data-wf-fidelity="wireframe"] .wf-statusbar,
+[data-wf-fidelity="wireframe"] .wf-nav,
+[data-wf-fidelity="wireframe"] .wf-sidebar,
+.wf-root:not([data-wf-fidelity]) .wf-card,
+.wf-root:not([data-wf-fidelity]) .wf-button,
+.wf-root:not([data-wf-fidelity]) .wf-input,
+.wf-root:not([data-wf-fidelity]) .wf-modal,
+.wf-root:not([data-wf-fidelity]) .wf-toast,
+.wf-root:not([data-wf-fidelity]) .wf-chip,
+.wf-root:not([data-wf-fidelity]) .wf-image,
+.wf-root:not([data-wf-fidelity]) .wf-table,
+.wf-root:not([data-wf-fidelity]) .wf-header,
+.wf-root:not([data-wf-fidelity]) .wf-titlebar,
+.wf-root:not([data-wf-fidelity]) .wf-statusbar,
+.wf-root:not([data-wf-fidelity]) .wf-nav,
+.wf-root:not([data-wf-fidelity]) .wf-sidebar {
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+/* --- fidelity = low : grayscale shapes + a faint accent border ----- */
+/* The JS desaturation runs at k=0.15 (accent k=0.35) so the tokens
+   carry a faint hue; the button additionally gets an accent border so
+   the primary action is the first thing to re-emerge. */
+[data-wf-fidelity="low"] .wf-card,
+[data-wf-fidelity="low"] .wf-button,
+[data-wf-fidelity="low"] .wf-input,
+[data-wf-fidelity="low"] .wf-modal,
+[data-wf-fidelity="low"] .wf-toast,
+[data-wf-fidelity="low"] .wf-chip,
+[data-wf-fidelity="low"] .wf-image,
+[data-wf-fidelity="low"] .wf-table,
+[data-wf-fidelity="low"] .wf-header,
+[data-wf-fidelity="low"] .wf-nav {
+  border-radius: var(--vc-radius-sm, 4px);
+  box-shadow: none;
+}
+[data-wf-fidelity="low"] .wf-button:not(.wf-button--ghost) {
+  border-color: var(--vc-color-accent, #b8861f);
+}
+
+/* --- fidelity = mid : real accent fill, radius, shadow ------------- */
+[data-wf-fidelity="mid"] .wf-card,
+[data-wf-fidelity="mid"] .wf-image,
+[data-wf-fidelity="mid"] .wf-table,
+[data-wf-fidelity="mid"] .wf-modal,
+[data-wf-fidelity="mid"] .wf-toast {
+  border-radius: var(--vc-radius-md, 8px);
+  box-shadow: var(--vc-shadow-sm, 0 1px 3px
+    color-mix(in srgb, var(--vc-color-content, #1f1a14) 12%, transparent));
+}
+[data-wf-fidelity="mid"] .wf-button:not(.wf-button--ghost),
+[data-wf-fidelity="hi"] .wf-button:not(.wf-button--ghost) {
+  background: var(--vc-color-accent, #b8861f);
+  color: var(--vc-color-on-accent, #ffffff);
+  border-color: var(--vc-color-accent, #b8861f);
+  border-radius: var(--vc-radius-md, 8px);
+}
+
+/* --- fidelity = hi : production-ready full token treatment --------- */
+[data-wf-fidelity="hi"] .wf-card,
+[data-wf-fidelity="hi"] .wf-image,
+[data-wf-fidelity="hi"] .wf-table,
+[data-wf-fidelity="hi"] .wf-modal,
+[data-wf-fidelity="hi"] .wf-toast {
+  border-radius: var(--vc-radius-lg, 12px);
+  box-shadow: var(--vc-shadow-md, 0 4px 12px
+    color-mix(in srgb, var(--vc-color-content, #1f1a14) 18%, transparent));
+}
+
+/* traffic-lights / browser dots gain real colors at mid+ — sourced
+   from --vc-color-danger/warning/success so they still theme off the
+   DESIGN.md, never raw hex. */
+[data-wf-fidelity="mid"] .wf-traffic-lights > span:nth-child(1),
+[data-wf-fidelity="hi"]  .wf-traffic-lights > span:nth-child(1) {
+  background: var(--vc-color-danger, #a84a32);
+}
+[data-wf-fidelity="mid"] .wf-traffic-lights > span:nth-child(2),
+[data-wf-fidelity="hi"]  .wf-traffic-lights > span:nth-child(2) {
+  background: var(--vc-color-warning, #a8791f);
+}
+[data-wf-fidelity="mid"] .wf-traffic-lights > span:nth-child(3),
+[data-wf-fidelity="hi"]  .wf-traffic-lights > span:nth-child(3) {
+  background: var(--vc-color-success, #3a6b5c);
+}
+
+/* input focus emphasis — re-introduced from `low` upward */
+[data-wf-fidelity="low"] .wf-input:focus,
+[data-wf-fidelity="mid"] .wf-input:focus,
+[data-wf-fidelity="hi"]  .wf-input:focus {
+  outline: 2px solid var(--vc-color-border-strong, #c9bfa3);
+  outline-offset: -1px;
+}
+
+/* ════════════════════════════════════════════════════════════════════
+ * THE 4 LAYOUT ARCHETYPES  (spec §5.3)
+ * Thin wrappers — each sets a grid/flex template + gap. Self-contained
+ * (no hard dependency on the `layout` skill). All overflow:visible.
+ * ════════════════════════════════════════════════════════════════════ */
+
+/* 1 — app : titlebar / sidebar / main / statusbar */
+.wf-archetype--app {
+  display: grid;
+  grid-template-columns: var(--wf-sidebar-w) 1fr;
+  grid-template-rows: auto 1fr auto;
+  grid-template-areas:
+    "titlebar titlebar"
+    "sidebar  main"
+    "statusbar statusbar";
+  gap: 0;
+  background: var(--vc-color-canvas, #faf6ee);
+  border: 1px solid var(--vc-color-border, #e3dcc9);
+}
+.wf-archetype--app > .wf-titlebar  { grid-area: titlebar; }
+.wf-archetype--app > .wf-sidebar   { grid-area: sidebar; }
+.wf-archetype--app > .wf-main      { grid-area: main; }
+.wf-archetype--app > .wf-statusbar { grid-area: statusbar; }
+
+/* 2 — web : header / nav / main / footer, single column */
+.wf-archetype--web {
+  display: flex;
+  flex-direction: column;
+  gap: var(--vc-space-3, 16px);
+  background: var(--vc-color-canvas, #faf6ee);
+}
+.wf-archetype--web > .wf-main {
+  max-inline-size: var(--wf-measure);
+  margin-inline: auto;
+  width: 100%;
+}
+
+/* 3 — mobile : status strip / main / bottom tab bar, narrow column */
+.wf-archetype--mobile {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  inline-size: var(--wf-mobile-w);
+  max-inline-size: 100%;
+  margin-inline: auto;
+  background: var(--vc-color-canvas, #faf6ee);
+  border: 1px solid var(--vc-color-border, #e3dcc9);
+}
+.wf-archetype--mobile > .wf-nav {
+  /* the bottom tab bar — evenly-spread items */
+  justify-content: space-around;
+}
+
+/* 4 — modal : overlay + centered modal (used on top of any archetype) */
+.wf-archetype--modal {
+  position: relative;
+}
+
+/* ════════════════════════════════════════════════════════════════════
+ * THE 4 DEVICE FRAMES  (spec §6)
+ * Pure-CSS hardware bezels. The bezel gradient is the ONE sanctioned
+ * non-token value — device hardware is dark in EVERY theme, so a
+ * themed bezel would look wrong. The screen content area
+ * (.wf-frame__content) is fully --vc-* tokenized and themes normally.
+ * .wf-frame__content uses overflow:visible — a long screen extends the
+ * page with the bezel growing around it; never a viewport trap.
+ * ════════════════════════════════════════════════════════════════════ */
+
+.wf-frame {
+  position: relative;
+  display: inline-block;
+  width: var(--wf-frame-w);
+  max-width: 100%;
+  /* height auto + min-height: a short screen looks device-shaped, a
+     long screen extends the page (no-nested-scrollbars §4) */
+  height: auto;
+  min-height: var(--wf-frame-h);
+  /* THE sanctioned non-token value — fixed dark hardware bezel,
+     identical in light + dark themes (a real device bezel is dark
+     regardless of OS theme). Audited exception, see device-frames.md */
+  background: linear-gradient(160deg, #2a2a2c, #1a1a1c 50%, #0e0e10);
+  border-radius: var(--wf-frame-radius);
+  padding: var(--wf-frame-border);
+}
+.wf-frame__content {
+  position: relative;
+  overflow: visible;            /* NOT auto — no viewport trap */
+  min-height: calc(var(--wf-frame-h) - var(--wf-frame-border) * 2);
+  background: var(--vc-color-canvas, #faf6ee);
+  border-radius: calc(var(--wf-frame-radius) - var(--wf-frame-border));
+}
+
+/* responsive: a frame wider than the viewport shrinks to fit instead
+   of forcing a horizontal scrollbar ON THE FRAME (the page itself may
+   still scroll if its content is wide — that is the outer scrollbar). */
+@media (max-width: 460px) {
+  .wf-frame {
+    width: 100%;
+    min-height: 0;
+    aspect-ratio: var(--wf-frame-w) / var(--wf-frame-h);
+  }
+}
+
+/* --- iOS frame : iPhone 15 Pro --- */
+.wf-frame--ios {
+  --wf-frame-w: 393px;
+  --wf-frame-h: 852px;
+  --wf-frame-radius: 47px;
+  --wf-frame-border: 12px;
+}
+/* Dynamic Island — a dark pill centered at the top of the screen */
+.wf-frame__island {
+  position: absolute;
+  top: calc(var(--wf-frame-border) + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: 124px;
+  height: 36px;
+  background: #060608;
+  border-radius: 18px;
+  z-index: 3;
+}
+/* home indicator — a slim pill at the bottom of the screen */
+.wf-frame__home {
+  position: absolute;
+  bottom: calc(var(--wf-frame-border) + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: 134px;
+  height: 5px;
+  border-radius: 3px;
+  background: color-mix(in srgb,
+    var(--vc-color-content, #1f1a14) 55%, transparent);
+  z-index: 3;
+}
+/* side button rails — pseudo-elements on the bezel */
+.wf-frame--ios::before,
+.wf-frame--ios::after {
+  content: "";
+  position: absolute;
+  width: 3px;
+  background: #060608;
+  border-radius: 2px;
+}
+.wf-frame--ios::before {            /* left rail — volume + action */
+  left: -3px; top: 110px; height: 110px;
+}
+.wf-frame--ios::after {             /* right rail — side button */
+  right: -3px; top: 150px; height: 78px;
+}
+
+/* --- Android frame : Pixel-class --- */
+.wf-frame--android {
+  --wf-frame-w: 412px;
+  --wf-frame-h: 915px;
+  --wf-frame-radius: 36px;
+  --wf-frame-border: 10px;
+}
+/* punch-hole camera — a small dark dot top-center */
+.wf-frame--android .wf-frame__island {
+  width: var(--wf-dot-d);
+  height: var(--wf-dot-d);
+  border-radius: 50%;
+  top: calc(var(--wf-frame-border) + 10px);
+}
+
+/* --- MacBook frame --- */
+.wf-frame--macbook {
+  --wf-frame-w: 1280px;
+  --wf-frame-h: 800px;
+  --wf-frame-radius: 18px;
+  --wf-frame-border: 16px;
+  /* the base/foot wedge below the lid */
+  margin-bottom: 22px;
+}
+.wf-frame--macbook::after {         /* base wedge */
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -22px;
+  transform: translateX(-50%);
+  width: calc(var(--wf-frame-w) * 1.08);
+  max-width: 108%;
+  height: 22px;
+  background: linear-gradient(180deg, #2a2a2c, #161618);
+  border-radius: 0 0 12px 12px;
+}
+.wf-frame--macbook .wf-frame__island {  /* camera dot in the lid bezel */
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #3a3a3c;
+  top: calc(var(--wf-frame-border) * 0.35);
+}
+
+/* --- Browser frame : desktop window chrome --- */
+.wf-frame--browser {
+  --wf-frame-w: 1280px;
+  --wf-frame-h: 720px;
+  --wf-frame-radius: 12px;
+  --wf-frame-border: 0px;
+  background: var(--vc-color-surface, #ffffff);
+  border: 1px solid var(--vc-color-border, #e3dcc9);
+  padding: 0;
+}
+/* chrome bar — 3 dots + URL pill */
+.wf-frame__chromebar {
+  display: flex;
+  align-items: center;
+  gap: var(--vc-space-3, 16px);
+  padding: var(--vc-space-2, 12px) var(--vc-space-3, 16px);
+  background: var(--vc-color-surface-sunken, #f1ece0);
+  border-bottom: 1px solid var(--vc-color-border, #e3dcc9);
+  border-radius: 12px 12px 0 0;
+}
+.wf-frame__url {
+  flex: 1;
+  min-height: calc(var(--vc-space-4, 24px) * 1.1);
+  padding: var(--vc-space-1, 8px) var(--vc-space-3, 16px);
+  background: var(--vc-color-surface, #ffffff);
+  border: 1px solid var(--vc-color-border, #e3dcc9);
+  border-radius: 999px;
+  color: var(--vc-color-content-subtle, #8a8170);
+  font-size: var(--vc-text-0, 12px);
+  display: flex;
+  align-items: center;
+}
+.wf-frame--browser .wf-frame__content {
+  border-radius: 0 0 12px 12px;
+  min-height: var(--wf-frame-h);
+}
+
+/* --- device status bar (iOS / Android) --- */
+.wf-frame__statusbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--vc-space-2, 12px) var(--vc-space-4, 24px) 0;
+  font-size: var(--vc-text-0, 12px);
+  font-weight: 600;
+}
+.wf-frame__time { letter-spacing: 0.02em; }
+/* the indicators slot — signal / wifi / battery glyphs as inline SVG
+   are authored in the HTML; this just lays them out */
+.wf-frame__indicators {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--vc-space-1, 8px);
+}
+.wf-frame__indicators svg { display: block; }
+/* glyph color flips with the runtime theme — dark glyphs on a light
+   screen, light glyphs on a dark screen (keyed to data-ve-theme, the
+   runtime's attribute, never the OS prefers-color-scheme query) */
+.wf-frame__statusbar {
+  color: var(--vc-color-content, #1f1a14);
+}
+.wf-frame__statusbar svg { fill: currentColor; stroke: currentColor; }
+
+/* ════════════════════════════════════════════════════════════════════
+ * THE FIDELITY RAMP  (spec §7.2 + §7.3)
+ * .wf-ramp = a flex-wrap row of the same screen at 4 fidelities.
+ * NO overflow-x — wide content extends the page (§4).
+ * ════════════════════════════════════════════════════════════════════ */
+
+.wf-ramp {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--vc-space-5, 32px);
+  align-items: flex-start;
+}
+.wf-ramp__stage {
+  margin: 0;
+  flex: 1 1 280px;
+  min-width: 240px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--vc-space-2, 12px);
+}
+.wf-ramp__stage figcaption {
+  font-size: var(--vc-text-0, 12px);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--vc-color-content-muted, #5b5343);
+}
+.wf-ramp__stage > .wf-root {
+  border: 1px solid var(--vc-color-border, #e3dcc9);
+}
+
+/* --- the fidelity slider --- */
+.wf-fidelity-control {
+  display: flex;
+  flex-direction: column;
+  gap: var(--vc-space-3, 16px);
+  max-inline-size: var(--wf-measure);
+}
+.wf-fidelity-control > .wf-root {
+  border: 1px solid var(--vc-color-border, #e3dcc9);
+}
+.wf-fidelity-slider {
+  width: 100%;
+  accent-color: var(--vc-color-accent, #b8861f);
+  cursor: pointer;
+}
+.wf-fidelity-ticks {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--vc-text-0, 12px);
+  color: var(--vc-color-content-subtle, #8a8170);
+}
+.wf-fidelity-ticks > span { flex: 1; text-align: center; }
+.wf-fidelity-ticks > span:first-child { text-align: left; }
+.wf-fidelity-ticks > span:last-child  { text-align: right; }
+
+/* selection affordance — a wireframe block/screen carrying data-ve-id
+   is a selectable atom; the runtime's picker stamps data-ve-selected.
+   This is just the visible selected-state outline. */
+[data-ve-id][data-ve-selected="1"] {
+  outline: 2px solid var(--vc-color-accent, #b8861f);
+  outline-offset: 2px;
+}

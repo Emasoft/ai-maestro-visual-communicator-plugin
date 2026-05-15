@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Code-highlight test fixture (amvcp-code-blocks)</title>
+<!--
+  Self-contained fixture for the Phase-2 code-block tokenizer.
+
+  Loads ONLY:
+    - amvcp-designmd.js  (the DESIGN.md token engine — supplies --vc-* vars)
+    - amvcp-code-highlight.js  (the dependency-free tokenizer under test)
+    - amvcp-code-highlight.css (the --ve-code-* bindings + .ve-tok-* rules)
+
+  It deliberately does NOT load amvcp-runtime.js — the tokenizer is a
+  standalone module with a clean API and must be testable without the
+  runtime. The integration pass wires highlightLine() into the runtime's
+  initCodeGutter() separately.
+
+  The page builds, for each language, a <pre class="ve-code-block"> whose
+  per-line <span class="ve-code-content"> elements are filled by
+  amvcpCodeHighlight.highlightBlock(lines, lang) — exactly the call the
+  integration pass will make INSIDE initCodeGutter. This proves the
+  module's output drops cleanly into the per-line-span architecture.
+-->
+<style>
+  /* Page chrome — light theme default; the runtime's :root[data-ve-theme]
+     toggle is honoured by amvcp-code-highlight.css. */
+  :root {
+    --page-bg: #faf6ee;
+    --page-fg: #1f1a14;
+    --code-surface: #f1ece0;
+    --code-border: #e3dcc9;
+  }
+  :root[data-ve-theme="dark"] {
+    --page-bg: #181410;
+    --page-fg: #ede5dd;
+    --code-surface: #221d17;
+    --code-border: #352c22;
+  }
+  html, body { overflow-x: auto; }
+  body {
+    margin: 0; padding: 32px;
+    background: var(--page-bg); color: var(--page-fg);
+    font: 15px/1.55 system-ui, -apple-system, sans-serif;
+  }
+  main { max-width: 100ch; margin: 0 auto; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  h2 { font-size: 15px; margin: 28px 0 6px; opacity: 0.75;
+       text-transform: uppercase; letter-spacing: 0.05em; }
+  .hint { opacity: 0.6; font-size: 13px; margin: 0 0 18px; }
+
+  /* Minimal stand-in for the runtime's .ve-code-block chrome. The
+     tokenizer cares only about the .ve-tok-* spans; this CSS just makes
+     the fixture legible. The token COLORS all come from
+     amvcp-code-highlight.css via --ve-code-*. */
+  .ve-code-block {
+    margin: 0 0 16px;
+    background: var(--code-surface);
+    border: 1px solid var(--code-border);
+    border-radius: 8px;
+  }
+  .ve-code-block > pre {
+    margin: 0; padding: 12px 14px;
+    font-family: var(--vc-font-mono, "JetBrains Mono", ui-monospace, Menlo,
+                 Consolas, monospace);
+    font-size: 13px; line-height: 1.6;
+    /* no overflow — wide lines extend the page (no-nested-scrollbars) */
+    white-space: pre-wrap;
+    color: var(--ve-code-variable);
+  }
+  .ve-code-line { display: block; }
+  .ve-code-linenum {
+    display: inline-block; min-width: 2.4ch; margin-right: 1.4ch;
+    text-align: right; opacity: 0.4;
+    user-select: none; -webkit-user-select: none;
+  }
+  .ve-code-content { display: inline; }
+
+  /* Diff blocks — the runtime owns the full diff renderer; this fixture
+     just demonstrates the diff token mode + the --ve-code-diff-* tints so
+     the integration pass can confirm the CSS contract. */
+  .ve-diff-line { display: block; }
+  .ve-diff-line[data-ve-diff="add"] { background: var(--ve-code-diff-add-bg); }
+  .ve-diff-line[data-ve-diff="del"] { background: var(--ve-code-diff-del-bg); }
+  .ve-diff-line[data-ve-diff="ctx"] { background: transparent; }
+  .ve-diff-line[data-ve-diff="add"]::before { content: "+"; opacity: 0.6; }
+  .ve-diff-line[data-ve-diff="del"]::before { content: "-"; opacity: 0.6; }
+  .ve-diff-line[data-ve-diff="ctx"]::before { content: " "; }
+
+  .theme-toggle {
+    position: fixed; top: 12px; right: 12px;
+    font: 12px/1 system-ui, sans-serif; padding: 6px 12px;
+    border: 1px solid var(--code-border); border-radius: 6px;
+    background: var(--code-surface); color: var(--page-fg); cursor: pointer;
+  }
+</style>
+</head>
+<body>
+<button class="theme-toggle" id="themeToggle" type="button">toggle theme</button>
+<main>
+  <h1>Code-highlight fixture — amvcp-code-blocks</h1>
+  <p class="hint">Each block below is rendered by
+     <code>amvcpCodeHighlight.highlightBlock(lines, lang)</code> — the exact
+     call the integration pass makes inside <code>initCodeGutter</code>.
+     Token colors come from <code>--ve-code-*</code> (light + dark).</p>
+
+  <h2 data-lang-section="js">JavaScript / TypeScript</h2>
+  <h2 data-lang-section="python">Python</h2>
+  <h2 data-lang-section="json">JSON</h2>
+  <h2 data-lang-section="html">HTML</h2>
+  <h2 data-lang-section="css">CSS</h2>
+  <h2 data-lang-section="bash">Shell / bash</h2>
+  <h2 data-lang-section="plain">Plain (no language — byte-exact, no colors)</h2>
+  <h2 data-lang-section="diff">Diff (token mode)</h2>
+</main>
+
+<script src="amvcp-designmd.js"></script>
+<script src="amvcp-code-highlight.js"></script>
+<link rel="stylesheet" href="amvcp-code-highlight.css">
+<script>
+(function () {
+  'use strict';
+
+  // ── Sample code per language ────────────────────────────────────────
+  var SAMPLES = {
+    js: [
+      '// Fibonacci — a JS sample with strings, numbers, keywords',
+      'const CACHE = new Map();',
+      'function fib(n) {',
+      '  if (n < 2) return n;',
+      '  if (CACHE.has(n)) return CACHE.get(n);',
+      '  var result = fib(n - 1) + fib(n - 2);',
+      '  CACHE.set(n, result);',
+      '  return result;',
+      '}',
+      'var label = "fib(10) = " + fib(10);  /* a trailing block comment */'
+    ],
+    python: [
+      '# Quicksort — a Python sample',
+      'def quicksort(items):',
+      '    """Sort a list with the classic',
+      '    divide-and-conquer recursion."""',
+      '    if len(items) <= 1:',
+      '        return items',
+      '    pivot = items[0]',
+      '    rest = items[1:]',
+      '    smaller = [x for x in rest if x < pivot]',
+      '    larger = [x for x in rest if x >= pivot]',
+      '    return quicksort(smaller) + [pivot] + quicksort(larger)'
+    ],
+    json: [
+      '{',
+      '  "name": "visual-communicator",',
+      '  "version": 2,',
+      '  "active": true,',
+      '  "tags": ["code", "diff", null],',
+      '  "ratio": 3.14159',
+      '}'
+    ],
+    html: [
+      '<!DOCTYPE html>',
+      '<article class="post" data-id="42">',
+      '  <h1>Hello &amp; welcome</h1>',
+      '  <p>A paragraph with a <a href="#top">link</a>.</p>',
+      '</article>'
+    ],
+    css: [
+      '/* a CSS sample — selectors, properties, values */',
+      '.card {',
+      '  color: #f6f3ec;',
+      '  padding: 12px 16px;',
+      '  border: 1px solid rgba(0, 0, 0, 0.1);',
+      '}',
+      '@media (min-width: 600px) {',
+      '  .card { padding: 24px !important; }',
+      '}'
+    ],
+    bash: [
+      '#!/usr/bin/env bash',
+      '# deploy script',
+      'set -euo pipefail',
+      'for file in "$@"; do',
+      '  if [ -f "$file" ]; then',
+      '    echo "deploying $file"',
+      '  fi',
+      'done'
+    ],
+    plain: [
+      'This block has no data-ve-lang.',
+      'Every character is byte-exact: < > & " \' { } ; // # /* */',
+      'No ve-tok-* spans appear here.'
+    ]
+  };
+
+  // A unified-diff sample for the diff token mode.
+  var DIFF_SAMPLE = [
+    { type: 'hunk', text: '@@ -10,6 +10,7 @@ function render() {' },
+    { type: 'ctx',  text: '  const x = 1;' },
+    { type: 'ctx',  text: '  const y = 2;' },
+    { type: 'del',  text: '  return x + y;' },
+    { type: 'add',  text: '  const z = 3;' },
+    { type: 'add',  text: '  return x + y + z;' },
+    { type: 'ctx',  text: '}' }
+  ];
+
+  var H = window.amvcpCodeHighlight;
+
+  // ── Build a highlighted code block ──────────────────────────────────
+  // Mirrors the runtime's per-line-span architecture: each line is a
+  // .ve-code-line with a .ve-code-linenum cell and a .ve-code-content
+  // span whose innerHTML is the tokenizer output. This proves the
+  // tokenizer's per-line HTML drops straight into initCodeGutter.
+  function buildBlock(lines, lang) {
+    var wrapper = document.createElement('div');
+    wrapper.className = 've-code-block';
+    if (lang) wrapper.setAttribute('data-ve-lang', lang);
+    var pre = document.createElement('pre');
+    var code = document.createElement('code');
+
+    var lineHtml = lang ? H.highlightBlock(lines, lang) : null;
+    var li;
+    for (li = 0; li < lines.length; li++) {
+      var lineEl = document.createElement('span');
+      lineEl.className = 've-code-line';
+      lineEl.setAttribute('data-ve-line', String(li + 1));
+      var num = document.createElement('span');
+      num.className = 've-code-linenum';
+      num.textContent = String(li + 1);
+      var content = document.createElement('span');
+      content.className = 've-code-content';
+      // The integration point: highlighted HTML when a language is set,
+      // byte-exact escaped text otherwise.
+      content.innerHTML = lineHtml
+        ? lineHtml[li]
+        : H.escapeHtml(lines[li]);
+      lineEl.appendChild(num);
+      lineEl.appendChild(content);
+      code.appendChild(lineEl);
+    }
+    pre.appendChild(code);
+    wrapper.appendChild(pre);
+    return wrapper;
+  }
+
+  // ── Build a diff block (token mode) ─────────────────────────────────
+  function buildDiffBlock(diffLines, lang) {
+    var wrapper = document.createElement('div');
+    wrapper.className = 've-code-block';
+    wrapper.setAttribute('data-ve-code-diff', 'unified');
+    var pre = document.createElement('pre');
+    var code = document.createElement('code');
+    var i;
+    for (i = 0; i < diffLines.length; i++) {
+      var d = diffLines[i];
+      var lineEl = document.createElement('span');
+      lineEl.className = 've-diff-line';
+      lineEl.setAttribute('data-ve-diff', d.type);
+      var content = document.createElement('span');
+      content.className = 've-code-content';
+      // The diff text body is ALSO syntax-highlighted (diff + highlighter
+      // compose). Strip the leading +/- marker before highlighting so the
+      // marker is the CSS ::before, never part of the coloured code.
+      var body = d.text;
+      if (d.type === 'add' || d.type === 'del') {
+        body = d.text;  // marker is ::before; body already has no marker
+      }
+      content.innerHTML = (lang && d.type !== 'hunk')
+        ? H.highlightLine(body, lang)
+        : H.highlightLine(d.text, 'diff');
+      lineEl.appendChild(content);
+      code.appendChild(lineEl);
+    }
+    pre.appendChild(code);
+    wrapper.appendChild(pre);
+    return wrapper;
+  }
+
+  // ── Mount every section ─────────────────────────────────────────────
+  function mount() {
+    var lang;
+    for (lang in SAMPLES) {
+      if (!SAMPLES.hasOwnProperty(lang)) continue;
+      var h2 = document.querySelector('[data-lang-section="' + lang + '"]');
+      if (!h2) continue;
+      var langArg = (lang === 'plain') ? null : lang;
+      h2.parentNode.insertBefore(buildBlock(SAMPLES[lang], langArg),
+                                 h2.nextSibling);
+    }
+    var diffH2 = document.querySelector('[data-lang-section="diff"]');
+    if (diffH2) {
+      diffH2.parentNode.insertBefore(buildDiffBlock(DIFF_SAMPLE, 'js'),
+                                     diffH2.nextSibling);
+    }
+  }
+
+  // ── Theme toggle ────────────────────────────────────────────────────
+  var root = document.documentElement;
+  // Default to light; the toggle flips to dark and back.
+  root.setAttribute('data-ve-theme', 'light');
+  document.getElementById('themeToggle').addEventListener('click', function () {
+    var cur = root.getAttribute('data-ve-theme');
+    root.setAttribute('data-ve-theme', cur === 'dark' ? 'light' : 'dark');
+  });
+
+  mount();
+
+  // Expose the module + samples for the dev-browser test.
+  window.__veCodeFixture = { H: H, samples: SAMPLES, diff: DIFF_SAMPLE };
+})();
+</script>
+</body>
+</html>

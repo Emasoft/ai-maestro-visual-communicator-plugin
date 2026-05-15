@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>chart skill test fixture</title>
+<style>
+  /* Baseline page chrome — themed off the DESIGN.md engine's --vc-*
+     color tokens so a light<->dark toggle is observable. The chart
+     module reads every token via var(--vc-*, fallback). */
+  html, body { overflow-x: auto; }
+  body {
+    margin: 0;
+    padding: 32px;
+    background: var(--vc-color-canvas, #faf6ee);
+    color: var(--vc-color-content, #1f1a14);
+    font: 16px/1.55 var(--vc-font-body, system-ui, sans-serif);
+  }
+  main { max-width: 980px; margin: 0 auto; }
+  h1 { font-family: var(--vc-font-heading, Georgia, serif); }
+  h2 {
+    font-family: var(--vc-font-heading, Georgia, serif);
+    font-size: 18px;
+    border-bottom: 1px solid var(--vc-color-border, #e3dcc9);
+    padding-bottom: 4px;
+    margin-top: 36px;
+  }
+  section { margin-block: 20px; }
+  /* The renderer replaces every <pre> below with a <figure.ve-chart>. */
+  pre { background: var(--vc-color-surface-sunken, #f1ece0); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Chart skill test fixture</h1>
+  <p>Loads <code>amvcp-designmd.js</code> then <code>amvcp-chart.js</code>
+     as browser globals. <code>window.__vcManualInit</code> is set so the
+     test drives <code>injectChartCSS</code> + <code>scan</code>
+     deterministically. Each fenced <code>chart:&lt;type&gt;@1</code> block
+     is replaced by a rendered <code>&lt;figure.ve-chart&gt;</code>.</p>
+
+  <section>
+    <h2>Bar — single series, sorted descending</h2>
+<pre><code class="language-chart:bar@1">{
+  "title": "Revenue by quarter",
+  "series": [{ "label": "2025", "data": [
+    {"x":"Q1","y":2.4},{"x":"Q2","y":3.1},
+    {"x":"Q3","y":2.8},{"x":"Q4","y":3.6}
+  ] }],
+  "options": { "sortDescending": true, "valueLabels": true }
+}</code></pre>
+  </section>
+
+  <section>
+    <h2>Stacked bar — multi-series</h2>
+<pre><code class="language-chart:stacked-bar@1">{
+  "title": "Headcount by team",
+  "series": [
+    { "label": "Eng", "data": [
+      {"x":"Q1","y":12},{"x":"Q2","y":15},{"x":"Q3","y":18}] },
+    { "label": "Design", "data": [
+      {"x":"Q1","y":4},{"x":"Q2","y":5},{"x":"Q3","y":6}] }
+  ]
+}</code></pre>
+  </section>
+
+  <section>
+    <h2>Diverging bar — signed values</h2>
+<pre><code class="language-chart:diverging-bar@1">{
+  "title": "Net sentiment by region",
+  "series": [{ "label": "score", "data": [
+    {"x":"NA","y":34},{"x":"EU","y":-12},
+    {"x":"APAC","y":21},{"x":"LATAM","y":-8}
+  ] }]
+}</code></pre>
+  </section>
+
+  <section>
+    <h2>Lollipop</h2>
+<pre><code class="language-chart:lollipop@1">{
+  "title": "Issues closed per sprint",
+  "series": [{ "label": "closed", "data": [
+    {"x":"S1","y":18},{"x":"S2","y":24},
+    {"x":"S3","y":15},{"x":"S4","y":31}
+  ] }]
+}</code></pre>
+  </section>
+
+  <section>
+    <h2>Line — smoothed, multi-series</h2>
+<pre><code class="language-chart:line@1">{
+  "title": "Latency p50 vs p95 (ms)",
+  "series": [
+    { "label": "p50", "data": [
+      {"x":"Mon","y":80},{"x":"Tue","y":92},{"x":"Wed","y":74},
+      {"x":"Thu","y":88},{"x":"Fri","y":70}] },
+    { "label": "p95", "data": [
+      {"x":"Mon","y":210},{"x":"Tue","y":250},{"x":"Wed","y":190},
+      {"x":"Thu","y":240},{"x":"Fri","y":205}] }
+  ]
+}</code></pre>
+  </section>
+
+  <section>
+    <h2>Area — single series with gradient fill</h2>
+<pre><code class="language-chart:area@1">{
+  "title": "Daily active users",
+  "series": [{ "label": "DAU", "data": [
+    {"x":"W1","y":1200},{"x":"W2","y":1850},{"x":"W3","y":1640},
+    {"x":"W4","y":2310},{"x":"W5","y":2680}
+  ] }]
+}</code></pre>
+  </section>
+
+  <section>
+    <h2>Slope — before / after</h2>
+<pre><code class="language-chart:slope@1">{
+  "title": "Conversion: control vs variant",
+  "series": [
+    { "label": "Control", "data": [
+      {"x":"Before","y":3.2},{"x":"After","y":3.4}] },
+    { "label": "Variant", "data": [
+      {"x":"Before","y":3.1},{"x":"After","y":4.8}] }
+  ]
+}</code></pre>
+  </section>
+
+  <section>
+    <h2>Waterfall — cumulative bridge</h2>
+<pre><code class="language-chart:waterfall@1">{
+  "title": "Q4 profit bridge ($M)",
+  "series": [{ "label": "bridge", "data": [
+    {"x":"Start","delta":12},
+    {"x":"Sales","delta":8},
+    {"x":"Costs","delta":-5},
+    {"x":"Tax","delta":-3},
+    {"x":"End","isTotal":true}
+  ] }]
+}</code></pre>
+  </section>
+
+  <section>
+    <h2>Funnel — stage drop-off</h2>
+<pre><code class="language-chart:funnel@1">{
+  "title": "Signup funnel",
+  "series": [{ "label": "users", "data": [
+    {"x":"Visited","y":10000},
+    {"x":"Signed up","y":4200},
+    {"x":"Activated","y":2100},
+    {"x":"Paid","y":680}
+  ] }]
+}</code></pre>
+  </section>
+
+  <section>
+    <h2>Donut — sanctioned circular form</h2>
+<pre><code class="language-chart:donut@1">{
+  "title": "Traffic by source",
+  "series": [{ "label": "source", "data": [
+    {"x":"Organic","y":48},{"x":"Direct","y":22},
+    {"x":"Referral","y":18},{"x":"Social","y":12}
+  ] }]
+}</code></pre>
+  </section>
+
+  <section>
+    <h2>Gauge — single proportion</h2>
+<pre><code class="language-chart:gauge@1">{
+  "title": "Quota attainment",
+  "series": [{ "label": "attain", "data": [{"x":"Q4","y":74}] }],
+  "options": { "max": 100, "warnAt": 50, "dangerAt": 30 }
+}</code></pre>
+  </section>
+
+  <section>
+    <h2>Radar — multi-axis</h2>
+<pre><code class="language-chart:radar@1">{
+  "title": "Product scorecard",
+  "series": [
+    { "label": "v1", "data": [
+      {"x":"Speed","y":7},{"x":"Cost","y":5},{"x":"UX","y":8},
+      {"x":"Docs","y":4},{"x":"Support","y":6}] },
+    { "label": "v2", "data": [
+      {"x":"Speed","y":9},{"x":"Cost","y":6},{"x":"UX","y":9},
+      {"x":"Docs","y":7},{"x":"Support","y":8}] }
+  ]
+}</code></pre>
+  </section>
+
+  <section>
+    <h2>Heatmap — value grid with OKLCH ramp</h2>
+<pre><code class="language-chart:heatmap@1">{
+  "title": "Errors by hour and weekday",
+  "series": [{ "label": "errors", "data": [] }],
+  "options": {
+    "grid": [
+      [2, 5, 9, 14, 6],
+      [3, 8, 22, 31, 9],
+      [1, 4, 7, 12, 5],
+      [0, 2, 6, 18, 40]
+    ],
+    "rowLabels": ["Night","Morning","Noon","Evening"],
+    "colLabels": ["Mon","Tue","Wed","Thu","Fri"]
+  }
+}</code></pre>
+  </section>
+
+  <section>
+    <h2>Matrix — labeled value grid</h2>
+<pre><code class="language-chart:matrix@1">{
+  "title": "Feature support matrix",
+  "series": [{ "label": "score", "data": [] }],
+  "options": {
+    "grid": [[3, 1, 2], [2, 3, 1], [1, 2, 3]],
+    "rowLabels": ["Free","Pro","Team"],
+    "colLabels": ["API","SSO","Audit"]
+  }
+}</code></pre>
+  </section>
+
+  <section>
+    <h2>Segmented bar — CSS-flex part-to-whole</h2>
+<pre><code class="language-chart:segmented-bar@1">{
+  "title": "Storage usage",
+  "series": [{ "label": "usage", "data": [
+    {"x":"Documents","y":42},{"x":"Media","y":28},
+    {"x":"Backups","y":18},{"x":"Free","y":12}
+  ] }]
+}</code></pre>
+  </section>
+
+  <section>
+    <h2>Metric cards — KPI row</h2>
+<pre><code class="language-chart:metric-cards@1">{
+  "title": "Key metrics",
+  "series": [{ "label": "kpi", "data": [
+    {"label":"Revenue","value":48200,"delta":12,"trend":"up","unit":""},
+    {"label":"Churn","value":3.4,"delta":-0.6,"trend":"down","unit":"%"},
+    {"label":"NPS","value":52,"delta":4,"trend":"up"},
+    {"label":"Tickets","value":318,"delta":0,"trend":"flat"}
+  ] }]
+}</code></pre>
+  </section>
+
+  <section>
+    <h2>Pie — guardrail (must remap to a sorted bar)</h2>
+<pre><code class="language-chart:pie@1">{
+  "title": "Budget split",
+  "series": [{ "label": "budget", "data": [
+    {"x":"R&D","y":40},{"x":"Sales","y":35},
+    {"x":"Ops","y":25}
+  ] }]
+}</code></pre>
+  </section>
+
+  <section>
+    <h2>Canvas threshold — &gt;100 marks switch to a canvas backend</h2>
+<pre><code class="language-chart:bar@1" id="big-bar-block">{
+  "title": "Large dataset (120 bars)",
+  "series": [{ "label": "v", "data": [] }]
+}</code></pre>
+  </section>
+
+  <section>
+    <h2>Error — missing required title (must fail loud)</h2>
+<pre><code class="language-chart:bar@1">{
+  "series": [{ "label": "x", "data": [{"x":"A","y":1}] }]
+}</code></pre>
+  </section>
+
+  <section>
+    <h2>Error — malformed JSON (must degrade, keep the text)</h2>
+<pre><code class="language-chart:bar@1">{
+  "title": "Broken",
+  "series": [{ "label": "x", "data": [{"x":"A","y":1},] }
+}</code></pre>
+  </section>
+
+  <section>
+    <h2>Error — unknown chart type</h2>
+<pre><code class="language-chart:teapot@1">{
+  "title": "Not a real type",
+  "series": [{ "label": "x", "data": [{"x":"A","y":1}] }]
+}</code></pre>
+  </section>
+
+  <section>
+    <h2>Error — version newer than the runtime supports</h2>
+<pre><code class="language-chart:bar@9">{
+  "title": "From the future",
+  "series": [{ "label": "x", "data": [{"x":"A","y":1}] }]
+}</code></pre>
+  </section>
+
+  <div style="height: 200px;"></div>
+</main>
+
+<!-- The DESIGN.md the engine themes the page from. -->
+<script type="text/design-md" id="ve-designmd">
+designmd_version: 1
+meta:
+  name: "Chart Fixture"
+  default_theme: light
+colors:
+  light:
+    canvas: "#faf6ee"
+    surface: "#ffffff"
+    surface-raised: "#fffdf8"
+    surface-sunken: "#f1ece0"
+    content: "#1f1a14"
+    content-muted: "#5b5343"
+    content-subtle: "#8a8170"
+    border: "#e3dcc9"
+    border-strong: "#c9bfa3"
+    accent: "#b8861f"
+    on-accent: "#ffffff"
+    success: "#3a6b5c"
+    warning: "#a8791f"
+    danger: "#a84a32"
+    info: "#3464a8"
+  dark:
+    canvas: "#1b1813"
+    surface: "#262119"
+    surface-raised: "#2f2920"
+    surface-sunken: "#15120d"
+    content: "#f3ecdd"
+    content-muted: "#b5ab93"
+    content-subtle: "#857c66"
+    border: "#3a3327"
+    border-strong: "#564c39"
+    accent: "#d8a83f"
+    on-accent: "#1b1813"
+    success: "#6db89c"
+    warning: "#d8a83f"
+    danger: "#d8765c"
+    info: "#6d9cd8"
+typography:
+  font-heading: "Playfair Display, Georgia, serif"
+  font-body: "Inter, system-ui, sans-serif"
+  font-mono: "JetBrains Mono, ui-monospace, monospace"
+  scale: [12, 14, 16, 20, 24, 32, 48]
+  weight-regular: 400
+  weight-medium: 500
+  weight-bold: 700
+  line-height: 1.55
+spacing:
+  scale: [4, 8, 12, 16, 24, 32, 48, 64]
+radius:
+  none: 0
+  sm: 4
+  md: 8
+  lg: 12
+  xl: 16
+  full: 9999
+motion:
+  duration-fast: 120
+  duration-slow: 400
+  easing-standard: "cubic-bezier(0.2,0,0,1)"
+  easing-decel: "cubic-bezier(0,0,0,1)"
+</script>
+
+<!-- A second DESIGN.md with a distinct accent — the theme-swap test
+     applies this so the SVG re-themes live without a re-render. -->
+<script type="text/design-md" id="ve-designmd-alt">
+designmd_version: 1
+meta:
+  name: "Chart Fixture Alt"
+  default_theme: light
+colors:
+  light:
+    canvas: "#f4f6fb"
+    surface: "#ffffff"
+    surface-raised: "#fbfcff"
+    surface-sunken: "#e9edf6"
+    content: "#16202e"
+    content-muted: "#4a5468"
+    content-subtle: "#7a8294"
+    border: "#d4dae6"
+    border-strong: "#b3bccb"
+    accent: "#2f6df0"
+    on-accent: "#ffffff"
+    success: "#1f7a5c"
+    warning: "#b87514"
+    danger: "#c23b32"
+    info: "#2f6df0"
+  dark:
+    canvas: "#0f1420"
+    surface: "#18202e"
+    surface-raised: "#1f2838"
+    surface-sunken: "#0a0e16"
+    content: "#e6ecf6"
+    content-muted: "#9aa4b8"
+    content-subtle: "#6a7284"
+    border: "#2a3447"
+    border-strong: "#3f4b60"
+    accent: "#5b8df5"
+    on-accent: "#0f1420"
+    success: "#4fae8a"
+    warning: "#e0a040"
+    danger: "#e0655c"
+    info: "#5b8df5"
+typography:
+  font-heading: "Playfair Display, Georgia, serif"
+  font-body: "Inter, system-ui, sans-serif"
+  font-mono: "JetBrains Mono, ui-monospace, monospace"
+  scale: [12, 14, 16, 20, 24, 32, 48]
+  weight-regular: 400
+  weight-medium: 500
+  weight-bold: 700
+  line-height: 1.55
+spacing:
+  scale: [4, 8, 12, 16, 24, 32, 48, 64]
+radius:
+  none: 0
+  sm: 4
+  md: 8
+  lg: 12
+  xl: 16
+  full: 9999
+</script>
+
+<!-- Manual-init: the test controls engine -> tokens -> chart order. -->
+<script>window.__vcManualInit = true;</script>
+<script src="amvcp-designmd.js"></script>
+<script src="amvcp-chart.js"></script>
+<script>
+// Apply the embedded DESIGN.md, populate the big-data block, inject the
+// chart CSS, and scan(). Errors surface on window for the test to read.
+(function () {
+  function applyTheme(themeName, designId) {
+    var raw = document.getElementById(designId || 've-designmd').textContent;
+    var parsed = window.amvcpDesignMd.parseDesignMd('---\n' + raw + '\n---\n');
+    if (!parsed.ok) {
+      window.__vcFixtureError = 'parse: ' + parsed.errors.join('; ');
+      return null;
+    }
+    var theme = themeName || parsed.designmd.meta.default_theme || 'light';
+    document.documentElement.setAttribute('data-ve-theme', theme);
+    var map = window.amvcpDesignMd.resolveTokens(parsed.designmd, theme);
+    window.amvcpDesignMd.applyTokens(map, document.documentElement);
+    return parsed.designmd;
+  }
+
+  function boot() {
+    try {
+      // Fill the >100-mark block so the canvas-threshold path triggers.
+      var bigData = [];
+      for (var i = 0; i < 120; i++) {
+        bigData.push({ x: 'i' + i, y: Math.round(40 + 30 * Math.sin(i / 6)) });
+      }
+      var bigBlock = document.getElementById('big-bar-block');
+      bigBlock.textContent = JSON.stringify({
+        title: 'Large dataset (120 bars)',
+        series: [{ label: 'v', data: bigData }]
+      });
+
+      window.__vcFixtureDesignMd = applyTheme(null, 've-designmd');
+      if (window.__vcFixtureError) { return; }
+
+      window.amvcpChart.injectChartCSS(document);
+      window.amvcpChart.scan(document);
+      window.__vcFixtureReady = true;
+    } catch (e) {
+      window.__vcFixtureError = String(e && e.message || e);
+    }
+  }
+
+  // Re-resolve + re-apply for the theme-swap / accent-swap tests.
+  window.__vcApplyTheme = function (theme) {
+    document.documentElement.setAttribute('data-ve-theme', theme);
+    var dm = window.__vcFixtureDesignMd;
+    if (!dm) { return false; }
+    var map = window.amvcpDesignMd.resolveTokens(dm, theme);
+    window.amvcpDesignMd.applyTokens(map, document.documentElement);
+    return true;
+  };
+  // Swap to the alternate DESIGN.md (a distinct accent) — the SVG charts
+  // must re-theme live; canvas charts are re-rendered by scan().
+  window.__vcApplyAltDesign = function () {
+    var dm = applyTheme('light', 've-designmd-alt');
+    if (!dm) { return false; }
+    // Canvas figures re-render on a theme swap; scan() handles them.
+    window.amvcpChart.scan(document);
+    return true;
+  };
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot);
+  } else {
+    boot();
+  }
+})();
+</script>
+</body>
+</html>

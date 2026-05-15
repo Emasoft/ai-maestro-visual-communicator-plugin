@@ -164,6 +164,25 @@
   if (window.__veInit) return;
   window.__veInit = true;
 
+  // ─── Phase 2 INTEGRATION (TRDD-352ef46a, task #172) ─────────────────
+  // The runtime DOES NOT set each module's __*ManualInit flag to true
+  // here. Two reasons:
+  //   1. Script load order is not guaranteed — render-interactive-
+  //      report.py emits modules BEFORE amvcp-runtime.js, so each
+  //      module's IIFE evaluates first and registers its own
+  //      DOMContentLoaded self-boot before this runtime IIFE has a
+  //      chance to flip the flag. Setting the flag here would not
+  //      change that registered listener.
+  //   2. The brief is explicit: "Set window.__vcManualInit = false (or
+  //      simply don't set it true) so each module's own DOMContentLoaded
+  //      fallback also works in standalone fixtures."
+  // Every module is idempotent on a second init/scan/boot call — chart
+  // re-renders to the same SVG, tables guards via document.__veTablesInit,
+  // interactive guards via window.__amvcpInteractiveBooted, animation /
+  // diagram / icon-svg / slide / wireframe / report-doc all replace their
+  // host contents in place — so the runtime's own bootVisualizeModules()
+  // pass runs harmlessly alongside each module's self-boot.
+
   var params = new URLSearchParams(location.search);
   var loc = location.origin || '';
   var isInteractive =
@@ -8151,9 +8170,13 @@
     '  name: "Visual Communicator default"',
     '  default_theme: light',
     'colors:',
+    // The light theme is a warm parchment scheme. `surface` and
+    // `on-accent` use a warm near-white (NOT pure #ffffff) — the
+    // anti-AI-slop gate flags literal pure #fff/#000, so the plugin's
+    // own default theme must avoid them to pass its own gate.
     '  light:',
     '    canvas:          "#faf6ee"',
-    '    surface:         "#ffffff"',
+    '    surface:         "#fffefb"',
     '    surface-raised:  "#fffdf8"',
     '    surface-sunken:  "#f1ece0"',
     '    content:         "#1f1a14"',
@@ -8162,7 +8185,7 @@
     '    border:          "#e3dcc9"',
     '    border-strong:   "#c9bfa3"',
     '    accent:          "#b8861f"',
-    '    on-accent:       "#ffffff"',
+    '    on-accent:       "#fffdf9"',
     '    success:         "#3a6b5c"',
     '    warning:         "#a8791f"',
     '    danger:          "#a84a32"',
@@ -8185,7 +8208,11 @@
     '    info:            "#6f9bd8"',
     'typography:',
     '  font-heading: "Playfair Display, Georgia, serif"',
-    '  font-body:    "Inter, system-ui, sans-serif"',
+    // font-body is a system-font stack (NOT Inter). The anti-AI-slop
+    // gate flags Inter/Roboto/Open Sans/Lato/Nunito as the *primary*
+    // family of a body/heading stack; the plugin's own default theme
+    // must pass its own gate, so the body face leads with system-ui.
+    '  font-body:    "system-ui, -apple-system, Segoe UI, sans-serif"',
     '  font-mono:    "JetBrains Mono, ui-monospace, monospace"',
     '  scale:        [12, 14, 16, 20, 24, 32, 48]',
     '  weight-regular: 400',
@@ -8201,17 +8228,65 @@
     '  lg:   12',
     '  xl:   16',
     '  full: 9999',
+    // elevation — the 5-level MD3 key+ambient scale plus the zero-blur
+    // hairline `shadow-border` ring (a shadow used AS a border so it
+    // adds no layout box). Updated in lockstep with the engine's
+    // ELEVATION_KEYS expansion — the old shadow-sm/md/lg keys would now
+    // be rejected as unknown.
     'elevation:',
-    '  shadow-sm: "0 1px 2px rgba(0,0,0,0.08)"',
-    '  shadow-md: "0 4px 12px rgba(0,0,0,0.12)"',
-    '  shadow-lg: "0 12px 32px rgba(0,0,0,0.18)"',
+    '  shadow-0: "none"',
+    '  shadow-1: "0 1px 2px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.10)"',
+    '  shadow-2: "0 2px 4px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.12)"',
+    '  shadow-3: "0 4px 8px rgba(0,0,0,0.08), 0 8px 20px rgba(0,0,0,0.14)"',
+    '  shadow-4: "0 8px 16px rgba(0,0,0,0.10), 0 16px 40px rgba(0,0,0,0.18)"',
+    '  shadow-border: "0 0 0 1px rgba(0,0,0,0.08)"',
+    // motion — the full 8-duration + 8-easing library so downstream
+    // animation consumers always have the tokens. Durations are ms.
     'motion:',
-    '  duration-fast:   120',
-    '  duration-normal: 200',
-    '  duration-slow:   400',
-    '  easing-standard: "cubic-bezier(0.2,0,0,1)"',
-    '  easing-accel:    "cubic-bezier(0.3,0,1,1)"',
-    '  easing-decel:    "cubic-bezier(0,0,0,1)"',
+    '  duration-instant:  50',
+    '  duration-fast:     100',
+    '  duration-quick:    200',
+    '  duration-base:     300',
+    '  duration-moderate: 400',
+    '  duration-slow:     500',
+    '  duration-lazy:     700',
+    '  duration-glacial:  1000',
+    '  easing-standard:         "cubic-bezier(0.2,0,0,1)"',
+    '  easing-decel:            "cubic-bezier(0,0,0,1)"',
+    '  easing-accel:            "cubic-bezier(0.3,0,1,1)"',
+    '  easing-emphasized-decel: "cubic-bezier(0.05,0.7,0.1,1)"',
+    '  easing-emphasized-accel: "cubic-bezier(0.3,0,0.8,0.15)"',
+    '  easing-spring:           "cubic-bezier(0.175,0.885,0.32,1.275)"',
+    '  easing-bounce:           "cubic-bezier(0.34,1.56,0.64,1)"',
+    '  easing-linear:           "linear"',
+    // z-index — the 9-level stacking scale. Optional group; included so
+    // scaffolded modals/overlays can key off --vc-z-* without fallbacks.
+    'z-index:',
+    '  behind:   -1',
+    '  base:     0',
+    '  raised:   10',
+    '  dropdown: 100',
+    '  sticky:   200',
+    '  overlay:  300',
+    '  modal:    400',
+    '  toast:    500',
+    '  tooltip:  600',
+    // code — the 12-token syntax-highlight palette, derived from the
+    // warm "Heritage" semantic colors so code coloring stays brand-
+    // coherent. Optional group; consumed by the code-block skill.
+    'code:',
+    '  keyword:     "#a8791f"',
+    '  string:      "#3a6b5c"',
+    '  number:      "#a84a32"',
+    '  comment:     "#8a8170"',
+    '  type:        "#3464a8"',
+    '  variable:    "#1f1a14"',
+    '  function:    "#7a5c9e"',
+    '  constant:    "#b8861f"',
+    '  operator:    "#5b5343"',
+    '  punctuation: "#8a8170"',
+    '  tag:         "#a84a32"',
+    '  attribute:   "#3a6b5c"',
     '---',
     '',
     '# Visual Communicator — default design system',
@@ -8834,6 +8909,14 @@
   // Toggle the active theme: re-stamp data-ve-theme on <html> and
   // re-resolve + re-apply the SAME designmd for the new theme (only the
   // colors differ — typography/spacing/radius are theme-agnostic).
+  //
+  // Phase 2 INTEGRATION (TRDD-352ef46a #172): after the new tokens are
+  // applied, dispatch `vc:themechange` so the visualize-skill modules
+  // (chart/icon-svg/slide/report-doc + diagram's own listener) can
+  // re-render any inline-resolved colours. `ve:themechange` is
+  // dispatched as a legacy alias for the wireframe module which binds
+  // that older event name. Both events carry the new theme name in
+  // detail.theme so a custom listener can branch on it.
   function veDesignMdToggleTheme(panel) {
     if (!veDesignMdState.designmd) {
       return;
@@ -8843,6 +8926,39 @@
     veDesignMdApply(veDesignMdState.designmd, next);
     veDesignMdSyncPanelTitle(panel);
     veDesignMdRenderControls(panel);
+    dispatchThemeChange(next);
+  }
+
+  // Dispatch the canonical `vc:themechange` event + legacy
+  // `ve:themechange` alias on `document`. The diagram module binds
+  // `vc:themechange` and `themechange`, the wireframe module binds
+  // `ve:themechange`, and the runtime's own bootThemeRescanListener
+  // binds `vc:themechange` — sending all three covers every module
+  // listener with a single call. Defensive against a sandbox that
+  // lacks CustomEvent (very old browsers — falls back to a plain
+  // Event without detail).
+  function dispatchThemeChange(theme) {
+    if (typeof document === 'undefined') return;
+    var detail = { theme: theme };
+    var ev1, ev2, ev3;
+    try {
+      ev1 = new CustomEvent('vc:themechange', { detail: detail });
+      ev2 = new CustomEvent('ve:themechange', { detail: detail });
+      ev3 = new CustomEvent('themechange', { detail: detail });
+    } catch (e) {
+      // Old-IE-style fallback. The event still fires, just without
+      // detail — modules read document.documentElement.dataset.veTheme
+      // instead, which is already up to date by this point.
+      ev1 = document.createEvent('Event');
+      ev1.initEvent('vc:themechange', false, false);
+      ev2 = document.createEvent('Event');
+      ev2.initEvent('ve:themechange', false, false);
+      ev3 = document.createEvent('Event');
+      ev3.initEvent('themechange', false, false);
+    }
+    document.dispatchEvent(ev1);
+    document.dispatchEvent(ev2);
+    document.dispatchEvent(ev3);
   }
 
   // Export the current in-memory designmd as DESIGN.md text via the
@@ -9085,6 +9201,216 @@
     veDesignMdWireLoadControls(panel);
   }
 
+  // ─── Phase 2 INTEGRATION — visualize-skill module wiring ──────────
+  //
+  // TRDD-352ef46a, task #172. After bootDesignMdEngine() has applied
+  // --vc-* to :root and injectStyles() has added the runtime's own
+  // CSS, walk the canonical visualize-skill module list and call each
+  // module's CSS-inject + auto-discovery entry-point. The order is
+  // chosen so each module's scan operates against the final --vc-*
+  // resolved values:
+  //   tokens (already applied by the engine) → token-sheet (manual mount only)
+  //   → layout → typography → animation → interactive → tables →
+  //   code-highlight (utility, no scan) → chart → diagram → icon-svg →
+  //   wireframe → slide → report-doc.
+  //
+  // Every call is defensively guarded so a missing module (the page
+  // omitted that script) is a no-op, and an init exception in one
+  // module does NOT block the others (each catch logs once and
+  // continues — a bad chart fence must not block diagram/slide/code
+  // rendering on the same page).
+  //
+  // The defensive shape is the same for every module:
+  //   tryModule('amvcpFoo', function (m) {
+  //     if (m.injectFooCSS) m.injectFooCSS(document);
+  //     m.scan(document);  // or m.init / m.boot — see comments below
+  //   });
+  function tryModule(globalName, fn) {
+    if (typeof window === 'undefined') return;
+    var m = window[globalName];
+    if (!m || typeof m !== 'object') return;
+    try {
+      fn(m);
+    } catch (e) {
+      if (window.console && console.warn) {
+        console.warn(globalName + ' init:', e);
+      }
+    }
+  }
+
+  function bootVisualizeModules() {
+    // tokens — the DESIGN.md engine (bootDesignMdEngine) already did
+    // the per-frame `--vc-*` apply. amvcpTokens is a pure validator
+    // module with no scan API, so there's nothing to call here.
+
+    // token-sheet — exposes renderContactSheet/mountContactSheet only
+    // (no auto-discovery scan). Mounting a contact sheet is an
+    // explicit per-page choice, so we do nothing here.
+
+    // layout — boot() runs initTOC + initStickyHeader + initSidebar.
+    // No CSS-inject API; the layout CSS is the sidecar amvcp-layout.css
+    // the page must <link> in.
+    tryModule('amvcpLayout', function (m) {
+      if (typeof m.boot === 'function') m.boot();
+    });
+
+    // typography — pure helper module: stamps data-ve-vfont and may
+    // apply a default scale system. No CSS-inject API (handled by
+    // amvcp-typography.css). No scan API either — applyScaleSystem is
+    // explicit per-page.
+    tryModule('amvcpTypography', function (m) {
+      if (typeof m.markVariableFontSupport === 'function') {
+        m.markVariableFontSupport(document);
+      }
+    });
+
+    // animation — injectAnimationCSS + init scans every reveal/tilt/
+    // loop scaffold and wires the IntersectionObserver chain.
+    tryModule('amvcpAnimation', function (m) {
+      if (typeof m.injectAnimationCSS === 'function') {
+        m.injectAnimationCSS(document);
+      }
+      if (typeof m.init === 'function') m.init(document);
+    });
+
+    // interactive — boot() is idempotent and self-guarded via
+    // window.__amvcpInteractiveBooted; injectFoundationCss is called
+    // internally from boot(). No external CSS-inject API to call.
+    tryModule('amvcpInteractive', function (m) {
+      if (typeof m.boot === 'function') m.boot();
+    });
+
+    // tables — init() is idempotent and self-guarded via
+    // document.__veTablesInit. No external CSS-inject API.
+    tryModule('amvcpTables', function (m) {
+      if (typeof m.init === 'function') m.init();
+    });
+
+    // code-highlight — pure utility module (highlightLine /
+    // highlightBlock / detectLanguage). No init / scan / CSS-inject
+    // API; per-block highlighting is the renderer's job. The page
+    // must <link> amvcp-code-highlight.css for the role classes to
+    // resolve.
+
+    // chart — injectChartCSS + scan walks every fenced ```chart block,
+    // parses the JSON, and renders to inline SVG.
+    tryModule('amvcpChart', function (m) {
+      if (typeof m.injectChartCSS === 'function') {
+        m.injectChartCSS(document);
+      }
+      if (typeof m.scan === 'function') m.scan(document);
+    });
+
+    // diagram — injectDiagramCSS + init renders every .ve-scene-graph
+    // host and styles every .ve-ascii-diagram. The diagram module
+    // ALSO binds its own `vc:themechange` / `themechange` listeners
+    // for theme hot-swap, so we do not need to re-scan it from
+    // bootThemeRescanListener below — it self-heals.
+    tryModule('amvcpDiagram', function (m) {
+      if (typeof m.injectDiagramCSS === 'function') {
+        m.injectDiagramCSS(document);
+      }
+      if (typeof m.init === 'function') m.init(document);
+    });
+
+    // icon-svg — injectIconSvgCSS + init compiles every `icon-svg`
+    // fenced block into themed SVG.
+    tryModule('amvcpIconSvg', function (m) {
+      if (typeof m.injectIconSvgCSS === 'function') {
+        m.injectIconSvgCSS(document);
+      }
+      if (typeof m.init === 'function') m.init(document);
+    });
+
+    // wireframe — init() scans every wireframe scaffold and applies
+    // the fidelity desaturation. The CSS lives in the sidecar
+    // amvcp-wireframe.css that the page must <link>; the module has
+    // no internal CSS-inject API. The wireframe module ALSO binds
+    // its own `ve:themechange` listener (note: ve: prefix, not vc:)
+    // so it self-heals on theme swap when that event is dispatched.
+    tryModule('amvcpWireframe', function (m) {
+      if (typeof m.init === 'function') m.init(document);
+    });
+
+    // slide — injectSlideCSS + boot parses every `slide-deck` fence
+    // and renders the deck stage. The browser global is named
+    // amvcpSlideDeck (not amvcpSlide — verified in scripts/amvcp-slide.js).
+    tryModule('amvcpSlideDeck', function (m) {
+      if (typeof m.injectSlideCSS === 'function') {
+        m.injectSlideCSS(document);
+      }
+      if (typeof m.boot === 'function') m.boot(document);
+    });
+
+    // report-doc — injectReportDocCSS + init wires the report-doc
+    // template (TOC scroll-spy, callouts, etc).
+    tryModule('amvcpReportDoc', function (m) {
+      if (typeof m.injectReportDocCSS === 'function') {
+        m.injectReportDocCSS(document);
+      }
+      if (typeof m.init === 'function') m.init(document);
+    });
+
+    // After all modules are booted, wire the cross-module theme
+    // re-scan listener (idempotent — installs only once).
+    bootThemeRescanListener();
+  }
+
+  // ─── Phase 2 INTEGRATION — theme re-scan ──────────────────────────
+  //
+  // When the DESIGN.md engine swaps the active theme (light <-> dark)
+  // it dispatches `vc:themechange` on `document`. Most modules
+  // (typography, layout, tables, code-highlight, interactive,
+  // animation) reflow purely via CSS vars — `--vc-color-*` resolves
+  // to the new theme value on the next paint, no JS needed.
+  //
+  // The SVG/canvas-rendered modules paint colours INLINE into the
+  // SVG (so a screenshot, an export, or a click-to-style probe sees
+  // the actual hex), and inline values do NOT update on a CSS-var
+  // change. Those modules expose a `scan` / `refresh` / `reThemeAll`
+  // entry-point that we re-call here.
+  //
+  // diagram + wireframe install their own listeners for the same
+  // event — calling them again here would double-render but is safe
+  // (their re-render is idempotent on a stored scene JSON). For
+  // determinism we call only the modules that do NOT self-bind:
+  // chart, icon-svg, slide, report-doc.
+  //
+  // The runtime ALSO dispatches `ve:themechange` (legacy alias)
+  // alongside `vc:themechange` so the wireframe module's existing
+  // `ve:themechange` listener fires on every theme swap.
+  function bootThemeRescanListener() {
+    if (window.__vcThemeRescanBound) return;
+    window.__vcThemeRescanBound = true;
+    function rescan() {
+      tryModule('amvcpChart', function (m) {
+        if (typeof m.scan === 'function') m.scan(document);
+      });
+      tryModule('amvcpIconSvg', function (m) {
+        if (typeof m.refresh === 'function') {
+          m.refresh(document);
+        } else if (typeof m.init === 'function') {
+          m.init(document);
+        }
+      });
+      tryModule('amvcpSlideDeck', function (m) {
+        if (typeof m.refresh === 'function') {
+          m.refresh(document);
+        } else if (typeof m.boot === 'function') {
+          m.boot(document);
+        }
+      });
+      tryModule('amvcpReportDoc', function (m) {
+        if (typeof m.refresh === 'function') {
+          m.refresh(document);
+        } else if (typeof m.init === 'function') {
+          m.init(document);
+        }
+      });
+    }
+    document.addEventListener('vc:themechange', rescan);
+  }
+
   function bootEverything() {
     detectAndStampTheme();   // MUST run before injectStyles so the
                              // :root[data-ve-theme="light"] overrides
@@ -9115,6 +9441,9 @@
     wireDecisionPills();         // TRDD-7a2dab03 v3 — per-element decision pills
     initReportMode();            // v4 — propagate data-ve-report to body
                                  // and inject .ve-decision-mini per atom
+    bootVisualizeModules();      // Phase 2 INTEGRATION (TRDD-352ef46a #172) —
+                                 // wire every visualize-skill module after
+                                 // tokens are on :root and runtime CSS is in.
     injectDesignMdControllerPad(); // Phase 1b — floating DESIGN.md style pad
     // Test hook — expose openCommentModal so headless tests can open
     // the modal directly without going through the (now-removed)

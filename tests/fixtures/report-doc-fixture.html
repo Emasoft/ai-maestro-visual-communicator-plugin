@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>report-doc skill test fixture</title>
+<style>
+  /* Page-level chrome themed off the DESIGN.md engine. The injected
+     report-doc skill stylesheet supplies everything the .vc-doc tree
+     needs — this block only paints the surrounding body. */
+  html, body { overflow-x: auto; }
+  body {
+    margin: 0;
+    background: var(--vc-color-canvas, #faf6ee);
+    color: var(--vc-color-content, #1f1a14);
+    font-family: var(--vc-font-body, Georgia, serif);
+  }
+  /* A small theme toggle the test calls via window.__vrApplyTheme(). */
+  .vr-theme-bar {
+    position: fixed;
+    top: 8px;
+    inset-inline-end: 8px;
+    z-index: 5;
+    font-size: 12px;
+  }
+  .vr-theme-bar button {
+    padding: 4px 10px;
+    border: 1px solid var(--vc-color-border, #e3dcc9);
+    background: var(--vc-color-surface, #fdfbf3);
+    color: var(--vc-color-content, #1f1a14);
+    cursor: pointer;
+    border-radius: 4px;
+  }
+</style>
+</head>
+<body>
+<div class="vr-theme-bar">
+  <button type="button" id="vr-light-btn">Light</button>
+  <button type="button" id="vr-dark-btn">Dark</button>
+</div>
+
+<!--
+  The doc shell is .vc-doc + a template modifier. The skill's injected
+  stylesheet themes EVERY child off --vc-* tokens, so a theme swap
+  recolors the whole document automatically.
+-->
+<article class="vc-doc vc-doc--whitepaper" id="report-root">
+  <header class="vc-doc-header">
+    <h1>The report-doc skill test fixture</h1>
+    <p class="vc-doc-subtitle">A self-contained whitepaper-template document
+       exercising every cross-cutting feature of the report-doc runtime.</p>
+    <p class="vc-doc-byline">Test fixture · light + dark · self-contained</p>
+  </header>
+
+  <!-- Layer A — table-of-contents with scroll-spy. The runtime's init()
+       wires an IntersectionObserver that adds .vc-toc-active on the link
+       whose target is currently in view. -->
+  <nav class="vc-toc" aria-label="Table of contents">
+    <p class="vc-toc-title">Sections</p>
+    <ol>
+      <li><a href="#sec-overview">Overview</a></li>
+      <li><a href="#sec-callouts">Callouts</a></li>
+      <li><a href="#sec-rubric">Rubric</a></li>
+      <li><a href="#sec-pull">Pull-quote</a></li>
+      <li><a href="#sec-metrics">Metrics</a></li>
+    </ol>
+  </nav>
+
+  <section id="sec-overview">
+    <h2>Overview</h2>
+    <p>This page is the in-browser test fixture for
+       <code>scripts/amvcp-report-doc.js</code>. It loads
+       <code>amvcp-designmd.js</code> and
+       <code>amvcp-report-doc.js</code> as browser globals and (because
+       <code>window.__vcReportDocManualInit</code> is set) lets the inline
+       boot script apply the engine tokens, inject the report-doc CSS, and
+       call <code>init(document)</code> deterministically — so the test
+       owns the order of CSS-inject and runtime wiring.</p>
+    <p>The page exercises every component the skill ships: the doc shell,
+       the whitepaper template (note the <code>01</code>, <code>02</code>
+       leading-zero numbering on each <code>h2</code>), the five callout
+       variants, a scored rubric, a pull-quote, the metrics row, the TOC
+       with scroll-spy, and the print stylesheet (defined in CSS only —
+       only visible in print preview). Each is themed entirely off
+       <code>--vc-*</code> tokens, so a theme toggle recolors the page
+       without re-rendering.</p>
+    <pre><code>// the public API exposed to tests:
+//   injectReportDocCSS(doc)
+//   init(root)
+//   refresh(root)
+//   runGates(documentOrRoot, pageId)   -&gt; QaReport
+//   runGatesOnHtml(htmlText, pageId)   -&gt; QaReport
+//   contrastRatio(a, b)                -&gt; number
+//   resetLoopState()</code></pre>
+  </section>
+
+  <section id="sec-callouts">
+    <h2>Callouts</h2>
+    <p>Each callout variant maps to one <code>--vc-color-*</code> role
+       (success / warning / info / accent / danger). The accent border
+       and the tinted background re-derive automatically when the engine
+       swaps the role value, so light + dark are correct without a per-
+       theme rule.</p>
+
+    <aside class="vc-callout vc-callout--tip" id="callout-tip">
+      <span class="vc-callout-glyph" aria-hidden="true"></span>
+      <div class="vc-callout-body">
+        <p class="vc-callout-title">Tip</p>
+        <p>Re-author rather than copy when you re-target a renderer.</p>
+      </div>
+    </aside>
+
+    <aside class="vc-callout vc-callout--warning" id="callout-warning">
+      <span class="vc-callout-glyph" aria-hidden="true"></span>
+      <div class="vc-callout-body">
+        <p class="vc-callout-title">Warning</p>
+        <p>Inner scrollbars defeat find-in-page and screen readers.</p>
+      </div>
+    </aside>
+
+    <aside class="vc-callout vc-callout--info" id="callout-info">
+      <span class="vc-callout-glyph" aria-hidden="true"></span>
+      <div class="vc-callout-body">
+        <p class="vc-callout-title">Info</p>
+        <p>Banned hue range covers purple/violet/indigo (255–320 deg).</p>
+      </div>
+    </aside>
+
+    <aside class="vc-callout vc-callout--note" id="callout-note">
+      <span class="vc-callout-glyph" aria-hidden="true"></span>
+      <div class="vc-callout-body">
+        <p class="vc-callout-title">Note</p>
+        <p>The pure-black / pure-white ban applies to design-role values
+           only — print-block overrides are exempt by design.</p>
+      </div>
+    </aside>
+
+    <aside class="vc-callout vc-callout--danger" id="callout-danger">
+      <span class="vc-callout-glyph" aria-hidden="true"></span>
+      <div class="vc-callout-body">
+        <p class="vc-callout-title">Danger</p>
+        <p>Failing the same gate twice in a row should escalate, not auto-
+           retry. The runner is advisory; it never auto-fixes.</p>
+      </div>
+    </aside>
+  </section>
+
+  <section id="sec-rubric">
+    <h2>Rubric</h2>
+    <p>A scored matrix used to evaluate alternatives. The total row picks
+       up the accent-tint background (<code>color-mix(in srgb, accent 10%,
+       transparent)</code>) so it works in both themes without a per-theme
+       rule.</p>
+    <table class="vc-rubric" id="rubric-demo">
+      <caption>Engine choice — three options, four criteria, weight 1–5.</caption>
+      <thead>
+        <tr><th>Criterion</th><th>Option A</th><th>Option B</th><th>Option C</th></tr>
+      </thead>
+      <tbody>
+        <tr><th>Themeability</th>
+            <td class="vc-rubric-score">5</td>
+            <td class="vc-rubric-score">3</td>
+            <td class="vc-rubric-score">4</td></tr>
+        <tr><th>Verifiability</th>
+            <td class="vc-rubric-score">4</td>
+            <td class="vc-rubric-score">2</td>
+            <td class="vc-rubric-score">5</td></tr>
+        <tr><th>Print fidelity</th>
+            <td class="vc-rubric-score">5</td>
+            <td class="vc-rubric-score">5</td>
+            <td class="vc-rubric-score">3</td></tr>
+        <tr><th>Dependency footprint</th>
+            <td class="vc-rubric-score">5</td>
+            <td class="vc-rubric-score">3</td>
+            <td class="vc-rubric-score">4</td></tr>
+      </tbody>
+      <tfoot>
+        <tr><th>Total</th>
+            <td class="vc-rubric-total">19</td>
+            <td class="vc-rubric-total">13</td>
+            <td class="vc-rubric-total">16</td></tr>
+      </tfoot>
+    </table>
+  </section>
+
+  <section id="sec-pull">
+    <h2>Pull-quote</h2>
+    <blockquote class="vc-pullquote" id="pull-demo">
+      One source of truth, one runtime, one verifier — the rest is
+      composition.
+    </blockquote>
+  </section>
+
+  <section id="sec-metrics">
+    <h2>Metrics</h2>
+    <div class="vc-metrics" id="metrics-row">
+      <div class="vc-metric">
+        <p class="vc-metric-value">7</p>
+        <p class="vc-metric-label">QA gates</p>
+      </div>
+      <div class="vc-metric">
+        <p class="vc-metric-value">6</p>
+        <p class="vc-metric-label">Templates</p>
+      </div>
+      <div class="vc-metric">
+        <p class="vc-metric-value">5</p>
+        <p class="vc-metric-label">Callout variants</p>
+      </div>
+      <div class="vc-metric">
+        <p class="vc-metric-value">2</p>
+        <p class="vc-metric-label">Run modes</p>
+      </div>
+    </div>
+    <!-- Tall spacer pushes a target far below the fold so the TOC scroll-
+         spy test has somewhere to scroll to. -->
+    <div style="height: 1800px;"></div>
+    <p>Below-the-fold prose. The TOC scroll-spy should highlight
+       <a href="#sec-metrics">Metrics</a> while this paragraph is in view.</p>
+  </section>
+</article>
+
+<!-- The DESIGN.md the engine themes the page from. Two themes shipped —
+     the test toggles between them to assert recolor. -->
+<script type="text/design-md" id="ve-designmd">
+designmd_version: 1
+meta:
+  name: "Report-Doc Fixture"
+  default_theme: light
+colors:
+  # Token values selected so the QA pipeline (Gates 2 + 6 + 7) PASSes
+  # cleanly: no pure white or black (banned-color), every text/background
+  # pairing clears WCAG AA 4.5:1 (notably on-accent on accent at >=4.5).
+  # The dark-theme accent is darkened for the same reason.
+  light:
+    canvas: "#faf6ee"
+    surface: "#fdfbf3"
+    surface-raised: "#fffdf6"
+    surface-sunken: "#f1ece0"
+    content: "#1f1a14"
+    content-muted: "#5b5343"
+    content-subtle: "#7a715f"
+    border: "#e3dcc9"
+    border-strong: "#c9bfa3"
+    accent: "#7a5a14"
+    on-accent: "#fdfbf3"
+    success: "#3a6b5c"
+    warning: "#a87a14"
+    danger: "#a84a32"
+    info: "#2d4f86"
+  dark:
+    canvas: "#1b1813"
+    surface: "#262119"
+    surface-raised: "#2f2920"
+    surface-sunken: "#15120d"
+    content: "#f3ecdd"
+    content-muted: "#c4ba9f"
+    content-subtle: "#a59c80"
+    border: "#3a3327"
+    border-strong: "#564c39"
+    accent: "#e0b04a"
+    on-accent: "#1b1813"
+    success: "#6db89c"
+    warning: "#f0c060"
+    danger: "#e8917a"
+    info: "#8eb2dc"
+typography:
+  font-heading: "Playfair Display, Georgia, serif"
+  font-body: "Iowan Old Style, Georgia, serif"
+  font-mono: "JetBrains Mono, ui-monospace, monospace"
+  scale: [12, 14, 16, 20, 24, 32, 48]
+  weight-regular: 400
+  weight-medium: 500
+  weight-bold: 700
+  line-height: 1.55
+spacing:
+  scale: [4, 8, 12, 16, 24, 32, 48, 64]
+radius:
+  none: 0
+  sm: 4
+  md: 8
+  lg: 12
+  xl: 16
+  full: 9999
+motion:
+  duration-fast: 120
+  duration-slow: 400
+  easing-standard: "cubic-bezier(0.2,0,0,1)"
+  easing-decel: "cubic-bezier(0,0,0,1)"
+</script>
+
+<!-- Manual-init: the test owns engine -> tokens -> inject -> init order. -->
+<script>window.__vcReportDocManualInit = true;</script>
+<!-- Served via the tests/fixtures/amvcp-*.js symlinks -> ../../scripts/. -->
+<script src="amvcp-designmd.js"></script>
+<script src="amvcp-report-doc.js"></script>
+<script>
+// Apply the embedded DESIGN.md, inject the report-doc CSS, init the
+// runtime. Errors surface on window for the test to read.
+(function () {
+  function boot() {
+    try {
+      var raw = document.getElementById('ve-designmd').textContent;
+      var parsed = window.amvcpDesignMd.parseDesignMd(
+        '---\n' + raw + '\n---\n');
+      if (!parsed.ok) {
+        window.__vrFixtureError = 'parse: ' + parsed.errors.join('; ');
+        return;
+      }
+      window.__vrFixtureDesignMd = parsed.designmd;
+      var theme = parsed.designmd.meta.default_theme || 'light';
+      document.documentElement.setAttribute('data-ve-theme', theme);
+      var map = window.amvcpDesignMd.resolveTokens(parsed.designmd, theme);
+      window.amvcpDesignMd.applyTokens(map, document.documentElement);
+      // Engine tokens applied -> inject the skill CSS, init the TOC spy.
+      window.amvcpReportDoc.injectReportDocCSS(document);
+      window.amvcpReportDoc.init(document);
+      window.__vrFixtureReady = true;
+    } catch (e) {
+      window.__vrFixtureError = String(e && e.message || e);
+    }
+  }
+  // Re-resolve + re-apply for a theme toggle (test 8 uses this).
+  window.__vrApplyTheme = function (theme) {
+    var dm = window.__vrFixtureDesignMd;
+    if (!dm) { return false; }
+    document.documentElement.setAttribute('data-ve-theme', theme);
+    var map = window.amvcpDesignMd.resolveTokens(dm, theme);
+    window.amvcpDesignMd.applyTokens(map, document.documentElement);
+    return true;
+  };
+  // Buttons for human inspection (the test does NOT click them — it
+  // calls __vrApplyTheme directly — but they're handy when opening the
+  // fixture by hand to eyeball the recolor).
+  document.getElementById('vr-light-btn').addEventListener('click',
+    function () { window.__vrApplyTheme('light'); });
+  document.getElementById('vr-dark-btn').addEventListener('click',
+    function () { window.__vrApplyTheme('dark'); });
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot);
+  } else {
+    boot();
+  }
+})();
+</script>
+</body>
+</html>

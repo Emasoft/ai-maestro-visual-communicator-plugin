@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en" data-ve-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>layout print — test fixture</title>
+
+<script type="text/design-md" id="ve-designmd">
+---
+designmd_version: 1
+meta:
+  name: "Layout Print Fixture"
+  default_theme: light
+colors:
+  light:
+    canvas:          "#faf6ee"
+    surface:         "#ffffff"
+    surface-raised:  "#fffdf8"
+    surface-sunken:  "#f1ece0"
+    content:         "#1f1a14"
+    content-muted:   "#5b5343"
+    content-subtle:  "#8a8170"
+    border:          "#e3dcc9"
+    border-strong:   "#c9bfa3"
+    accent:          "#b8861f"
+    on-accent:       "#ffffff"
+    success:         "#3a6b5c"
+    warning:         "#a8791f"
+    danger:          "#a84a32"
+    info:            "#3464a8"
+  dark:
+    canvas:          "#16130d"
+    surface:         "#211c14"
+    surface-raised:  "#2a241a"
+    surface-sunken:  "#0f0d09"
+    content:         "#f3ecdd"
+    content-muted:   "#b8ad96"
+    content-subtle:  "#857c68"
+    border:          "#3a3325"
+    border-strong:   "#564c36"
+    accent:          "#e0aa3e"
+    on-accent:       "#16130d"
+    success:         "#6fae9b"
+    warning:         "#d8aa54"
+    danger:          "#dd8068"
+    info:            "#6f9bd8"
+typography:
+  font-heading: "Playfair Display, Georgia, serif"
+  font-body:    "system-ui, -apple-system, Segoe UI, sans-serif"
+  font-mono:    "JetBrains Mono, ui-monospace, monospace"
+  scale:        [12, 14, 16, 20, 24, 32, 48]
+  weight-regular: 400
+  weight-medium:  500
+  weight-bold:    700
+  line-height:    1.55
+spacing:
+  scale: [4, 8, 12, 16, 24, 32, 48, 64]
+radius:
+  none: 0
+  sm:   4
+  md:   8
+  lg:   12
+  xl:   16
+  full: 9999
+---
+
+# Layout print fixture DESIGN.md
+</script>
+
+<link rel="stylesheet" href="amvcp-layout.css">
+
+<style>
+  body {
+    margin: 0;
+    background: var(--vc-color-canvas, #faf6ee);
+    color: var(--vc-color-content, #1f1a14);
+    font: 16px/1.55 system-ui, -apple-system, sans-serif;
+  }
+  .demo-region {
+    background: var(--vc-color-surface, #fff);
+    border: 1px solid var(--vc-color-border, #ddd);
+    padding: var(--la-gap, 16px);
+  }
+</style>
+</head>
+<body>
+
+<!-- Group 6 — optional cover page that forces a page break after it. -->
+<section class="la-cover la-break-after" data-ve-id="cover">
+  <h1>Printed Report</h1>
+  <p class="la-cover__meta">2026-05-15 / layout fixture</p>
+</section>
+
+<!-- Page chrome that must vanish from the printed output. -->
+<header class="la-header no-print" data-ve-id="page-header" data-ve-type="section">
+  <span class="la-header__title">Print Fixture</span>
+</header>
+
+<!-- Group 5 TOC — also hidden in print by the @media print block. -->
+<nav class="la-toc" data-ve-id="toc" data-ve-type="section" aria-label="On this page">
+  <ol class="la-toc__list">
+    <li><a href="#sec-body" data-depth="2">Body</a></li>
+  </ol>
+</nav>
+
+<!-- Group 3 reading container — the @media print block flattens its
+     grid so the text fills the printable A4 width. -->
+<article class="la-article" data-ve-id="article" data-ve-type="section">
+  <h2 id="sec-body">Report body</h2>
+  <p>Body content inside the measured reading column on screen; on
+     paper the grid flattens and the text fills the page.</p>
+  <div class="la-kpi-row la-break-inside-avoid demo-region" data-ve-id="kpi-row">
+    A KPI row that must not be split across a page boundary.
+  </div>
+</article>
+
+<!-- Group 6 — a section forced onto a fresh printed page. -->
+<section class="la-break-before demo-region" data-ve-id="appendix">
+  <h2>Appendix</h2>
+  <p>This section starts on a new printed page.</p>
+</section>
+
+<script src="amvcp-designmd.js"></script>
+<script src="amvcp-layout.js"></script>
+<script>
+  (function () {
+    'use strict';
+    function apply(themeName) {
+      var block = document.getElementById('ve-designmd');
+      var api = window.amvcpDesignMd;
+      if (!block || !api) { return; }
+      // The embedded block's textContent starts with the newline that
+      // follows the opening tag — trim it so the `---` fence is on
+      // line 1, which the engine's frontmatter splitter requires.
+      var parsed = api.parseDesignMd(block.textContent.trim());
+      if (!parsed.ok) {
+        if (window.console) { console.error('fixture: DESIGN.md parse failed', parsed.errors); }
+        return;
+      }
+      var theme = themeName || parsed.designmd.meta.default_theme || 'light';
+      api.applyTokens(api.resolveTokens(parsed.designmd, theme), document.documentElement);
+      document.documentElement.setAttribute('data-ve-theme', theme);
+    }
+    window.__veLayoutFixture = { applyTheme: apply };
+    apply();
+  })();
+</script>
+</body>
+</html>

@@ -21,10 +21,11 @@
  *
  * Fail-fast contract: a missing required key, a malformed frontmatter, a
  * circular `{token.ref}`, or an out-of-range reference is a HARD ERROR.
- * The engine never invents defaults. The two documented exceptions are
- * the `elevation` and `motion` groups — if a group is absent entirely,
- * its CSS vars are simply not emitted (no error). If the group is present
- * but partially filled, the present keys are validated normally.
+ * The engine never invents defaults. The documented exceptions are the
+ * OPTIONAL groups — `elevation`, `motion`, `z-index`, `code` — if such a
+ * group is absent entirely, its CSS vars are simply not emitted (no
+ * error). If the group is present but partially filled, the present keys
+ * are validated normally.
  *
  * API:
  *   parseDesignMd(text)            -> { ok, designmd, errors:[] }
@@ -55,8 +56,51 @@
   // Typography weight keys.
   var WEIGHT_KEYS = ['regular', 'medium', 'bold'];
 
+  // Elevation shadow keys — a 5-level MD3 scale (0=flat … 4=modal) plus
+  // a zero-blur hairline ring (`shadow-border`, a shadow used AS a border
+  // so it adds no layout box). The whole `elevation` group is optional;
+  // when present, only these keys are accepted.
+  var ELEVATION_KEYS = [
+    'shadow-0', 'shadow-1', 'shadow-2', 'shadow-3', 'shadow-4',
+    'shadow-border'
+  ];
+
+  // Motion durations (ms) — an 8-step ramp from a 50ms micro-transition
+  // up to a 1s deliberate move. Optional group.
+  var MOTION_DURATION_KEYS = [
+    'duration-instant', 'duration-fast', 'duration-quick', 'duration-base',
+    'duration-moderate', 'duration-slow', 'duration-lazy', 'duration-glacial'
+  ];
+
+  // Motion easings — 8 named cubic-bezier (or `linear`) curves. Optional.
+  var MOTION_EASING_KEYS = [
+    'easing-standard', 'easing-decel', 'easing-accel',
+    'easing-emphasized-decel', 'easing-emphasized-accel',
+    'easing-spring', 'easing-bounce', 'easing-linear'
+  ];
+
+  // z-index named levels — a fixed 9-level stacking scale. `behind` is
+  // negative (a decorative layer under content) so its values are
+  // validated as FINITE numbers, not non-negative ones. The whole group
+  // is OPTIONAL: a DESIGN.md authored before this group existed still
+  // parses, and scaffolded HTML uses `var(--vc-z-modal, 400)` fallbacks.
+  var ZINDEX_KEYS = [
+    'behind', 'base', 'raised', 'dropdown', 'sticky',
+    'overlay', 'modal', 'toast', 'tooltip'
+  ];
+
+  // Syntax-highlight color roles — a 12-token palette for code blocks.
+  // Optional group (a report with no code does not need it).
+  var CODE_KEYS = [
+    'keyword', 'string', 'number', 'comment', 'type', 'variable',
+    'function', 'constant', 'operator', 'punctuation', 'tag', 'attribute'
+  ];
+
   // Optional groups whose total absence is allowed (DM-16 exception).
-  var OPTIONAL_GROUPS = ['elevation', 'motion'];
+  // `elevation`/`motion` were optional from Phase 1a; `z-index`/`code`
+  // are added optional so the expansion stays backward-compatible —
+  // no existing DESIGN.md (runtime default, fixtures) fails to parse.
+  var OPTIONAL_GROUPS = ['elevation', 'motion', 'z-index', 'code'];
 
   // `{token.ref}` recursion guard — references deeper than this many hops
   // are rejected as a hard error (defends against a chain bomb even when
@@ -188,14 +232,15 @@
       });
     }
 
-    // Elevation — optional group, three shadow tokens.
-    var shadows = ['sm', 'md', 'lg'];
-    for (i = 0; i < shadows.length; i++) {
+    // Elevation — optional group, a 5-level MD3 shadow scale plus the
+    // hairline `shadow-border` ring. The key already carries the
+    // `shadow-` prefix, so the CSS var is `--vc-` + the key.
+    for (i = 0; i < ELEVATION_KEYS.length; i++) {
       schema.push({
-        key: 'shadow-' + shadows[i],
+        key: ELEVATION_KEYS[i],
         group: 'elevation',
         type: 'shadow',
-        cssVar: '--vc-shadow-' + shadows[i],
+        cssVar: '--vc-' + ELEVATION_KEYS[i],
         control: 'shadow',
         themed: false,
         indexed: false,
@@ -204,14 +249,13 @@
       });
     }
 
-    // Motion — optional group, durations (ms) + easings.
-    var durations = ['fast', 'normal', 'slow'];
-    for (i = 0; i < durations.length; i++) {
+    // Motion — optional group, 8 durations (ms) + 8 easings.
+    for (i = 0; i < MOTION_DURATION_KEYS.length; i++) {
       schema.push({
-        key: 'duration-' + durations[i],
+        key: MOTION_DURATION_KEYS[i],
         group: 'motion',
         type: 'number',
-        cssVar: '--vc-duration-' + durations[i],
+        cssVar: '--vc-' + MOTION_DURATION_KEYS[i],
         control: 'number',
         themed: false,
         indexed: false,
@@ -219,14 +263,46 @@
         optional: true
       });
     }
-    var easings = ['standard', 'accel', 'decel'];
-    for (i = 0; i < easings.length; i++) {
+    for (i = 0; i < MOTION_EASING_KEYS.length; i++) {
       schema.push({
-        key: 'easing-' + easings[i],
+        key: MOTION_EASING_KEYS[i],
         group: 'motion',
         type: 'easing',
-        cssVar: '--vc-easing-' + easings[i],
+        cssVar: '--vc-' + MOTION_EASING_KEYS[i],
         control: 'easing',
+        themed: false,
+        indexed: false,
+        unit: '',
+        optional: true
+      });
+    }
+
+    // z-index — optional group, a fixed 9-level stacking scale. Raw
+    // integers, NO unit. `behind` is negative — the value is still a
+    // plain `number` token; validation allows it via checkFiniteNumber.
+    for (i = 0; i < ZINDEX_KEYS.length; i++) {
+      schema.push({
+        key: ZINDEX_KEYS[i],
+        group: 'z-index',
+        type: 'number',
+        cssVar: '--vc-z-' + ZINDEX_KEYS[i],
+        control: 'number',
+        themed: false,
+        indexed: false,
+        unit: '',
+        optional: true
+      });
+    }
+
+    // code — optional group, a 12-token syntax-highlight palette. Each
+    // value is a color string, emitted verbatim into `--vc-code-<k>`.
+    for (i = 0; i < CODE_KEYS.length; i++) {
+      schema.push({
+        key: CODE_KEYS[i],
+        group: 'code',
+        type: 'color',
+        cssVar: '--vc-code-' + CODE_KEYS[i],
+        control: 'color-swatch',
         themed: false,
         indexed: false,
         unit: '',
@@ -688,14 +764,14 @@
     }
 
     // elevation — OPTIONAL group. Absent entirely → fine. Present → each
-    // declared shadow key must be a non-empty string.
+    // declared shadow key must be a non-empty string. The 5-level MD3
+    // scale + `shadow-border` are the only accepted keys.
     if (has(tree, 'elevation')) {
       if (!isMap(tree.elevation)) {
         errors.push('`elevation` is present but is not a map');
       } else {
         checkOptionalStringMap(
-          tree.elevation, ['shadow-sm', 'shadow-md', 'shadow-lg'],
-          'elevation', errors
+          tree.elevation, ELEVATION_KEYS, 'elevation', errors
         );
       }
     }
@@ -706,18 +782,53 @@
         errors.push('`motion` is present but is not a map');
       } else {
         var m = tree.motion;
-        checkOptionalNumber(m, 'duration-fast', 'motion.duration-fast', errors);
-        checkOptionalNumber(m, 'duration-normal', 'motion.duration-normal', errors);
-        checkOptionalNumber(m, 'duration-slow', 'motion.duration-slow', errors);
-        checkOptionalString(m, 'easing-standard', 'motion.easing-standard', errors);
-        checkOptionalString(m, 'easing-accel', 'motion.easing-accel', errors);
-        checkOptionalString(m, 'easing-decel', 'motion.easing-decel', errors);
+        var mi;
+        for (mi = 0; mi < MOTION_DURATION_KEYS.length; mi++) {
+          checkOptionalNumber(
+            m, MOTION_DURATION_KEYS[mi],
+            'motion.' + MOTION_DURATION_KEYS[mi], errors
+          );
+        }
+        for (mi = 0; mi < MOTION_EASING_KEYS.length; mi++) {
+          checkOptionalString(
+            m, MOTION_EASING_KEYS[mi],
+            'motion.' + MOTION_EASING_KEYS[mi], errors
+          );
+        }
         // Reject keys that are not part of the motion schema so a typo
         // like `duration-meduim` fails loudly instead of being ignored.
-        rejectUnknownKeys(m, [
-          'duration-fast', 'duration-normal', 'duration-slow',
-          'easing-standard', 'easing-accel', 'easing-decel'
-        ], 'motion', errors);
+        rejectUnknownKeys(
+          m, MOTION_DURATION_KEYS.concat(MOTION_EASING_KEYS),
+          'motion', errors
+        );
+      }
+    }
+
+    // z-index — OPTIONAL group. Present → each of the 9 keys must be a
+    // FINITE number (negative allowed — `behind` is -1). Unknown keys
+    // are rejected so a typo fails loudly.
+    if (has(tree, 'z-index')) {
+      if (!isMap(tree['z-index'])) {
+        errors.push('`z-index` is present but is not a map');
+      } else {
+        var zi;
+        for (zi = 0; zi < ZINDEX_KEYS.length; zi++) {
+          checkOptionalFiniteNumber(
+            tree['z-index'], ZINDEX_KEYS[zi],
+            'z-index.' + ZINDEX_KEYS[zi], errors
+          );
+        }
+        rejectUnknownKeys(tree['z-index'], ZINDEX_KEYS, 'z-index', errors);
+      }
+    }
+
+    // code — OPTIONAL group. Present → each declared key must be a
+    // non-empty color string. Unknown keys rejected.
+    if (has(tree, 'code')) {
+      if (!isMap(tree.code)) {
+        errors.push('`code` is present but is not a map');
+      } else {
+        checkOptionalStringMap(tree.code, CODE_KEYS, 'code', errors);
       }
     }
   }
@@ -788,6 +899,21 @@
     if (has(obj, key) && (typeof obj[key] !== 'number' || obj[key] < 0)) {
       errors.push(
         label + ' (when present) must be a non-negative number, got ' +
+        jsonish(obj[key])
+      );
+    }
+  }
+
+  // Like checkOptionalNumber but allows negative values — used by the
+  // z-index group, whose `behind` level is intentionally -1. The value
+  // must still be a finite JS number (parseScalarOrArray already rejects
+  // NaN/Infinity, but resolveTokens is public so guard here too).
+  function checkOptionalFiniteNumber(obj, key, label, errors) {
+    if (has(obj, key) &&
+        (typeof obj[key] !== 'number' || isNaN(obj[key]) ||
+         !isFinite(obj[key]))) {
+      errors.push(
+        label + ' (when present) must be a finite number, got ' +
         jsonish(obj[key])
       );
     }
@@ -925,20 +1051,49 @@
     }
 
     // Elevation — optional. Emit only the shadow keys actually present.
+    // The key already carries the `shadow-` prefix → CSS var is --vc-+key.
     if (isMap(tokens.elevation)) {
-      emitOptional(tokens.elevation, 'shadow-sm', '--vc-shadow-sm', '', out);
-      emitOptional(tokens.elevation, 'shadow-md', '--vc-shadow-md', '', out);
-      emitOptional(tokens.elevation, 'shadow-lg', '--vc-shadow-lg', '', out);
+      for (i = 0; i < ELEVATION_KEYS.length; i++) {
+        emitOptional(
+          tokens.elevation, ELEVATION_KEYS[i],
+          '--vc-' + ELEVATION_KEYS[i], '', out
+        );
+      }
     }
 
     // Motion — optional. Durations get a `ms` unit, easings are verbatim.
     if (isMap(tokens.motion)) {
-      emitOptional(tokens.motion, 'duration-fast', '--vc-duration-fast', 'ms', out);
-      emitOptional(tokens.motion, 'duration-normal', '--vc-duration-normal', 'ms', out);
-      emitOptional(tokens.motion, 'duration-slow', '--vc-duration-slow', 'ms', out);
-      emitOptional(tokens.motion, 'easing-standard', '--vc-easing-standard', '', out);
-      emitOptional(tokens.motion, 'easing-accel', '--vc-easing-accel', '', out);
-      emitOptional(tokens.motion, 'easing-decel', '--vc-easing-decel', '', out);
+      for (i = 0; i < MOTION_DURATION_KEYS.length; i++) {
+        emitOptional(
+          tokens.motion, MOTION_DURATION_KEYS[i],
+          '--vc-' + MOTION_DURATION_KEYS[i], 'ms', out
+        );
+      }
+      for (i = 0; i < MOTION_EASING_KEYS.length; i++) {
+        emitOptional(
+          tokens.motion, MOTION_EASING_KEYS[i],
+          '--vc-' + MOTION_EASING_KEYS[i], '', out
+        );
+      }
+    }
+
+    // z-index — optional. Raw integers, no unit. Emit present keys only.
+    if (isMap(tokens['z-index'])) {
+      for (i = 0; i < ZINDEX_KEYS.length; i++) {
+        emitOptional(
+          tokens['z-index'], ZINDEX_KEYS[i],
+          '--vc-z-' + ZINDEX_KEYS[i], '', out
+        );
+      }
+    }
+
+    // code — optional. Color strings, verbatim. Emit present keys only.
+    if (isMap(tokens.code)) {
+      for (i = 0; i < CODE_KEYS.length; i++) {
+        emitOptional(
+          tokens.code, CODE_KEYS[i], '--vc-code-' + CODE_KEYS[i], '', out
+        );
+      }
     }
 
     return out;
@@ -1027,16 +1182,27 @@
 
     if (isMap(t.elevation)) {
       lines.push('elevation:');
-      serializeOptionalMap(lines, t.elevation,
-        ['shadow-sm', 'shadow-md', 'shadow-lg']);
+      serializeOptionalMap(lines, t.elevation, ELEVATION_KEYS);
     }
 
     if (isMap(t.motion)) {
       lines.push('motion:');
-      serializeOptionalMap(lines, t.motion, [
-        'duration-fast', 'duration-normal', 'duration-slow',
-        'easing-standard', 'easing-accel', 'easing-decel'
-      ]);
+      serializeOptionalMap(
+        lines, t.motion, MOTION_DURATION_KEYS.concat(MOTION_EASING_KEYS)
+      );
+    }
+
+    // z-index — the YAML key contains a hyphen; it is emitted literally
+    // (`z-index:`, not `"z-index":`) — serializeOptionalMap only quotes
+    // VALUES, never the group header, and the header is pushed verbatim.
+    if (isMap(t['z-index'])) {
+      lines.push('z-index:');
+      serializeOptionalMap(lines, t['z-index'], ZINDEX_KEYS);
+    }
+
+    if (isMap(t.code)) {
+      lines.push('code:');
+      serializeOptionalMap(lines, t.code, CODE_KEYS);
     }
 
     lines.push('---');

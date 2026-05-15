@@ -1,0 +1,1 @@
+../../scripts/amvcp-report-doc.js

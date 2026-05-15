@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en" data-ve-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>layout grids — test fixture</title>
+
+<!-- The DESIGN.md token source. The bootstrap below parses this with
+     amvcp-designmd.js and applies the active theme onto :root, so the
+     --vc-* tokens the layout CSS consumes are present — exactly what
+     the runtime does in production, minus the runtime. -->
+<script type="text/design-md" id="ve-designmd">
+---
+designmd_version: 1
+meta:
+  name: "Layout Fixture"
+  default_theme: light
+colors:
+  light:
+    canvas:          "#faf6ee"
+    surface:         "#ffffff"
+    surface-raised:  "#fffdf8"
+    surface-sunken:  "#f1ece0"
+    content:         "#1f1a14"
+    content-muted:   "#5b5343"
+    content-subtle:  "#8a8170"
+    border:          "#e3dcc9"
+    border-strong:   "#c9bfa3"
+    accent:          "#b8861f"
+    on-accent:       "#ffffff"
+    success:         "#3a6b5c"
+    warning:         "#a8791f"
+    danger:          "#a84a32"
+    info:            "#3464a8"
+  dark:
+    canvas:          "#16130d"
+    surface:         "#211c14"
+    surface-raised:  "#2a241a"
+    surface-sunken:  "#0f0d09"
+    content:         "#f3ecdd"
+    content-muted:   "#b8ad96"
+    content-subtle:  "#857c68"
+    border:          "#3a3325"
+    border-strong:   "#564c36"
+    accent:          "#e0aa3e"
+    on-accent:       "#16130d"
+    success:         "#6fae9b"
+    warning:         "#d8aa54"
+    danger:          "#dd8068"
+    info:            "#6f9bd8"
+typography:
+  font-heading: "Playfair Display, Georgia, serif"
+  font-body:    "system-ui, -apple-system, Segoe UI, sans-serif"
+  font-mono:    "JetBrains Mono, ui-monospace, monospace"
+  scale:        [12, 14, 16, 20, 24, 32, 48]
+  weight-regular: 400
+  weight-medium:  500
+  weight-bold:    700
+  line-height:    1.55
+spacing:
+  scale: [4, 8, 12, 16, 24, 32, 48, 64]
+radius:
+  none: 0
+  sm:   4
+  md:   8
+  lg:   12
+  xl:   16
+  full: 9999
+z-index:
+  behind:   -1
+  base:     0
+  raised:   10
+  dropdown: 100
+  sticky:   200
+  overlay:  300
+  modal:    400
+  toast:    500
+  tooltip:  600
+---
+
+# Layout fixture DESIGN.md
+</script>
+
+<!-- The layout technique stylesheet under test. -->
+<link rel="stylesheet" href="amvcp-layout.css">
+
+<style>
+  /* Fixture-local page chrome only — NOT part of the layout technique.
+     The body background / text use the engine tokens so the page
+     itself is themed. */
+  body {
+    margin: 0;
+    background: var(--vc-color-canvas, #faf6ee);
+    color: var(--vc-color-content, #1f1a14);
+    font: 16px/1.55 system-ui, -apple-system, sans-serif;
+  }
+  .demo-region {
+    background: var(--vc-color-surface, #fff);
+    border: 1px solid var(--vc-color-border, #ddd);
+    padding: var(--la-gap, 16px);
+  }
+  .spacer { block-size: 90vh; }
+  .demo-pad { padding: var(--la-gutter, 32px); }
+</style>
+</head>
+<body>
+
+<!-- Group 4 — sticky header. amvcp-layout.js toggles .is-scrolled. -->
+<header class="la-header" data-ve-id="page-header" data-ve-type="section">
+  <span class="la-header__title">Layout Grid Fixture</span>
+  <nav class="la-header__nav"><a href="#sec-grid">Grids</a></nav>
+</header>
+
+<div class="demo-pad">
+
+  <!-- Group 5 — scroll-spy TOC. The <ol> is intentionally empty; the
+       module builds it from the headings below. -->
+  <nav class="la-toc" data-ve-id="toc" data-ve-type="section" aria-label="On this page">
+    <ol class="la-toc__list"></ol>
+  </nav>
+
+  <!-- Group 3 — reading container. NOT a <main> element (the runtime
+       would lift the measure); a plain <article>. -->
+  <article class="la-article" data-ve-id="article" data-ve-type="section">
+    <h2 id="sec-reading">Reading container</h2>
+    <p>Default children land in the measured centre column. This
+       paragraph sits inside the reading measure.</p>
+    <p class="la-article__bleed demo-region" data-ve-id="bleed-block">
+      This block carries <code>.la-article__bleed</code> and extends
+      edge to edge — wider than the measured paragraph above it, with
+      no inner scrollbar.</p>
+    <p>Another measured paragraph after the bleed block.</p>
+  </article>
+
+  <!-- Group 2a — asymmetric content + sidebar grid. -->
+  <h2 id="sec-grid">Asymmetric grid</h2>
+  <div class="la-grid la-grid--2-1" data-ve-id="layout-main" data-ve-type="layout">
+    <div class="la-region demo-region" data-ve-id="region-content">
+      Main content region — about twice the sidebar width on desktop.
+    </div>
+    <aside class="la-region demo-region" data-ve-id="region-sidebar">
+      Sidebar region.
+    </aside>
+  </div>
+
+  <!-- Group 2b — subgrid card row. Each card is title / body / footer. -->
+  <h2 id="sec-cards">Card row</h2>
+  <div class="la-cardrow" data-ve-id="cardrow">
+    <article class="la-card" data-ve-id="card-1" data-ve-type="card">
+      <h3 class="la-card__title">Short title</h3>
+      <div class="la-card__body">A short body.</div>
+      <footer class="la-card__footer">Footer</footer>
+    </article>
+    <article class="la-card" data-ve-id="card-2" data-ve-type="card">
+      <h3 class="la-card__title">A considerably longer card title that wraps onto two lines</h3>
+      <div class="la-card__body">A short body.</div>
+      <footer class="la-card__footer">Footer</footer>
+    </article>
+    <article class="la-card" data-ve-id="card-3" data-ve-type="card">
+      <h3 class="la-card__title">Mid title</h3>
+      <div class="la-card__body">A short body.</div>
+      <footer class="la-card__footer">Footer</footer>
+    </article>
+  </div>
+
+  <!-- Group 2c — IDE 3-panel + collapse toggle. -->
+  <h2 id="sec-ide">IDE panel</h2>
+  <button class="la-ide-toggle" data-la-toggle="ide" aria-expanded="true">Toggle sidebar</button>
+  <div class="la-ide" data-ve-id="ide" data-la-sidebar="open">
+    <nav class="la-ide__sidebar demo-region" data-ve-id="ide-sidebar">Sidebar</nav>
+    <div class="la-ide__center demo-region" data-ve-id="ide-center">Center</div>
+    <aside class="la-ide__inspector demo-region" data-ve-id="ide-inspector">Inspector</aside>
+  </div>
+
+  <!-- Group 2d — 12-column dashboard. -->
+  <h2 id="sec-dash">Dashboard</h2>
+  <div class="la-dashboard" data-ve-id="dashboard">
+    <section class="demo-region" data-span="8" data-ve-id="dash-chart">8-col</section>
+    <aside class="demo-region" data-span="4" data-ve-id="dash-detail">4-col</aside>
+  </div>
+
+  <!-- Group 7b — decorative hero. -->
+  <h2 id="sec-hero">Hero</h2>
+  <section class="la-hero" data-ghost="REPORT" data-ve-id="hero" data-ve-type="section">
+    <div class="la-hero__content"><strong>Hero band</strong> with a ghost-text layer.</div>
+  </section>
+
+  <!-- Group 7a — device frame. -->
+  <h2 id="sec-device">Device frame</h2>
+  <div class="la-device"
+       style="--dev-w:200px; --dev-h:420px; --dev-radius:30px; --dev-notch-w:70px; --dev-notch-h:20px;"
+       data-ve-id="device-mockup" data-ve-type="card">
+    <div class="la-device__screen"></div>
+  </div>
+
+  <!-- Tall spacer so the scroll-spy / sticky-header tests have room. -->
+  <div class="spacer"></div>
+  <h2 id="sec-end">End</h2>
+  <div class="spacer"></div>
+
+</div>
+
+<!-- The DESIGN.md engine — supplies the --vc-* tokens. -->
+<script src="amvcp-designmd.js"></script>
+<!-- The layout technique JS module under test. -->
+<script src="amvcp-layout.js"></script>
+<script>
+  // Bootstrap — parse the embedded DESIGN.md and apply its active
+  // theme onto :root, so the layout CSS's var(--vc-…) lookups resolve.
+  // This stands in for the runtime's boot-time apply; the fixture is
+  // deliberately self-contained (engine + layout module, no runtime).
+  (function () {
+    'use strict';
+    function apply(themeName) {
+      var block = document.getElementById('ve-designmd');
+      var api = window.amvcpDesignMd;
+      if (!block || !api) { return; }
+      // The embedded block's textContent starts with the newline that
+      // follows the opening tag — trim it so the `---` fence is on
+      // line 1, which the engine's frontmatter splitter requires.
+      var parsed = api.parseDesignMd(block.textContent.trim());
+      if (!parsed.ok) {
+        if (window.console) { console.error('fixture: DESIGN.md parse failed', parsed.errors); }
+        return;
+      }
+      var theme = themeName || parsed.designmd.meta.default_theme || 'light';
+      api.applyTokens(api.resolveTokens(parsed.designmd, theme), document.documentElement);
+      document.documentElement.setAttribute('data-ve-theme', theme);
+    }
+    // Test hook — lets the dev-browser suite flip the theme to assert
+    // that layout boxes are theme-invariant while colours flip.
+    window.__veLayoutFixture = { applyTheme: apply };
+    apply();
+  })();
+</script>
+</body>
+</html>

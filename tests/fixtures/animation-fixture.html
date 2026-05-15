@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>animation skill test fixture</title>
+<style>
+  /* The 4 animation-skill motion tokens, supplied directly. The shipped
+     DESIGN.md engine does not yet emit these (the engine extension is a
+     separate build); the animation module reads them via
+     var(--vc-…, fallback), so this inline block exercises the token
+     path end-to-end today. Distinctive values so the test can assert
+     they were consumed (entrance 700, stagger 50). */
+  :root {
+    --vc-duration-entrance: 700ms;
+    --vc-duration-stagger-step: 50ms;
+    --vc-easing-spring: cubic-bezier(0.34,1.56,0.64,1);
+    --vc-motion-scale: 1;
+  }
+  /* Baseline page chrome — themed off the DESIGN.md engine's --vc-*
+     color tokens so a light<->dark toggle is observable. */
+  html, body { overflow-x: auto; }
+  body {
+    margin: 0;
+    padding: 32px;
+    background: var(--vc-color-canvas, #faf6ee);
+    color: var(--vc-color-content, #1f1a14);
+    font: 16px/1.55 var(--vc-font-body, system-ui, sans-serif);
+  }
+  main { max-width: 86ch; margin: 0 auto; }
+  h1, h2 { font-family: var(--vc-font-heading, Georgia, serif); }
+  section { margin-block: 24px; }
+  .va-stagger { list-style: none; padding: 0; display: grid; gap: 12px; }
+  .va-stagger-item, .card {
+    padding: 16px;
+    background: var(--vc-color-surface, #ffffff);
+    border: 1px solid var(--vc-color-border, #e3dcc9);
+    border-radius: var(--vc-radius-md, 8px);
+  }
+  /* A tall spacer so the below-the-fold reveal target genuinely starts
+     outside the initial viewport (≈3000px page). */
+  .spacer { height: 2400px; }
+  .reveal-card {
+    padding: 24px;
+    background: var(--vc-color-surface-raised, #fffdf8);
+    border: 1px solid var(--vc-color-border, #e3dcc9);
+    border-radius: var(--vc-radius-lg, 12px);
+  }
+  .va-counter { font-size: 32px; font-weight: 700;
+                color: var(--vc-color-accent, #b8861f); }
+  .va-skeleton--title { width: 60%; }
+  .ornament {
+    width: 40px; height: 40px; border-radius: 50%;
+    background: var(--vc-color-accent, #b8861f);
+  }
+  .va-tilt { display: inline-block; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Animation skill test fixture</h1>
+  <p>Loads <code>amvcp-designmd.js</code> then <code>amvcp-animation.js</code>
+     as browser globals. <code>window.__vaManualInit</code> is set so the
+     test drives <code>injectAnimationCSS</code> + <code>init</code>
+     deterministically.</p>
+
+  <section>
+    <h2>Layer 2 — staggered entry</h2>
+    <ul class="va-stagger" data-va-stagger id="stagger-list">
+      <li class="va-stagger-item">First item</li>
+      <li class="va-stagger-item">Second item</li>
+      <li class="va-stagger-item">Third item</li>
+      <li class="va-stagger-item">Fourth item</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Layer 3 — above-the-fold reveal</h2>
+    <div data-va-reveal id="reveal-above" class="reveal-card">
+      This reveal target starts inside the viewport.
+    </div>
+  </section>
+
+  <section>
+    <h2>Layer 5 — loading states</h2>
+    <span class="va-pulse" id="pulse-dot" aria-label="loading"></span>
+    <div class="va-skeleton va-skeleton--title" id="skeleton-title"></div>
+    <div class="va-skeleton va-skeleton--text"></div>
+  </section>
+
+  <section>
+    <h2>Layer 4 — ambient + hover</h2>
+    <div class="ornament va-float-y" id="float-above"></div>
+    <div class="va-tilt card" id="tilt-card">A tiltable card.</div>
+    <p><a href="#" class="va-link" id="anim-link">an animated link</a></p>
+  </section>
+
+  <!-- Tall spacer pushes the below-the-fold content out of view. -->
+  <div class="spacer"></div>
+
+  <section>
+    <h2>Layer 3 — below-the-fold reveal + counter</h2>
+    <div data-va-reveal id="reveal-below" class="reveal-card">
+      This reveal target starts far below the fold.
+    </div>
+    <p><span class="va-counter" data-va-stat="4200" id="counter-below">0</span>
+       requests handled</p>
+    <div class="ornament va-float-y" id="float-below"></div>
+  </section>
+
+  <div style="height: 400px;"></div>
+</main>
+
+<!-- The DESIGN.md the engine themes the page from. -->
+<script type="text/design-md" id="ve-designmd">
+designmd_version: 1
+meta:
+  name: "Animation Fixture"
+  default_theme: light
+colors:
+  light:
+    canvas: "#faf6ee"
+    surface: "#ffffff"
+    surface-raised: "#fffdf8"
+    surface-sunken: "#f1ece0"
+    content: "#1f1a14"
+    content-muted: "#5b5343"
+    content-subtle: "#8a8170"
+    border: "#e3dcc9"
+    border-strong: "#c9bfa3"
+    accent: "#b8861f"
+    on-accent: "#ffffff"
+    success: "#3a6b5c"
+    warning: "#a8791f"
+    danger: "#a84a32"
+    info: "#3464a8"
+  dark:
+    canvas: "#1b1813"
+    surface: "#262119"
+    surface-raised: "#2f2920"
+    surface-sunken: "#15120d"
+    content: "#f3ecdd"
+    content-muted: "#b5ab93"
+    content-subtle: "#857c66"
+    border: "#3a3327"
+    border-strong: "#564c39"
+    accent: "#d8a83f"
+    on-accent: "#1b1813"
+    success: "#6db89c"
+    warning: "#d8a83f"
+    danger: "#d8765c"
+    info: "#6d9cd8"
+typography:
+  font-heading: "Playfair Display, Georgia, serif"
+  font-body: "Inter, system-ui, sans-serif"
+  font-mono: "JetBrains Mono, ui-monospace, monospace"
+  scale: [12, 14, 16, 20, 24, 32, 48]
+  weight-regular: 400
+  weight-medium: 500
+  weight-bold: 700
+  line-height: 1.55
+spacing:
+  scale: [4, 8, 12, 16, 24, 32, 48, 64]
+radius:
+  none: 0
+  sm: 4
+  md: 8
+  lg: 12
+  xl: 16
+  full: 9999
+motion:
+  duration-fast: 120
+  duration-slow: 400
+  easing-standard: "cubic-bezier(0.2,0,0,1)"
+  easing-decel: "cubic-bezier(0,0,0,1)"
+</script>
+
+<!-- Manual-init: the test controls engine -> tokens -> animation order. -->
+<script>window.__vaManualInit = true;</script>
+<!-- Served via the tests/fixtures/amvcp-*.js symlinks -> ../../scripts/. -->
+<script src="amvcp-designmd.js"></script>
+<script src="amvcp-animation.js"></script>
+<script>
+// Apply the embedded DESIGN.md on load (the runtime would normally do
+// this; this fixture is self-contained — no runtime). Then inject the
+// animation CSS and init the module. Errors surface on window for the
+// test to read.
+(function () {
+  function boot() {
+    try {
+      var raw = document.getElementById('ve-designmd').textContent;
+      var parsed = window.amvcpDesignMd.parseDesignMd('---\n' + raw + '\n---\n');
+      if (!parsed.ok) {
+        window.__vaFixtureError = 'parse: ' + parsed.errors.join('; ');
+        return;
+      }
+      window.__vaFixtureDesignMd = parsed.designmd;
+      var theme = parsed.designmd.meta.default_theme || 'light';
+      document.documentElement.setAttribute('data-ve-theme', theme);
+      var map = window.amvcpDesignMd.resolveTokens(parsed.designmd, theme);
+      window.amvcpDesignMd.applyTokens(map, document.documentElement);
+      // Engine tokens applied -> now the animation CSS + init.
+      window.amvcpAnimation.injectAnimationCSS(document);
+      window.amvcpAnimation.init(document);
+      window.__vaFixtureReady = true;
+    } catch (e) {
+      window.__vaFixtureError = String(e && e.message || e);
+    }
+  }
+  // Re-resolve + re-apply for a theme toggle (test 11 uses this).
+  window.__vaApplyTheme = function (theme) {
+    var dm = window.__vaFixtureDesignMd;
+    if (!dm) { return false; }
+    document.documentElement.setAttribute('data-ve-theme', theme);
+    var map = window.amvcpDesignMd.resolveTokens(dm, theme);
+    window.amvcpDesignMd.applyTokens(map, document.documentElement);
+    return true;
+  };
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot);
+  } else {
+    boot();
+  }
+})();
+</script>
+</body>
+</html>

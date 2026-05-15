@@ -1,0 +1,1 @@
+../../scripts/amvcp-animation.js

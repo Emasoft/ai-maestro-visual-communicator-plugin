@@ -1,0 +1,133 @@
+/*!
+ * ai-maestro-visual-communicator-plugin — code syntax-highlight token CSS.
+ *
+ * Phase 2 (code-block Build #7): the `--ve-code-*` token bindings and the
+ * twelve `.ve-tok-<role>` color rules the dependency-free tokenizer
+ * (amvcp-code-highlight.js) targets, plus the diff-block tint vars.
+ *
+ * This stylesheet is SHIPPED STANDALONE so the code-block fixture is
+ * self-contained. The integration pass folds these rules verbatim into
+ * the runtime's injectStyles() — the `:root` block into the runtime's
+ * `:root` rule, the `:root[data-ve-theme="light"]` block into the light
+ * mirror, and the `.ve-tok-*` rules as-is. See the build report for the
+ * exact injectStyles wiring contract.
+ *
+ * Theming contract:
+ *   Every color is `var(--vc-code-<role>, <fallback>)`. The `--vc-code-*`
+ *   tokens are produced by the DESIGN.md engine (amvcp-designmd.js — the
+ *   optional `code` group, 12 keys, already wired). When a DESIGN.md
+ *   declares no `code` group the engine emits no `--vc-code-*` vars and
+ *   these fallbacks take over — they are themselves token-coherent
+ *   values (the same last-resort-default pattern the runtime uses for
+ *   `--ve-accent`). Diff tints are `color-mix` over the semantic
+ *   `--vc-color-success` / `--vc-color-danger` tokens — never hardcoded
+ *   red/green — so a diff block re-themes live with the page.
+ *
+ * Light + dark: every `--ve-code-*` and `--ve-code-diff-*` var is defined
+ * in BOTH `:root` (dark default) and `:root[data-ve-theme="light"]`
+ * (light mirror). A single-theme visual is a correctness defect.
+ *
+ * No nested scrollbars: this file sets ZERO `overflow` — code lines and
+ * diff panes extend the page; the document's own scrollbar is the only
+ * one. Wide code wraps via the runtime's `white-space:pre-wrap`.
+ */
+
+/* ── Token color bindings — DARK theme defaults ─────────────────────── */
+:root {
+  --ve-code-keyword:     var(--vc-code-keyword,     #c98ec0);
+  --ve-code-string:      var(--vc-code-string,      #9ece9e);
+  --ve-code-number:      var(--vc-code-number,      #d8b46a);
+  --ve-code-comment:     var(--vc-code-comment,     #8d8576);
+  --ve-code-type:        var(--vc-code-type,        #6ab0cf);
+  --ve-code-variable:    var(--vc-code-variable,    var(--ve-control-fg, #ede5dd));
+  --ve-code-function:    var(--vc-code-function,    #d8c98a);
+  --ve-code-constant:    var(--vc-code-constant,    #c98ec0);
+  --ve-code-operator:    var(--vc-code-operator,    #b9b1a3);
+  --ve-code-punctuation: var(--vc-code-punctuation, #948c7e);
+  --ve-code-tag:         var(--vc-code-tag,         #c98ec0);
+  --ve-code-attribute:   var(--vc-code-attribute,   #6ab0cf);
+
+  /* diff tints — built from the semantic color tokens, never hardcoded */
+  --ve-code-diff-add-bg: var(--vc-code-diff-add-bg,
+    color-mix(in srgb, var(--vc-color-success, #3a6b5c) 22%, transparent));
+  --ve-code-diff-del-bg: var(--vc-code-diff-del-bg,
+    color-mix(in srgb, var(--vc-color-danger, #a84a32) 22%, transparent));
+  --ve-code-diff-add-gutter: var(--vc-code-diff-add-gutter,
+    color-mix(in srgb, var(--vc-color-success, #3a6b5c) 60%, transparent));
+  --ve-code-diff-del-gutter: var(--vc-code-diff-del-gutter,
+    color-mix(in srgb, var(--vc-color-danger, #a84a32) 60%, transparent));
+}
+
+/* ── Token color bindings — LIGHT theme mirror ──────────────────────── */
+:root[data-ve-theme="light"] {
+  --ve-code-keyword:     var(--vc-code-keyword,     #9a3e74);
+  --ve-code-string:      var(--vc-code-string,      #3f7d4e);
+  --ve-code-number:      var(--vc-code-number,      #9a6a1f);
+  --ve-code-comment:     var(--vc-code-comment,     #8a8170);
+  --ve-code-type:        var(--vc-code-type,        #2c6f8f);
+  --ve-code-variable:    var(--vc-code-variable,    var(--ve-control-fg, #1f1a14));
+  --ve-code-function:    var(--vc-code-function,    #7a5a14);
+  --ve-code-constant:    var(--vc-code-constant,    #9a3e74);
+  --ve-code-operator:    var(--vc-code-operator,    #5b5343);
+  --ve-code-punctuation: var(--vc-code-punctuation, #7a7363);
+  --ve-code-tag:         var(--vc-code-tag,         #9a3e74);
+  --ve-code-attribute:   var(--vc-code-attribute,   #2c6f8f);
+
+  --ve-code-diff-add-bg: var(--vc-code-diff-add-bg,
+    color-mix(in srgb, var(--vc-color-success, #3a6b5c) 16%, transparent));
+  --ve-code-diff-del-bg: var(--vc-code-diff-del-bg,
+    color-mix(in srgb, var(--vc-color-danger, #a84a32) 16%, transparent));
+  --ve-code-diff-add-gutter: var(--vc-code-diff-add-gutter,
+    color-mix(in srgb, var(--vc-color-success, #3a6b5c) 70%, transparent));
+  --ve-code-diff-del-gutter: var(--vc-code-diff-del-gutter,
+    color-mix(in srgb, var(--vc-color-danger, #a84a32) 70%, transparent));
+}
+
+/* ── Token classes — one rule per role ──────────────────────────────── */
+/* The tokenizer wraps every coloured run in `<span class="ve-tok-ROLE">`.
+   These spans are inline, so the runtime's per-line `display:block`
+   layout, hanging-indent math, wrap marker and drag-paint hit-test are
+   all unaffected. */
+.ve-tok-keyword     { color: var(--ve-code-keyword); }
+.ve-tok-string      { color: var(--ve-code-string); }
+.ve-tok-number      { color: var(--ve-code-number); }
+.ve-tok-comment     { color: var(--ve-code-comment); font-style: italic; }
+.ve-tok-type        { color: var(--ve-code-type); }
+.ve-tok-variable    { color: var(--ve-code-variable); }
+.ve-tok-function    { color: var(--ve-code-function); }
+.ve-tok-constant    { color: var(--ve-code-constant); }
+.ve-tok-operator    { color: var(--ve-code-operator); }
+.ve-tok-punctuation { color: var(--ve-code-punctuation); }
+.ve-tok-tag         { color: var(--ve-code-tag); }
+.ve-tok-attribute   { color: var(--ve-code-attribute); }
+
+/* When a code line / block is SELECTED for commenting, descendant token
+   spans must yield to the selection color so the selection reads clearly.
+   The runtime already ships `[data-ve-code-sel] * { color: inherit }` and
+   `[data-ve-code-sel-block] * { color: inherit }` — this rule is the same
+   intent, restated here so the standalone stylesheet is self-consistent
+   even when loaded without the runtime's selection CSS. */
+[data-ve-code-sel] .ve-tok-keyword,
+[data-ve-code-sel] .ve-tok-string,
+[data-ve-code-sel] .ve-tok-number,
+[data-ve-code-sel] .ve-tok-comment,
+[data-ve-code-sel] .ve-tok-type,
+[data-ve-code-sel] .ve-tok-variable,
+[data-ve-code-sel] .ve-tok-function,
+[data-ve-code-sel] .ve-tok-constant,
+[data-ve-code-sel] .ve-tok-operator,
+[data-ve-code-sel] .ve-tok-punctuation,
+[data-ve-code-sel] .ve-tok-tag,
+[data-ve-code-sel] .ve-tok-attribute,
+[data-ve-code-sel-block] .ve-tok-keyword,
+[data-ve-code-sel-block] .ve-tok-string,
+[data-ve-code-sel-block] .ve-tok-number,
+[data-ve-code-sel-block] .ve-tok-comment,
+[data-ve-code-sel-block] .ve-tok-type,
+[data-ve-code-sel-block] .ve-tok-variable,
+[data-ve-code-sel-block] .ve-tok-function,
+[data-ve-code-sel-block] .ve-tok-constant,
+[data-ve-code-sel-block] .ve-tok-operator,
+[data-ve-code-sel-block] .ve-tok-punctuation,
+[data-ve-code-sel-block] .ve-tok-tag,
+[data-ve-code-sel-block] .ve-tok-attribute { color: inherit; }
