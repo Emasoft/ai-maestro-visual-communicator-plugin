@@ -217,14 +217,22 @@ z-index:
       <label class="ic-tab" for="tab-notes">Notes</label>
     </div>
     <div class="ic-tabpanels">
-      <section class="ic-tabpanel" data-tab="tab-overview">
+      <!-- Selection-contract atoms (TRDD-352ef46a phase 2.5). Each tab
+           PANEL is a comment-able unit; the tab labels themselves are
+           interactive controls (<label>) and are intentionally NOT
+           atoms — clicks there must drive the radio selection, not the
+           selection contract. -->
+      <section class="ic-tabpanel" data-tab="tab-overview"
+               data-ve-id="tabpanel:overview" data-ve-type="tabpanel">
         <p>Overview panel — the default tab. Switching is pure CSS;
            the JS layer only adds ARIA + persistence.</p>
       </section>
-      <section class="ic-tabpanel" data-tab="tab-detail">
+      <section class="ic-tabpanel" data-tab="tab-detail"
+               data-ve-id="tabpanel:detail" data-ve-type="tabpanel">
         <p>Detail panel content.</p>
       </section>
-      <section class="ic-tabpanel" data-tab="tab-notes">
+      <section class="ic-tabpanel" data-tab="tab-notes"
+               data-ve-id="tabpanel:notes" data-ve-type="tabpanel">
         <p>Notes panel with a draft-restoring textarea:</p>
         <textarea data-ic-draft data-id="report-notes-draft"
                   rows="3" style="width:100%;box-sizing:border-box"
@@ -235,18 +243,27 @@ z-index:
 
   <!-- ── §1 accordion ─────────────────────────────────────────────── -->
   <h2>Accordion (native &lt;details&gt;, single-open)</h2>
+  <!-- Selection-contract atoms (TRDD-352ef46a phase 2.5). Each
+       <details> SECTION is a comment-able unit; the <summary> remains
+       a native interactive control (clicks toggle open/closed) — the
+       runtime's isInteractiveControl() filter excludes <summary> from
+       the selection click delegation, so a click on the body of an
+       open section selects it without conflicting with the toggle. -->
   <div class="ic-accordion" data-ic-accordion="single">
-    <details class="ic-acc-item" open>
+    <details class="ic-acc-item" open
+             data-ve-id="acc:first" data-ve-type="accordion-section">
       <summary class="ic-acc-head">First section</summary>
       <div class="ic-acc-body">Native disclosure — keyboard- and
         screen-reader-native, zero JS for the toggle.</div>
     </details>
-    <details class="ic-acc-item">
+    <details class="ic-acc-item"
+             data-ve-id="acc:second" data-ve-type="accordion-section">
       <summary class="ic-acc-head">Second section</summary>
       <div class="ic-acc-body">Opening this closes the first
         (single-open mode adds that JS behaviour).</div>
     </details>
-    <details class="ic-acc-item">
+    <details class="ic-acc-item"
+             data-ve-id="acc:third" data-ve-type="accordion-section">
       <summary class="ic-acc-head">Third section</summary>
       <div class="ic-acc-body">Third body.</div>
     </details>
@@ -287,10 +304,15 @@ z-index:
         <span class="ic-pill-count"></span></label>
     </span>
   </div>
-  <div class="ic-filtered" data-filter-tag="bug">Bug finding — null deref.</div>
-  <div class="ic-filtered" data-filter-tag="perf">Perf finding — N+1 query.</div>
-  <div class="ic-filtered" data-filter-tag="bug">Bug finding — race condition.</div>
-  <div class="ic-filtered" data-filter-tag="perf">Perf finding — unbatched render.</div>
+  <!-- Each finding is a selectable atom (TRDD-352ef46a phase 2.5). -->
+  <div class="ic-filtered" data-filter-tag="bug"
+       data-ve-id="finding:bug-1" data-ve-type="finding">Bug finding — null deref.</div>
+  <div class="ic-filtered" data-filter-tag="perf"
+       data-ve-id="finding:perf-1" data-ve-type="finding">Perf finding — N+1 query.</div>
+  <div class="ic-filtered" data-filter-tag="bug"
+       data-ve-id="finding:bug-2" data-ve-type="finding">Bug finding — race condition.</div>
+  <div class="ic-filtered" data-filter-tag="perf"
+       data-ve-id="finding:perf-2" data-ve-type="finding">Perf finding — unbatched render.</div>
 
   <!-- ── §3 stepper ───────────────────────────────────────────────── -->
   <h2>Progressive stepper</h2>
@@ -333,7 +355,8 @@ z-index:
         </select>
       </label>
     </div>
-    <div class="ic-tweak-stage" data-ic-stage>
+    <div class="ic-tweak-stage" data-ic-stage
+         data-ve-id="tweak-preview" data-ve-type="preview">
       <div class="ic-demo-box ic-demo-style--solid"
            style="border-radius:var(--demo-radius,8px)">Preview</div>
     </div>

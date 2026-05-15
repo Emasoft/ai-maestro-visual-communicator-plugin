@@ -242,6 +242,82 @@
     return n;
   }
 
+  // Selection-contract conformance (TRDD-352ef46a phase 2.5). Stamp the
+  // generated atom with `data-ve-id` (required) + `data-ve-type` (hint)
+  // so the runtime's click delegation (closest('[data-ve-id]')) picks
+  // it up as a SELECTABLE atom — ring outline on hover, ±Δ on selected,
+  // membership in `window.veSelection`. The contract applies whether or
+  // not the runtime is loaded: pages without the runtime get the same
+  // attributes (inert, but ready when a runtime later mounts).
+  //
+  // `id` MUST be stable across re-renders (Kanban: card-id; vlist:
+  // row-index, since rows are addressed by position) so a selection
+  // pinned to "row 7" still matches "row 7" after a re-paint, and a
+  // pinned card still matches the same card after a column move.
+  function stampAtom(el, id, type, label) {
+    if (!el || !el.setAttribute) { return; }
+    if (!el.hasAttribute('data-ve-id')) {
+      el.setAttribute('data-ve-id', String(id));
+    }
+    if (type && !el.hasAttribute('data-ve-type')) {
+      el.setAttribute('data-ve-type', String(type));
+    }
+    if (label && !el.hasAttribute('data-ve-label')) {
+      el.setAttribute('data-ve-label', String(label));
+    }
+  }
+
+  // NEW USER REQ #10 — every selection-contract atom MUST also carry an
+  // independent 3-radio Skip/Approve/Deny mini-pill (always visible,
+  // independent of [data-ve-selected] state). The runtime ships
+  // `window.amvcpRuntime.attachDecisionMini(atomEl, atomId)` which
+  // injects the pill, persists choices to localStorage, and exposes
+  // the current decision via the Submit payload.
+  //
+  // Defensive guard: a sibling agent (p25-runtime-text-comment) is
+  // shipping the helper concurrently, so this module MAY mount BEFORE
+  // the runtime registers `attachDecisionMini`. We guard with a typeof
+  // check so the call is a NO-OP in that race window — and we ALSO
+  // retry once after a microtask + once on DOMContentLoaded so an atom
+  // stamped during boot still picks up its pill the moment the runtime
+  // exposes the helper.
+  var _decisionMiniPending = [];
+  function attachDecisionMiniSafe(atomEl, atomId) {
+    if (!atomEl) { return; }
+    var rt = (typeof window !== 'undefined') ? window.amvcpRuntime : null;
+    if (rt && typeof rt.attachDecisionMini === 'function') {
+      try { rt.attachDecisionMini(atomEl, atomId); }
+      catch (e) { /* helper present but threw — never block atom render */ }
+      return;
+    }
+    _decisionMiniPending.push({ el: atomEl, id: atomId });
+  }
+  function _flushDecisionMiniQueue() {
+    if (typeof window === 'undefined') { return; }
+    var rt = window.amvcpRuntime;
+    if (!rt || typeof rt.attachDecisionMini !== 'function') { return; }
+    var pend = _decisionMiniPending;
+    _decisionMiniPending = [];
+    for (var i = 0; i < pend.length; i++) {
+      try { rt.attachDecisionMini(pend[i].el, pend[i].id); }
+      catch (e) { /* swallow — never block boot for one bad atom */ }
+    }
+  }
+  if (typeof window !== 'undefined') {
+    if (typeof Promise !== 'undefined' && typeof Promise.resolve === 'function') {
+      Promise.resolve().then(_flushDecisionMiniQueue);
+    } else if (typeof setTimeout === 'function') {
+      setTimeout(_flushDecisionMiniQueue, 0);
+    }
+    if (typeof document !== 'undefined') {
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', _flushDecisionMiniQueue);
+      } else if (typeof setTimeout === 'function') {
+        setTimeout(_flushDecisionMiniQueue, 100);
+      }
+    }
+  }
+
   // ── §3 spin-keyframe injection (guarded) ───────────────────────────
   //
   // The progressive stepper's active-step marker spins. The spin
@@ -512,6 +588,8 @@
       }
     }
     var STATES = ['pending', 'active', 'done', 'failed'];
+    var stepperAtomPrefix = 'step:'
+      + (stepperEl.getAttribute('data-id') || 'unnamed');
     var i, j;
     if (steps && steps.length) {
       for (i = 0; i < lis.length && i < steps.length; i++) {
@@ -527,6 +605,23 @@
         } else {
           lis[i].removeAttribute('aria-current');
         }
+        // Selection-contract atom (TRDD-352ef46a phase 2.5). One step =
+        // one selectable atom (you can comment "this Test step is wrong").
+        var stepLblEl = lis[i].querySelector('.ic-step-label');
+        var stepLbl = stepLblEl ? stepLblEl.textContent : (st.id || '');
+        var stepAtomId = stepperAtomPrefix + ':' + (st.id || i);
+        stampAtom(lis[i], stepAtomId, 'step', stepLbl);
+        attachDecisionMiniSafe(lis[i], stepAtomId);
+      }
+    } else {
+      // No model — author-supplied <li>s only. Still stamp atoms using
+      // their visible label so they're still selectable + comment-able.
+      for (i = 0; i < lis.length; i++) {
+        var ll = lis[i].querySelector('.ic-step-label');
+        var lbl = ll ? ll.textContent.trim() : ('step-' + i);
+        var aid = stepperAtomPrefix + ':' + lbl;
+        stampAtom(lis[i], aid, 'step', lbl);
+        attachDecisionMiniSafe(lis[i], aid);
       }
     }
 
@@ -621,13 +716,26 @@
     var offsets = computeOffsets(heights);
     var totalHeight = offsets[n];
 
+    // Stable atom-id prefix for selection-contract conformance
+    // (TRDD-352ef46a phase 2.5). Prefer the widget's `data-id` (the
+    // same key used for localStorage state); fall back to 'unnamed' so
+    // atoms still get an id when the page omitted it. Each row's full
+    // id appends the row index so a selection pinned to row 7 stays
+    // pinned to row 7 after a re-paint.
+    var vlistAtomPrefix = 'vlist:'
+      + (vlistEl.getAttribute('data-id') || 'unnamed');
+
     // Short list → render every row plainly, no virtualization. The
     // bookkeeping is not worth it below the threshold.
     if (n < VLIST_THRESHOLD) {
       vlistEl.textContent = '';
       var plain = elem('ul', 'ic-vlist-plain', null);
       for (i = 0; i < n; i++) {
-        plain.appendChild(elem('li', 'ic-vrow', items[i]));
+        var pli = elem('li', 'ic-vrow', items[i]);
+        var pid = vlistAtomPrefix + ':' + i;
+        stampAtom(pli, pid, 'vlist-row', items[i]);
+        attachDecisionMiniSafe(pli, pid);
+        plain.appendChild(pli);
       }
       vlistEl.appendChild(plain);
       return;
@@ -650,6 +758,13 @@
       row.style.top = offsets[idx] + 'px';
       row.style.height = heights[idx] + 'px';
       row.setAttribute('data-vrow', String(idx));
+      // Selection-contract atom (TRDD-352ef46a phase 2.5). Stable per-
+      // index id so a selection pinned to row 7 survives the next paint
+      // cycle when the row is removed and re-added at the same index.
+      var rid = vlistAtomPrefix + ':' + idx;
+      stampAtom(row, rid, 'vlist-row', items[idx]);
+      // NEW USER REQ #10 — independent decision mini-pill per atom.
+      attachDecisionMiniSafe(row, rid);
       return row;
     }
 
@@ -812,11 +927,27 @@
       card.draggable = true;
       card.setAttribute('data-id', t.id);
       card.setAttribute('data-col', t.col);
+      // Selection-contract atom (TRDD-352ef46a phase 2.5). The card is a
+      // SELECTABLE atom: one card = one comment-able thing. The atom id
+      // is the card's stable model id (`t.id`) so a selection pinned to
+      // a card survives column moves, persistence reloads, and the
+      // re-render that happens on every drop.
+      var cardAtomId = 'card:' + (boardEl.getAttribute('data-id') || 'board')
+                       + ':' + t.id;
+      stampAtom(card, cardAtomId, 'card', t.title);
+      // NEW USER REQ #10 — independent decision mini-pill per atom.
+      attachDecisionMiniSafe(card, cardAtomId);
       card.appendChild(elem('div', 'ic-card-title', t.title));
       if (t.note != null) {
         var note = elem('div', 'ic-card-note', t.note);
         note.contentEditable = 'true';
         note.spellcheck = false;
+        // The runtime's click handler bails out for any descendant of an
+        // element with `[data-ve-overlay]` (line 3003 of runtime). The
+        // contentEditable note swallows clicks for caret placement —
+        // marking it [data-ve-overlay] keeps clicks there from also
+        // toggling the card's selection.
+        note.setAttribute('data-ve-overlay', '1');
         card.appendChild(note);
       }
       card.addEventListener('dragstart', function (e) {
@@ -1112,11 +1243,48 @@
     injectSpinKeyframe: injectSpinKeyframe,
     applyEmbeddedDesignMd: applyEmbeddedDesignMd,
     readEmbeddedDesignMdText: readEmbeddedDesignMdText,
+    // selection-contract conformance + decision mini-pill (TRDD-352ef46a
+    // phase 2.5 + NEW USER REQ #10)
+    stampAtom: stampAtom,
+    attachDecisionMiniSafe: attachDecisionMiniSafe,
+    stampAndAttachAtoms: stampAndAttachAtoms,
     // constants exposed for tests
     LS_PREFIX: LS_PREFIX,
     VLIST_THRESHOLD: VLIST_THRESHOLD,
     VLIST_OVERSCAN: VLIST_OVERSCAN
   };
+
+  // Bulk-stamp every match of `selector` inside `root` as a selection-
+  // contract atom + attach the per-atom decision mini-pill. For pre-
+  // authored static scaffolds that aren't generated by initVList /
+  // initBoard. Idempotent — safe to re-run.
+  function stampAndAttachAtoms(selector, typeHint, opts) {
+    if (typeof document === 'undefined' || !selector) { return 0; }
+    opts = opts || {};
+    var root = opts.root || document;
+    var idAttr = opts.idAttr || null;
+    var idPrefix = opts.idPrefix || (typeHint || 'atom');
+    var labelAttr = opts.labelAttr || null;
+    var nodes = root.querySelectorAll(selector);
+    var n = 0;
+    for (var i = 0; i < nodes.length; i++) {
+      var el = nodes[i];
+      if (el.hasAttribute('data-ve-id')) {
+        attachDecisionMiniSafe(el, el.getAttribute('data-ve-id'));
+        n++;
+        continue;
+      }
+      var stableId =
+        (idAttr && el.getAttribute(idAttr))
+        || el.id
+        || (idPrefix + '-' + i);
+      var label = labelAttr ? el.getAttribute(labelAttr) : null;
+      stampAtom(el, stableId, typeHint, label);
+      attachDecisionMiniSafe(el, stableId);
+      n++;
+    }
+    return n;
+  }
 
   // Browser global.
   if (typeof window !== 'undefined') {

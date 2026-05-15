@@ -472,6 +472,106 @@
     btn.setAttribute('aria-expanded', next === 'open' ? 'true' : 'false');
   }
 
+  // ── Selection-contract conformance (TRDD-352ef46a phase 2.5) ───────
+  //
+  // The layout skill ships pure behavior — it never emits content DOM,
+  // only the TOC links + sentinel + class toggles. But layout authors
+  // typically write `.la-card`, `.la-region`, `.la-hero`, `.la-cover`
+  // elements as the SELECTABLE atoms of the document (a card = one
+  // comment-able thing, a hero = the whole hero band as a unit).
+  //
+  // `markLayoutAtoms(root)` walks every layout-shaped element inside
+  // `root` and stamps it with `data-ve-id` (stable: prefer existing id,
+  // fall back to type+index) + `data-ve-type` (e.g. "card", "region",
+  // "hero"), then attaches the per-atom 3-radio Skip/Approve/Deny mini-
+  // pill (NEW USER REQ #10) via the runtime's `attachDecisionMini`
+  // helper. Both are guarded — a page WITHOUT the runtime gets the
+  // attribute (inert, but ready when a runtime later mounts) and the
+  // pill becomes a no-op until the helper appears.
+  function markLayoutAtoms(root, opts) {
+    if (typeof document === 'undefined') { return 0; }
+    var d = root || document;
+    if (!d.querySelectorAll) { return 0; }
+    opts = opts || {};
+    var attachPill = opts.attachPill !== false;
+    // SHAPES — the elements every layout author treats as a comment-
+    // able atom. Layout CONTAINERS (.la-grid, .la-cardrow, .la-ide,
+    // .la-dashboard) are intentionally excluded — selecting them as a
+    // whole is rarely meaningful, and the user can always hand-stamp
+    // a container's `data-ve-id` themselves; this helper never
+    // OVERWRITES an author-supplied `data-ve-id`. Order is innermost-
+    // shape-first so a `.la-card` inside a `.la-region` is stamped
+    // before the surrounding region.
+    var SHAPES = [
+      ['.la-card',     'card'],
+      ['.la-kpi-row',  'kpi-row'],
+      ['.la-device',   'device-mockup'],
+      ['.la-region',   'region'],
+      ['.la-hero',     'hero'],
+      ['.la-cover',    'cover']
+    ];
+    var stamped = 0;
+    var s, type;
+    for (s = 0; s < SHAPES.length; s++) {
+      var sel = SHAPES[s][0];
+      type = SHAPES[s][1];
+      var nodes = d.querySelectorAll(sel);
+      for (var i = 0; i < nodes.length; i++) {
+        var el = nodes[i];
+        if (!el.hasAttribute('data-ve-id')) {
+          el.setAttribute('data-ve-id', el.id || (type + '-' + i));
+        }
+        if (!el.hasAttribute('data-ve-type')) {
+          el.setAttribute('data-ve-type', type);
+        }
+        if (attachPill) {
+          _attachDecisionMiniSafe(el, el.getAttribute('data-ve-id'));
+        }
+        stamped++;
+      }
+    }
+    return stamped;
+  }
+
+  // Defensive guard for the runtime helper — sibling agent ships it
+  // concurrently. Queue + retry on microtask + DOM-ready so atoms still
+  // pick up their pill the moment the helper appears.
+  var _layoutPillQueue = [];
+  function _attachDecisionMiniSafe(el, id) {
+    if (!el) { return; }
+    var rt = (typeof window !== 'undefined') ? window.amvcpRuntime : null;
+    if (rt && typeof rt.attachDecisionMini === 'function') {
+      try { rt.attachDecisionMini(el, id); } catch (e) { /* swallow */ }
+      return;
+    }
+    _layoutPillQueue.push({ el: el, id: id });
+  }
+  function _flushLayoutPillQueue() {
+    if (typeof window === 'undefined') { return; }
+    var rt = window.amvcpRuntime;
+    if (!rt || typeof rt.attachDecisionMini !== 'function') { return; }
+    var q = _layoutPillQueue;
+    _layoutPillQueue = [];
+    for (var i = 0; i < q.length; i++) {
+      try { rt.attachDecisionMini(q[i].el, q[i].id); }
+      catch (e) { /* swallow */ }
+    }
+  }
+  if (typeof window !== 'undefined') {
+    if (typeof Promise !== 'undefined' && typeof Promise.resolve === 'function') {
+      Promise.resolve().then(_flushLayoutPillQueue);
+    } else if (typeof setTimeout === 'function') {
+      setTimeout(_flushLayoutPillQueue, 0);
+    }
+    if (typeof document !== 'undefined') {
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', _flushLayoutPillQueue);
+      } else if (typeof setTimeout === 'function') {
+        setTimeout(_flushLayoutPillQueue, 100);
+      }
+    }
+  }
+
   // ── Shared low-level helpers ───────────────────────────────────────
 
   // True when `el` has at least one ELEMENT child (text nodes ignored).
@@ -521,6 +621,10 @@
     initTOC();
     initStickyHeader();
     initSidebarToggle();
+    // Selection-contract conformance + decision mini-pill stamping
+    // (TRDD-352ef46a phase 2.5 + NEW USER REQ #10). Idempotent — safe
+    // to re-run (only stamps elements that lack the contract attrs).
+    markLayoutAtoms();
   }
 
   // ── Public API + dual export ───────────────────────────────────────
@@ -530,6 +634,9 @@
     initStickyHeader: initStickyHeader,
     initSidebarToggle: initSidebarToggle,
     boot: boot,
+    // Selection-contract conformance + decision mini-pill stamping
+    // (TRDD-352ef46a phase 2.5 + NEW USER REQ #10).
+    markLayoutAtoms: markLayoutAtoms,
     // Exposed for unit tests — small pure helpers with no DOM need.
     slugify: slugify,
     headingDepth: headingDepth,

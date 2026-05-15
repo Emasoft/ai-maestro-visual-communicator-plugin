@@ -264,16 +264,15 @@ async function testControllerPadFromSchema(page) {
     record('designmd_engine_controller_pad', 'FAIL', 'controller pad renders from schema', 'runtime/engine never booted');
     return;
   }
-  // Open the pad via its real toggle button.
+  // Phase 2.5 (TRDD-352ef46a, p25-runtime-theme-pod): the pod is now a
+  // self-floating panel visible by default — no toggle button to click.
+  // We just verify the panel exists and has its body rendered.
   const opened = await page.evaluate(() => {
-    const t = document.getElementById('ve-designmd-toggle');
-    if (!t) return false;
-    t.click();
     const panel = document.getElementById('ve-designmd-panel');
-    return !!panel && panel.getAttribute('data-open') === '1';
+    return !!panel && !!panel.querySelector('.ve-designmd-controls');
   });
   if (!opened) {
-    record('designmd_engine_controller_pad', 'FAIL', 'controller pad renders from schema', 'pad toggle/panel missing');
+    record('designmd_engine_controller_pad', 'FAIL', 'controller pad renders from schema', 'pad panel missing');
     return;
   }
   const res = await page.evaluate(() => {
@@ -352,10 +351,7 @@ async function testControllerEditUpdatesVar(page) {
     record('designmd_engine_controller_edit', 'FAIL', 'editing a control updates the var', 'runtime/engine never booted');
     return;
   }
-  await page.evaluate(() => {
-    const t = document.getElementById('ve-designmd-toggle');
-    if (t) t.click();
-  });
+  // Phase 2.5: pod visible by default — no toggle click needed.
   const res = await page.evaluate(() => {
     // The canvas color control drives --vc-color-canvas.
     const input = document.querySelector(
@@ -398,9 +394,8 @@ async function testExportRoundTrips(page) {
   }
   const res = await page.evaluate(() => {
     const api = window.amvcpDesignMd;
-    // Open the pad and edit the canvas control so the export reflects it.
-    const t = document.getElementById('ve-designmd-toggle');
-    if (t) t.click();
+    // Phase 2.5: pod visible by default — edit the canvas control so
+    // the export reflects it.
     const input = document.querySelector(
       '#ve-designmd-panel .ve-designmd-input[data-ve-designmd-cssvar="--vc-color-canvas"]'
     );
@@ -456,6 +451,193 @@ async function testExportRoundTrips(page) {
   );
 }
 
+// ── Phase 2.5 (TRDD-352ef46a, p25-runtime-theme-pod) tests ──
+//
+// The rebuilt pod is floating + draggable, ships a theme-library drawer
+// of curated DESIGN.md presets, exposes import/export, and collapses to
+// a small drag handle. These tests verify each capability end-to-end
+// through the __veDesignMd test hook.
+
+async function testPodPositionPersists(page) {
+  // movePod(x,y) updates the pod's left/top inline styles AND writes
+  // ve-designmd-pad-pos into localStorage. A subsequent reload restores
+  // the pod to that position (within a few px — clamping rounds).
+  if (!(await setup(page))) {
+    record('designmd_engine_pod_drag', 'FAIL', 'pod position persists across reload', 'runtime/engine never booted');
+    return;
+  }
+  const targetX = 80, targetY = 60;
+  const moved = await page.evaluate(([x, y]) => {
+    const r = window.__veDesignMd.movePod(x, y);
+    const stored = localStorage.getItem('ve-designmd-pad-pos');
+    return { rect: r, stored: stored };
+  }, [targetX, targetY]);
+  if (!moved.rect) {
+    record('designmd_engine_pod_drag', 'FAIL', 'pod position persists across reload', 'movePod returned null');
+    return;
+  }
+  // Reload the page. The pod must come back at (within ~2px of) the
+  // saved position — clamping may round to the nearest integer pixel.
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  // Re-wait for runtime boot.
+  const rebooted = await page.evaluate(() => new Promise((res) => {
+    const deadline = Date.now() + 4000;
+    (function poll() {
+      if (window.__veDesignMd && window.__veDesignMd.getPodPosition()) return res(true);
+      if (Date.now() > deadline) return res(false);
+      setTimeout(poll, 60);
+    })();
+  }));
+  if (!rebooted) {
+    record('designmd_engine_pod_drag', 'FAIL', 'pod position persists across reload', 'runtime did not re-boot');
+    return;
+  }
+  const after = await page.evaluate(() => window.__veDesignMd.getPodPosition());
+  const ok = after
+    && Math.abs(after.x - targetX) <= 2
+    && Math.abs(after.y - targetY) <= 2;
+  record(
+    'designmd_engine_pod_drag',
+    ok ? 'PASS' : 'FAIL',
+    'pod position is persisted to localStorage and restored on reload',
+    JSON.stringify({ moved: moved.rect, stored: moved.stored, after: after, targetX: targetX, targetY: targetY })
+  );
+}
+
+async function testPodLibraryPreset(page) {
+  // applyPreset('cyber-neon') hot-swaps the page to the Cyber-Neon
+  // preset; the loaded-name strip shows it; the canvas color matches
+  // what the preset declares.
+  if (!(await setup(page))) {
+    record('designmd_engine_pod_library', 'FAIL', 'library preset applies', 'runtime/engine never booted');
+    return;
+  }
+  const res = await page.evaluate(() => {
+    const before = getComputedStyle(document.documentElement)
+      .getPropertyValue('--vc-color-canvas').trim();
+    const presets = window.__veDesignMd.presets();
+    const cyber = presets.filter(p => p.key === 'cyber-neon')[0];
+    if (!cyber) return { missing: true, presetCount: presets.length };
+    const r = window.__veDesignMd.applyPreset('cyber-neon');
+    const after = getComputedStyle(document.documentElement)
+      .getPropertyValue('--vc-color-canvas').trim();
+    const loadedNameEl = document.querySelector('.ve-designmd-loaded-name');
+    return {
+      missing: false,
+      presetCount: presets.length,
+      applyOk: r && r.ok,
+      before: before,
+      after: after,
+      activeTheme: window.__veDesignMd.state.theme,
+      // Cyber-Neon's dark canvas is "#070b14" — the engine resolves
+      // that into the var verbatim.
+      expectedDarkCanvas: '#070b14',
+      loadedNameShown: !!loadedNameEl && loadedNameEl.getAttribute('data-show') === '1',
+      loadedNameText: loadedNameEl ? loadedNameEl.textContent : null,
+      lsPreset: localStorage.getItem('ve-designmd-pad-preset')
+    };
+  });
+  // Cyber-Neon's default_theme is "dark" but the page already has the
+  // theme stamp from boot — so the ACTIVE theme stays whatever it was,
+  // and `after` is the canvas value for THAT theme.
+  const expected = res.activeTheme === 'dark' ? '#070b14' : '#f1f4f7';
+  const ok = res.missing === false
+    && res.presetCount >= 5
+    && res.applyOk === true
+    && res.after === expected
+    && res.loadedNameShown === true
+    && res.lsPreset === 'cyber-neon';
+  record(
+    'designmd_engine_pod_library',
+    ok ? 'PASS' : 'FAIL',
+    'theme-library preset applies via applyPreset() and surfaces in loaded-name',
+    JSON.stringify(res)
+  );
+}
+
+async function testPodCollapseAndExpand(page) {
+  // setCollapsed(true) hides the pad body but keeps the head visible
+  // (and grabable). setCollapsed(false) shows the body again. The
+  // collapsed state persists in localStorage.
+  if (!(await setup(page))) {
+    record('designmd_engine_pod_collapse', 'FAIL', 'collapse/expand toggle', 'runtime/engine never booted');
+    return;
+  }
+  const res = await page.evaluate(() => {
+    const panel = document.getElementById('ve-designmd-panel');
+    const body = panel.querySelector('.ve-designmd-body');
+    const initial = window.__veDesignMd.isCollapsed();
+    window.__veDesignMd.setCollapsed(true);
+    const collapsedDisplay = getComputedStyle(body).display;
+    const collapsedAttr = panel.getAttribute('data-collapsed');
+    const lsCollapsed = localStorage.getItem('ve-designmd-pad-collapsed');
+    window.__veDesignMd.setCollapsed(false);
+    const expandedDisplay = getComputedStyle(body).display;
+    const expandedAttr = panel.getAttribute('data-collapsed');
+    return {
+      initial: initial,
+      collapsedAttr: collapsedAttr,
+      collapsedDisplay: collapsedDisplay,
+      lsCollapsed: lsCollapsed,
+      expandedAttr: expandedAttr,
+      expandedDisplay: expandedDisplay
+    };
+  });
+  const ok = res.initial === false
+    && res.collapsedAttr === '1'
+    && res.collapsedDisplay === 'none'
+    && res.lsCollapsed === '1'
+    && res.expandedAttr === '0'
+    && res.expandedDisplay !== 'none';
+  record(
+    'designmd_engine_pod_collapse',
+    ok ? 'PASS' : 'FAIL',
+    'pod collapses to a handle (body hidden) and expands back',
+    JSON.stringify(res)
+  );
+}
+
+async function testPodLibraryDrawerToggle(page) {
+  // The library drawer is collapsed by default; clicking its head
+  // expands it (the preset list becomes visible). The state persists
+  // via localStorage.
+  if (!(await setup(page))) {
+    record('designmd_engine_pod_drawer', 'FAIL', 'library drawer toggles', 'runtime/engine never booted');
+    return;
+  }
+  const res = await page.evaluate(() => {
+    const drawer = document.querySelector('.ve-designmd-library');
+    const head = drawer.querySelector('.ve-designmd-library-head');
+    const list = drawer.querySelector('.ve-designmd-library-list');
+    const initialOpen = drawer.getAttribute('data-open');
+    const initialDisplay = getComputedStyle(list).display;
+    head.click();
+    const afterOpen = drawer.getAttribute('data-open');
+    const afterDisplay = getComputedStyle(list).display;
+    const presetCount = list.querySelectorAll('.ve-designmd-preset').length;
+    return {
+      initialOpen: initialOpen,
+      initialDisplay: initialDisplay,
+      afterOpen: afterOpen,
+      afterDisplay: afterDisplay,
+      presetCount: presetCount,
+      lsLibOpen: localStorage.getItem('ve-designmd-pad-library-open')
+    };
+  });
+  const ok = res.initialOpen === '0'
+    && res.initialDisplay === 'none'
+    && res.afterOpen === '1'
+    && res.afterDisplay !== 'none'
+    && res.presetCount >= 5
+    && res.lsLibOpen === '1';
+  record(
+    'designmd_engine_pod_drawer',
+    ok ? 'PASS' : 'FAIL',
+    'theme-library drawer toggles open, persists state, lists ≥5 presets',
+    JSON.stringify(res)
+  );
+}
+
 // ── Runner ──────────────────────────────────────────────────────────
 
 const tests = [
@@ -466,6 +648,11 @@ const tests = [
   testControllerPadFromSchema,
   testControllerEditUpdatesVar,
   testExportRoundTrips,
+  // Phase 2.5 (p25-runtime-theme-pod) — floating draggable pod.
+  testPodPositionPersists,
+  testPodLibraryPreset,
+  testPodCollapseAndExpand,
+  testPodLibraryDrawerToggle,
 ];
 
 const page = await browser.getPage("designmd-engine-tests");

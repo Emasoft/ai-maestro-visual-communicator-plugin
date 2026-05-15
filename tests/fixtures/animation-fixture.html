@@ -66,17 +66,25 @@
 
   <section>
     <h2>Layer 2 — staggered entry</h2>
+    <!-- Selection-contract atoms (TRDD-352ef46a phase 2.5). Each
+         stagger-item is a comment-able card; the runtime click handler
+         picks them up via [data-ve-id]. The animation module's
+         stampAnimatedAtoms() also stamps these on init() with stable
+         ids — the explicit data-ve-id here is the fixture's belt for
+         the JS-off / pre-init paint window. -->
     <ul class="va-stagger" data-va-stagger id="stagger-list">
-      <li class="va-stagger-item">First item</li>
-      <li class="va-stagger-item">Second item</li>
-      <li class="va-stagger-item">Third item</li>
-      <li class="va-stagger-item">Fourth item</li>
+      <li class="va-stagger-item" data-ve-id="stagger-1" data-ve-type="card">First item</li>
+      <li class="va-stagger-item" data-ve-id="stagger-2" data-ve-type="card">Second item</li>
+      <li class="va-stagger-item" data-ve-id="stagger-3" data-ve-type="card">Third item</li>
+      <li class="va-stagger-item" data-ve-id="stagger-4" data-ve-type="card">Fourth item</li>
     </ul>
   </section>
 
   <section>
     <h2>Layer 3 — above-the-fold reveal</h2>
-    <div data-va-reveal id="reveal-above" class="reveal-card">
+    <!-- Selection-contract atom (TRDD-352ef46a phase 2.5). -->
+    <div data-va-reveal id="reveal-above" class="reveal-card"
+         data-ve-id="reveal-above" data-ve-type="card">
       This reveal target starts inside the viewport.
     </div>
   </section>
@@ -100,10 +108,13 @@
 
   <section>
     <h2>Layer 3 — below-the-fold reveal + counter</h2>
-    <div data-va-reveal id="reveal-below" class="reveal-card">
+    <!-- Selection-contract atoms (TRDD-352ef46a phase 2.5). -->
+    <div data-va-reveal id="reveal-below" class="reveal-card"
+         data-ve-id="reveal-below" data-ve-type="card">
       This reveal target starts far below the fold.
     </div>
-    <p><span class="va-counter" data-va-stat="4200" id="counter-below">0</span>
+    <p><span class="va-counter" data-va-stat="4200" id="counter-below"
+             data-ve-id="counter-below" data-ve-type="counter">0</span>
        requests handled</p>
     <div class="ornament va-float-y" id="float-below"></div>
   </section>

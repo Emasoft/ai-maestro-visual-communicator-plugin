@@ -139,6 +139,14 @@
   // injectStyles guard and amvcp-animation.js's STYLE_ID pattern).
   var STYLE_ID = 'isvg-icon-svg-styles';
 
+  // Phase 2.5 selection contract — the scene SVG is itself a selection
+  // atom and needs a stable opaque data-ve-id. When the author leaves
+  // scene.id off, we synthesise one from this monotonic counter so two
+  // unidentified scenes on the same page never collide on the same id
+  // (a duplicate data-ve-id would let the runtime's repaint mark BOTH
+  // scenes selected on a single click).
+  var _sceneCounter = 1;
+
   // ── token-fill resolution ──────────────────────────────────────────
   //
   // Every shape's fill / stroke is one of a small fixed vocabulary of
@@ -830,13 +838,36 @@
     // Step 6 — assemble the <svg>. role="img" + aria-label make the
     // authored SVG accessible; preserveAspectRatio is the SVG default
     // (stated explicitly per §3.1). NO width/height attribute.
+    //
+    // Phase 2.5 selection contract (TRDD-352ef46a): the WHOLE scene
+    // SVG is itself one selection atom (containing nested per-primitive
+    // atoms). It carries data-ve-id (opaque scene identifier),
+    // data-ve-type="icon-svg" (kind hint for the runtime's payload),
+    // and data-ve-comment-id (so Ctrl-+ keyboard fallback can scope a
+    // comment thread to the whole scene). The scene id resolves from
+    // (in order): scene.id, the slugified scene.ariaLabel/label, or a
+    // monotonic counter — guarantees a STABLE id even when neither is
+    // authored. tabindex="0" is added inline because SVG <svg> is not
+    // tabbable by default and the runtime's enhanceFocus only touches
+    // [data-ve-id]:not([tabindex]) on a DOMContentLoaded sweep that
+    // runs ONCE per page; a scene injected later (refresh()) would miss
+    // it. role="img" stays — the runtime's role="button" override is
+    // skipped because tabindex is already set (enhanceFocus respects
+    // pre-existing attributes).
     var aria = s.ariaLabel || s.label || 'Authored diagram';
+    var sceneId = s.id ? String(s.id) : ('isvg-scene-' + _sceneCounter++);
+    var sceneId_e = esc(sceneId);
     var defsBlock = defs.length
       ? '<defs>' + defs.join('') + '</defs>' : '';
     var svg = '<svg xmlns="http://www.w3.org/2000/svg" '
       + 'viewBox="0 0 1000 1000" '
       + 'preserveAspectRatio="xMidYMid meet" '
       + 'class="isvg-scene" role="img" '
+      + 'tabindex="0" '
+      + 'data-ve-id="' + sceneId_e + '" '
+      + 'data-ve-type="icon-svg" '
+      + 'data-ve-comment-id="icon-svg:' + sceneId_e + '" '
+      + 'data-ve-label="' + esc(aria) + '" '
       + 'aria-label="' + esc(aria) + '">'
       + defsBlock + body.join('') + '</svg>';
 
@@ -893,8 +924,17 @@
     // A node primitive — validate + snap geometry.
     var g = snapGeom(prim, index);
     var key = geomKey(prim);
+    // Phase 2.5 selection contract (TRDD-352ef46a): each primitive <g>
+    // is one nested atom. data-ve-comment-id makes the keyboard fallback
+    // (Ctrl-+ in amvcp-runtime.js) reach a per-node thread; data-ve-label
+    // gives the click-payload a friendly label without a textContent
+    // sweep over the SVG inner text.
+    var labelAttr = prim.label
+      ? ' data-ve-label="' + esc(prim.label) + '"' : '';
     var dataAttrs = 'data-ve-id="' + esc(id) + '" '
-      + 'data-ve-type="icon-node"';
+      + 'data-ve-type="icon-node" '
+      + 'data-ve-comment-id="icon-node:' + esc(id) + '"'
+      + labelAttr;
 
     // Step 4 — <defs><use> when this exact geometry repeats N>2 times.
     if (typeCount[key] > 2) {
@@ -959,8 +999,14 @@
     }
     var g = snapGeom(prim, -1);
     var spec = { x: g.x, y: g.y, w: g.w, h: g.h, id: esc(id) };
+    // Phase 2.5 selection contract: same data-ve-comment-id stamp as
+    // node primitives so logo blocks join the same per-atom thread
+    // pattern. The kind goes in data-ve-label so clicks carry the
+    // semantic name (e.g. "mask-cutout") in their payload.
     return '<g data-ve-id="' + esc(id) + '" '
-      + 'data-ve-type="icon-node">'
+      + 'data-ve-type="icon-node" '
+      + 'data-ve-comment-id="icon-node:' + esc(id) + '" '
+      + 'data-ve-label="' + esc(kind) + '">'
       + LOGO_BLOCKS[kind](spec) + '</g>';
   }
 
@@ -976,8 +1022,11 @@
     var g = snapGeom(prim, -1);
     var fill = tokenColor(prim.fill || 'accent');
     var pts = shapePolygon(kind, g.x, g.y, g.w, g.h);
+    // Phase 2.5 selection contract — see compileLogo() above.
     return '<g data-ve-id="' + esc(id) + '" '
-      + 'data-ve-type="icon-node">'
+      + 'data-ve-type="icon-node" '
+      + 'data-ve-comment-id="icon-node:' + esc(id) + '" '
+      + 'data-ve-label="' + esc(kind) + '">'
       + '<polygon points="' + pts + '" fill="' + fill + '"/></g>';
   }
 
@@ -1508,6 +1557,37 @@
       }
       replaceBlock(block.node, rendered);
     }
+    // Phase 2.5 — User Req #10: every atom (scene SVG + nested node
+    // <g> + hotspots) gets a 3-radio Skip/Approve/Deny mini-pill from
+    // the runtime, INDEPENDENT of selection state. The helper is
+    // shipped by the sibling p25-runtime-text-comment agent — guard
+    // defensively in case it is not loaded yet.
+    attachDecisionMinisToAtoms(root);
+  }
+
+  // Walk every selection atom (icon-svg scenes, nested icon-node groups,
+  // hotspots) and call window.amvcpRuntime.attachDecisionMini(el, id)
+  // on each — exposing the per-atom decision pill the runtime renders
+  // independently of [data-ve-selected]. Idempotent: a second call is
+  // a no-op when the runtime helper short-circuits on a pre-existing
+  // pill (the runtime owns that idempotency contract).
+  function attachDecisionMinisToAtoms(root) {
+    var d = root || (typeof document !== 'undefined' ? document : null);
+    if (!d || !d.querySelectorAll) { return; }
+    if (typeof window === 'undefined') { return; }
+    var rt = window.amvcpRuntime;
+    if (!rt || typeof rt.attachDecisionMini !== 'function') { return; }
+    var atoms = d.querySelectorAll(
+      'svg.isvg-scene[data-ve-id], '
+      + 'svg.isvg-scene g[data-ve-id], '
+      + '.isvg-hotspot[data-ve-id]'
+    );
+    var i;
+    for (i = 0; i < atoms.length; i++) {
+      var el = atoms[i];
+      var id = el.getAttribute('data-ve-id');
+      try { rt.attachDecisionMini(el, id); } catch (e) { /* defensive */ }
+    }
   }
 
   // Collect the fenced blocks — both the <pre><code class="language-
@@ -1591,7 +1671,12 @@
   function refresh(root) {
     var d = root || (typeof document !== 'undefined' ? document : null);
     if (!d) { return; }
-    compileFencedBlocks(d);
+    compileFencedBlocks(d);     // also (re-)attaches decision-minis
+    // Re-attach in case fresh scenes appeared since the last init —
+    // compileFencedBlocks already covered any newly compiled atoms,
+    // but a host may have stamped new hotspots independently. Same
+    // defensive guard inside, idempotent.
+    attachDecisionMinisToAtoms(d);
     devLint(d);
   }
 
@@ -1605,6 +1690,10 @@
     deviceFrame: deviceFrame,
     builders: builders,
     refresh: refresh,
+    // Phase 2.5 User Req #10 — public so external code (tests, hosts
+    // that inject hotspots after init) can re-attach the mini-pill on
+    // newly-stamped atoms.
+    attachDecisionMinisToAtoms: attachDecisionMinisToAtoms,
     // Exposed for the dev-browser test (mirrors __veAnimation).
     _cssText: CSS_TEXT,
     snap: snap
@@ -1630,7 +1719,10 @@
       lintSvg: lintSvg,
       deviceFrame: deviceFrame,
       builders: builders,
-      snap: snap
+      snap: snap,
+      // Phase 2.5 User Req #10 — exposed so a test can assert the
+      // helper is invoked with the right (atomEl, atomId) arguments.
+      attachDecisionMinisToAtoms: attachDecisionMinisToAtoms
     };
 
     // Self-init on DOMContentLoaded — UNLESS the host opted out via

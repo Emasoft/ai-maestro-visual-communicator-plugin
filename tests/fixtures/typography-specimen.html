@@ -327,9 +327,12 @@ small,
     <span style="font-weight: var(--vc-weight-body, 400)">Body weight</span>
   </div>
 
-  <!-- Variable-font status badge — stamped by the typography JS. -->
+  <!-- Variable-font status badge — stamped by the typography JS.
+       Also a selection-contract atom (TRDD-352ef46a phase 2.5) so the
+       badge itself is comment-able. -->
   <div class="vc-spec-row">
-    <span class="vc-spec-badge" id="spec-vfont-badge">variable-font: …</span>
+    <span class="vc-spec-badge" id="spec-vfont-badge"
+          data-ve-id="spec-vfont-badge" data-ve-type="badge">variable-font: …</span>
   </div>
 </main>
 
@@ -411,6 +414,14 @@ small,
     var badge = document.getElementById('spec-vfont-badge');
     if (badge) {
       badge.textContent = 'variable-font: ' + (supported ? 'yes' : 'no');
+    }
+
+    // Selection-contract conformance + decision mini-pill stamping
+    // (TRDD-352ef46a phase 2.5 + NEW USER REQ #10). Walks every
+    // typography-shaped element in the specimen and stamps it as a
+    // selectable atom. Idempotent — safe to re-call after hot-swap.
+    if (typeof typo.markTypographyAtoms === 'function') {
+      typo.markTypographyAtoms(document);
     }
 
     // Expose the test hook — the dev-browser suite drives the engine

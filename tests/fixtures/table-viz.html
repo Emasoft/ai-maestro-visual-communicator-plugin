@@ -206,6 +206,20 @@
     </tbody>
   </table>
 
+  <h2>8 — Atom contract demo (Phase 2.5 TRDD-352ef46a)</h2>
+  <p class="hint">After <code>amvcpTables.init()</code> runs, every body
+     <code>&lt;tr&gt;</code> in tables 1, 2, 4, 5, 7 carries
+     <code>data-ve-comment-id</code>; every <code>&lt;td data-ve-val&gt;</code>
+     in table 3 carries <code>data-ve-id</code> +
+     <code>data-ve-type=&quot;matrix-cell&quot;</code>; every body
+     <code>&lt;td&gt;</code> in table 4 also carries
+     <code>data-ve-type=&quot;compare-cell&quot;</code>. The runtime
+     (when loaded) then engages 3-state hover/selected visuals + the
+     per-group comment handle + the always-on Skip/Approve/Deny mini-pill.
+     This fixture deliberately runs WITHOUT the runtime, so the visible
+     rendering matches the un-enhanced baseline; the contract attributes
+     are testable via DOM inspection.</p>
+
   <div id="vc-probe"></div>
 </main>
 

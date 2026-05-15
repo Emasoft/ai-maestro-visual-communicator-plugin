@@ -960,6 +960,13 @@
       '  background: var(--ve-snippet-highlight, rgba(58,107,92,0.22));',
       '  color: inherit;',
       '}',
+      // TRDD-352ef46a Phase 2.5 Region 2 — same band but for the
+      // generic modal-open selection-preservation hook. Applied when
+      // ANY comment modal opens with a live window-selection.
+      '::highlight(ve-modal-active) {',
+      '  background: color-mix(in srgb, var(--ve-accent, #b8861f) 22%, transparent);',
+      '  color: inherit;',
+      '}',
       // ─── Phase 5: table row/column handles ────────────────────────────
       // Wrapper provides a 24-px phantom hit-zone outside the table so
       // mouse can reach the handles before drifting fully out.
@@ -1540,6 +1547,16 @@
       '  stroke-width:44; stroke-linecap:round;',
       '  fill:none;',
       '}',
+      // TRDD-352ef46a Phase 2.5 Region 2 — thin dashed leader line
+      // drawn ON TOP of the wide tether. Points at the EXACT bbox of
+      // the active selection / selected atom so the user knows what
+      // they're commenting on. Style: 1px dashed border-strong.
+      '.ve-leader-line {',
+      '  stroke:var(--ve-control-border-strong, color-mix(in srgb, var(--ve-accent, #b8861f) 70%, transparent));',
+      '  stroke-width:1; stroke-linecap:butt;',
+      '  stroke-dasharray:5 4;',
+      '  fill:none;',
+      '}',
       // Modal box.
       // Now positioned absolute (top/left) so JS drag can move it freely.
       // Default-position JS (positionCommentModalDefault) sets top/left in
@@ -1897,6 +1914,63 @@
       '  padding:0.5em 0.6em;',
       '  text-align:center;',
       '  white-space:nowrap;',
+      '}',
+      // ─── Region 3 (TRDD-352ef46a Phase 2.5 USER REQ #10) ────────────────
+      // .ve-decision-mini-pill — atom-scoped 3-radio S/A/D chip
+      // attached by sibling agents via window.amvcpRuntime.attachDecisionMini.
+      // Visually distinct from the existing .ve-decision-mini (which
+      // uses unicode glyphs and stays auto-injected per atom in report
+      // mode); this variant uses S/A/D letter labels and ships from
+      // sibling visualize-skill modules. Both can coexist on the page.
+      '.ve-decision-mini-pill {',
+      '  display:inline-flex; align-items:stretch;',
+      '  position:absolute; top:6px; right:6px;',
+      '  border:1px solid var(--vc-color-border, var(--ve-control-border, rgba(0,0,0,0.18)));',
+      '  border-radius:var(--vc-radius-full, 9999px);',
+      '  background:color-mix(in srgb, var(--bg, #faf6ee) 88%, transparent);',
+      '  font:600 9px var(--ve-control-font, ui-sans-serif,system-ui,-apple-system,sans-serif);',
+      '  letter-spacing:0.06em;',
+      '  z-index:5;',
+      '  pointer-events:auto;',
+      '  user-select:none;',
+      '  opacity:0.6;',
+      '  transition:opacity 120ms ease, box-shadow 120ms ease;',
+      '}',
+      '.ve-decision-mini-pill:hover { opacity:1; }',
+      '[data-ve-selected="1"] > .ve-decision-mini-pill,',
+      '[data-ve-selected] > .ve-decision-mini-pill,',
+      '[data-ve-comment-active] > .ve-decision-mini-pill {',
+      '  opacity:1;',
+      '  box-shadow:0 0 0 2px color-mix(in srgb, var(--vc-color-accent, var(--ve-accent, #b8861f)) 28%, transparent);',
+      '}',
+      '.ve-decision-mini-pill-radio {',
+      '  position:absolute; opacity:0; width:0; height:0; pointer-events:none;',
+      '  margin:0; padding:0;',
+      '}',
+      '.ve-decision-mini-pill-seg {',
+      '  display:inline-flex; align-items:center; justify-content:center;',
+      '  min-width:28px;',
+      '  padding:3px 8px;',
+      '  cursor:pointer;',
+      '  color:color-mix(in srgb, var(--text, #1f1a14) 65%, transparent);',
+      '  background:transparent;',
+      '  border-right:1px solid color-mix(in srgb, var(--vc-color-border, var(--ve-control-border, rgba(0,0,0,0.18))) 80%, transparent);',
+      '  transition:background 120ms ease, color 120ms ease;',
+      '}',
+      '.ve-decision-mini-pill-seg:last-of-type { border-right:0; }',
+      '.ve-decision-mini-pill-seg:hover {',
+      '  background:color-mix(in srgb, var(--vc-color-accent, var(--ve-accent, #b8861f)) 18%, transparent);',
+      '  color:var(--text, #1f1a14);',
+      '}',
+      '.ve-decision-mini-pill-radio:checked + .ve-decision-mini-pill-seg {',
+      '  background:var(--vc-color-accent, var(--ve-accent, #b8861f));',
+      '  color:var(--vc-color-on-accent, var(--ve-on-accent, #fffdf9));',
+      '}',
+      '.ve-decision-mini-pill-seg-skip    { border-top-left-radius:var(--vc-radius-full, 9999px); border-bottom-left-radius:var(--vc-radius-full, 9999px); }',
+      '.ve-decision-mini-pill-seg-deny    { border-top-right-radius:var(--vc-radius-full, 9999px); border-bottom-right-radius:var(--vc-radius-full, 9999px); }',
+      '.ve-decision-mini-pill-radio:focus-visible + .ve-decision-mini-pill-seg {',
+      '  outline:2px solid var(--vc-color-accent, var(--ve-accent, #b8861f));',
+      '  outline-offset:2px;',
       '}',
       // ─── Bulk-default switch (in .ve-report-banner) ────────────────────
       // Lets the user mark every decision-mini in one stroke (Skip /
@@ -4583,6 +4657,14 @@
   // Cleared only when the snippet is replaced (new drag-select) or
   // when the page reloads.
   var preservedSnippetRange = null;
+  // TRDD-352ef46a Phase 2.5 Region 2 — generic counterpart of
+  // preservedSnippetRange. Captures whatever text range was active in
+  // window.getSelection() the moment ANY comment modal opened, so the
+  // user can SEE what they're commenting on even after the modal's
+  // textarea steals focus and clears the ::selection paint. CSS
+  // Custom Highlight API renders the band over the saved Range
+  // independently of focus state.
+  var preservedModalSelectionRange = null;
 
   function clearSnippetPopup() {
     if (snippetPopup) {
@@ -4617,6 +4699,46 @@
       sel.removeAllRanges();
       sel.addRange(preservedSnippetRange);
     } catch (_) { /* range may have detached */ }
+  }
+
+  // TRDD-352ef46a Phase 2.5 Region 2 — generic modal-open selection
+  // capture. Called from openCommentModal BEFORE any focus stealing;
+  // saves the current Range (if any) and renders it via CSS.highlights
+  // so the visible band survives the textarea grabbing focus. Called
+  // for every modal open path (atom handle, snippet, hot-key) — the
+  // snippet path also sets preservedSnippetRange separately because
+  // its restore semantics differ.
+  function applyPreservedModalHighlight(range) {
+    if (!range) return;
+    if (typeof CSS === 'undefined' || !CSS.highlights) return;
+    if (typeof Highlight === 'undefined') return;
+    try {
+      CSS.highlights.set('ve-modal-active', new Highlight(range));
+    } catch (_) {}
+  }
+  function clearPreservedModalHighlight() {
+    if (typeof CSS === 'undefined' || !CSS.highlights) return;
+    try { CSS.highlights.delete('ve-modal-active'); } catch (_) {}
+  }
+  function captureModalSelection() {
+    var sel = window.getSelection ? window.getSelection() : null;
+    if (!sel || sel.isCollapsed || sel.toString().trim().length === 0) {
+      preservedModalSelectionRange = null;
+      return null;
+    }
+    try {
+      preservedModalSelectionRange = sel.getRangeAt(0).cloneRange();
+    } catch (_) {
+      preservedModalSelectionRange = null;
+    }
+    if (preservedModalSelectionRange) {
+      applyPreservedModalHighlight(preservedModalSelectionRange);
+    }
+    return preservedModalSelectionRange;
+  }
+  function releaseModalSelection() {
+    clearPreservedModalHighlight();
+    preservedModalSelectionRange = null;
   }
 
   function paragraphFromNode(node) {
@@ -4796,18 +4918,32 @@
   // ─────────────────────────────────────────────────────────────────────
   // Phase 2 — multi-click text selection inside [data-ve-prose].
   //
-  // 1 click  = single character / grapheme at the click point
-  // 2 clicks (within 500ms) = the surrounding word (Intl.Segmenter)
-  // 3 clicks = a "block" — non-whitespace run, stopping at operators /
-  //            brackets, but keeping comma/dot inside numbers (locale-
-  //            aware: 10,000.00 in en-US, 10.000,00 in it/de/...)
+  // Per TRDD-352ef46a Phase 2.5 the depth ladder has 9 levels (was 7).
+  // Each successive click on the same screen point within 500ms
+  // expands the selection one level wider. The very first click of a
+  // chain only registers the start (no paint), matching the convention
+  // that a double-click selects a word.
+  //
+  //   visualDepth 1 = char       (single grapheme via Intl.Segmenter)
+  //   visualDepth 2 = word       (Intl.Segmenter granularity:'word')
+  //   visualDepth 3 = sentence   (Intl.Segmenter granularity:'sentence')
+  //   visualDepth 4 = line       (visual line — \n boundaries in source
+  //                               text, falls back to the block grammar
+  //                               when the text node has no newlines)
+  //   visualDepth 5 = paragraph  (closest [data-ve-pnum] block)
+  //   visualDepth 6 = list-item  (closest <li> ancestor; falls back to
+  //                               paragraph when not inside a list)
+  //   visualDepth 7 = section    (chop ONE pnum segment: "1.2.3" → "1.2")
+  //   visualDepth 8 = subsection (chop TWO pnum segments: "1.2.3" → "1")
+  //   visualDepth 9 = whole-doc  (every [data-ve-pnum] in the page)
   //
   // Selections are added to veSelection as kind:'text' entries. Per
   // TRDD §3.4, multi-click NEVER deselects — only mouse-drag (Phase 4)
   // does. Each new click within the chain REPLACES the previous entry
-  // at a deeper depth, so triple-clicking ends with one block, not
-  // three fragments. The first click in a new chain (different text
-  // node, > 500ms, or > 8px from the previous click) starts at depth=1.
+  // at a deeper depth, so the chain only ever has one entry at any
+  // time. The first click in a new chain (different location, > 500ms,
+  // or > 8px from the previous click) starts at chain.depth=1
+  // (= visualDepth 0 = no paint).
   // ─────────────────────────────────────────────────────────────────────
 
   var lastClickChain = null; // {textNode, charIdx, depth, entryId, time}
@@ -4951,6 +5087,83 @@
     return r;
   }
 
+  // visualDepth 3 — sentence around the click point. Uses
+  // Intl.Segmenter(granularity:'sentence') (Baseline since Chrome 87 /
+  // Safari 14.1 / Firefox 125). Trims surrounding whitespace so the
+  // visible highlight ends at the punctuation, not 5 chars past.
+  function buildSentenceRange(node, idx) {
+    var text = node.textContent;
+    if (!text || text.length === 0) return null;
+    if (typeof Intl === 'undefined' || !Intl.Segmenter) {
+      // No Intl.Segmenter: terminator-scan fallback. Looks for
+      // [.!?…] followed by whitespace or end-of-string.
+      var L = idx, R = idx;
+      while (L > 0) {
+        if (/[.!?…؟。！？]/.test(text.charAt(L - 1)) && /\s/.test(text.charAt(L) || ' ')) break;
+        L--;
+      }
+      while (R < text.length) {
+        var c = text.charAt(R);
+        var nx = text.charAt(R + 1) || ' ';
+        R++;
+        if (/[.!?…؟。！？]/.test(c) && /\s/.test(nx)) break;
+      }
+      while (L < R && /\s/.test(text.charAt(L))) L++;
+      while (R > L && /\s/.test(text.charAt(R - 1))) R--;
+      if (L >= R) return buildBlockRange(node, idx);
+      var fb = document.createRange();
+      fb.setStart(node, L);
+      fb.setEnd(node, R);
+      return fb;
+    }
+    var segs = new Intl.Segmenter(getLocale().lang, {granularity: 'sentence'}).segment(text);
+    for (var s of segs) {
+      if (idx >= s.index && idx < s.index + s.segment.length) {
+        var segEnd = s.index + s.segment.length;
+        while (segEnd > s.index && /\s/.test(text.charAt(segEnd - 1))) segEnd--;
+        var segStart = s.index;
+        while (segStart < segEnd && /\s/.test(text.charAt(segStart))) segStart++;
+        if (segStart >= segEnd) continue;
+        var rr = document.createRange();
+        rr.setStart(node, segStart);
+        rr.setEnd(node, segEnd);
+        return rr;
+      }
+    }
+    // Click landed on whitespace between sentences — fall back to block.
+    return buildBlockRange(node, idx);
+  }
+
+  // visualDepth 4 — visual line around the click point. Uses the text
+  // node's own \n boundaries (same idea as codeLineRangeAt). For prose
+  // without explicit line breaks, falls through to the sentence
+  // grammar so the selection still grows monotonically.
+  function buildLineRange(node, idx) {
+    var text = node.textContent;
+    if (!text || text.length === 0) return null;
+    var i = Math.max(0, Math.min(idx, text.length));
+    var L = i, R = i;
+    while (L > 0 && text.charAt(L - 1) !== '\n') L--;
+    while (R < text.length && text.charAt(R) !== '\n') R++;
+    if (L >= R) return buildSentenceRange(node, idx);
+    while (R > L && /[ \t ]/.test(text.charAt(R - 1))) R--;
+    while (L < R && /[ \t ]/.test(text.charAt(L))) L++;
+    if (L >= R) return buildSentenceRange(node, idx);
+    var r = document.createRange();
+    r.setStart(node, L);
+    r.setEnd(node, R);
+    return r;
+  }
+
+  // visualDepth 6 — closest <li> ancestor. Walks UP from the text node
+  // looking for the nearest list item. If the click is not inside a
+  // list, returns null and the caller falls back to paragraph scope.
+  function listItemFromNode(node) {
+    if (!node) return null;
+    var el = node.nodeType === 3 ? node.parentElement : node;
+    return el && el.closest ? el.closest('li') : null;
+  }
+
   function paintTextSelection(range, depth, hostEl) {
     // Capture the range's anchor BEFORE surroundContents (the call splits
     // text nodes and reparents them, so the post-call range is no longer
@@ -4987,32 +5200,38 @@
   }
 
   // ─────────────────────────────────────────────────────────────────────
-  // Phase 3 — block-level text selection (depths 4-7).
+  // Phase 3 — block-level text selection (depths 5-9 in the Phase 2.5
+  // ladder; was depths 4-7 before).
   //
-  // Depths 1-3 wrap a sub-paragraph fragment in a <span> via
-  // surroundContents. Depths 4+ span across paragraph (or larger)
-  // boundaries, so surroundContents would throw — instead we mark the
-  // affected ELEMENTS with [data-ve-text-sel-block="<entryId>"] and
-  // paint via CSS. Removal walks the DOM for matching elements.
+  // Depths 1-4 wrap a sub-paragraph fragment in a <span> via
+  // surroundContents (char/word/sentence/line). Depths 5-9 span entire
+  // paragraphs (or larger), so surroundContents would throw — instead
+  // we mark the affected ELEMENTS with [data-ve-text-sel-block="<entryId>"]
+  // and paint via CSS. Removal walks the DOM for matching elements.
   //
   // Scope by paragraph-numbering hierarchy (the existing numberProse()
   // assigns data-ve-pnum like "1.2.1"):
-  //   depth 4 = paragraph     (single [data-ve-pnum] element)
-  //   depth 5 = section       (chop one segment: "1.2.1" → "1.2",
-  //                            select all elements with pnum "1.2"
-  //                            or starting with "1.2.")
-  //   depth 6 = chapter       (keep first segment: "1.2.1" → "1",
-  //                            select all elements with pnum "1"
-  //                            or starting with "1.")
-  //   depth 7 = ALL prose     (every [data-ve-pnum] in the page)
+  //   depth 5 = paragraph    (single [data-ve-pnum] element)
+  //   depth 6 = list-item    (closest <li> ancestor; resolved by the
+  //                            click handler, not pnumScope)
+  //   depth 7 = section      (chop ONE pnum segment: "1.2.3" → "1.2")
+  //   depth 8 = subsection   (chop TWO pnum segments: "1.2.3" → "1")
+  //   depth 9 = ALL prose    (every [data-ve-pnum] in the page)
   // ─────────────────────────────────────────────────────────────────────
 
   function pnumScope(currentPnum, depth) {
     if (!currentPnum) return null;
-    if (depth === 4) return currentPnum;
+    if (depth === 5) return currentPnum;
     var parts = currentPnum.split('.');
-    if (depth === 5) parts.pop();
-    else if (depth === 6) parts = [parts[0]];
+    if (depth === 7) parts.pop();
+    else if (depth === 8) {
+      // Strip TWO segments so "1.2.3" becomes "1" — a level wider than
+      // depth 7 (section). When the pnum has only 1-2 segments there is
+      // nothing to strip past the first; clamp to a single-segment
+      // chapter scope so the selection still expands monotonically.
+      if (parts.length > 2) parts = parts.slice(0, parts.length - 2);
+      else parts = [parts[0]];
+    }
     return parts.join('.');
   }
 
@@ -5390,42 +5609,52 @@
       // for math it clears the [data-ve-math-sel] attribute. The dispatch
       // is by entryId prefix — see removeChainSelection.
       if (lastClickChain.entryId) removeChainSelection(lastClickChain.entryId);
-      lastClickChain.depth = Math.min(lastClickChain.depth + 1, 8);
+      // 9-level ladder (TRDD-352ef46a Phase 2.5): chain counter ranges
+      // 1..10 (sentinel + 9 paint levels), selection depth = chain - 1.
+      lastClickChain.depth = Math.min(lastClickChain.depth + 1, 10);
     } else {
-      // SHIFTED-BY-1 grammar (revised 2026-05-06): the FIRST click in a
-      // chain DOES NOT select anything — it just registers the start.
-      // The 2nd click within 500 ms is the first one that paints (depth
-      // 1 = letter), the 3rd paints depth 2 = word, and so on up to
-      // depth 7 (= depth=8 in the chain counter). This matches a
-      // double-click conventionally selecting a word: a single click is
-      // cursor-only, the second click is the first selection action.
+      // SHIFTED-BY-1 grammar: the FIRST click in a chain DOES NOT
+      // select anything — it just registers the start. The 2nd click
+      // within 500 ms is the first one that paints (visualDepth 1
+      // = char), the 3rd paints depth 2 = word, …, the 10th paints
+      // depth 9 (whole-doc). Matches the convention that a single
+      // click is cursor-only and a double-click selects a word.
       lastClickChain = {x: clickX, y: clickY, depth: 1, entryId: null, time: now};
-      // First click never paints. Schedule a watchdog so the chain can
-      // also auto-expire on its own (the proximity-and-time check above
-      // already prunes stale chains, but resetting the entry helps tests).
       lastClickChain.depth = 1; // sentinel for "no paint yet"
-      // F4 — removed dead `lastClickChain.firstClickOnly = true;` per
-      // js audit M9. Field was assigned but never read anywhere; the
-      // `return` below already provides the "no paint" semantics.
       return; // no selection action on the very first click of a chain
     }
-    // From the 2nd click onward, depth is (chainCount - 1) clamped to 7.
-    // The chain counter (lastClickChain.depth) ranges 1..8; selection
-    // depth ranges 1..7. This is the only place we apply the shift.
-    var visualDepth = Math.min(lastClickChain.depth - 1, 7);
+    // From the 2nd click onward, depth is (chainCount - 1) clamped to 9.
+    // The chain counter (lastClickChain.depth) ranges 1..10; selection
+    // depth ranges 1..9. This is the only place we apply the shift.
+    var visualDepth = Math.min(lastClickChain.depth - 1, 9);
     if (visualDepth < 1) return; // belt-and-braces — never paint at depth 0
     var entryId = null;
     if (isMathClick) {
-      // Math grammar (depths 1-3 = atom/group/formula; depths 4-7 fall
-      // through to the prose block path on the surrounding paragraph).
+      // Math grammar: depths 1-3 = atom/group/formula. Depth 4 (line)
+      // = whole formula (the formula IS the smallest visual line that
+      // contains the click). Depths 5-9 fall through to the prose
+      // block path on the surrounding paragraph (paragraph/list-item/
+      // section/subsection/whole-doc).
       if (visualDepth <= 3) {
         entryId = paintMathSelection(mathEl, clickX, clickY, visualDepth);
+      } else if (visualDepth === 4) {
+        // Same painted surface as depth 3 but the chain advances so
+        // the next click expands further.
+        entryId = paintMathSelection(mathEl, clickX, clickY, 3);
       } else {
         var mathPara = mathEl.closest('[data-ve-pnum]');
         var mathPnum = mathPara && mathPara.getAttribute ? mathPara.getAttribute('data-ve-pnum') : null;
         if (mathPnum) {
           var melements;
-          if (visualDepth === 7) {
+          if (visualDepth === 6) {
+            // list-item: closest <li> ancestor of the math element.
+            var mathLi = mathEl.closest ? mathEl.closest('li') : null;
+            if (mathLi) {
+              melements = [mathLi];
+            } else {
+              melements = elementsInPnumScope(pnumScope(mathPnum, 5));
+            }
+          } else if (visualDepth === 9) {
             melements = Array.from(document.querySelectorAll('[data-ve-prose] [data-ve-pnum]'));
           } else {
             var mscope = pnumScope(mathPnum, visualDepth);
@@ -5440,9 +5669,9 @@
         }
       }
     } else if (isCodeClick) {
-      // Code grammar (depths 1-3 = token/line/whole-block; depths 4-7
-      // fall through to the prose block path on the surrounding paragraph,
-      // identical to the math fallthrough).
+      // Code grammar: depth 1 = token, depth 2 = code line, depth 3 =
+      // whole code block. Depths 4-9 fall through to the prose block
+      // path on the surrounding paragraph.
       if (visualDepth === 1) {
         var tokenRange = codeTokenAtPoint(clickX, clickY, preEl);
         if (tokenRange) entryId = paintCodeInlineSelection(tokenRange, 1);
@@ -5452,7 +5681,7 @@
       } else if (visualDepth === 3) {
         entryId = paintCodeBlockSelection(preEl);
       } else {
-        // For depths 4-7 from a code click: find the [data-ve-pnum] anchor.
+        // For depths 4-9 from a code click: find the [data-ve-pnum] anchor.
         // <pre> isn't auto-numbered (PARA_TAGS has PRE: 0), so the closest
         // ancestor often returns null. Fall back to the nearest PRECEDING
         // numbered element in document order — that's the heading or
@@ -5472,8 +5701,21 @@
         var codePnum = codePara && codePara.getAttribute ? codePara.getAttribute('data-ve-pnum') : null;
         if (codePnum) {
           var celements;
-          if (visualDepth === 7) {
+          if (visualDepth === 6) {
+            // list-item: closest <li> ancestor of the code block.
+            var codeLi = preEl.closest ? preEl.closest('li') : null;
+            if (codeLi) {
+              celements = [codeLi];
+            } else {
+              celements = elementsInPnumScope(pnumScope(codePnum, 5));
+            }
+          } else if (visualDepth === 9) {
             celements = Array.from(document.querySelectorAll('[data-ve-prose] [data-ve-pnum]'));
+          } else if (visualDepth === 4) {
+            // "line" past the code-block depth = the paragraph that
+            // introduces this code (smallest legal scope above the
+            // <pre>). Mirrors the math line→formula behaviour.
+            celements = elementsInPnumScope(pnumScope(codePnum, 5));
           } else {
             var cscope = pnumScope(codePnum, visualDepth);
             celements = elementsInPnumScope(cscope);
@@ -5487,7 +5729,8 @@
         }
       }
     } else {
-      // Prose text grammar (existing depths 1-3 inline + 4-7 block).
+      // Prose text grammar: depths 1-4 inline (char/word/sentence/line)
+      // + depths 5-9 block (paragraph/list-item/section/subsection/all).
       // Re-resolve caret AFTER any unwrap — the text node may have changed.
       var pos = caretInfoAt(clickX, clickY);
       if (!pos) {
@@ -5497,22 +5740,47 @@
       var textNode = pos.node;
       var idx = pos.offset;
       var range = null;
-      if (visualDepth <= 3) {
+      if (visualDepth <= 4) {
         if (visualDepth === 1)      range = buildLetterRange(textNode, idx);
         else if (visualDepth === 2) range = buildWordRange(textNode, idx);
-        else                         range = buildBlockRange(textNode, idx);
+        else if (visualDepth === 3) range = buildSentenceRange(textNode, idx);
+        else                         range = buildLineRange(textNode, idx);
         if (!range) return;
         entryId = paintTextSelection(range, visualDepth, target);
       } else {
         var paraEl = paragraphFromNode(textNode);
         var pnum = paraEl && paraEl.getAttribute ? paraEl.getAttribute('data-ve-pnum') : null;
-        if (!pnum) {
-          range = buildBlockRange(textNode, idx);
-          if (range) entryId = paintTextSelection(range, 3, target);
-          if (entryId) lastClickChain.depth = 4;
+        if (visualDepth === 6) {
+          // list-item: closest <li> ancestor of the click target. If
+          // the click is not in a list, paint the SAME scope as depth
+          // 5 (paragraph + descendants) so length is monotonically
+          // non-decreasing; the chain still advances so the next click
+          // expands further.
+          var li = listItemFromNode(textNode);
+          if (li) {
+            entryId = paintBlockSelection([li], 6);
+          } else if (pnum) {
+            // Re-use the paragraph-scope expansion (which may include
+            // descendants when the click is on a heading-level pnum).
+            var paraScope = pnumScope(pnum, 5);
+            var paraElements = elementsInPnumScope(paraScope);
+            entryId = paintBlockSelection(paraElements, 6);
+          } else if (paraEl) {
+            entryId = paintBlockSelection([paraEl], 6);
+          } else {
+            range = buildLineRange(textNode, idx);
+            if (range) entryId = paintTextSelection(range, 4, target);
+          }
+        } else if (!pnum) {
+          // No numbered paragraph anywhere on this click — degrade to a
+          // line-range so the selection is still painted (better than
+          // nothing) and freeze the chain so the next click resets.
+          range = buildLineRange(textNode, idx);
+          if (range) entryId = paintTextSelection(range, 4, target);
+          if (entryId) lastClickChain.depth = 5;
         } else {
           var elements;
-          if (visualDepth === 7) {
+          if (visualDepth === 9) {
             elements = Array.from(document.querySelectorAll('[data-ve-prose] [data-ve-pnum]'));
           } else {
             var scope = pnumScope(pnum, visualDepth);
@@ -6879,6 +7147,10 @@
   // the DOM on every call (drag fires at the rate of mousemove).
   var connectorOverlayEl = null;
   var connectorLineEl = null;
+  // TRDD-352ef46a Phase 2.5 Region 2 — thin dashed leader-line drawn
+  // ON TOP of the wide tether. Points at the actual atom (or selection
+  // bbox) — the wide tether is a visual fade.
+  var connectorLeaderEl = null;
   var commentModalDragState = null; // {startX, startY, startLeft, startTop} during drag
 
   function commentSourcePath() {
@@ -7160,14 +7432,19 @@
     svg.setAttribute('preserveAspectRatio', 'none');
     var line = document.createElementNS(SVG_NS, 'line');
     line.setAttribute('class', 've-connector-line');
-    // Initial coords are zero — updateConnectorLine() overwrites them
-    // before the overlay is ever painted, so this is just placeholder.
     line.setAttribute('x1', '0'); line.setAttribute('y1', '0');
     line.setAttribute('x2', '0'); line.setAttribute('y2', '0');
     svg.appendChild(line);
+    // TRDD-352ef46a Phase 2.5 Region 2 — leader line.
+    var leader = document.createElementNS(SVG_NS, 'line');
+    leader.setAttribute('class', 've-leader-line');
+    leader.setAttribute('x1', '0'); leader.setAttribute('y1', '0');
+    leader.setAttribute('x2', '0'); leader.setAttribute('y2', '0');
+    svg.appendChild(leader);
     document.body.appendChild(svg);
     connectorOverlayEl = svg;
     connectorLineEl = line;
+    connectorLeaderEl = leader;
     return svg;
   }
 
@@ -7177,6 +7454,40 @@
     }
     connectorOverlayEl = null;
     connectorLineEl = null;
+    connectorLeaderEl = null;
+  }
+
+  // TRDD-352ef46a Phase 2.5 Region 2 — anchor resolution.
+  // The modal anchor is sometimes the .ve-comment-handle button (a
+  // tiny 24px circle on the left edge of the atom) — drawing the
+  // leader line to a 24px circle is much less informative than
+  // drawing it to the actual atom the handle belongs to. Walk up to
+  // the parent atom in that case.
+  function resolveLeaderTarget(anchor) {
+    if (!anchor || !anchor.classList) return anchor;
+    if (anchor.classList.contains('ve-comment-handle')
+        || anchor.classList.contains('ve-group-handle')) {
+      var p = anchor.parentElement;
+      while (p && p !== document.body) {
+        if (p.hasAttribute && p.hasAttribute('data-ve-comment-id')) return p;
+        if (p.tagName === 'TR' || p.tagName === 'LI' || p.tagName === 'P'
+            || p.tagName === 'BLOCKQUOTE' || p.tagName === 'TABLE'
+            || (p.classList && p.classList.contains('ve-code-block'))) return p;
+        p = p.parentElement;
+      }
+      return anchor.parentElement || anchor;
+    }
+    return anchor;
+  }
+
+  // Closest point on rect `rect` (viewport coords) to point (px, py).
+  // Used to land the leader line on the modal edge nearest the
+  // selection (NOT the modal center, which would force the dashed
+  // line through the modal body).
+  function closestPointOnRect(rect, px, py) {
+    var x = Math.max(rect.left, Math.min(px, rect.right));
+    var y = Math.max(rect.top, Math.min(py, rect.bottom));
+    return { x: x, y: y };
   }
 
   // Recompute and apply the line's endpoints using the current anchor
@@ -7187,11 +7498,13 @@
     if (!commentModalState || !commentModalEl || !connectorLineEl) return;
     var anchor = commentModalState.anchorEl;
     if (!anchor) return;
+    // TRDD-352ef46a Phase 2.5 Region 2 — pick the actual atom (not the
+    // handle button) for the leader line so it lands where the user
+    // expects.
+    var leaderTarget = resolveLeaderTarget(anchor);
     var aRect = anchor.getBoundingClientRect();
+    var lRect = leaderTarget ? leaderTarget.getBoundingClientRect() : aRect;
     var mRect = commentModalEl.getBoundingClientRect();
-    // Viewport-px centers. getBoundingClientRect already returns viewport
-    // coords for a position:fixed element AND for any in-flow element,
-    // so we don't need to add/subtract window.scrollX/Y here.
     var ax = aRect.left + aRect.width / 2;
     var ay = aRect.top + aRect.height / 2;
     var mx = mRect.left + mRect.width / 2;
@@ -7200,17 +7513,23 @@
     connectorLineEl.setAttribute('y1', String(ay));
     connectorLineEl.setAttribute('x2', String(mx));
     connectorLineEl.setAttribute('y2', String(my));
-    // Responsive stroke: the design width is 44 px (≈ modal header
-    // height), but on narrow viewports the modal header collapses
-    // (padding shrinks from 12px to 10px) and a 44-px stroke would
-    // visually exceed the header band, painting over the title text.
-    // Read the actual header height and clamp stroke to it.
     var headerEl = commentModalEl.querySelector('.ve-comment-modal-header');
     var headerH = headerEl ? headerEl.getBoundingClientRect().height : 44;
     var stroke = Math.min(44, Math.max(8, headerH));
     connectorLineEl.setAttribute('stroke-width', String(stroke));
-    // Keep the viewBox in sync with the actual viewport so the line
-    // never gets clipped after a resize.
+    // ── Leader line ──────────────────────────────────────────────────
+    // Endpoint A: the leader-target bbox center (the actual atom).
+    // Endpoint B: closest point on modal rectangle to A — the dashed
+    // line lands on the modal edge nearest the selection.
+    if (connectorLeaderEl) {
+      var lcx = lRect.left + lRect.width / 2;
+      var lcy = lRect.top + lRect.height / 2;
+      var modalEdge = closestPointOnRect(mRect, lcx, lcy);
+      connectorLeaderEl.setAttribute('x1', String(lcx));
+      connectorLeaderEl.setAttribute('y1', String(lcy));
+      connectorLeaderEl.setAttribute('x2', String(modalEdge.x));
+      connectorLeaderEl.setAttribute('y2', String(modalEdge.y));
+    }
     if (connectorOverlayEl) {
       connectorOverlayEl.setAttribute('viewBox',
         '0 0 ' + window.innerWidth + ' ' + window.innerHeight);
@@ -7373,6 +7692,14 @@
   }
 
   function openCommentModal(anchor) {
+    // TRDD-352ef46a Phase 2.5 Region 2 — capture the current text
+    // selection BEFORE anything that might steal focus. The snippet
+    // path also sets preservedSnippetRange separately (different
+    // restore semantics); this generic capture is purely visual — it
+    // keeps a ::highlight band painted over the selection while the
+    // modal is open so the user can SEE what they're commenting on.
+    // No-op if there is no live selection.
+    captureModalSelection();
     hideCommentHoverPill();
     if (!commentModalEl) commentModalEl = buildCommentModal();
     var commentId = anchor.getAttribute('data-ve-comment-id');
@@ -7490,6 +7817,11 @@
       document.removeEventListener('mouseup', handleDocumentMouseUp, true);
     }
     teardownConnectorOverlay();
+    // TRDD-352ef46a Phase 2.5 Region 2 — drop the generic modal-open
+    // highlight band. (The snippet-specific highlight was already
+    // cleared inside the snippet branch above, before
+    // restorePreservedSelection.)
+    releaseModalSelection();
     var threadIdAtClose = commentModalState.threadId;
     commentModalState = null;
     document.body.removeAttribute('data-ve-comment-modal-open');
@@ -8525,14 +8857,440 @@
     return String(rawString);
   }
 
+  // ─── Theme-library presets ───────────────────────────────────────────
+  //
+  // The pad ships an ALWAYS-AVAILABLE built-in library of curated
+  // DESIGN.md presets so a fresh page (with only the default DESIGN.md
+  // applied) can hot-swap to any of them with one click — no extra
+  // script tag required. When `window.amvcpTokens` IS loaded (i.e. the
+  // page also pulls in scripts/amvcp-tokens.js) its richer 12-entry
+  // PRESETS map is folded in alongside the built-ins, deduplicated by
+  // key. Both sources produce a `{ key, label, text }` row that the
+  // drawer renders.
+  //
+  // The built-ins are complete dual-theme DESIGN.md texts authored
+  // inline (NOT generated from a delta of the runtime default) so they
+  // stand alone and ALL pass the engine's parseDesignMd validation —
+  // every required group, both light and dark themes. Adding a new
+  // built-in is a self-contained edit here; nothing else has to change.
+  function veDesignMdBuiltInPresets() {
+    return [
+      {
+        key: 'heritage',
+        label: 'Heritage',
+        text: DEFAULT_DESIGNMD_TEXT
+      },
+      {
+        key: 'cyber-neon',
+        label: 'Cyber-Neon',
+        text: veDesignMdBuildPreset({
+          name: 'Cyber-Neon',
+          defaultTheme: 'dark',
+          light: {
+            canvas: '#f1f4f7', surface: '#fbfdff',
+            surfaceRaised: '#ffffff', surfaceSunken: '#e3eaf1',
+            content: '#0d1521', contentMuted: '#3a4a5e',
+            contentSubtle: '#73849b', border: '#cdd6e2',
+            borderStrong: '#9babbf', accent: '#0a8f7a',
+            onAccent: '#fbfdff', success: '#218a4f',
+            warning: '#b97a14', danger: '#b8392b',
+            info: '#1e6ed8'
+          },
+          dark: {
+            canvas: '#070b14', surface: '#0d1521',
+            surfaceRaised: '#15202f', surfaceSunken: '#03060a',
+            content: '#dff6f1', contentMuted: '#7fb1a8',
+            contentSubtle: '#5b8079', border: '#1e3845',
+            borderStrong: '#2e5468', accent: '#00ffcc',
+            onAccent: '#070b14', success: '#52e0a8',
+            warning: '#ffd34a', danger: '#ff7864',
+            info: '#5acdff'
+          },
+          fontHeading: 'JetBrains Mono, ui-monospace, monospace',
+          fontBody: 'JetBrains Mono, ui-monospace, monospace'
+        })
+      },
+      {
+        key: 'modernist',
+        label: 'Modernist',
+        text: veDesignMdBuildPreset({
+          name: 'Modernist',
+          defaultTheme: 'light',
+          light: {
+            canvas: '#f4f4f4', surface: '#fafafa',
+            surfaceRaised: '#ffffff', surfaceSunken: '#e9e9e9',
+            content: '#0a0a0a', contentMuted: '#555555',
+            contentSubtle: '#8a8a8a', border: '#cfcfcf',
+            borderStrong: '#9a9a9a', accent: '#d62828',
+            onAccent: '#fafafa', success: '#1d6e3a',
+            warning: '#e6a000', danger: '#d62828',
+            info: '#1e3a8a'
+          },
+          dark: {
+            canvas: '#101010', surface: '#1a1a1a',
+            surfaceRaised: '#242424', surfaceSunken: '#080808',
+            content: '#f0f0f0', contentMuted: '#b0b0b0',
+            contentSubtle: '#7a7a7a', border: '#333333',
+            borderStrong: '#525252', accent: '#ff5252',
+            onAccent: '#101010', success: '#5ec98a',
+            warning: '#ffc94a', danger: '#ff5252',
+            info: '#7a99ff'
+          },
+          fontHeading: 'Helvetica Neue, Helvetica, Arial, sans-serif',
+          fontBody: 'Helvetica Neue, Helvetica, Arial, sans-serif',
+          radiusSm: 2, radiusMd: 3, radiusLg: 4, radiusXl: 6
+        })
+      },
+      {
+        key: 'editorial',
+        label: 'Editorial',
+        text: veDesignMdBuildPreset({
+          name: 'Editorial',
+          defaultTheme: 'light',
+          light: {
+            canvas: '#fcfaf6', surface: '#fffdfa',
+            surfaceRaised: '#fffefb', surfaceSunken: '#f1ede4',
+            content: '#1a1714', contentMuted: '#52473d',
+            contentSubtle: '#86796b', border: '#dcd3c4',
+            borderStrong: '#b9ad97', accent: '#a6192e',
+            onAccent: '#fffdfa', success: '#2c6147',
+            warning: '#a07314', danger: '#a6192e',
+            info: '#264a8a'
+          },
+          dark: {
+            canvas: '#161310', surface: '#211d18',
+            surfaceRaised: '#2c261f', surfaceSunken: '#0e0c09',
+            content: '#f1ebdf', contentMuted: '#b3a99a',
+            contentSubtle: '#807769', border: '#3a3327',
+            borderStrong: '#5a5040', accent: '#e8526b',
+            onAccent: '#161310', success: '#6cb898',
+            warning: '#e6b860', danger: '#e8526b',
+            info: '#7da3e0'
+          },
+          fontHeading: 'Iowan Old Style, Georgia, serif',
+          fontBody: 'system-ui, -apple-system, Segoe UI, sans-serif'
+        })
+      },
+      {
+        key: 'brutalist',
+        label: 'Brutalist',
+        text: veDesignMdBuildPreset({
+          name: 'Brutalist',
+          defaultTheme: 'light',
+          light: {
+            canvas: '#dcdcdc', surface: '#e8e8e8',
+            surfaceRaised: '#f0f0f0', surfaceSunken: '#c8c8c8',
+            content: '#080808', contentMuted: '#383838',
+            contentSubtle: '#6a6a6a', border: '#1a1a1a',
+            borderStrong: '#080808', accent: '#1a1a1a',
+            onAccent: '#fafafa', success: '#194a2c',
+            warning: '#7a4d10', danger: '#8a1a1a',
+            info: '#1a3a8a'
+          },
+          dark: {
+            canvas: '#181818', surface: '#252525',
+            surfaceRaised: '#2f2f2f', surfaceSunken: '#0c0c0c',
+            content: '#efefef', contentMuted: '#a8a8a8',
+            contentSubtle: '#727272', border: '#efefef',
+            borderStrong: '#fafafa', accent: '#fafafa',
+            onAccent: '#080808', success: '#7ad094',
+            warning: '#d8b06a', danger: '#e87878',
+            info: '#92acea'
+          },
+          fontHeading: 'Courier New, ui-monospace, monospace',
+          fontBody: 'Courier New, ui-monospace, monospace',
+          radiusSm: 0, radiusMd: 0, radiusLg: 0, radiusXl: 0
+        })
+      }
+    ];
+  }
+
+  // Build a complete DESIGN.md text (frontmatter + minimal prose) from a
+  // preset descriptor. Inlining the YAML keeps every required group
+  // present and explicit so parseDesignMd accepts it.
+  function veDesignMdBuildPreset(d) {
+    function colorBlock(theme, c) {
+      return [
+        '  ' + theme + ':',
+        '    canvas:          "' + c.canvas + '"',
+        '    surface:         "' + c.surface + '"',
+        '    surface-raised:  "' + c.surfaceRaised + '"',
+        '    surface-sunken:  "' + c.surfaceSunken + '"',
+        '    content:         "' + c.content + '"',
+        '    content-muted:   "' + c.contentMuted + '"',
+        '    content-subtle:  "' + c.contentSubtle + '"',
+        '    border:          "' + c.border + '"',
+        '    border-strong:   "' + c.borderStrong + '"',
+        '    accent:          "' + c.accent + '"',
+        '    on-accent:       "' + c.onAccent + '"',
+        '    success:         "' + c.success + '"',
+        '    warning:         "' + c.warning + '"',
+        '    danger:          "' + c.danger + '"',
+        '    info:            "' + c.info + '"'
+      ].join('\n');
+    }
+    var radiusSm = (d.radiusSm == null) ? 4 : d.radiusSm;
+    var radiusMd = (d.radiusMd == null) ? 8 : d.radiusMd;
+    var radiusLg = (d.radiusLg == null) ? 12 : d.radiusLg;
+    var radiusXl = (d.radiusXl == null) ? 16 : d.radiusXl;
+    var lines = [
+      '---',
+      'designmd_version: 1',
+      'meta:',
+      '  name: "' + d.name + '"',
+      '  default_theme: ' + d.defaultTheme,
+      'colors:',
+      colorBlock('light', d.light),
+      colorBlock('dark', d.dark),
+      'typography:',
+      '  font-heading: "' + d.fontHeading + '"',
+      '  font-body:    "' + d.fontBody + '"',
+      '  font-mono:    "JetBrains Mono, ui-monospace, monospace"',
+      '  scale:        [12, 14, 16, 20, 24, 32, 48]',
+      '  weight-regular: 400',
+      '  weight-medium:  500',
+      '  weight-bold:    700',
+      '  line-height:    1.55',
+      'spacing:',
+      '  scale: [4, 8, 12, 16, 24, 32, 48, 64]',
+      'radius:',
+      '  none: 0',
+      '  sm:   ' + radiusSm,
+      '  md:   ' + radiusMd,
+      '  lg:   ' + radiusLg,
+      '  xl:   ' + radiusXl,
+      '  full: 9999',
+      'elevation:',
+      '  shadow-0: "none"',
+      '  shadow-1: "0 1px 2px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.10)"',
+      '  shadow-2: "0 2px 4px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.12)"',
+      '  shadow-3: "0 4px 8px rgba(0,0,0,0.08), 0 8px 20px rgba(0,0,0,0.14)"',
+      '  shadow-4: "0 8px 16px rgba(0,0,0,0.10), 0 16px 40px rgba(0,0,0,0.18)"',
+      '  shadow-border: "0 0 0 1px rgba(0,0,0,0.08)"',
+      'motion:',
+      '  duration-instant:  50',
+      '  duration-fast:     100',
+      '  duration-quick:    200',
+      '  duration-base:     300',
+      '  duration-moderate: 400',
+      '  duration-slow:     500',
+      '  duration-lazy:     700',
+      '  duration-glacial:  1000',
+      '  easing-standard:         "cubic-bezier(0.2,0,0,1)"',
+      '  easing-decel:            "cubic-bezier(0,0,0,1)"',
+      '  easing-accel:            "cubic-bezier(0.3,0,1,1)"',
+      '  easing-emphasized-decel: "cubic-bezier(0.05,0.7,0.1,1)"',
+      '  easing-emphasized-accel: "cubic-bezier(0.3,0,0.8,0.15)"',
+      '  easing-spring:           "cubic-bezier(0.175,0.885,0.32,1.275)"',
+      '  easing-bounce:           "cubic-bezier(0.34,1.56,0.64,1)"',
+      '  easing-linear:           "linear"',
+      '---',
+      '',
+      '# ' + d.name + ' — DESIGN.md preset',
+      '',
+      'Built-in preset shipped by the visual-communicator runtime.'
+    ];
+    return lines.join('\n');
+  }
+
+  // Resolve the full preset list at call time (the page may have loaded
+  // amvcp-tokens.js after the runtime). amvcpTokens.PRESETS is a
+  // { key -> DESIGN.md text } map; convert each entry to the row shape
+  // the drawer expects, deduplicated by key.
+  function veDesignMdAllPresets() {
+    var rows = veDesignMdBuiltInPresets();
+    var seen = {};
+    var i;
+    for (i = 0; i < rows.length; i++) seen[rows[i].key] = true;
+    var tokens = (typeof window !== 'undefined') ? window.amvcpTokens : null;
+    if (tokens && tokens.PRESETS) {
+      var key;
+      for (key in tokens.PRESETS) {
+        if (Object.prototype.hasOwnProperty.call(tokens.PRESETS, key) && !seen[key]) {
+          // Pretty-print the key as a label: 'factory-dark' → 'Factory Dark'.
+          var label = key.split('-').map(function (w) {
+            return w.length === 0 ? w : w.charAt(0).toUpperCase() + w.slice(1);
+          }).join(' ');
+          rows.push({ key: key, label: label, text: tokens.PRESETS[key] });
+          seen[key] = true;
+        }
+      }
+    }
+    return rows;
+  }
+
+  // ─── Position + collapse persistence ─────────────────────────────────
+  //
+  // localStorage keys are namespaced under `ve-designmd-pad-*`. A bad /
+  // missing JSON value is silently dropped — no fail-fast here, because
+  // a corrupt position should not block the pad from rendering.
+  var VE_DESIGNMD_LS_POS = 've-designmd-pad-pos';
+  var VE_DESIGNMD_LS_COLLAPSED = 've-designmd-pad-collapsed';
+  var VE_DESIGNMD_LS_LIB_OPEN = 've-designmd-pad-library-open';
+  var VE_DESIGNMD_LS_PRESET = 've-designmd-pad-preset';
+
+  function veDesignMdLsRead(key) {
+    try {
+      if (typeof localStorage === 'undefined') return null;
+      return localStorage.getItem(key);
+    } catch (e) {
+      return null;
+    }
+  }
+  function veDesignMdLsWrite(key, value) {
+    try {
+      if (typeof localStorage === 'undefined') return;
+      localStorage.setItem(key, value);
+    } catch (e) {
+      /* quota exceeded / private mode — silently ignore */
+    }
+  }
+
+  // Read the saved position; null when unset or corrupt. The caller
+  // picks a sensible default that depends on viewport size.
+  function veDesignMdLoadPosition() {
+    var raw = veDesignMdLsRead(VE_DESIGNMD_LS_POS);
+    if (raw) {
+      try {
+        var parsed = JSON.parse(raw);
+        if (parsed && typeof parsed.x === 'number' && typeof parsed.y === 'number'
+            && isFinite(parsed.x) && isFinite(parsed.y)) {
+          return parsed;
+        }
+      } catch (e) { /* fall through */ }
+    }
+    return null;
+  }
+  function veDesignMdSavePosition(x, y) {
+    veDesignMdLsWrite(VE_DESIGNMD_LS_POS, JSON.stringify({ x: x, y: y }));
+  }
+
+  // Place the pod at (x,y), clamped to the visible viewport so the title
+  // bar always stays grabbable. The pod's own bbox feeds the clamp so
+  // the calculation is correct after a collapse/expand.
+  function veDesignMdPlacePod(panel, x, y) {
+    if (!panel) return;
+    var rect = panel.getBoundingClientRect();
+    var w = rect.width || 360;
+    var h = rect.height || 60;
+    var maxX = Math.max(8, window.innerWidth - w - 8);
+    // Use min(h, 60) so a tall pod can still be dragged near the bottom
+    // — only the head needs to remain on-screen for grabability.
+    var maxY = Math.max(8, window.innerHeight - Math.min(h, 60) - 8);
+    var clampedX = Math.min(Math.max(8, x), maxX);
+    var clampedY = Math.min(Math.max(8, y), maxY);
+    panel.style.left = clampedX + 'px';
+    panel.style.top = clampedY + 'px';
+    // Clear bottom/right so left/top wins consistently.
+    panel.style.right = 'auto';
+    panel.style.bottom = 'auto';
+  }
+
+  // Pick the initial pod position when no saved one applies. Top-right
+  // with a 24px offset reads as "non-blocking" on a typical document.
+  function veDesignMdDefaultPosition(panel) {
+    var rect = panel.getBoundingClientRect();
+    var w = rect.width || 360;
+    return { x: Math.max(8, window.innerWidth - w - 24), y: 24 };
+  }
+
+  // Wire the title-bar drag. mousedown on the head (excluding buttons)
+  // captures the pointer, sets a body flag (suppresses text selection),
+  // and updates the pod position on every move. mouseup persists the
+  // final coordinates. Touch events shadow the same handlers so a
+  // tablet user can drag the same way.
+  function veDesignMdInitDrag(panel, headEl) {
+    if (!panel || !headEl) return;
+    var dragging = false;
+    var startX = 0, startY = 0; // pointer at down
+    var startLeft = 0, startTop = 0; // pod at down
+    function onDown(ev) {
+      // Ignore clicks on the head's buttons — those have their own
+      // semantics (close / theme toggle / collapse).
+      var t = ev.target;
+      if (t && (t.tagName === 'BUTTON' || (t.closest && t.closest('button')))) {
+        return;
+      }
+      dragging = true;
+      var rect = panel.getBoundingClientRect();
+      startLeft = rect.left;
+      startTop = rect.top;
+      startX = ev.clientX;
+      startY = ev.clientY;
+      document.body.setAttribute('data-ve-designmd-dragging', '1');
+      // Prevent the head's native text-select cursor from showing.
+      ev.preventDefault();
+    }
+    function onMove(ev) {
+      if (!dragging) return;
+      var dx = ev.clientX - startX;
+      var dy = ev.clientY - startY;
+      veDesignMdPlacePod(panel, startLeft + dx, startTop + dy);
+    }
+    function onUp() {
+      if (!dragging) return;
+      dragging = false;
+      document.body.removeAttribute('data-ve-designmd-dragging');
+      var rect = panel.getBoundingClientRect();
+      veDesignMdSavePosition(rect.left, rect.top);
+    }
+    headEl.addEventListener('mousedown', onDown);
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+    // Touch support — same drag, no extra code path.
+    headEl.addEventListener('touchstart', function (ev) {
+      var t = ev.touches && ev.touches[0];
+      if (!t) return;
+      onDown({
+        target: ev.target,
+        clientX: t.clientX,
+        clientY: t.clientY,
+        preventDefault: function () { ev.preventDefault(); }
+      });
+    }, { passive: false });
+    document.addEventListener('touchmove', function (ev) {
+      var t = ev.touches && ev.touches[0];
+      if (!t) return;
+      onMove({ clientX: t.clientX, clientY: t.clientY });
+    }, { passive: true });
+    document.addEventListener('touchend', function () { onUp(); });
+  }
+
+  // Apply / clear the collapsed state. When collapsed the pod becomes a
+  // small drag handle (just the head, no body) — the user re-clicks the
+  // collapse button to expand. Position is preserved across the toggle.
+  function veDesignMdSetCollapsed(panel, collapsed) {
+    if (!panel) return;
+    panel.setAttribute('data-collapsed', collapsed ? '1' : '0');
+    veDesignMdLsWrite(VE_DESIGNMD_LS_COLLAPSED, collapsed ? '1' : '0');
+    var btn = panel.querySelector('.ve-designmd-collapse');
+    if (btn) {
+      btn.textContent = collapsed ? '▢' : '–';
+      btn.setAttribute('aria-label',
+        collapsed ? 'Expand style controller' : 'Collapse style controller');
+    }
+  }
+
   // ─── Style-controller pad ────────────────────────────────────────────
   //
-  // A floating panel, collapsed by default, generated ENTIRELY by
-  // iterating amvcpDesignMd.tokenSchema — there is no hardcoded control
-  // list, so a new token in the schema produces a new control with no
-  // change here. Editing a control immediately setProperty()s the one
-  // --vc-* var on :root (live restyle) and updates the in-memory
-  // designmd so an Export round-trips the edit.
+  // A FLOATING + DRAGGABLE panel, expanded by default but collapsible to
+  // a small drag-handle when the user wants the page free of UI chrome.
+  // Position (pre-collapse and post-collapse), open-state, and active
+  // theme-library selection persist across hot-swaps + page reloads via
+  // localStorage so a user who arranges the pad once never has to redo
+  // it. The pad's body controls are generated ENTIRELY by iterating
+  // amvcpDesignMd.tokenSchema — no hardcoded control list. Editing a
+  // control immediately setProperty()s the one --vc-* var on :root and
+  // updates the in-memory designmd so an Export round-trips the edit.
+  //
+  // Phase 2.5 rebuild (TRDD-352ef46a, p25-runtime-theme-pod):
+  //   • dragable by its title-bar handle (cursor:grab → grabbing)
+  //   • theme-library drawer with curated DESIGN.md presets
+  //   • Load DESIGN.md (file picker + drop + paste) — already shipped
+  //   • Save as .md (download via Blob + URL.createObjectURL) — already shipped
+  //   • per-token live editors from tokenSchema — already shipped
+  //   • collapse to a small handle button (the handle IS the drag-grip
+  //     when the pod is collapsed — re-click expands the pod)
   function injectDesignMdControllerStyles() {
     if (document.getElementById('__ve-designmd-styles')) {
       return;
@@ -8541,46 +9299,123 @@
     s.id = '__ve-designmd-styles';
     // All chrome reads the existing --ve-control-* palette so the pad
     // matches the rest of the runtime UI on both light and dark themes.
+    // The pod is its own floating element — there is no separate toggle
+    // button — so its position is set inline (left/top) and persisted.
     s.textContent = [
-      '#' + VE_DESIGNMD_TOGGLE_ID + ' {',
-      '  position:fixed; left:24px; bottom:24px; z-index:2147483646;',
-      '}',
       '#' + VE_DESIGNMD_PANEL_ID + ' {',
-      '  position:fixed; left:24px; bottom:72px; z-index:2147483646;',
-      '  width:340px; max-height:78vh; display:none;',
-      '  flex-direction:column;',
-      '  background:var(--ve-control-overlay-bg, rgba(255,255,255,0.92));',
+      '  position:fixed; z-index:2147483646;',
+      '  width:360px; max-height:84vh;',
+      '  display:flex; flex-direction:column;',
+      '  background:var(--ve-control-overlay-bg, rgba(255,255,255,0.94));',
       '  -webkit-backdrop-filter:var(--ve-control-overlay-blur, blur(10px));',
       '  backdrop-filter:var(--ve-control-overlay-blur, blur(10px));',
-      '  border:1px solid var(--ve-control-border, rgba(0,0,0,0.12));',
+      '  border:1px solid var(--ve-control-border, rgba(0,0,0,0.18));',
       '  border-radius:var(--ve-control-radius, 8px);',
-      '  box-shadow:var(--ve-control-shadow, 0 6px 22px rgba(0,0,0,0.16));',
+      '  box-shadow:var(--ve-control-shadow, 0 8px 28px rgba(0,0,0,0.22));',
       '  color:var(--ve-control-fg, #14110b);',
       '  font:13px/1.4 var(--ve-control-font, inherit);',
       '}',
-      '#' + VE_DESIGNMD_PANEL_ID + '[data-open="1"] { display:flex; }',
+      // Collapsed state: only the title-bar handle is visible.
+      '#' + VE_DESIGNMD_PANEL_ID + '[data-collapsed="1"] {',
+      '  width:auto; max-height:none;',
+      '}',
+      '#' + VE_DESIGNMD_PANEL_ID + '[data-collapsed="1"] .ve-designmd-body {',
+      '  display:none;',
+      '}',
+      '#' + VE_DESIGNMD_PANEL_ID + '[data-collapsed="1"] .ve-designmd-head {',
+      '  border-bottom:none;',
+      '}',
+      // While dragging, suppress text selection on the whole document so
+      // the cursor reads as grabbing instead of selecting prose.
+      'body[data-ve-designmd-dragging="1"] {',
+      '  cursor:grabbing !important;',
+      '  -webkit-user-select:none; user-select:none;',
+      '}',
       '.ve-designmd-head {',
       '  display:flex; align-items:center; gap:8px;',
-      '  padding:10px 12px;',
+      '  padding:8px 10px 8px 12px;',
       '  border-bottom:1px solid var(--ve-control-border, rgba(0,0,0,0.12));',
+      // The whole title bar IS the drag handle.
+      '  cursor:grab; user-select:none; -webkit-user-select:none;',
+      '  touch-action:none;',
+      '}',
+      '.ve-designmd-head:active { cursor:grabbing; }',
+      // Drag-grip dots — visual cue that the bar is grabable.
+      '.ve-designmd-grip {',
+      '  display:inline-block; width:10px; height:14px;',
+      '  background-image:radial-gradient(circle, currentColor 1px, transparent 1.4px);',
+      '  background-size:5px 5px; background-position:0 1px;',
+      '  opacity:0.45; flex:none;',
       '}',
       '.ve-designmd-title {',
-      '  font-weight:700; letter-spacing:0.02em; flex:1;',
+      '  font-weight:700; letter-spacing:0.02em; flex:1; min-width:0;',
       '  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;',
+      '  font-size:12px;',
       '}',
-      '.ve-designmd-theme-toggle, .ve-designmd-close {',
+      '.ve-designmd-theme-toggle, .ve-designmd-close, .ve-designmd-collapse {',
       '  appearance:none; -webkit-appearance:none; cursor:pointer;',
       '  background:var(--ve-control-bg, #fff);',
       '  color:var(--ve-control-fg, #14110b);',
       '  border:1px solid var(--ve-control-border-strong, rgba(0,0,0,0.2));',
       '  border-radius:var(--ve-control-radius-sm, 6px);',
-      '  font:600 12px/1 var(--ve-control-font, inherit);',
-      '  padding:5px 9px;',
+      '  font:600 11px/1 var(--ve-control-font, inherit);',
+      '  padding:5px 8px; flex:none;',
       '}',
-      '.ve-designmd-theme-toggle:hover, .ve-designmd-close:hover {',
+      '.ve-designmd-theme-toggle:hover, .ve-designmd-close:hover,',
+      '.ve-designmd-collapse:hover {',
       '  background:var(--ve-control-bg-hover, #f0f0f0);',
       '}',
       '.ve-designmd-body { overflow:auto; padding:8px 12px 12px; }',
+      // Theme-library drawer.
+      '.ve-designmd-library {',
+      '  border:1px solid var(--ve-control-border, rgba(0,0,0,0.12));',
+      '  border-radius:var(--ve-control-radius-sm, 6px);',
+      '  margin-bottom:10px;',
+      '}',
+      '.ve-designmd-library-head {',
+      '  display:flex; align-items:center; gap:6px;',
+      '  padding:6px 8px; cursor:pointer;',
+      '  border-radius:var(--ve-control-radius-sm, 6px);',
+      '  user-select:none; -webkit-user-select:none;',
+      '  background:var(--ve-control-bg, #fff);',
+      '}',
+      '.ve-designmd-library-head:hover {',
+      '  background:var(--ve-control-bg-hover, #f0f0f0);',
+      '}',
+      '.ve-designmd-library-caret {',
+      '  display:inline-block; width:9px; transition:transform 0.12s ease;',
+      '  transform:rotate(0deg); font-size:10px; line-height:1;',
+      '}',
+      '.ve-designmd-library[data-open="1"] .ve-designmd-library-caret {',
+      '  transform:rotate(90deg);',
+      '}',
+      '.ve-designmd-library-label {',
+      '  font-weight:700; font-size:11px; letter-spacing:0.03em;',
+      '  text-transform:uppercase; flex:1;',
+      '  color:var(--ve-control-fg-dim, #777);',
+      '}',
+      '.ve-designmd-library-list { display:none; padding:4px 8px 8px; }',
+      '.ve-designmd-library[data-open="1"] .ve-designmd-library-list {',
+      '  display:flex; flex-wrap:wrap; gap:4px;',
+      '}',
+      '.ve-designmd-preset {',
+      '  appearance:none; -webkit-appearance:none; cursor:pointer;',
+      '  background:var(--ve-control-bg, #fff);',
+      '  color:var(--ve-control-fg, #14110b);',
+      '  border:1px solid var(--ve-control-border, rgba(0,0,0,0.18));',
+      '  border-radius:var(--ve-control-radius-sm, 6px);',
+      '  font:600 11px/1.1 var(--ve-control-font, inherit);',
+      '  padding:5px 8px;',
+      '}',
+      '.ve-designmd-preset:hover {',
+      '  background:var(--ve-control-bg-hover, #f0f0f0);',
+      '  border-color:var(--ve-control-border-strong, rgba(0,0,0,0.3));',
+      '}',
+      '.ve-designmd-preset[aria-pressed="true"] {',
+      '  background:var(--ve-accent, #b8861f);',
+      '  color:var(--ve-on-accent, #fff);',
+      '  border-color:var(--ve-accent, #b8861f);',
+      '}',
       '.ve-designmd-load {',
       '  border:1px dashed var(--ve-control-border-strong, rgba(0,0,0,0.2));',
       '  border-radius:var(--ve-control-radius-sm, 6px);',
@@ -8594,6 +9429,15 @@
       '  display:flex; gap:6px; align-items:center; flex-wrap:wrap;',
       '  margin-bottom:6px;',
       '}',
+      '.ve-designmd-loaded-name {',
+      '  display:none; padding:4px 8px; margin-top:6px;',
+      '  font:11px/1.3 var(--ve-control-mono, ui-monospace, monospace);',
+      '  background:color-mix(in srgb, var(--ve-accent, #b8861f) 14%, transparent);',
+      '  border-left:3px solid var(--ve-accent, #b8861f);',
+      '  border-radius:0 4px 4px 0;',
+      '  word-break:break-all;',
+      '}',
+      '.ve-designmd-loaded-name[data-show="1"] { display:block; }',
       '.ve-designmd-paste {',
       '  width:100%; box-sizing:border-box; resize:vertical;',
       '  min-height:48px;',
@@ -8614,6 +9458,9 @@
       '  padding:6px 10px;',
       '}',
       '.ve-designmd-btn:hover { background:var(--ve-control-bg-hover, #f0f0f0); }',
+      '.ve-designmd-action-row {',
+      '  display:flex; gap:6px; margin-bottom:10px; flex-wrap:wrap;',
+      '}',
       '.ve-designmd-errors {',
       '  display:none; margin-top:6px; padding:6px 8px;',
       '  background:color-mix(in srgb, #c0392b 10%, transparent);',
@@ -8870,16 +9717,37 @@
   // Hot-swap entry point: parse + apply `text`, then refresh the pad. On
   // success the error area clears and every control re-reads the new
   // values; on failure the errors show and :root is left untouched.
-  function veDesignMdHotSwap(panel, text) {
+  // `sourceName` (optional) is the human-readable label for the source
+  // (filename for an imported .md, preset label for a library pick) —
+  // surfaced in the .ve-designmd-loaded-name strip so the user can
+  // tell at a glance which DESIGN.md is currently driving the page.
+  function veDesignMdHotSwap(panel, text, sourceName) {
     var res = veDesignMdLoadText(text);
     if (res.ok) {
       veDesignMdShowErrors(panel, null);
       veDesignMdSyncPanelTitle(panel);
       veDesignMdRenderControls(panel);
+      veDesignMdShowLoadedName(panel, sourceName);
     } else {
       veDesignMdShowErrors(panel, res.errors);
     }
     return res;
+  }
+
+  // Write the loaded-name strip with the given `name` (or hide it when
+  // `name` is falsy). The strip is just a styled DIV under the load
+  // box — purely informational, never interactive.
+  function veDesignMdShowLoadedName(panel, name) {
+    if (!panel) return;
+    var box = panel.querySelector('.ve-designmd-loaded-name');
+    if (!box) return;
+    if (!name) {
+      box.textContent = '';
+      box.setAttribute('data-show', '0');
+      return;
+    }
+    box.textContent = 'Loaded: ' + name;
+    box.setAttribute('data-show', '1');
   }
 
   // Update the panel's title strip to the active DESIGN.md's name +
@@ -9020,7 +9888,7 @@
         }
         var reader = new FileReader();
         reader.onload = function () {
-          veDesignMdHotSwap(panel, String(reader.result || ''));
+          veDesignMdHotSwap(panel, String(reader.result || ''), file.name);
         };
         reader.readAsText(file);
       });
@@ -9045,7 +9913,7 @@
       if (file) {
         var reader = new FileReader();
         reader.onload = function () {
-          veDesignMdHotSwap(panel, String(reader.result || ''));
+          veDesignMdHotSwap(panel, String(reader.result || ''), file.name);
         };
         reader.readAsText(file);
         return;
@@ -9053,7 +9921,7 @@
       // Some sources drop plain text rather than a file.
       var text = dt.getData ? dt.getData('text/plain') : '';
       if (text) {
-        veDesignMdHotSwap(panel, text);
+        veDesignMdHotSwap(panel, text, 'pasted (drop)');
       }
     });
 
@@ -9065,13 +9933,18 @@
           veDesignMdShowErrors(panel, ['paste area is empty']);
           return;
         }
-        veDesignMdHotSwap(panel, text);
+        veDesignMdHotSwap(panel, text, 'pasted text');
       });
     }
   }
 
-  // Build the floating style-controller pad: a toggle button + the
-  // collapsible panel. Idempotent — a second call is a no-op.
+  // Build the floating style-controller pad: ONE self-floating panel
+  // (no separate toggle button), draggable by its title bar, with a
+  // theme-library drawer + import/export + per-token live editors.
+  // Idempotent — a second call is a no-op. The previous toggle-button
+  // ID (VE_DESIGNMD_TOGGLE_ID) is kept defined for back-compat but no
+  // toggle button is created — the pod's own collapse button is the
+  // only show/hide affordance now.
   function injectDesignMdControllerPad() {
     if (!document.body) {
       return;
@@ -9080,29 +9953,24 @@
       // No engine → no tokens → nothing for the pad to control.
       return;
     }
-    if (document.getElementById(VE_DESIGNMD_TOGGLE_ID)) {
+    if (document.getElementById(VE_DESIGNMD_PANEL_ID)) {
       return;
     }
     injectDesignMdControllerStyles();
 
-    // Toggle button — collapsed state is the default.
-    var toggle = document.createElement('button');
-    toggle.id = VE_DESIGNMD_TOGGLE_ID;
-    toggle.type = 'button';
-    toggle.className = 've-floating-btn ve-floating-btn--ghost';
-    toggle.setAttribute('data-ve-overlay', '1');
-    toggle.textContent = 'Style';
-    toggle.setAttribute('aria-expanded', 'false');
-
-    // The panel.
+    // The panel — its own floating element, positioned absolutely.
     var panel = document.createElement('div');
     panel.id = VE_DESIGNMD_PANEL_ID;
-    panel.setAttribute('data-open', '0');
+    panel.setAttribute('data-collapsed', '0');
     panel.setAttribute('role', 'dialog');
     panel.setAttribute('aria-label', 'DESIGN.md style controller');
 
+    // ── Title bar ── drag handle + title + theme toggle + collapse + close.
     var head = document.createElement('div');
     head.className = 've-designmd-head';
+    var grip = document.createElement('span');
+    grip.className = 've-designmd-grip';
+    grip.setAttribute('aria-hidden', 'true');
     var title = document.createElement('span');
     title.className = 've-designmd-title';
     title.textContent = 'DESIGN.md';
@@ -9110,19 +9978,59 @@
     themeBtn.type = 'button';
     themeBtn.className = 've-designmd-theme-toggle';
     themeBtn.textContent = 'Dark';
+    themeBtn.setAttribute('aria-label', 'Toggle theme');
+    var collapseBtn = document.createElement('button');
+    collapseBtn.type = 'button';
+    collapseBtn.className = 've-designmd-collapse';
+    collapseBtn.textContent = '–';
+    collapseBtn.setAttribute('aria-label', 'Collapse style controller');
     var closeBtn = document.createElement('button');
     closeBtn.type = 'button';
     closeBtn.className = 've-designmd-close';
     closeBtn.textContent = '✕';
-    closeBtn.setAttribute('aria-label', 'Close style controller');
+    closeBtn.setAttribute('aria-label', 'Hide style controller');
+    head.appendChild(grip);
     head.appendChild(title);
     head.appendChild(themeBtn);
+    head.appendChild(collapseBtn);
     head.appendChild(closeBtn);
 
     var bodyWrap = document.createElement('div');
     bodyWrap.className = 've-designmd-body';
 
-    // Load box — file picker + drag-drop hint + paste textarea.
+    // ── Theme-library drawer ── one preset pill per row in PRESETS,
+    // collapsible to hide the list when not needed.
+    var library = document.createElement('div');
+    library.className = 've-designmd-library';
+    var libraryHead = document.createElement('div');
+    libraryHead.className = 've-designmd-library-head';
+    var libraryCaret = document.createElement('span');
+    libraryCaret.className = 've-designmd-library-caret';
+    libraryCaret.textContent = '▶';
+    libraryCaret.setAttribute('aria-hidden', 'true');
+    var libraryLabel = document.createElement('span');
+    libraryLabel.className = 've-designmd-library-label';
+    libraryLabel.textContent = 'Theme library';
+    libraryHead.appendChild(libraryCaret);
+    libraryHead.appendChild(libraryLabel);
+    var libraryList = document.createElement('div');
+    libraryList.className = 've-designmd-library-list';
+    library.appendChild(libraryHead);
+    library.appendChild(libraryList);
+
+    // Populate the library list.
+    veDesignMdRenderLibrary(panel, libraryList);
+    // Restore the drawer's open state (default: closed so a fresh page
+    // does not surprise the user with a tall panel).
+    var libOpen = veDesignMdLsRead(VE_DESIGNMD_LS_LIB_OPEN) === '1';
+    library.setAttribute('data-open', libOpen ? '1' : '0');
+    libraryHead.addEventListener('click', function () {
+      var open = library.getAttribute('data-open') === '1';
+      library.setAttribute('data-open', open ? '0' : '1');
+      veDesignMdLsWrite(VE_DESIGNMD_LS_LIB_OPEN, open ? '0' : '1');
+    });
+
+    // ── Load box ── file picker + drag-drop + paste.
     var loadBox = document.createElement('div');
     loadBox.className = 've-designmd-load';
     var loadRow = document.createElement('div');
@@ -9144,61 +10052,136 @@
     applyPaste.className = 've-designmd-btn ve-designmd-apply-paste';
     applyPaste.textContent = 'Apply pasted DESIGN.md';
     applyPaste.style.cssText = 'margin-top:6px;';
+    var loadedName = document.createElement('div');
+    loadedName.className = 've-designmd-loaded-name';
+    loadedName.setAttribute('data-show', '0');
     var errors = document.createElement('div');
     errors.className = 've-designmd-errors';
     errors.setAttribute('data-show', '0');
     loadBox.appendChild(loadRow);
     loadBox.appendChild(pasteArea);
     loadBox.appendChild(applyPaste);
+    loadBox.appendChild(loadedName);
     loadBox.appendChild(errors);
 
-    // Export button.
+    // ── Action row ── Save as .md (export) is the only action button.
+    var actionRow = document.createElement('div');
+    actionRow.className = 've-designmd-action-row';
     var exportBtn = document.createElement('button');
     exportBtn.type = 'button';
     exportBtn.className = 've-designmd-btn ve-designmd-export';
-    exportBtn.textContent = 'Export DESIGN.md';
-    exportBtn.style.cssText = 'margin-bottom:10px;';
+    exportBtn.textContent = 'Save as .md';
+    exportBtn.setAttribute('aria-label', 'Save current theme as DESIGN.md');
+    actionRow.appendChild(exportBtn);
 
-    // The schema-generated controls live here.
+    // ── Schema-generated controls (per-token live editors) ──
     var controls = document.createElement('div');
     controls.className = 've-designmd-controls';
 
+    bodyWrap.appendChild(library);
     bodyWrap.appendChild(loadBox);
-    bodyWrap.appendChild(exportBtn);
+    bodyWrap.appendChild(actionRow);
     bodyWrap.appendChild(controls);
 
     panel.appendChild(head);
     panel.appendChild(bodyWrap);
 
-    document.body.appendChild(toggle);
     document.body.appendChild(panel);
 
-    // Wiring.
-    function openPanel() {
-      panel.setAttribute('data-open', '1');
-      toggle.setAttribute('aria-expanded', 'true');
-      // Build the controls lazily on first open so a page that never
-      // opens the pad pays nothing for it.
-      veDesignMdSyncPanelTitle(panel);
-      veDesignMdRenderControls(panel);
+    // ── Initial position + collapsed state ── restore from localStorage
+    // when present, otherwise default to top-right with a 24px offset.
+    var savedPos = veDesignMdLoadPosition();
+    if (savedPos) {
+      veDesignMdPlacePod(panel, savedPos.x, savedPos.y);
+    } else {
+      var def = veDesignMdDefaultPosition(panel);
+      veDesignMdPlacePod(panel, def.x, def.y);
     }
-    function closePanel() {
-      panel.setAttribute('data-open', '0');
-      toggle.setAttribute('aria-expanded', 'false');
-    }
-    toggle.addEventListener('click', function () {
-      if (panel.getAttribute('data-open') === '1') {
-        closePanel();
-      } else {
-        openPanel();
-      }
+    var savedCollapsed = veDesignMdLsRead(VE_DESIGNMD_LS_COLLAPSED) === '1';
+    veDesignMdSetCollapsed(panel, savedCollapsed);
+
+    // ── Render controls + sync title up front ── the previous design
+    // built these lazily on first open, but the pod is now visible by
+    // default so we render eagerly. Cost is one tokenSchema walk on
+    // boot — negligible for the ~50 tokens the schema declares.
+    veDesignMdSyncPanelTitle(panel);
+    veDesignMdRenderControls(panel);
+
+    // ── Wire interactions ──
+    veDesignMdInitDrag(panel, head);
+    closeBtn.addEventListener('click', function () {
+      // "Close" hides the pod entirely (the user has no other way to
+      // bring it back, but in practice no scenario calls for closing
+      // permanently — collapse is the nudge-out-of-the-way affordance).
+      panel.style.display = 'none';
     });
-    closeBtn.addEventListener('click', closePanel);
+    collapseBtn.addEventListener('click', function () {
+      var collapsed = panel.getAttribute('data-collapsed') === '1';
+      veDesignMdSetCollapsed(panel, !collapsed);
+    });
     themeBtn.addEventListener('click', function () {
       veDesignMdToggleTheme(panel);
     });
     exportBtn.addEventListener('click', veDesignMdExport);
     veDesignMdWireLoadControls(panel);
+
+    // ── Restore the last-applied preset's "Loaded:" indicator ──
+    var lastPresetKey = veDesignMdLsRead(VE_DESIGNMD_LS_PRESET);
+    if (lastPresetKey) {
+      var rows = veDesignMdAllPresets();
+      var i;
+      for (i = 0; i < rows.length; i++) {
+        if (rows[i].key === lastPresetKey) {
+          veDesignMdShowLoadedName(panel, rows[i].label + ' (preset)');
+          break;
+        }
+      }
+    }
+
+    // Re-clamp the position on viewport resize so the pod never ends up
+    // off-screen after a window rotation / multi-monitor unplug.
+    window.addEventListener('resize', function () {
+      var rect = panel.getBoundingClientRect();
+      veDesignMdPlacePod(panel, rect.left, rect.top);
+    });
+  }
+
+  // Render the theme-library drawer's preset list. Each row is a button
+  // that, on click, calls veDesignMdHotSwap with the preset's text and
+  // marks itself aria-pressed (the runtime never multi-selects — only
+  // one preset can be active at a time).
+  function veDesignMdRenderLibrary(panel, listEl) {
+    if (!listEl) return;
+    while (listEl.firstChild) listEl.removeChild(listEl.firstChild);
+    var rows = veDesignMdAllPresets();
+    var lastKey = veDesignMdLsRead(VE_DESIGNMD_LS_PRESET);
+    var i;
+    for (i = 0; i < rows.length; i++) {
+      var row = rows[i];
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 've-designmd-preset';
+      btn.setAttribute('data-preset-key', row.key);
+      btn.setAttribute('aria-pressed', row.key === lastKey ? 'true' : 'false');
+      btn.textContent = row.label;
+      // Bind the click via an IIFE so each button captures its own row.
+      (function (r) {
+        btn.addEventListener('click', function () {
+          var res = veDesignMdHotSwap(panel, r.text, r.label + ' (preset)');
+          if (res && res.ok) {
+            veDesignMdLsWrite(VE_DESIGNMD_LS_PRESET, r.key);
+            // Update aria-pressed across the row.
+            var all = listEl.querySelectorAll('.ve-designmd-preset');
+            var k;
+            for (k = 0; k < all.length; k++) {
+              all[k].setAttribute('aria-pressed',
+                all[k].getAttribute('data-preset-key') === r.key ? 'true' : 'false');
+            }
+          }
+        });
+      })(row);
+      listEl.appendChild(btn);
+    }
   }
 
   // ─── Phase 2 INTEGRATION — visualize-skill module wiring ──────────
@@ -9457,16 +10440,59 @@
       window.__veDesignMd = {
         state: veDesignMdState,
         loadText: veDesignMdLoadText,
-        hotSwap: function (text) {
+        hotSwap: function (text, sourceName) {
           var panel = document.getElementById(VE_DESIGNMD_PANEL_ID);
-          return veDesignMdHotSwap(panel, text);
+          return veDesignMdHotSwap(panel, text, sourceName);
         },
         toggleTheme: function () {
           var panel = document.getElementById(VE_DESIGNMD_PANEL_ID);
           veDesignMdToggleTheme(panel);
         },
         exportText: veDesignMdExport,
-        defaultText: DEFAULT_DESIGNMD_TEXT
+        defaultText: DEFAULT_DESIGNMD_TEXT,
+        // Phase 2.5 (TRDD-352ef46a, p25-runtime-theme-pod) — expose the
+        // pod's drag/collapse/preset surface so headless tests can
+        // verify position persistence, the library drawer, and the
+        // collapse handle without simulating real mouse drags.
+        presets: veDesignMdAllPresets,
+        applyPreset: function (key) {
+          var rows = veDesignMdAllPresets();
+          var i;
+          for (i = 0; i < rows.length; i++) {
+            if (rows[i].key === key) {
+              var panel = document.getElementById(VE_DESIGNMD_PANEL_ID);
+              var res = veDesignMdHotSwap(panel, rows[i].text, rows[i].label + ' (preset)');
+              if (res && res.ok) {
+                veDesignMdLsWrite(VE_DESIGNMD_LS_PRESET, key);
+              }
+              return res;
+            }
+          }
+          return { ok: false, errors: ['unknown preset: ' + key] };
+        },
+        movePod: function (x, y) {
+          var panel = document.getElementById(VE_DESIGNMD_PANEL_ID);
+          if (!panel) return null;
+          veDesignMdPlacePod(panel, x, y);
+          var rect = panel.getBoundingClientRect();
+          veDesignMdSavePosition(rect.left, rect.top);
+          return { x: rect.left, y: rect.top };
+        },
+        getPodPosition: function () {
+          var panel = document.getElementById(VE_DESIGNMD_PANEL_ID);
+          if (!panel) return null;
+          var rect = panel.getBoundingClientRect();
+          return { x: rect.left, y: rect.top, w: rect.width, h: rect.height };
+        },
+        setCollapsed: function (collapsed) {
+          var panel = document.getElementById(VE_DESIGNMD_PANEL_ID);
+          if (!panel) return;
+          veDesignMdSetCollapsed(panel, !!collapsed);
+        },
+        isCollapsed: function () {
+          var panel = document.getElementById(VE_DESIGNMD_PANEL_ID);
+          return !!(panel && panel.getAttribute('data-collapsed') === '1');
+        }
       };
     }
   }
@@ -9717,6 +10743,109 @@
       span.appendChild(btn);
     }
     return span;
+  }
+
+  // ─── Region 3 (TRDD-352ef46a Phase 2.5 USER REQ #10) ───────────────
+  // Atom-scoped 3-radio Skip/Approve/Deny mini-pill, INDEPENDENT of
+  // selection state. Sibling agents (chart, diagram, icon-svg, table,
+  // wireframe, etc.) call window.amvcpRuntime.attachDecisionMini(el, id)
+  // once per atom they emit; the helper appends one .ve-decision-mini-pill
+  // to that element with three S/A/D segments backed by hidden radios.
+  // State is persisted per-id in localStorage["ve-decision-mini:" + id].
+
+  var DECISION_PILL_LS_PREFIX = 've-decision-mini:';
+  function loadPillDecision(id) {
+    if (!id) return null;
+    try {
+      var raw = localStorage.getItem(DECISION_PILL_LS_PREFIX + id);
+      return raw ? raw : null;
+    } catch (_) { return null; }
+  }
+  function savePillDecision(id, value) {
+    if (!id) return;
+    try {
+      if (value && value !== 'none') {
+        localStorage.setItem(DECISION_PILL_LS_PREFIX + id, value);
+      } else {
+        localStorage.removeItem(DECISION_PILL_LS_PREFIX + id);
+      }
+    } catch (_) {}
+  }
+
+  function buildDecisionMiniPill(id, currentValue) {
+    var span = document.createElement('span');
+    span.className = 've-decision-mini-pill';
+    span.setAttribute('role', 'radiogroup');
+    span.setAttribute('data-ve-decision-pill-id', id);
+    span.setAttribute('aria-label', 'Skip / Approve / Deny');
+    var groupName = 've-decision-mini-pill-' + id.replace(/[^A-Za-z0-9_-]/g, '_');
+    var specs = [
+      { value: 'skip',    letter: 'S', title: 'Skip — no opinion' },
+      { value: 'approve', letter: 'A', title: 'Approve — accept this item' },
+      { value: 'deny',    letter: 'D', title: 'Deny — reject this item' },
+    ];
+    for (var i = 0; i < specs.length; i++) {
+      var spec = specs[i];
+      var radioId = groupName + '-' + spec.value;
+      var input = document.createElement('input');
+      input.type = 'radio';
+      input.name = groupName;
+      input.value = spec.value;
+      input.id = radioId;
+      input.className = 've-decision-mini-pill-radio';
+      if (spec.value === currentValue) input.checked = true;
+      var label = document.createElement('label');
+      label.setAttribute('for', radioId);
+      label.className = 've-decision-mini-pill-seg ve-decision-mini-pill-seg-' + spec.value;
+      label.textContent = spec.letter;
+      label.title = spec.title;
+      // Stop propagation so segment clicks never bubble up to the
+      // parent atom (which would otherwise trigger comment modal /
+      // multi-click chain). Pill is its own affordance.
+      var stop = function (ev) { ev.stopPropagation(); };
+      label.addEventListener('mousedown', stop);
+      label.addEventListener('click', stop);
+      input.addEventListener('change', (function (val, theId, root) {
+        return function () {
+          savePillDecision(theId, val);
+          var host = root.parentElement;
+          if (host) host.setAttribute('data-ve-decision-mini', val);
+        };
+      })(spec.value, id, span));
+      input.addEventListener('click', stop);
+      span.appendChild(input);
+      span.appendChild(label);
+    }
+    return span;
+  }
+
+  function attachDecisionMini(el, id) {
+    if (!el || !id) return null;
+    // Idempotent — never attach twice to the same host.
+    var existing = el.querySelector(':scope > .ve-decision-mini-pill[data-ve-decision-pill-id="' + id.replace(/"/g, '\\"') + '"]');
+    if (existing) return existing;
+    var current = loadPillDecision(id);
+    var pill = buildDecisionMiniPill(id, current);
+    if (current) el.setAttribute('data-ve-decision-mini', current);
+    // Position absolute so the pill sits in the corner without
+    // competing for inline-flow space. Give the host position:relative
+    // ONLY if it currently has 'static' positioning (never override an
+    // already-positioned host).
+    var hostCs = window.getComputedStyle ? window.getComputedStyle(el) : null;
+    if (hostCs && hostCs.position === 'static') {
+      el.style.position = 'relative';
+    }
+    el.appendChild(pill);
+    return pill;
+  }
+
+  // Stamp the public namespace AS SOON AS the runtime IIFE loads, not
+  // inside bootEverything — sibling-agent modules may call
+  // attachDecisionMini during their own init pass that runs BEFORE
+  // bootEverything completes.
+  if (typeof window !== 'undefined') {
+    window.amvcpRuntime = window.amvcpRuntime || {};
+    window.amvcpRuntime.attachDecisionMini = attachDecisionMini;
   }
 
   if (document.readyState === 'loading') {

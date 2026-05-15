@@ -457,6 +457,23 @@
         value: info.value != null ? info.value : null
       }
     };
+    // Phase 2.5 request #10 — every atom gets an independent 3-radio
+    // Skip/Approve/Deny mini-pill via the runtime helper (sibling agent
+    // p25-runtime-text-comment ships it). Defensive guard tolerates the
+    // helper missing in standalone fixtures.
+    _attachDecisionMini(node, info.id);
+  }
+
+  // Defensive bridge to amvcpRuntime.attachDecisionMini (request #10).
+  function _attachDecisionMini(atomEl, atomId) {
+    if (!atomEl || atomEl.__veDecisionMiniAttached) { return; }
+    if (typeof window === 'undefined') { return; }
+    var rt = window.amvcpRuntime;
+    if (!rt || typeof rt.attachDecisionMini !== 'function') { return; }
+    try {
+      rt.attachDecisionMini(atomEl, atomId);
+      atomEl.__veDecisionMiniAttached = true;
+    } catch (_) { /* helper failed — chart stays usable, no pill */ }
   }
 
   // ── tooltip singleton (hover-bridge pattern) ───────────────────────
@@ -701,6 +718,75 @@
       }
     });
     MARK_SEL = MARK_SEL;   // silence unused-var lint without dead code
+
+    // Phase 2.5 — group-handle observer (TRDD-352ef46a contract step 3).
+    // Runtime stamps data-ve-selected="1" on every [data-ve-id] in
+    // veSelection but only mounts comment-handles on table/list/section
+    // containers. Charts are NOT in that container list, so this module
+    // mounts its own observer to mount one .ve-comment-handle on the
+    // figure whenever >=1 mark is selected.
+    _wireGroupHandle(fig);
+  }
+
+  // Build / update / remove the per-figure comment-handle. Idempotent.
+  // The handle delegates to window.__veOpenCommentModal (runtime hook)
+  // so the existing multi-turn modal is reused — no parallel UI.
+  function _updateGroupHandle(fig) {
+    if (!fig || !fig.querySelectorAll) { return; }
+    var selected = fig.querySelectorAll('[data-ve-selected="1"]');
+    var existing = fig.querySelector(':scope > .ve-comment-handle');
+    if (selected.length === 0) {
+      if (existing) { existing.remove(); }
+      return;
+    }
+    var first = selected[0];
+    var figRect = fig.getBoundingClientRect();
+    var firstRect = first.getBoundingClientRect();
+    var topPx = firstRect.top - figRect.top + firstRect.height / 2;
+    var handle = existing;
+    if (!handle) {
+      handle = document.createElement('button');
+      handle.type = 'button';
+      handle.className = 've-comment-handle ve-group-handle';
+      handle.textContent = '\u{1F4AC}';   /* speech-bubble glyph */
+      handle.title = 'Open comment thread for selected chart marks';
+      handle.setAttribute('data-ve-overlay', '1');
+      handle.addEventListener('click', function (ev) {
+        ev.preventDefault();
+        ev.stopPropagation();
+        var openFn = (typeof window !== 'undefined'
+          && typeof window.__veOpenCommentModal === 'function')
+          ? window.__veOpenCommentModal : null;
+        if (openFn) { openFn(this); }
+      });
+      fig.appendChild(handle);
+    }
+    var ids = [];
+    for (var i = 0; i < selected.length; i++) {
+      var mid = selected[i].getAttribute('data-ve-id');
+      if (mid) { ids.push(mid); }
+    }
+    ids.sort();
+    var figId = fig.getAttribute('data-ve-id') || fig.__veChartId || 'chart';
+    handle.setAttribute('data-ve-comment-id',
+      'chart:' + figId + ':' + ids.join(','));
+    handle.style.top = topPx + 'px';
+  }
+
+  function _wireGroupHandle(fig) {
+    if (!fig || fig.__veGroupHandleWired) { return; }
+    fig.__veGroupHandleWired = true;
+    _updateGroupHandle(fig);
+    if (typeof MutationObserver === 'undefined') { return; }
+    var mo = new MutationObserver(function () {
+      _updateGroupHandle(fig);
+    });
+    mo.observe(fig, {
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['data-ve-selected']
+    });
+    fig.__veGroupHandleObserver = mo;
   }
 
   // The hard ceiling on horizontal gridlines a chart may draw — the
@@ -2749,6 +2835,58 @@
     '  outline: 2px solid var(--vc-color-accent, #b8861f);',
     '  outline-offset: 1px;',
     '}',
+    /* Phase 2.5 selection contract — selected atoms paint brighter +
+       bolder. The runtime stamps data-ve-selected="1" when the atom is
+       in veSelection; this rule mirrors the runtime so the contract
+       holds even in standalone mode (chart-spec.md §0 defensive). */
+    '.ve-chart-bar[data-ve-selected="1"],',
+    '.ve-chart-point[data-ve-selected="1"],',
+    '.ve-chart-cell[data-ve-selected="1"],',
+    '.ve-chart-arc[data-ve-selected="1"],',
+    '.ve-chart-wf-bar[data-ve-selected="1"],',
+    '.ve-chart-mekko-cell[data-ve-selected="1"],',
+    '.ve-chart-funnel-stage[data-ve-selected="1"] {',
+    '  filter: brightness(1.18);',
+    '  stroke: var(--vc-color-accent, #b8861f);',
+    '  stroke-width: 2;',
+    '}',
+    /* Hover-on-selected: keep the boost AND the hover sheen. */
+    '.ve-chart-bar[data-ve-selected="1"]:hover,',
+    '.ve-chart-point[data-ve-selected="1"]:hover,',
+    '.ve-chart-cell[data-ve-selected="1"]:hover,',
+    '.ve-chart-arc[data-ve-selected="1"]:hover,',
+    '.ve-chart-wf-bar[data-ve-selected="1"]:hover,',
+    '.ve-chart-mekko-cell[data-ve-selected="1"]:hover,',
+    '.ve-chart-funnel-stage[data-ve-selected="1"]:hover {',
+    '  filter: brightness(1.22)',
+    '          drop-shadow(0 0 4px var(--vc-color-accent, #b8861f));',
+    '}',
+    /* Outer ring on the figure when ANY atom inside is selected — the
+       same affordance the runtime gives to ul/ol/section containers. */
+    '.ve-chart {',
+    '  position: relative;',
+    '  transition: outline-color 120ms ease, box-shadow 120ms ease;',
+    '}',
+    '.ve-chart:has([data-ve-selected="1"]) {',
+    '  outline: 2px solid var(--vc-color-accent, #b8861f);',
+    '  outline-offset: 4px;',
+    '  border-radius: var(--vc-radius-sm, 4px);',
+    '}',
+    /* The single per-figure comment-handle injected by the observer. */
+    '.ve-chart > .ve-comment-handle {',
+    '  position: absolute; left: -40px;',
+    '  width: 28px; height: 22px;',
+    '  display: inline-flex; align-items: center; justify-content: center;',
+    '  background: var(--vc-color-accent, #b8861f);',
+    '  color: var(--vc-color-on-accent, #ffffff);',
+    '  border: 0; border-radius: 6px; padding: 0;',
+    '  font: 600 13px/1 ui-sans-serif, system-ui, sans-serif;',
+    '  cursor: pointer;',
+    '  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.24);',
+    '  transform: translateY(-50%);',
+    '  z-index: 2;',
+    '}',
+    '.ve-chart > .ve-comment-handle:hover { filter: brightness(1.08); }',
     '.ve-chart-lollipop-stem, .ve-chart-connector,',
     '.ve-chart-wf-connector {',
     '  stroke: var(--vc-color-border-strong, #c9bfa3);',

@@ -376,6 +376,114 @@ async function testPageScrollsWhileModalOpen(page) {
   record('modal_page_scrolls_while_open', ok ? 'PASS' : 'FAIL', 'wheel scroll under modal + connector overlay + modal positioned', `scrollY ${before}→${after}, overlay=${overlayPresent}, positioned=${modalPositioned}`);
 }
 
+async function testLeaderLineAndSelectionPreservation(page) {
+  // TRDD-352ef46a Phase 2.5 Region 2 — modal opens AND draws BOTH the
+  // wide tether (line.ve-connector-line) AND a thin dashed leader-line
+  // (line.ve-leader-line) pointing at the actual atom. While the modal
+  // is open, the data-ve-comment-active attribute remains on the atom
+  // so the user can SEE what they're commenting on (selection
+  // preservation — visual band stays painted).
+  await setup(page);
+  // Open the modal on a paragraph.
+  const t = await hoverThenClickPill(page, 'p[data-ve-comment-id]');
+  if (!t) {
+    record('modal_leader_line_and_preservation', 'FAIL', 'leader line + selection preservation', 'no anchor found');
+    return;
+  }
+  // Inspect both lines and the active anchor attribute.
+  const r = await page.evaluate(() => {
+    const overlay = document.querySelector('svg.ve-connector-overlay');
+    const tether = overlay ? overlay.querySelector('line.ve-connector-line') : null;
+    const leader = overlay ? overlay.querySelector('line.ve-leader-line') : null;
+    const active = document.querySelector('[data-ve-comment-active]');
+    function coords(el) {
+      if (!el) return null;
+      return {
+        x1: parseFloat(el.getAttribute('x1') || '0'),
+        y1: parseFloat(el.getAttribute('y1') || '0'),
+        x2: parseFloat(el.getAttribute('x2') || '0'),
+        y2: parseFloat(el.getAttribute('y2') || '0'),
+      };
+    }
+    return {
+      tether: coords(tether),
+      leader: coords(leader),
+      activeAnchor: !!active,
+      activeId: active ? active.getAttribute('data-ve-comment-id') : null,
+    };
+  });
+  // Assertions:
+  //   • Both lines exist (overlay built with both child <line>s).
+  //   • Both lines have non-zero coords (geometry was actually applied).
+  //   • The active-anchor attribute is set (visual selection persists).
+  //   • The leader line endpoints are different from each other (the
+  //     line ACTUALLY spans some distance — not collapsed to a point).
+  const tetherOk = r.tether
+    && (r.tether.x1 !== 0 || r.tether.y1 !== 0)
+    && (r.tether.x2 !== 0 || r.tether.y2 !== 0);
+  const leaderOk = r.leader
+    && (r.leader.x1 !== 0 || r.leader.y1 !== 0)
+    && (r.leader.x2 !== 0 || r.leader.y2 !== 0)
+    && (r.leader.x1 !== r.leader.x2 || r.leader.y1 !== r.leader.y2);
+  const ok = tetherOk && leaderOk && r.activeAnchor && r.activeId === t.cid;
+  record(
+    'modal_leader_line_and_preservation',
+    ok ? 'PASS' : 'FAIL',
+    'leader line drawn + active-anchor attribute persists while modal open',
+    JSON.stringify(r)
+  );
+}
+
+async function testDecisionMiniPillHelper(page) {
+  // TRDD-352ef46a Phase 2.5 Region 3 — window.amvcpRuntime.attachDecisionMini
+  // helper exists and creates a 3-radio S/A/D pill on the host element.
+  // Per-id localStorage key persists the choice.
+  await setup(page);
+  const result = await page.evaluate(() => {
+    if (!window.amvcpRuntime || typeof window.amvcpRuntime.attachDecisionMini !== 'function') {
+      return { ok: false, reason: 'attachDecisionMini helper missing' };
+    }
+    // Build a synthetic atom inside [data-ve-prose] so the helper can
+    // attach without colliding with the auto-injected .ve-decision-mini
+    // (which only fires on report-mode pages).
+    const host = document.createElement('div');
+    host.setAttribute('data-ve-test-atom', '1');
+    host.style.cssText = 'position:relative; padding:30px; min-height:60px; background:#eee;';
+    document.body.appendChild(host);
+    const atomId = 'test-atom-' + Date.now();
+    const pill = window.amvcpRuntime.attachDecisionMini(host, atomId);
+    if (!pill) return { ok: false, reason: 'helper returned null' };
+    // The pill must have 3 segments (S, A, D) backed by 3 radios.
+    const segs = pill.querySelectorAll('.ve-decision-mini-pill-seg');
+    const radios = pill.querySelectorAll('.ve-decision-mini-pill-radio');
+    if (segs.length !== 3 || radios.length !== 3) {
+      return { ok: false, reason: 'wrong segment/radio count', segs: segs.length, radios: radios.length };
+    }
+    // Click "approve" — the radio change should persist to localStorage.
+    const approveLabel = pill.querySelector('.ve-decision-mini-pill-seg-approve');
+    const approveRadio = pill.querySelector('.ve-decision-mini-pill-radio[value="approve"]');
+    approveRadio.checked = true;
+    approveRadio.dispatchEvent(new Event('change', { bubbles: true }));
+    const stored = localStorage.getItem('ve-decision-mini:' + atomId);
+    // Idempotency: re-attaching the same (host, id) should NOT add a
+    // second pill — the existing one is returned.
+    const pill2 = window.amvcpRuntime.attachDecisionMini(host, atomId);
+    const allPills = host.querySelectorAll('.ve-decision-mini-pill');
+    return {
+      ok: stored === 'approve' && pill2 === pill && allPills.length === 1,
+      stored,
+      sameInstance: pill2 === pill,
+      pillCount: allPills.length
+    };
+  });
+  record(
+    'modal_decision_mini_pill_helper',
+    result.ok ? 'PASS' : 'FAIL',
+    'attachDecisionMini helper creates pill, persists choice, idempotent',
+    JSON.stringify(result)
+  );
+}
+
 // ── Runner ──────────────────────────────────────────────────────────
 
 const tests = [
@@ -393,6 +501,8 @@ const tests = [
   testTableRowAnchor,
   testCodeBlockAnchor,
   testPageScrollsWhileModalOpen,
+  testLeaderLineAndSelectionPreservation,
+  testDecisionMiniPillHelper,
 ];
 
 const page = await browser.getPage("modal-tests");

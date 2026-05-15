@@ -78,6 +78,100 @@
   var LOOP_SELECTOR =
     '.va-float-y, .va-breathe, .va-orbit, .va-rotate, .va-pulse, .va-skeleton';
 
+  // ── Selection-contract conformance (TRDD-352ef46a phase 2.5) ───────
+  //
+  // Every animated target the module touches is a SELECTABLE atom under
+  // the unified contract: each `.va-stagger-item`, `[data-va-reveal]`,
+  // and `.va-counter` is one comment-able thing. Stamp `data-ve-id` +
+  // `data-ve-type` on each (idempotent — only if author left them
+  // unset), then attach the per-atom decision mini-pill (NEW USER REQ
+  // #10) via the runtime helper. Both stamping AND pill attachment are
+  // guarded so a page WITHOUT a runtime is still rendered correctly:
+  // the attribute is present but inert until the runtime later mounts.
+  function _stampAtomVa(el, id, type) {
+    if (!el || !el.setAttribute) { return; }
+    if (!el.hasAttribute('data-ve-id')) {
+      el.setAttribute('data-ve-id', String(id));
+    }
+    if (type && !el.hasAttribute('data-ve-type')) {
+      el.setAttribute('data-ve-type', String(type));
+    }
+  }
+
+  // Defensive guard: the helper is shipped by a sibling agent
+  // concurrently. If absent now, queue + retry on microtask + DOM ready.
+  var _animDecisionPending = [];
+  function _attachDecisionMiniVa(el, id) {
+    if (!el) { return; }
+    var rt = (typeof window !== 'undefined') ? window.amvcpRuntime : null;
+    if (rt && typeof rt.attachDecisionMini === 'function') {
+      try { rt.attachDecisionMini(el, id); }
+      catch (e) { /* never block reveal for one bad pill */ }
+      return;
+    }
+    _animDecisionPending.push({ el: el, id: id });
+  }
+  function _flushAnimDecisionPending() {
+    if (typeof window === 'undefined') { return; }
+    var rt = window.amvcpRuntime;
+    if (!rt || typeof rt.attachDecisionMini !== 'function') { return; }
+    var q = _animDecisionPending;
+    _animDecisionPending = [];
+    for (var i = 0; i < q.length; i++) {
+      try { rt.attachDecisionMini(q[i].el, q[i].id); }
+      catch (e) { /* swallow */ }
+    }
+  }
+  if (typeof window !== 'undefined') {
+    if (typeof Promise !== 'undefined' && typeof Promise.resolve === 'function') {
+      Promise.resolve().then(_flushAnimDecisionPending);
+    } else if (typeof setTimeout === 'function') {
+      setTimeout(_flushAnimDecisionPending, 0);
+    }
+    if (typeof document !== 'undefined') {
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', _flushAnimDecisionPending);
+      } else if (typeof setTimeout === 'function') {
+        setTimeout(_flushAnimDecisionPending, 100);
+      }
+    }
+  }
+
+  // Walk every animated atom inside `root` and ensure it has the
+  // contract attributes + a decision pill. Idempotent: a re-scan after
+  // dynamic insertion only stamps the new ones (existing atoms keep
+  // their ids and the runtime's attachDecisionMini guards against
+  // double-mount of the pill).
+  function stampAnimatedAtoms(root) {
+    var d = root || (typeof document !== 'undefined' ? document : null);
+    if (!d || !d.querySelectorAll) { return 0; }
+    var stamped = 0;
+    // Scope: explicit atom kinds only. NOT `.va-tilt`, `.va-pulse`, the
+    // skeleton bones, or the loop-pause LOOP_SELECTOR matches — those
+    // are decorative-only ambient animations, not content atoms. The
+    // selectable ones are content blocks that REVEAL: cards, headings,
+    // and counters.
+    var SEL = '.va-stagger-item, [data-va-reveal], .va-counter[data-va-stat]';
+    var nodes = d.querySelectorAll(SEL);
+    for (var i = 0; i < nodes.length; i++) {
+      var el = nodes[i];
+      // The card + counter atoms get distinct types so a payload reader
+      // can downstream-route by kind. Counter wins if both classes
+      // apply, since the count-up is the more specific behaviour.
+      var type = 'card';
+      if (el.classList && el.classList.contains('va-counter')) {
+        type = 'counter';
+      }
+      var stableId = el.id
+        || (el.getAttribute && el.getAttribute('data-ve-id'))
+        || ('anim-' + type + '-' + i);
+      _stampAtomVa(el, stableId, type);
+      _attachDecisionMiniVa(el, stableId);
+      stamped++;
+    }
+    return stamped;
+  }
+
   // ── prefers-reduced-motion gate (Layer 1, AN-10) ───────────────────
   //
   // Read the OS preference ONCE at module load. JS engines branch on
@@ -716,6 +810,10 @@
       try { _revealObserver.disconnect(); } catch (e) { /* noop */ }
       _revealObserver = null;
     }
+    // Re-stamp atoms — idempotent on existing ones, picks up any newly
+    // inserted elements added since boot. The mini-pill helper is
+    // double-mount safe on the runtime side.
+    stampAnimatedAtoms(d);
     initScrollReveal(d);
     initCardTilt(d);
     if (_loopObserver) {
@@ -740,6 +838,12 @@
     for (var i = 0; i < staggers.length; i++) {
       indexStagger(staggers[i]);
     }
+    // Selection-contract conformance + decision mini-pill stamping
+    // (TRDD-352ef46a phase 2.5 + NEW USER REQ #10). Run BEFORE the
+    // reveal observer so the atoms exist as `[data-ve-id]` from the
+    // first paint — that way the runtime's hover/select CSS covers
+    // them immediately, even before they reveal.
+    stampAnimatedAtoms(d);
     initScrollReveal(d);
 
     // Deferred — polish / perf layers.
@@ -759,6 +863,11 @@
     createLoop: createLoop,
     revealNow: revealNow,
     refresh: refresh,
+    // Selection-contract conformance + decision mini-pill stamping
+    // (TRDD-352ef46a phase 2.5 + NEW USER REQ #10). Exposed so a test
+    // / orchestrator can re-run the scan after dynamic insertion that
+    // does not go through refresh().
+    stampAnimatedAtoms: stampAnimatedAtoms,
     // Exposed for the dev-browser test (mirrors window.__veDesignMd).
     _cssText: CSS_TEXT
   };

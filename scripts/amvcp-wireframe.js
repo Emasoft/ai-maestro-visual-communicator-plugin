@@ -360,6 +360,76 @@
     }
   }
 
+  // ── Phase 2.5 selection contract auto-stamp ────────────────────────
+  //
+  // Wireframe blocks (.wf-screen, .wf-card, .wf-header, etc.) become
+  // selection atoms by the AUTHOR adding data-ve-id + data-ve-type to
+  // them. The Phase 2.5 contract (TRDD-352ef46a) additionally requires
+  // data-ve-comment-id on every atom so the runtime's keyboard
+  // fallback (Ctrl-+) can scope a comment thread to the selection.
+  //
+  // We auto-stamp data-ve-comment-id on every [data-ve-id] inside a
+  // [data-wf-root] that lacks it — derives the thread key from the
+  // atom's data-ve-type + data-ve-id so it's stable across reloads.
+  // Authors who want a custom thread key can pre-set data-ve-comment-id
+  // and the auto-stamp is a no-op (the ` || `-fallback contract).
+  //
+  // We also call enhanceFocus() ourselves for atoms that are inside an
+  // SVG / non-tabbable-by-default element so the runtime's one-shot
+  // DOMContentLoaded enhanceFocus pass is not the only opportunity —
+  // a wireframe inserted dynamically (refresh()) still becomes
+  // keyboard-reachable.
+  function stampSelectionAtoms(root) {
+    var d = root || document;
+    if (!d.querySelectorAll) { return; }
+    var atoms = d.querySelectorAll('[data-wf-root] [data-ve-id]');
+    for (var i = 0; i < atoms.length; i++) {
+      var el = atoms[i];
+      if (!el.hasAttribute('data-ve-comment-id')) {
+        var id = el.getAttribute('data-ve-id');
+        var typ = el.getAttribute('data-ve-type') || 'wireframe-atom';
+        el.setAttribute('data-ve-comment-id', typ + ':' + id);
+      }
+      // Make sure the atom is keyboard-reachable. <section>, <div>,
+      // <article> are NOT tabbable by default; the runtime's
+      // enhanceFocus stamps tabindex but only if it has run after the
+      // atom appeared in the DOM. Stamp ourselves so a refresh() picks
+      // up newly-inserted atoms.
+      if (!el.hasAttribute('tabindex')
+          && !el.matches('button, input, select, textarea, a[href]')) {
+        el.setAttribute('tabindex', '0');
+        if (!el.hasAttribute('role')) {
+          el.setAttribute('role', 'button');
+        }
+      }
+    }
+    // Phase 2.5 User Req #10 — every atom (regardless of selection
+    // state) gets a 3-radio Skip/Approve/Deny mini-pill. The helper
+    // is shipped concurrently by the sibling p25-runtime-text-comment
+    // agent — guard defensively in case the runtime is not loaded yet
+    // or the helper is not registered (the contract is "always-attempt,
+    // never-throw").
+    attachDecisionMinisToAtoms(d);
+  }
+
+  // Walk every wireframe selection atom and call the runtime's
+  // attachDecisionMini(el, id) helper. Defensive — the helper may not
+  // exist (when the runtime is not loaded, e.g. standalone fixture
+  // pages). Idempotent — the runtime owns the de-dup contract.
+  function attachDecisionMinisToAtoms(root) {
+    var d = root || (typeof document !== 'undefined' ? document : null);
+    if (!d || !d.querySelectorAll) { return; }
+    if (typeof window === 'undefined') { return; }
+    var rt = window.amvcpRuntime;
+    if (!rt || typeof rt.attachDecisionMini !== 'function') { return; }
+    var atoms = d.querySelectorAll('[data-wf-root] [data-ve-id]');
+    for (var i = 0; i < atoms.length; i++) {
+      var el = atoms[i];
+      var id = el.getAttribute('data-ve-id');
+      try { rt.attachDecisionMini(el, id); } catch (e) { /* defensive */ }
+    }
+  }
+
   // ── --wf-lines pass ────────────────────────────────────────────────
   //
   // Each `.wf-text` may carry data-wf-lines="N" — the count of grey
@@ -526,6 +596,11 @@
 
     applyTextLines(d);
     wireSliders(d);
+    // Phase 2.5 selection contract — stamp data-ve-comment-id +
+    // tabindex on every wireframe atom so the runtime's selection
+    // pipeline picks them up uniformly. Idempotent: re-running on the
+    // same DOM is a no-op (the hasAttribute guards inside).
+    stampSelectionAtoms(d);
     _wireThemeListener();
   }
 
@@ -539,6 +614,7 @@
     _redesaturateAll(d);
     applyTextLines(d);
     wireSliders(d);
+    stampSelectionAtoms(d);
   }
 
   // ── Public API + dual export ───────────────────────────────────────
@@ -547,6 +623,13 @@
     init: init,
     refresh: refresh,
     applyFidelity: applyFidelity,
+    // Phase 2.5 selection contract helper — exported so a test can
+    // assert that auto-stamping ran without spelling out the full
+    // init() pipeline.
+    stampSelectionAtoms: stampSelectionAtoms,
+    // Phase 2.5 User Req #10 — exposed so a host that injects
+    // wireframe atoms after init can re-attach the per-atom mini pill.
+    attachDecisionMinisToAtoms: attachDecisionMinisToAtoms,
     // Pure helpers — unit-testable under Node.
     desaturateToken: desaturateToken,
     fidelityFactor: fidelityFactor,
@@ -574,7 +657,9 @@
       init: init,
       refresh: refresh,
       applyFidelity: applyFidelity,
-      desaturateToken: desaturateToken
+      desaturateToken: desaturateToken,
+      stampSelectionAtoms: stampSelectionAtoms,
+      attachDecisionMinisToAtoms: attachDecisionMinisToAtoms
     };
 
     // Self-init on DOMContentLoaded — UNLESS the host opted out via

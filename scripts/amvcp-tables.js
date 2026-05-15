@@ -465,6 +465,236 @@
     return false;
   }
 
+  // ── Selection/comment contract conformance (Phase 2.5, TRDD-352ef46a) ──
+  //
+  // The runtime ships a 3-state visual atom contract:
+  //   1) normal       — no [data-ve-selected] / [data-ve-pressed]
+  //   2) hover/focus  — bright outer glow (CSS rule, automatic)
+  //   3) selected     — [data-ve-selected="1"] (element-kind atoms)
+  //                  OR [data-ve-pressed="1"]  (row/li/p/bq atoms)
+  // Plus a SINGLE comment handle on the group container when ≥1 child is
+  // selected (runtime: updateGroupCommentHandles + updateCommentHandles).
+  //
+  // For the contract to engage, the atom MUST carry one of:
+  //   • [data-ve-id]            — element-kind (cards, cells, divs, …)
+  //                               handled by the generic 3-state CSS at
+  //                               runtime.js:615-635, comment-handle via
+  //                               findCommentAnchor + openCommentModal.
+  //   • [data-ve-comment-id]    — row/li/paragraph/blockquote selectable
+  //                               atoms, handled by atom-paint events at
+  //                               runtime.js:6447+, group handle via
+  //                               updateGroupCommentHandles.
+  //
+  // Plain `<table data-ve-table>` widgets are author-written HTML, so
+  // their <tr>/<td> nodes don't carry comment-id stamps the renderer
+  // would have put on a server-rendered Markdown table. Phase 2.5 closes
+  // that gap by stamping the contract attributes here, when the table is
+  // enhanced. The stamps are deterministic (table tag + row/col index)
+  // so they're stable across re-init and don't churn idmap entries.
+  //
+  // What gets stamped:
+  //   • Every body <tr> (in `data` and `compare` modes) gets
+  //     `data-ve-comment-id="row:<table-tag>:<rowIdx>"` so the runtime's
+  //     row-atom contract activates: 3 visual states + group handle on
+  //     the parent <table>.
+  //   • In `matrix` mode, every <td data-ve-val> gets `data-ve-id` +
+  //     `data-ve-type="matrix-cell"` so each cell becomes an element-
+  //     kind atom (per-cell selection makes sense for a coverage matrix
+  //     — selecting a row would obscure the per-cell pass/fail signal).
+  //   • In `compare` mode, every body <td> gets `data-ve-id` +
+  //     `data-ve-type="compare-cell"` so a single comparison cell can
+  //     also be selected (in addition to the whole row). The runtime's
+  //     enhanceFocus pass adds tabindex/role automatically.
+  //
+  // Header <th> cells are intentionally NOT stamped — they already have
+  // their own affordance (sort handle on data tables; column-emphasis
+  // header on compare tables). Stamping them as atoms would produce two
+  // overlapping click affordances on the same target.
+
+  // Defensive bridge to the runtime's per-atom Skip/Approve/Deny mini-
+  // pill helper (Phase 2.5 user req #10). The pill is INDEPENDENT of
+  // selection state — every atom always carries the pill, regardless of
+  // [data-ve-selected] / [data-ve-pressed] / [data-ve-comment-id]. The
+  // helper itself is shipped by the sibling p25-runtime-text-comment
+  // agent on the runtime side. Until that lands (or when the runtime is
+  // not loaded — e.g. in the standalone tables fixture), this is a
+  // no-op so the module still degrades cleanly.
+  //
+  // The signature contract: window.amvcpRuntime.attachDecisionMini(
+  //   atomEl, atomId
+  // ). atomId can be a data-ve-comment-id (rows) or a data-ve-id (cells).
+  // The runtime is responsible for idempotency, persistence (localStorage
+  // keyed by atomId), and the segment toggle behaviour. Wrapping the
+  // call in a try/catch protects the module from a buggy helper version.
+  function attachDecisionMiniSafe(atomEl, atomId) {
+    if (!atomEl || !atomId) {
+      return;
+    }
+    if (typeof window === 'undefined') {
+      return;
+    }
+    var rt = window.amvcpRuntime;
+    if (!rt || typeof rt.attachDecisionMini !== 'function') {
+      return; // sibling helper not loaded — silent no-op (degrades cleanly)
+    }
+    try {
+      rt.attachDecisionMini(atomEl, atomId);
+    } catch (_e) {
+      // A buggy helper version must never crash the table enhancer.
+      // Phase 2.5 ships across many modules in parallel; tolerate the
+      // race where one module is updated before its dependency.
+    }
+  }
+
+  function tablesAtomTag(table) {
+    // A stable per-table id string used as the prefix for row/cell
+    // comment-ids. Authoring takes precedence: an author-set
+    // data-ve-id wins so cross-render references stay stable.
+    var existing = table.getAttribute('data-ve-id') || table.id;
+    if (existing) {
+      return existing;
+    }
+    // Stash on the node only; nothing reads it from the DOM. We don't
+    // write the synthetic id back to data-ve-id because the runtime
+    // would then treat the entire <table> as a selectable element-kind
+    // atom and the existing CSS deliberately suppresses table-level
+    // selection (only rows are selectable).
+    if (table.__veAtomTag) {
+      return table.__veAtomTag;
+    }
+    var fresh = 've-table-' + Math.random().toString(36).slice(2, 8);
+    table.__veAtomTag = fresh;
+    return fresh;
+  }
+
+  function stampRowAtoms(table) {
+    // Every body <tr> in this table gets `data-ve-comment-id` so the
+    // runtime's atom contract for rows engages. The id is deterministic
+    // ("row:<tag>:<rowIdx>") so a re-init produces the same id and the
+    // selection state is preserved across enhancements.
+    var tag = tablesAtomTag(table);
+    var rows = collectBodyRows(table);
+    var i;
+    for (i = 0; i < rows.length; i++) {
+      var tr = rows[i];
+      var atomId;
+      if (tr.hasAttribute('data-ve-comment-id')) {
+        // Idempotent — never overwrite an author-set or earlier-set id.
+        atomId = tr.getAttribute('data-ve-comment-id');
+      } else {
+        atomId = 'row:' + tag + ':' + (i + 1);
+        tr.setAttribute('data-ve-comment-id', atomId);
+      }
+      attachDecisionMiniSafe(tr, atomId);
+    }
+  }
+
+  function stampMatrixCellAtoms(table) {
+    // Every coverage-matrix cell becomes an element-kind atom so each
+    // pass/fail/partial cell can be individually selected and commented
+    // on. Use data-ve-id (not data-ve-comment-id) because matrix cells
+    // are atomic facts, not prose-grouped atoms — each click toggles a
+    // single cell, no group-handle is desired.
+    var tag = tablesAtomTag(table);
+    var cells = table.querySelectorAll('td[data-ve-val]');
+    var i;
+    for (i = 0; i < cells.length; i++) {
+      var cell = cells[i];
+      if (closestTable(cell) !== table) {
+        continue;
+      }
+      var atomId;
+      if (cell.hasAttribute('data-ve-id')) {
+        atomId = cell.getAttribute('data-ve-id');
+      } else {
+        // Locate the cell's row index and column index so the id is
+        // human-readable in selection payloads (the agent receives e.g.
+        // "matrix-cell:t-matrix:r2:c3").
+        var rIdx = cellRowIndex(cell);
+        var cIdx = cellColumnIndex(cell);
+        atomId = 'matrix-cell:' + tag + ':r' + rIdx + ':c' + cIdx;
+        cell.setAttribute('data-ve-id', atomId);
+        cell.setAttribute('data-ve-type', 'matrix-cell');
+      }
+      attachDecisionMiniSafe(cell, atomId);
+    }
+  }
+
+  function stampCompareCellAtoms(table) {
+    // Every body <td> in a comparison table becomes an element-kind atom.
+    // <th> header cells are skipped (they belong to row labels or column
+    // headers, not the data being compared). The stamp coexists with the
+    // row-level data-ve-comment-id stamp from stampRowAtoms — clicking a
+    // single cell selects the cell; clicking outside any cell on the row
+    // (e.g. on the row's left edge or the spacing) selects the row.
+    var tag = tablesAtomTag(table);
+    var bodies = table.tBodies || [];
+    var b, r, c;
+    for (b = 0; b < bodies.length; b++) {
+      var rows = bodies[b].rows;
+      for (r = 0; r < rows.length; r++) {
+        var row = rows[r];
+        if (closestTable(row) !== table) {
+          continue;
+        }
+        if (row.getAttribute('data-ve-table-spacer')) {
+          continue;
+        }
+        for (c = 0; c < row.cells.length; c++) {
+          var cell = row.cells[c];
+          // Only data cells (<td>) — <th scope="row"> labels are not
+          // atoms (they're chrome that names the row).
+          if (cell.tagName !== 'TD') {
+            continue;
+          }
+          var atomId;
+          if (cell.hasAttribute('data-ve-id')) {
+            atomId = cell.getAttribute('data-ve-id');
+          } else {
+            atomId = 'compare-cell:' + tag + ':r' + (r + 1) + ':c' + (c + 1);
+            cell.setAttribute('data-ve-id', atomId);
+            cell.setAttribute('data-ve-type', 'compare-cell');
+          }
+          attachDecisionMiniSafe(cell, atomId);
+        }
+      }
+    }
+  }
+
+  // The 1-based body-row index of a cell within its tbody. Walks up to
+  // the parent <tr>, then walks the tbody to find the row's position.
+  function cellRowIndex(cell) {
+    var tr = cell.parentNode;
+    if (!tr || tr.tagName !== 'TR') {
+      return 1;
+    }
+    var tbody = tr.parentNode;
+    if (!tbody || tbody.tagName !== 'TBODY') {
+      return 1;
+    }
+    var rows = tbody.rows;
+    var i;
+    for (i = 0; i < rows.length; i++) {
+      if (rows[i] === tr) {
+        return i + 1;
+      }
+    }
+    return 1;
+  }
+
+  // The 1-based column index of a cell among its row's siblings.
+  function cellColumnIndex(cell) {
+    var tr = cell.parentNode;
+    if (!tr) return 1;
+    var i;
+    for (i = 0; i < tr.children.length; i++) {
+      if (tr.children[i] === cell) {
+        return i + 1;
+      }
+    }
+    return 1;
+  }
+
   // ── Stylesheet ─────────────────────────────────────────────────────
   //
   // One <style> element injected once. Every color / size is a
@@ -681,6 +911,12 @@
 
   function enhanceDataTable(table) {
     var gridInfo = buildCellGrid(table);
+    // Phase 2.5: stamp row-atom contract (data-ve-comment-id) BEFORE we
+    // bail on the rowspan path. Even a sort-declined table is still a
+    // selectable surface — its rows must support the 3-state hover/
+    // selected visuals + the per-group comment handle + the always-on
+    // S/A/D decision pill (NEW USER REQ #10, attached defensively).
+    stampRowAtoms(table);
     // A body rowspan would tear if rows were reordered — decline sorting
     // for the whole table and explain why. Grouped HEADERS (colspan in
     // <thead>) are fine; only a BODY rowspan blocks the sort.
@@ -1153,6 +1389,11 @@
   // applicable" while the geometric glyph stays aria-hidden.
 
   function enhanceMatrixTable(table) {
+    // Phase 2.5: stamp the per-cell atom contract FIRST so each
+    // <td data-ve-val> carries data-ve-id + data-ve-type="matrix-cell",
+    // and the always-on S/A/D decision pill is attached (NEW USER REQ
+    // #10, defensive bridge — no-op when runtime helper absent).
+    stampMatrixCellAtoms(table);
     var cells = table.querySelectorAll('td[data-ve-val]');
     var i;
     for (i = 0; i < cells.length; i++) {
@@ -1231,6 +1472,16 @@
   // fail-fast with a console.warn and emphasise only the first.
 
   function enhanceCompareTable(table) {
+    // Phase 2.5: stamp BOTH levels of selection contract on a comparison
+    // table. Rows get the row-atom contract (so a whole-row "this option
+    // wins" comment is one click) AND every body cell gets the element-
+    // kind atom contract (so a per-criterion "this cell is misleading"
+    // comment is also one click). They coexist: clicking a cell selects
+    // the cell only; a click outside any cell on the row's left edge or
+    // its row-label <th> selects the row. Both stamping passes also
+    // attach the always-on S/A/D pill via the defensive bridge.
+    stampRowAtoms(table);
+    stampCompareCellAtoms(table);
     var headerRow = firstHeaderRow(table);
     if (!headerRow) {
       return;

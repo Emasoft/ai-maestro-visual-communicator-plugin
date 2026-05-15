@@ -442,6 +442,197 @@ async function testSelectionWiringAttrs(page) {
     JSON.stringify(res));
 }
 
+async function testSelectionContractFocusable(page) {
+  // 14 — Phase 2.5 selection/comment contract conformance (TRDD-352ef46a):
+  // every .vsd-slide is a focusable atom (tabindex="0") with the a11y
+  // bundle (role=group, aria-roledescription=slide, aria-label).
+  const s = await setup(page);
+  if (!s.ok) {
+    record('slide_selection_contract_focusable', 'FAIL',
+      'every slide is a focusable atom with the a11y bundle', s.error);
+    return;
+  }
+  const res = await page.evaluate(() => {
+    const slides = document.querySelectorAll('.vsd-slide');
+    let allGood = true;
+    let firstBad = null;
+    for (let i = 0; i < slides.length; i++) {
+      const sl = slides[i];
+      const tab = sl.getAttribute('tabindex');
+      const role = sl.getAttribute('role');
+      const desc = sl.getAttribute('aria-roledescription');
+      const aria = sl.getAttribute('aria-label');
+      if (tab !== '0' || role !== 'group' || desc !== 'slide'
+          || !aria || aria.indexOf('Slide ') !== 0
+          || aria.indexOf(' of ') === -1) {
+        allGood = false;
+        if (firstBad === null) {
+          firstBad = { i: i, tab: tab, role: role, desc: desc, aria: aria };
+        }
+      }
+    }
+    return { total: slides.length, allGood: allGood, firstBad: firstBad };
+  });
+  const ok = res.total === 6 && res.allGood === true;
+  record('slide_selection_contract_focusable', ok ? 'PASS' : 'FAIL',
+    'every slide has tabindex=0, role=group, aria-roledescription=slide, aria-label',
+    JSON.stringify(res));
+}
+
+async function testSelectionContractThreeStates(page) {
+  // 15 — Phase 2.5 selection/comment contract: the slide module's CSS
+  // overrides outline-offset to -2px (INSIDE the viewport-clipped bounds)
+  // for every state in which the runtime would otherwise paint at +3px.
+  const s = await setup(page);
+  if (!s.ok) {
+    record('slide_selection_contract_three_states', 'FAIL',
+      'slide CSS overrides outline-offset to -2px for selection states', s.error);
+    return;
+  }
+  const res = await page.evaluate(() => {
+    const styleEl = document.getElementById('vsd-slide-styles');
+    const cssText = styleEl ? styleEl.textContent : '';
+    const hasHoverOverride =
+      /\.vsd-slide\[data-ve-id\]:hover/.test(cssText);
+    const hasFocusOverride =
+      /\.vsd-slide\[data-ve-id\]:focus-visible/.test(cssText);
+    const hasSelectedOverride =
+      /\.vsd-slide\[data-ve-id\]\[data-ve-selected="1"\]/.test(cssText);
+    const hasNegativeOffset =
+      /outline-offset:\s*-2px\s*!important/.test(cssText);
+    // Inject a stub mimicking the runtime's universal selection rule.
+    const stubStyle = document.createElement('style');
+    stubStyle.id = 'vsd-test-runtime-stub';
+    stubStyle.textContent =
+      '[data-ve-id]:not([data-ve-type="table-form"])'
+      + '[data-ve-selected="1"] {'
+      + '  outline: 2px solid red;'
+      + '  outline-offset: 3px;'
+      + '}';
+    document.head.appendChild(stubStyle);
+    const slide = document.querySelector('.vsd-slide:not([hidden])');
+    let normalOutlineStyle = 'none';
+    let selectedOutlineStyle = 'none';
+    let selectedOutlineOffset = '0px';
+    if (slide) {
+      slide.removeAttribute('data-ve-selected');
+      normalOutlineStyle = getComputedStyle(slide).outlineStyle;
+      slide.setAttribute('data-ve-selected', '1');
+      const cs = getComputedStyle(slide);
+      selectedOutlineStyle = cs.outlineStyle;
+      selectedOutlineOffset = cs.outlineOffset;
+      slide.removeAttribute('data-ve-selected');
+    }
+    stubStyle.remove();
+    return {
+      hasHoverOverride: hasHoverOverride,
+      hasFocusOverride: hasFocusOverride,
+      hasSelectedOverride: hasSelectedOverride,
+      hasNegativeOffset: hasNegativeOffset,
+      normalOutlineStyle: normalOutlineStyle,
+      selectedOutlineStyle: selectedOutlineStyle,
+      selectedOutlineOffset: selectedOutlineOffset
+    };
+  });
+  const ok = res.hasHoverOverride === true
+    && res.hasFocusOverride === true
+    && res.hasSelectedOverride === true
+    && res.hasNegativeOffset === true
+    && res.normalOutlineStyle === 'none'
+    && res.selectedOutlineStyle === 'solid'
+    && res.selectedOutlineOffset === '-2px';
+  record('slide_selection_contract_three_states', ok ? 'PASS' : 'FAIL',
+    'slide CSS overrides outline-offset to -2px (rule present + wins over runtime stub)',
+    JSON.stringify(res));
+}
+
+async function testDecisionMiniAttachInvoked(page) {
+  // 16 — Phase 2.5 NEW USER REQ #10: createDeck calls
+  // window.amvcpRuntime.attachDecisionMini for every slide. We install a
+  // stub helper, re-create the deck, and assert one call per slide.
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.goto(FIXTURE, { waitUntil: "domcontentloaded" });
+  await page.evaluate(() => { try { localStorage.clear(); } catch (e) {} });
+  await page.goto(FIXTURE + "?cb=" + Date.now(),
+    { waitUntil: "domcontentloaded" });
+  // Wait for fixture ready before stubbing.
+  const deadline = Date.now() + 6000;
+  while (Date.now() < deadline) {
+    const ready = await page.evaluate(() =>
+      window.__vsdFixtureReady === true || !!window.__vsdFixtureError);
+    if (ready) break;
+    await page.waitForTimeout(70);
+  }
+  const res = await page.evaluate(() => {
+    const calls = [];
+    window.amvcpRuntime = {
+      attachDecisionMini: function (el, id) {
+        calls.push({
+          isSlide: /\bvsd-slide\b/.test(el.className || ''),
+          idMatch: /^s\d+$/.test(id),
+          id: id
+        });
+      }
+    };
+    const viewport = document.querySelector('.vsd-viewport');
+    if (!viewport) { return { error: 'no viewport' }; }
+    window.amvcpSlideDeck.createDeck(viewport);
+    const observed = calls.slice();
+    delete window.amvcpRuntime;
+    return {
+      callCount: observed.length,
+      allSlides: observed.every(c => c.isSlide),
+      allIdsMatch: observed.every(c => c.idMatch),
+      uniqueIds: Array.from(new Set(observed.map(c => c.id))).length
+    };
+  });
+  const ok = res.callCount === 6
+    && res.allSlides === true
+    && res.allIdsMatch === true
+    && res.uniqueIds === 6;
+  record('slide_decision_mini_attach_invoked', ok ? 'PASS' : 'FAIL',
+    'attachDecisionMini called once per slide with the slide element + its data-ve-id',
+    JSON.stringify(res));
+}
+
+async function testDecisionMiniAttachDefensive(page) {
+  // 17 — Phase 2.5 NEW USER REQ #10: createDeck must NOT throw when the
+  // runtime helper is absent (defensive guard).
+  const s = await setup(page);
+  if (!s.ok) {
+    record('slide_decision_mini_attach_defensive', 'FAIL',
+      'createDeck does not throw when runtime helper is absent', s.error);
+    return;
+  }
+  const res = await page.evaluate(() => {
+    const wasReady = window.__vsdFixtureReady === true;
+    const noFixtureError = !window.__vsdFixtureError;
+    let secondCallThrew = false;
+    let secondCallMsg = '';
+    try {
+      const viewport = document.querySelector('.vsd-viewport');
+      window.amvcpSlideDeck.createDeck(viewport);
+    } catch (e) {
+      secondCallThrew = true;
+      secondCallMsg = String(e && e.message || e);
+    }
+    return {
+      runtimeAbsent: typeof window.amvcpRuntime === 'undefined',
+      wasReady: wasReady,
+      noFixtureError: noFixtureError,
+      secondCallThrew: secondCallThrew,
+      secondCallMsg: secondCallMsg
+    };
+  });
+  const ok = res.runtimeAbsent === true
+    && res.wasReady === true
+    && res.noFixtureError === true
+    && res.secondCallThrew === false;
+  record('slide_decision_mini_attach_defensive', ok ? 'PASS' : 'FAIL',
+    'createDeck does NOT throw when window.amvcpRuntime is absent',
+    JSON.stringify(res));
+}
+
 async function testThemesBoth(page) {
   // 11 — toggle the theme light <-> dark; the .vsd-viewport's computed
   // background changes (proves the deck CSS reads --vc-color-canvas, not
@@ -566,7 +757,11 @@ const tests = [
   testSelectionWiringAttrs,
   testThemesBoth,
   testNoNestedScroll,
-  testNavigationChromeBuilt
+  testNavigationChromeBuilt,
+  testSelectionContractFocusable,
+  testSelectionContractThreeStates,
+  testDecisionMiniAttachInvoked,
+  testDecisionMiniAttachDefensive
 ];
 
 const page = await browser.getPage("slide-tests");

@@ -345,6 +345,43 @@
     </div>
   </section>
 
+  <h2>Phase 2.5 selection contract — atom states + group comment-handle</h2>
+  <section>
+    <p>Selected atoms paint with a brighter filter + 2-px stroke; the
+       host gets an outer ring (via
+       <code>:has([data-ve-selected="1"])</code>); ONE
+       <code>.ve-comment-handle</code> bubble appears at the hosts
+       left edge.</p>
+    <p>
+      <button id="p25d-select-node" type="button"
+        style="padding:6px 12px;margin-right:8px;">Select node</button>
+      <button id="p25d-select-edge" type="button"
+        style="padding:6px 12px;margin-right:8px;">Select edge</button>
+      <button id="p25d-clear" type="button" style="padding:6px 12px;">
+        Clear selection</button>
+    </p>
+    <div class="ve-scene-graph" id="scene-p25"
+         data-ve-scene-preset="process-flow">
+      <script type="application/json">
+      {
+        "version": 1,
+        "preset": "process-flow",
+        "width": 800,
+        "height": 200,
+        "nodes": [
+          { "id": "p25a", "type": "start",   "label": "Start" },
+          { "id": "p25b", "type": "process", "label": "Work" },
+          { "id": "p25c", "type": "end",     "label": "Done" }
+        ],
+        "edges": [
+          { "from": "p25a", "to": "p25b" },
+          { "from": "p25b", "to": "p25c" }
+        ]
+      }
+      </script>
+    </div>
+  </section>
+
   <div style="height: 300px;"></div>
 </main>
 
@@ -363,6 +400,37 @@
       document.documentElement.setAttribute('data-ve-theme', 'light');
       window.amvcpDiagram.injectDiagramCSS(document);
       window.amvcpDiagram.init(document);
+
+      // Phase 2.5 contract demo — wire the buttons. The runtime is not
+      // loaded in this fixture, so we set data-ve-selected="1" on
+      // node/edge atoms directly. The diagram modules group-handle
+      // observer reacts and mounts the .ve-comment-handle.
+      function p25Mark(kind, on) {
+        var host = document.getElementById('scene-p25');
+        if (!host) { return; }
+        var sel = kind === 'node'
+          ? 'g[data-ve-type="diagram-node"]'
+          : 'g[data-ve-type="diagram-edge"]';
+        var atoms = host.querySelectorAll(sel);
+        if (!atoms.length) { return; }
+        if (on) { atoms[0].setAttribute('data-ve-selected', '1'); }
+        else { atoms[0].removeAttribute('data-ve-selected'); }
+      }
+      function p25Clear() {
+        var sel = document.querySelectorAll(
+          '.ve-scene-graph [data-ve-selected="1"]');
+        for (var i = 0; i < sel.length; i++) {
+          sel[i].removeAttribute('data-ve-selected');
+        }
+      }
+      var bn = document.getElementById('p25d-select-node');
+      var be = document.getElementById('p25d-select-edge');
+      var bc = document.getElementById('p25d-clear');
+      if (bn) { bn.addEventListener('click', function () { p25Mark('node', true); }); }
+      if (be) { be.addEventListener('click', function () { p25Mark('edge', true); }); }
+      if (bc) { bc.addEventListener('click', p25Clear); }
+      window.__p25d = { mark: p25Mark, clear: p25Clear };
+
       window.__vcFixtureReady = true;
     } catch (e) {
       window.__vcFixtureError = String(e && e.message || e);

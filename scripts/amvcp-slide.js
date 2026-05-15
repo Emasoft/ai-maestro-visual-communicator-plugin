@@ -212,8 +212,42 @@
     '  padding: var(--vc-space-6, 64px) var(--vc-space-6, 64px);',
     '  background: var(--vc-color-canvas, #ffffff);',
     '  overflow: visible;',
+    '  outline-offset: -2px;',          /* ring INSIDE the slide bounds */
     '}',
     '.vsd-slide[hidden] { display: none; }',
+    /* --- selection ring override (Phase 2.5 contract conformance) ---
+       The runtime's universal `[data-ve-id]:hover|:focus-visible|
+       [data-ve-selected]` rules paint a 2px outline at outline-offset:
+       3px — i.e. 3px OUTSIDE the box. Slides are `position:absolute;
+       inset:0` inside a `.vsd-viewport { overflow:hidden }` that CLIPS
+       at the slide edge, so an outside outline is invisible. We hoist
+       the outline INSIDE with `outline-offset:-2px` (above) so the ring
+       paints just inside the edge and stays visible. The `!important`
+       beats the runtime's specificity for the same-named property. */
+    '.vsd-slide[data-ve-id]:hover,',
+    '.vsd-slide[data-ve-id]:focus-visible,',
+    '.vsd-slide[data-ve-id][data-ve-selected="1"],',
+    '.vsd-slide[data-ve-id][data-ve-selected="1"]:hover {',
+    '  outline-offset: -2px !important;',
+    '}',
+    /* The runtime hover rule sets an OUTER box-shadow glow that gets
+       clipped by the viewport. Replace with an INSET glow so the
+       hover affordance stays visible inside the slide bounds. */
+    '.vsd-slide[data-ve-id]:hover {',
+    '  box-shadow: inset 0 0 12px',
+    '              color-mix(in srgb,',
+    '              var(--vc-color-accent, #b8861f) 35%, transparent)',
+    '              !important;',
+    '}',
+    '.vsd-slide[data-ve-id][data-ve-selected="1"] {',
+    '  box-shadow: none !important;',     /* selected = ring + bg, no glow */
+    '}',
+    '.vsd-slide[data-ve-id][data-ve-selected="1"]:hover {',
+    '  box-shadow: inset 0 0 16px',
+    '              color-mix(in srgb,',
+    '              var(--vc-color-accent, #b8861f) 50%, transparent)',
+    '              !important;',
+    '}',
     '.vsd-viewport[data-vsd-fit="responsive"] .vsd-slide {',
     '  position: relative; inset: auto;',
     '  min-height: 100dvh;',           // 100dvh — mobile address-bar safe
@@ -1060,11 +1094,29 @@
       'vsd-slide vsd-layout-' + slide.layout);
     // Selection-wiring attributes — the runtime's scanner picks these up
     // unchanged so a deck stays click-selectable / commentable.
-    section.setAttribute('data-ve-id', 's' + (i + 1));
+    //
+    // Phase 2.5 (TRDD-352ef46a) selection/comment contract conformance:
+    //   1. data-ve-id + data-ve-type identify the atom (slide). The
+    //      runtime's universal click handler `toggleElementSelection`
+    //      toggles `data-ve-selected="1"` on click.
+    //   2. tabindex="0" makes the slide a real focus target so the
+    //      runtime's `:focus-visible` selection ring fires for keyboard
+    //      users (without tabindex the keyboard branch of the 3-state
+    //      visual model is dead).
+    //   3. role="group" + aria-roledescription="slide" tell screen
+    //      readers that this section is one logical slide. aria-label
+    //      carries "Slide N of M" so the focus announcement is clear.
+    var slideId = 's' + (i + 1);
+    section.setAttribute('data-ve-id', slideId);
     section.setAttribute('data-ve-type', 'slide');
     section.setAttribute('data-ve-label', 'Slide ' + (i + 1));
     section.setAttribute('data-vsd-layout', slide.layout);
     section.setAttribute('data-vsd-mood', deck.mood);
+    section.setAttribute('tabindex', '0');
+    section.setAttribute('role', 'group');
+    section.setAttribute('aria-roledescription', 'slide');
+    section.setAttribute('aria-label',
+      'Slide ' + (i + 1) + ' of ' + deck.slides.length);
     if (i !== 0) { section.setAttribute('hidden', 'hidden'); }
     if (slide.numeral !== undefined) {
       section.setAttribute('data-vsd-numeral', String(slide.numeral));
@@ -1483,10 +1535,52 @@
     wireTouch(deck);
     wireDotClicks(deck);
 
+    // Phase 2.5 (TRDD-352ef46a) NEW USER REQ #10 — every visual atom
+    // gets a 3-radio Skip/Approve/Deny mini-pill, INDEPENDENT of
+    // selection state. The runtime ships the helper as
+    // `window.amvcpRuntime.attachDecisionMini(atomEl, atomId)`. We call
+    // it for every .vsd-slide here, AFTER the deck is fully wired but
+    // BEFORE the first slidechange. The defensive guard handles the
+    // concurrent-shipment of the runtime helper: when the runtime is
+    // not loaded (e.g. the standalone slide-fixture without runtime),
+    // the call is a no-op and the deck still renders correctly.
+    attachDecisionMinisToSlides(deck);
+
     // Fire the first slidechange so subscribers (entrance, presenter)
     // see the boot slide.
     deck._emitChange();
     return deck;
+  }
+
+  // Walk every .vsd-slide and ask the runtime to attach a decision-mini
+  // pill (Skip / Approve / Deny) to it. The runtime helper is the single
+  // source of truth for the pill's HTML, CSS, persistence, and click
+  // wiring; this function only DECIDES which DOM elements get one. The
+  // defensive guard is required by spec — the runtime helper ships in a
+  // sibling Phase 2.5 build (p25-runtime-text-comment), so the helper
+  // may be absent at the moment this module loads.
+  function attachDecisionMinisToSlides(deck) {
+    if (typeof window === 'undefined') { return; }
+    var runtime = window.amvcpRuntime;
+    if (!runtime || typeof runtime.attachDecisionMini !== 'function') {
+      // Runtime helper not available — defensive no-op. The deck still
+      // renders; when the runtime later loads, its `initReportMode()`
+      // walks the existing atoms and stamps them.
+      return;
+    }
+    for (var i = 0; i < deck.slides.length; i++) {
+      var slide = deck.slides[i];
+      var slideId = slide.getAttribute('data-ve-id');
+      if (!slideId) { continue; }
+      try {
+        runtime.attachDecisionMini(slide, slideId);
+      } catch (e) {
+        if (typeof console !== 'undefined' && console.warn) {
+          console.warn('amvcp-slide: attachDecisionMini failed for '
+            + slideId + ' — ' + (e && e.message || e));
+        }
+      }
+    }
   }
 
   // ResizeObserver on the VIEWPORT (not window) — catches container

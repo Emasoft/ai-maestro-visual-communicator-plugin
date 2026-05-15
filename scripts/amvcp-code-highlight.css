@@ -106,7 +106,15 @@
    The runtime already ships `[data-ve-code-sel] * { color: inherit }` and
    `[data-ve-code-sel-block] * { color: inherit }` — this rule is the same
    intent, restated here so the standalone stylesheet is self-consistent
-   even when loaded without the runtime's selection CSS. */
+   even when loaded without the runtime's selection CSS.
+
+   Phase 2.5 (TRDD-352ef46a): the runtime's canonical selection marker
+   for a code line is `.ve-code-line[data-ve-pressed="1"]` (set by
+   repaintCodeGutters in amvcp-runtime.js). Adding the same `color:inherit`
+   yield rule for that marker means token colors don't fight the
+   selection background regardless of which marker the runtime is using
+   in a given build, AND keeps the standalone fixture's behaviour aligned
+   with the integrated runtime. */
 [data-ve-code-sel] .ve-tok-keyword,
 [data-ve-code-sel] .ve-tok-string,
 [data-ve-code-sel] .ve-tok-number,
@@ -130,4 +138,16 @@
 [data-ve-code-sel-block] .ve-tok-operator,
 [data-ve-code-sel-block] .ve-tok-punctuation,
 [data-ve-code-sel-block] .ve-tok-tag,
-[data-ve-code-sel-block] .ve-tok-attribute { color: inherit; }
+[data-ve-code-sel-block] .ve-tok-attribute,
+.ve-code-line[data-ve-pressed="1"] .ve-tok-keyword,
+.ve-code-line[data-ve-pressed="1"] .ve-tok-string,
+.ve-code-line[data-ve-pressed="1"] .ve-tok-number,
+.ve-code-line[data-ve-pressed="1"] .ve-tok-comment,
+.ve-code-line[data-ve-pressed="1"] .ve-tok-type,
+.ve-code-line[data-ve-pressed="1"] .ve-tok-variable,
+.ve-code-line[data-ve-pressed="1"] .ve-tok-function,
+.ve-code-line[data-ve-pressed="1"] .ve-tok-constant,
+.ve-code-line[data-ve-pressed="1"] .ve-tok-operator,
+.ve-code-line[data-ve-pressed="1"] .ve-tok-punctuation,
+.ve-code-line[data-ve-pressed="1"] .ve-tok-tag,
+.ve-code-line[data-ve-pressed="1"] .ve-tok-attribute { color: inherit; }

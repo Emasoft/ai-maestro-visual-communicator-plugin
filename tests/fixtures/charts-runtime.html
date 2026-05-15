@@ -292,6 +292,31 @@
 }</code></pre>
   </section>
 
+  <section>
+    <h2>Phase 2.5 selection contract — atom states + group comment-handle</h2>
+    <p>Click a bar in the chart below to select it. Selected marks paint
+       brighter with a 2-px accent stroke; the figure gets an outer ring
+       (via <code>:has([data-ve-selected="1"])</code>); ONE
+       <code>.ve-comment-handle</code> bubble appears at the figures
+       left edge. Re-click to deselect — the ring + handle vanish.</p>
+    <p>
+      <button id="p25-select-first" type="button"
+        style="padding:6px 12px;margin-right:8px;">Select first bar</button>
+      <button id="p25-select-second" type="button"
+        style="padding:6px 12px;margin-right:8px;">Select second bar</button>
+      <button id="p25-clear" type="button" style="padding:6px 12px;">
+        Clear selection</button>
+    </p>
+<pre><code class="language-chart:bar@1" id="p25-bar-block">{
+  "title": "Phase 2.5 demo — select a bar",
+  "series": [{ "label": "demo", "data": [
+    {"x":"Alpha","y":4},{"x":"Beta","y":7},
+    {"x":"Gamma","y":3},{"x":"Delta","y":9}
+  ] }],
+  "options": { "valueLabels": true }
+}</code></pre>
+  </section>
+
   <div style="height: 200px;"></div>
 </main>
 
@@ -459,6 +484,45 @@ radius:
 
       window.amvcpChart.injectChartCSS(document);
       window.amvcpChart.scan(document);
+
+      // Phase 2.5 contract demo — wire the buttons. The runtime is not
+      // loaded in this fixture, so we simulate data-ve-selected="1"
+      // mutation directly on the demo charts marks. The chart modules
+      // group-handle observer reacts and mounts the .ve-comment-handle.
+      function p25DemoFigure() {
+        var figs = document.querySelectorAll('figure.ve-chart');
+        for (var i = 0; i < figs.length; i++) {
+          var cap = figs[i].querySelector('.ve-chart-title');
+          if (cap && cap.textContent.indexOf('Phase 2.5 demo') >= 0) {
+            return figs[i];
+          }
+        }
+        return null;
+      }
+      function p25Mark(idx, on) {
+        var fig = p25DemoFigure();
+        if (!fig) { return; }
+        var bars = fig.querySelectorAll('.ve-chart-bar');
+        if (!bars[idx]) { return; }
+        if (on) { bars[idx].setAttribute('data-ve-selected', '1'); }
+        else { bars[idx].removeAttribute('data-ve-selected'); }
+      }
+      function p25Clear() {
+        var fig = p25DemoFigure();
+        if (!fig) { return; }
+        var sel = fig.querySelectorAll('[data-ve-selected="1"]');
+        for (var i = 0; i < sel.length; i++) {
+          sel[i].removeAttribute('data-ve-selected');
+        }
+      }
+      var b1 = document.getElementById('p25-select-first');
+      var b2 = document.getElementById('p25-select-second');
+      var bc = document.getElementById('p25-clear');
+      if (b1) { b1.addEventListener('click', function () { p25Mark(0, true); }); }
+      if (b2) { b2.addEventListener('click', function () { p25Mark(1, true); }); }
+      if (bc) { bc.addEventListener('click', p25Clear); }
+      window.__p25 = { mark: p25Mark, clear: p25Clear };
+
       window.__vcFixtureReady = true;
     } catch (e) {
       window.__vcFixtureError = String(e && e.message || e);

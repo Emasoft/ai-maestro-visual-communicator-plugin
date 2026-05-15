@@ -862,10 +862,59 @@
 .wf-fidelity-ticks > span:first-child { text-align: left; }
 .wf-fidelity-ticks > span:last-child  { text-align: right; }
 
-/* selection affordance — a wireframe block/screen carrying data-ve-id
-   is a selectable atom; the runtime's picker stamps data-ve-selected.
-   This is just the visible selected-state outline. */
+/* ════════════════════════════════════════════════════════════════════
+ * Phase 2.5 selection contract (TRDD-352ef46a) — wireframe blocks are
+ * selection atoms.
+ * ════════════════════════════════════════════════════════════════════
+ *
+ * The runtime (amvcp-runtime.js) injects 4 visual states for every
+ * [data-ve-id]:not([data-ve-type="table-form"]) atom: normal · hover ·
+ * selected · selected+hover. Those rules use `var(--ve-accent, …)` which
+ * the runtime computes ONCE at :root from `var(--vc-color-accent, #b8861f)`.
+ *
+ * The desaturation engine in amvcp-wireframe.js publishes a SCOPED
+ * --vc-color-accent onto every [data-wf-root]; CSS custom-property
+ * inheritance does NOT re-evaluate the :root --ve-accent declaration
+ * for descendants — so without this re-publish, the runtime's hover /
+ * selected outline on a wireframe block would render in the GLOBAL
+ * accent (magenta in the fixture's DESIGN.md) and leak full color into
+ * a fidelity=wireframe block. Re-declaring --ve-accent here at the
+ * [data-wf-root] scope forces re-evaluation of the var() against the
+ * scoped --vc-color-accent, so children read the desaturated value.
+ *
+ * Same idea for --ve-accent-dark (used by the "outer ring" group rule
+ * the runtime emits). Both fall back to a grey when the engine is
+ * absent — graceful degradation of appearance. */
+[data-wf-root] {
+  --ve-accent: var(--vc-color-accent, #b8861f);
+  --ve-accent-dark: var(--vc-color-border-strong, #c9bfa3);
+}
+
+/* The visible selected-state outline for ANY wireframe atom. Layered
+ * UNDER the runtime's 4-state hover/selected rules — both apply, and
+ * the runtime rule (also outline:2px solid var(--ve-accent)) wins on
+ * cascade order; this rule is the engine-absent fallback (when the
+ * runtime stylesheet is not yet injected, the outline still appears
+ * for any selected atom). */
 [data-ve-id][data-ve-selected="1"] {
   outline: 2px solid var(--vc-color-accent, #b8861f);
   outline-offset: 2px;
+}
+
+/* Outer ring on a WIREFRAME atom that has its own data-ve-selected
+ * descendant — mirrors the runtime's group-handle pattern (R3 of the
+ * universal rules: ":has([data-ve-selected]) → outer ring + ONE handle").
+ * The wireframe ramp / app-chrome / mobile screens often wrap nested
+ * cards/buttons that ARE atoms themselves; when the user selects an
+ * inner atom, this rule paints the wrapping data-ve-id container with
+ * a faint accent outline so the relationship is visible.
+ *
+ * Scoped to [data-wf-root] descendants ONLY so it does not interfere
+ * with the runtime's selection paint on non-wireframe pages (per the
+ * Phase 2.5 parallel-safety constraint — wireframe.css must not touch
+ * global selection styling). */
+[data-wf-root] [data-ve-id]:has([data-ve-selected="1"]) {
+  outline: 1px dashed
+    color-mix(in srgb, var(--vc-color-accent, #b8861f) 60%, transparent);
+  outline-offset: 4px;
 }

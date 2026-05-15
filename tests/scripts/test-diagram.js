@@ -863,6 +863,83 @@ async function testSelfInitClean(page) {
     JSON.stringify(res));
 }
 
+// Phase 2.5 selection contract — atom states + group comment-handle.
+async function testP25SelectionContract(page) {
+  // Setting data-ve-selected="1" on a diagram atom must:
+  //   1. trigger the .ve-scene-graph:has([data-ve-selected="1"]) ring
+  //   2. mount exactly ONE .ve-comment-handle on the host
+  //   3. compose data-ve-comment-id as diagram:<hostId>:<sortedAtomIds>
+  //   4. clearing -> handle vanishes
+  // Atom contract checks: every node + edge ships tabindex="0" and
+  // role="button" so keyboard users can focus + activate them.
+  const s = await setup(page);
+  if (!s.ok) {
+    record('diagram_p25_selection_contract', 'FAIL',
+      'Phase 2.5 group-handle observer wires up', s.error);
+    return;
+  }
+  const initial = await page.evaluate(() => {
+    const host = document.getElementById('scene-p25');
+    if (!host) { return { setup: false }; }
+    const node = host.querySelector('g[data-ve-type="diagram-node"]');
+    const edge = host.querySelector('g[data-ve-type="diagram-edge"]');
+    return {
+      setup: true,
+      hasHandle: !!host.querySelector(':scope > .ve-comment-handle'),
+      nodeFocusable: node && node.getAttribute('tabindex') === '0'
+                          && node.getAttribute('role') === 'button',
+      edgeFocusable: edge && edge.getAttribute('tabindex') === '0'
+                          && edge.getAttribute('role') === 'button'
+    };
+  });
+  if (!initial.setup) {
+    record('diagram_p25_selection_contract', 'FAIL',
+      'Phase 2.5 demo scene not found', JSON.stringify(initial));
+    return;
+  }
+  await page.evaluate(() => {
+    document.getElementById('p25d-select-node').click();
+    document.getElementById('p25d-select-edge').click();
+  });
+  await page.waitForTimeout(120);
+  const afterSelect = await page.evaluate(() => {
+    const host = document.getElementById('scene-p25');
+    const handle = host.querySelector(':scope > .ve-comment-handle');
+    const cid = handle ? handle.getAttribute('data-ve-comment-id') : '';
+    return {
+      handleCount: host.querySelectorAll(':scope > .ve-comment-handle').length,
+      cidPrefix: cid.slice(0, 8),
+      cidIncludesNode: cid.indexOf('-node-') !== -1,
+      cidIncludesEdge: cid.indexOf('-edge-') !== -1,
+      handleTitle: handle ? handle.title : null,
+      handleHasOverlay: handle ? handle.hasAttribute('data-ve-overlay') : false
+    };
+  });
+  await page.evaluate(() => {
+    document.getElementById('p25d-clear').click();
+  });
+  await page.waitForTimeout(120);
+  const afterClear = await page.evaluate(() => {
+    const host = document.getElementById('scene-p25');
+    return {
+      handleCount: host.querySelectorAll(':scope > .ve-comment-handle').length
+    };
+  });
+  const ok = initial.hasHandle === false
+    && initial.nodeFocusable === true
+    && initial.edgeFocusable === true
+    && afterSelect.handleCount === 1
+    && afterSelect.cidPrefix === 'diagram:'
+    && afterSelect.cidIncludesNode === true
+    && afterSelect.cidIncludesEdge === true
+    && !!afterSelect.handleTitle
+    && afterSelect.handleHasOverlay === true
+    && afterClear.handleCount === 0;
+  record('diagram_p25_selection_contract', ok ? 'PASS' : 'FAIL',
+    'select node+edge -> 1 handle with diagram:<id>; clear -> handle gone',
+    JSON.stringify({ initial, afterSelect, afterClear }));
+}
+
 // ── Runner ───────────────────────────────────────────────────────────
 
 const tests = [
@@ -888,7 +965,8 @@ const tests = [
   testReducedMotion,
   testNoNestedScroll,
   testAsciiOverflowVisible,
-  testSelfInitClean
+  testSelfInitClean,
+  testP25SelectionContract
 ];
 
 const page = await browser.getPage("diagram-tests");

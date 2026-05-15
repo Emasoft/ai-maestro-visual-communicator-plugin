@@ -275,6 +275,119 @@
     }
   }
 
+  // ── Selection-contract conformance (TRDD-352ef46a phase 2.5) ───────
+  //
+  // The typography skill ships pure helpers — it never emits DOM. But a
+  // typography specimen / report uses semantic text containers (h1-h6,
+  // p, .vc-type-* utility classes) that the user wants to comment on
+  // INDIVIDUALLY ("this hero looks too big", "the lead paragraph
+  // contrasts wrong with the body"). Each such span is a selectable
+  // atom under the unified contract.
+  //
+  // `markTypographyAtoms(root)` walks every typography-shaped element
+  // inside `root` and stamps it with `data-ve-id` (stable: prefer
+  // existing `id`, fall back to type+index) + `data-ve-type` (e.g.
+  // "type-hero", "type-h1", "type-body"), then attaches the per-atom
+  // 3-radio Skip/Approve/Deny mini-pill (NEW USER REQ #10) via the
+  // runtime's `attachDecisionMini` helper. Both are guarded so a page
+  // WITHOUT the runtime gets the attribute (inert, but ready when a
+  // runtime later mounts) and a NO-OP for the pill until then.
+  function markTypographyAtoms(root, opts) {
+    if (typeof document === 'undefined') { return 0; }
+    var d = root || document;
+    if (!d.querySelectorAll) { return 0; }
+    opts = opts || {};
+    var attachPill = opts.attachPill !== false;
+    // Selectors run in order — first match wins for the type-hint, so a
+    // <h1 class="vc-type-hero"> reads as "type-hero" not "type-h1".
+    // Inline <span>/<small>/<strong> runs INSIDE a paragraph are NOT
+    // atoms (they would create overlapping atoms with the parent <p>);
+    // standalone .vc-type-label / .vc-type-caption ARE atoms because
+    // they are typically standalone badges, not inline runs.
+    var SHAPES = [
+      ['.vc-type-hero',    'type-hero'],
+      ['.vc-type-lead',    'type-lead'],
+      ['.vc-type-body-sm', 'type-body-sm'],
+      ['.vc-type-body',    'type-body'],
+      ['.vc-type-label',   'type-label'],
+      ['.vc-type-caption', 'type-caption'],
+      ['h1',               'type-h1'],
+      ['h2',               'type-h2'],
+      ['h3',               'type-h3'],
+      ['h4',               'type-h4'],
+      ['h5',               'type-h5'],
+      ['h6',               'type-h6'],
+      ['p',                'type-body']
+    ];
+    var stamped = 0;
+    var s, type, sel, nodes, i, el;
+    // A WeakSet would be ideal but we stay ES5; track a single-flag
+    // property on the element instead. The flag (`__vcTypoStamped`)
+    // makes a re-pass during the same boot a NO-OP for already-stamped
+    // elements, so an `<h1 class="vc-type-hero">` never gets stamped
+    // twice (first pass: .vc-type-hero, second pass: h1).
+    for (s = 0; s < SHAPES.length; s++) {
+      sel = SHAPES[s][0];
+      type = SHAPES[s][1];
+      nodes = d.querySelectorAll(sel);
+      for (i = 0; i < nodes.length; i++) {
+        el = nodes[i];
+        if (el.__vcTypoStamped) { continue; }
+        el.__vcTypoStamped = true;
+        if (!el.hasAttribute('data-ve-id')) {
+          el.setAttribute('data-ve-id', el.id || (type + '-' + i));
+        }
+        if (!el.hasAttribute('data-ve-type')) {
+          el.setAttribute('data-ve-type', type);
+        }
+        if (attachPill) {
+          _attachDecisionMiniSafe(el, el.getAttribute('data-ve-id'));
+        }
+        stamped++;
+      }
+    }
+    return stamped;
+  }
+
+  // Defensive guard for the runtime helper — sibling agent ships it
+  // concurrently. Queue + retry on microtask + DOM-ready so atoms still
+  // pick up their pill the moment the helper appears.
+  var _typoPillQueue = [];
+  function _attachDecisionMiniSafe(el, id) {
+    if (!el) { return; }
+    var rt = (typeof window !== 'undefined') ? window.amvcpRuntime : null;
+    if (rt && typeof rt.attachDecisionMini === 'function') {
+      try { rt.attachDecisionMini(el, id); } catch (e) { /* swallow */ }
+      return;
+    }
+    _typoPillQueue.push({ el: el, id: id });
+  }
+  function _flushTypoPillQueue() {
+    if (typeof window === 'undefined') { return; }
+    var rt = window.amvcpRuntime;
+    if (!rt || typeof rt.attachDecisionMini !== 'function') { return; }
+    var q = _typoPillQueue;
+    _typoPillQueue = [];
+    for (var i = 0; i < q.length; i++) {
+      try { rt.attachDecisionMini(q[i].el, q[i].id); }
+      catch (e) { /* swallow */ }
+    }
+  }
+  if (typeof window !== 'undefined') {
+    if (typeof Promise !== 'undefined' && typeof Promise.resolve === 'function') {
+      Promise.resolve().then(_flushTypoPillQueue);
+    } else if (typeof setTimeout === 'function') {
+      setTimeout(_flushTypoPillQueue, 0);
+    }
+    if (typeof document !== 'undefined') {
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', _flushTypoPillQueue);
+      } else if (typeof setTimeout === 'function') {
+        setTimeout(_flushTypoPillQueue, 100);
+      }
+    }
+  }
+
   // ── small helpers ──────────────────────────────────────────────────
 
   // A short, safe description of any value for an error message — never
@@ -299,7 +412,10 @@
     scaleSystemNames: scaleSystemNames,
     supportsVariableFonts: supportsVariableFonts,
     markVariableFontSupport: markVariableFontSupport,
-    applyScaleSystem: applyScaleSystem
+    applyScaleSystem: applyScaleSystem,
+    // Selection-contract conformance + decision mini-pill stamping
+    // (TRDD-352ef46a phase 2.5 + NEW USER REQ #10).
+    markTypographyAtoms: markTypographyAtoms
   };
 
   if (typeof window !== 'undefined') {

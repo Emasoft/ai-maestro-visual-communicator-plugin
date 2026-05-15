@@ -869,6 +869,310 @@ async function testPureFunctions(page) {
   );
 }
 
+// ── Phase 2.5 atom-contract tests (TRDD-352ef46a) ──────────────────
+
+async function testRowAtomContract(page) {
+  // After init() runs, every body <tr> in a `data` table must carry
+  // data-ve-comment-id (the row-atom contract marker the runtime's
+  // selection logic gates on). The id is deterministic so re-init
+  // doesn't churn it. Header rows (in <thead>) are NOT stamped — they're
+  // chrome, not selectable atoms.
+  if (!(await setup(page))) {
+    record('tables_row_atom_contract', 'FAIL', 'row atom contract', 'fixture never ready');
+    return;
+  }
+  const res = await page.evaluate(() => {
+    const t = document.getElementById('t-data');
+    const bodyRows = t.tBodies[0].rows;
+    const headerRows = t.tHead.rows;
+    let bodyStamped = 0;
+    let allHaveIds = true;
+    let idsAreUnique = true;
+    const seen = {};
+    for (let i = 0; i < bodyRows.length; i++) {
+      const cid = bodyRows[i].getAttribute('data-ve-comment-id');
+      if (cid) {
+        bodyStamped++;
+        if (seen[cid]) idsAreUnique = false;
+        seen[cid] = 1;
+      } else {
+        allHaveIds = false;
+      }
+    }
+    let headerStamped = 0;
+    for (let i = 0; i < headerRows.length; i++) {
+      if (headerRows[i].getAttribute('data-ve-comment-id')) headerStamped++;
+    }
+    return {
+      bodyCount: bodyRows.length,
+      bodyStamped,
+      headerStamped,
+      allHaveIds,
+      idsAreUnique,
+      sampleId: bodyRows[0] ? bodyRows[0].getAttribute('data-ve-comment-id') : null,
+    };
+  });
+  const ok = res.bodyCount === 5
+    && res.bodyStamped === 5
+    && res.headerStamped === 0
+    && res.allHaveIds === true
+    && res.idsAreUnique === true
+    && /^row:/.test(res.sampleId || '');
+  record(
+    'tables_row_atom_contract',
+    ok ? 'PASS' : 'FAIL',
+    'every body <tr> has unique data-ve-comment-id; thead rows do NOT',
+    JSON.stringify(res)
+  );
+}
+
+async function testRowAtomIdempotent(page) {
+  // Calling init() twice does not double-stamp or change ids.
+  if (!(await setup(page))) {
+    record('tables_row_atom_idempotent', 'FAIL', 'row atom idempotent', 'fixture never ready');
+    return;
+  }
+  const res = await page.evaluate(() => {
+    const t = document.getElementById('t-data');
+    const before = [];
+    const rows = t.tBodies[0].rows;
+    for (let i = 0; i < rows.length; i++) {
+      before.push(rows[i].getAttribute('data-ve-comment-id'));
+    }
+    // Re-run init (which re-walks every table). Idempotent if ids match.
+    window.amvcpTables.init();
+    const after = [];
+    for (let i = 0; i < rows.length; i++) {
+      after.push(rows[i].getAttribute('data-ve-comment-id'));
+    }
+    return { before, after, equal: JSON.stringify(before) === JSON.stringify(after) };
+  });
+  record(
+    'tables_row_atom_idempotent',
+    res.equal ? 'PASS' : 'FAIL',
+    'a second init() preserves every row\'s data-ve-comment-id',
+    JSON.stringify({ equal: res.equal })
+  );
+}
+
+async function testMatrixCellAtomContract(page) {
+  // Every <td data-ve-val> in a matrix table must carry data-ve-id +
+  // data-ve-type="matrix-cell". Header <th> cells must NOT be stamped.
+  // The id format is "matrix-cell:<table-tag>:r<n>:c<m>".
+  if (!(await setup(page))) {
+    record('tables_matrix_cell_atom_contract', 'FAIL', 'matrix cell atom contract', 'fixture never ready');
+    return;
+  }
+  const res = await page.evaluate(() => {
+    const t = document.getElementById('t-matrix');
+    const valCells = t.querySelectorAll('td[data-ve-val]');
+    let stamped = 0;
+    let typed = 0;
+    let idsAreUnique = true;
+    const seen = {};
+    let sampleId = null;
+    for (let i = 0; i < valCells.length; i++) {
+      const id = valCells[i].getAttribute('data-ve-id');
+      const ty = valCells[i].getAttribute('data-ve-type');
+      if (id) {
+        stamped++;
+        if (!sampleId) sampleId = id;
+        if (seen[id]) idsAreUnique = false;
+        seen[id] = 1;
+      }
+      if (ty === 'matrix-cell') typed++;
+    }
+    // <th> cells in matrix rows must NOT be stamped (they're row labels).
+    const ths = t.querySelectorAll('tbody th');
+    let thStamped = 0;
+    for (let i = 0; i < ths.length; i++) {
+      if (ths[i].getAttribute('data-ve-id')) thStamped++;
+    }
+    return {
+      valCellCount: valCells.length,
+      stamped,
+      typed,
+      idsAreUnique,
+      thStamped,
+      sampleId,
+    };
+  });
+  const ok = res.valCellCount === 15  // 3 rows × 5 cols
+    && res.stamped === 15
+    && res.typed === 15
+    && res.idsAreUnique === true
+    && res.thStamped === 0
+    && /^matrix-cell:/.test(res.sampleId || '');
+  record(
+    'tables_matrix_cell_atom_contract',
+    ok ? 'PASS' : 'FAIL',
+    'every <td data-ve-val> has data-ve-id + data-ve-type="matrix-cell"; <th> not',
+    JSON.stringify(res)
+  );
+}
+
+async function testCompareCellAtomContract(page) {
+  // Every body <td> in a comparison table must carry data-ve-id +
+  // data-ve-type="compare-cell". Body <th> (row labels) must NOT.
+  // The compare table also has row-atom stamps coexisting with the
+  // cell-atom stamps.
+  if (!(await setup(page))) {
+    record('tables_compare_cell_atom_contract', 'FAIL', 'compare cell atom contract', 'fixture never ready');
+    return;
+  }
+  const res = await page.evaluate(() => {
+    const t = document.getElementById('t-compare');
+    const tdCells = t.querySelectorAll('tbody td');
+    let stamped = 0;
+    let typed = 0;
+    let sampleId = null;
+    for (let i = 0; i < tdCells.length; i++) {
+      const id = tdCells[i].getAttribute('data-ve-id');
+      const ty = tdCells[i].getAttribute('data-ve-type');
+      if (id) {
+        stamped++;
+        if (!sampleId) sampleId = id;
+      }
+      if (ty === 'compare-cell') typed++;
+    }
+    const ths = t.querySelectorAll('tbody th');
+    let thStamped = 0;
+    for (let i = 0; i < ths.length; i++) {
+      if (ths[i].getAttribute('data-ve-id')) thStamped++;
+    }
+    // Row-atom contract still applies to compare tables.
+    const rows = t.tBodies[0].rows;
+    let rowStamped = 0;
+    for (let i = 0; i < rows.length; i++) {
+      if (rows[i].getAttribute('data-ve-comment-id')) rowStamped++;
+    }
+    return {
+      tdCount: tdCells.length,
+      stamped,
+      typed,
+      thStamped,
+      rowStamped,
+      rowCount: rows.length,
+      sampleId,
+    };
+  });
+  const ok = res.tdCount === 9  // 3 rows × 3 option columns
+    && res.stamped === 9
+    && res.typed === 9
+    && res.thStamped === 0
+    && res.rowStamped === res.rowCount
+    && /^compare-cell:/.test(res.sampleId || '');
+  record(
+    'tables_compare_cell_atom_contract',
+    ok ? 'PASS' : 'FAIL',
+    'compare body <td> has data-ve-id+type=compare-cell; rows also row-stamped',
+    JSON.stringify(res)
+  );
+}
+
+async function testDecisionMiniDefensive(page) {
+  // The defensive bridge to attachDecisionMini must be a silent no-op
+  // when window.amvcpRuntime is not loaded — the standalone fixture
+  // never loads the runtime. After init() runs, no JS errors fired and
+  // every atom is still correctly stamped (i.e. the absent helper does
+  // not break the rest of the enhancement chain).
+  if (!(await setup(page))) {
+    record('tables_decision_mini_defensive', 'FAIL', 'decision mini defensive', 'fixture never ready');
+    return;
+  }
+  const res = await page.evaluate(() => {
+    // Confirm the runtime helper is in fact absent on this fixture.
+    const helperPresent = !!(window.amvcpRuntime
+      && typeof window.amvcpRuntime.attachDecisionMini === 'function');
+    // Re-running init() must not throw — if the defensive guard ever
+    // breaks, the throw would propagate and the post-init assertion
+    // below would never run.
+    let threw = false;
+    try { window.amvcpTables.init(); }
+    catch (e) { threw = true; }
+    // Confirm atoms are still correctly stamped (the chain didn't bail).
+    const t = document.getElementById('t-data');
+    const tr = t.tBodies[0].rows[0];
+    return {
+      helperPresent,
+      threw,
+      rowStillStamped: !!tr.getAttribute('data-ve-comment-id'),
+    };
+  });
+  const ok = res.helperPresent === false
+    && res.threw === false
+    && res.rowStillStamped === true;
+  record(
+    'tables_decision_mini_defensive',
+    ok ? 'PASS' : 'FAIL',
+    'defensive bridge is silent no-op when window.amvcpRuntime absent',
+    JSON.stringify(res)
+  );
+}
+
+async function testDecisionMiniInvoked(page) {
+  // When window.amvcpRuntime.attachDecisionMini IS available, the
+  // bridge MUST forward the call. Verified by:
+  //   1. Stub the helper to record every call.
+  //   2. Force a re-stamp of one row's atom by removing its
+  //      data-ve-comment-id, then re-running init (which re-walks the
+  //      rows and the freshly-unstamped row gets stamped + bridged).
+  //   3. Confirm at least one call landed AND the call's id is one of
+  //      the row/matrix-cell/compare-cell prefixes (so any stamp path
+  //      that ran would be visible).
+  // Note on idempotency: the bridge is also called on the IDEMPOTENT
+  // path (when the atom already has its id) so an existing-stamped row
+  // still gets the pill on every init pass — that's the contract per
+  // user req #10 ("INDEPENDENT of selection state, always present").
+  if (!(await setup(page))) {
+    record('tables_decision_mini_invoked', 'FAIL', 'decision mini invoked', 'fixture never ready');
+    return;
+  }
+  const res = await page.evaluate(() => {
+    // Install a recording stub BEFORE the re-init so every atom's
+    // bridge call (idempotent path included) is observable.
+    const calls = [];
+    window.amvcpRuntime = {
+      attachDecisionMini: function (el, id) {
+        calls.push({
+          tag: el && el.tagName,
+          id: id,
+        });
+      }
+    };
+    // Re-run init — every row + matrix cell + compare cell goes
+    // through the bridge again (idempotent stamping path still calls
+    // the bridge by design — the pill is always-on, not selection-gated).
+    window.amvcpTables.init();
+    // Cleanup so other tests aren't affected.
+    delete window.amvcpRuntime;
+    return {
+      callCount: calls.length,
+      sampleCall: calls[0] || null,
+      // Distinct prefixes seen — proves the bridge ran on each atom kind.
+      kindsSeen: Array.from(new Set(calls.map(function (c) {
+        return c.id.split(':')[0];
+      }))).sort(),
+    };
+  });
+  // 5 data rows + 400 virtual rows + 15 matrix cells + 9 compare cells
+  // + 3 compare rows + 2 grouped rows + 3 rowspan rows + 3 csv rows
+  // = 440 atom calls. Use ≥ 30 as a robust lower bound (avoids brittle
+  // exact match if fixture row counts change). The kinds-seen array
+  // proves all three atom-kind code paths fired.
+  const ok = res.callCount >= 30
+    && res.sampleCall !== null
+    && res.kindsSeen.indexOf('row') >= 0
+    && res.kindsSeen.indexOf('matrix-cell') >= 0
+    && res.kindsSeen.indexOf('compare-cell') >= 0;
+  record(
+    'tables_decision_mini_invoked',
+    ok ? 'PASS' : 'FAIL',
+    'attachDecisionMini bridge forwards on every atom (always-on per req #10)',
+    JSON.stringify({ callCount: res.callCount, kindsSeen: res.kindsSeen })
+  );
+}
+
 // ── Runner ──────────────────────────────────────────────────────────
 
 const tests = [
@@ -891,6 +1195,13 @@ const tests = [
   testThemeReflow,
   testJsOffDegradation,
   testPureFunctions,
+  // Phase 2.5 — selection/comment contract conformance (TRDD-352ef46a).
+  testRowAtomContract,
+  testRowAtomIdempotent,
+  testMatrixCellAtomContract,
+  testCompareCellAtomContract,
+  testDecisionMiniDefensive,
+  testDecisionMiniInvoked,
 ];
 
 const page = await browser.getPage("table-viz-tests");

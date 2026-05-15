@@ -220,15 +220,12 @@ async function testExitButtonPostsEmptyPayload(page) {
 }
 
 async function testProseDepthChain(page) {
-  // D5 (TRDD-5f41ad36) — multi-click depth grammar inside [data-ve-prose].
-  // The runtime uses SHIFTED-BY-1 grammar (handleProseClick comment in
-  // amvcp-runtime.js): the FIRST click NEVER paints, it just registers
-  // the chain start. The 2nd click within 500 ms is the first one that
-  // paints (depth=1 = letter), the 3rd paints depth=2 = word, the 4th
-  // paints depth=3 = block. Each click REPLACES the previous chain entry
-  // at a deeper depth, so the chain only ever has one entry at any time
-  // (the latest depth). This matches the convention that a single click
-  // is cursor-only and a double-click selects a word.
+  // D5 (TRDD-5f41ad36 → TRDD-352ef46a Phase 2.5) — multi-click depth
+  // grammar inside [data-ve-prose]. SHIFTED-BY-1: the FIRST click
+  // NEVER paints, it registers the chain. The 2nd click paints
+  // visualDepth 1 (char), the 3rd paints depth 2 (word), the 4th
+  // paints depth 3 (sentence). Each click REPLACES the previous chain
+  // entry at a deeper depth.
   await setup(page, PROSE_FIXTURE);
   // The sample report has paragraphs inside <article data-ve-prose>.
   const t = await page.evaluate(() => {
@@ -267,7 +264,7 @@ async function testProseDepthChain(page) {
   await page.mouse.click(t.x, t.y);
   await page.waitForTimeout(80);
   const afterOne = await page.evaluate(() => (window.veSelection || []).filter((e) => e.kind === 'text').map((e) => ({ depth: e.depth, len: (e.text || '').length })));
-  // Click 2: paints depth=1 (letter).
+  // Click 2: paints depth=1 (char).
   await page.mouse.click(t.x, t.y);
   await page.waitForTimeout(80);
   const afterTwo = await page.evaluate(() => (window.veSelection || []).filter((e) => e.kind === 'text').map((e) => ({ depth: e.depth, len: (e.text || '').length })));
@@ -275,19 +272,16 @@ async function testProseDepthChain(page) {
   await page.mouse.click(t.x, t.y);
   await page.waitForTimeout(80);
   const afterThree = await page.evaluate(() => (window.veSelection || []).filter((e) => e.kind === 'text').map((e) => ({ depth: e.depth, len: (e.text || '').length })));
-  // Click 4: paints depth=3 (block).
+  // Click 4: paints depth=3 (sentence — Phase 2.5 ladder).
   await page.mouse.click(t.x, t.y);
   await page.waitForTimeout(80);
   const afterFour = await page.evaluate(() => (window.veSelection || []).filter((e) => e.kind === 'text').map((e) => ({ depth: e.depth, len: (e.text || '').length })));
 
-  // Assertions per the SHIFTED-BY-1 grammar:
+  // Phase 2.5 ladder assertions (depth 3 is now sentence, not block):
   //   afterOne   = []                       (no paint on first click)
-  //   afterTwo   = [{depth:1, len:1}]       (one letter)
+  //   afterTwo   = [{depth:1, len:1}]       (one char)
   //   afterThree = [{depth:2, len:>=1}]     (one word; replaces depth=1)
-  //   afterFour  = [{depth:3, len:>word}]   (a block; replaces depth=2)
-  // We deliberately don't assert exact text lengths beyond ordering —
-  // the chosen click point may land on a word that's shorter than the
-  // surrounding block. We assert depths and that block > word > letter.
+  //   afterFour  = [{depth:3, len:>=word}]  (one sentence; replaces depth=2)
   const pass = afterOne.length === 0
     && afterTwo.length === 1 && afterTwo[0].depth === 1
     && afterThree.length === 1 && afterThree[0].depth === 2
@@ -297,8 +291,76 @@ async function testProseDepthChain(page) {
   record(
     'multiselect_prose_depth_chain',
     pass ? 'PASS' : 'FAIL',
-    'prose: 1st click no paint, 2nd=letter, 3rd=word, 4th=block (SHIFTED-BY-1)',
+    'prose: 1st click no paint, 2nd=char, 3rd=word, 4th=sentence (SHIFTED-BY-1, Phase 2.5)',
     JSON.stringify({ afterOne, afterTwo, afterThree, afterFour })
+  );
+}
+
+async function testProseDepthChainExtended(page) {
+  // TRDD-352ef46a Phase 2.5 — exercise the full 9-level ladder. After
+  // 10 successive clicks (chain.depth 1→10) the selection must reach
+  // visualDepth 9 (whole-doc). Each successive click must produce
+  // monotonically larger or equal selected text length.
+  await setup(page, PROSE_FIXTURE);
+  const t = await page.evaluate(() => {
+    const p = document.querySelector('[data-ve-prose] p[data-ve-pnum]');
+    if (!p) return null;
+    p.scrollIntoView({ block: 'center' });
+    const textNodes = [];
+    function walk(node) {
+      for (const c of node.childNodes) {
+        if (c.nodeType === Node.TEXT_NODE && c.textContent.trim().length > 8) {
+          textNodes.push(c);
+        } else if (c.nodeType === Node.ELEMENT_NODE && !c.classList.contains('ve-pnum')) {
+          walk(c);
+        }
+      }
+    }
+    walk(p);
+    if (textNodes.length === 0) return null;
+    textNodes.sort((a, b) => b.textContent.length - a.textContent.length);
+    const target = textNodes[0];
+    const range = document.createRange();
+    range.selectNode(target);
+    const r = range.getBoundingClientRect();
+    return { x: r.x + r.width / 4, y: r.y + r.height / 2 };
+  });
+  if (!t) {
+    record('multiselect_prose_depth_chain_extended', 'FAIL', 'prose 9-level ladder', 'no prose paragraph');
+    return;
+  }
+  const snapshots = [];
+  for (let i = 0; i < 10; i++) {
+    await page.mouse.click(t.x, t.y);
+    await page.waitForTimeout(80);
+    const snap = await page.evaluate(() => {
+      const entries = (window.veSelection || []).filter((e) => e.kind === 'text');
+      return entries.map((e) => ({ depth: e.depth, len: (e.text || '').length }));
+    });
+    snapshots.push(snap);
+  }
+  // Click 1: no paint (chain starts).
+  // Clicks 2..10: visualDepths 1..9, exactly one entry each, length
+  // monotonically non-decreasing. We log every snapshot so a regression
+  // is debuggable from the result detail.
+  let pass = snapshots[0].length === 0;
+  let lastLen = -1;
+  const observed = [];
+  let failedAt = null;
+  for (let i = 1; i < 10; i++) {
+    const s = snapshots[i];
+    observed.push({ click: i + 1, expectedDepth: i, snap: s });
+    if (!pass) continue;
+    if (s.length !== 1) { pass = false; failedAt = 'count'; continue; }
+    if (s[0].depth !== i) { pass = false; failedAt = 'depth'; continue; }
+    if (s[0].len < lastLen) { pass = false; failedAt = 'len'; continue; }
+    lastLen = s[0].len;
+  }
+  record(
+    'multiselect_prose_depth_chain_extended',
+    pass ? 'PASS' : 'FAIL',
+    'prose ladder reaches all 9 depths (char→word→sentence→line→paragraph→list-item→section→subsection→whole-doc)',
+    JSON.stringify({ failedAt, observed })
   );
 }
 
@@ -340,6 +402,7 @@ const tests = [
   testSubmitButtonPostsPayload,
   testExitButtonPostsEmptyPayload,
   testProseDepthChain,
+  testProseDepthChainExtended,
   testOversizedPostRejected,
 ];
 

@@ -125,7 +125,8 @@ z-index:
     <h2 id="sec-reading">Reading container</h2>
     <p>Default children land in the measured centre column. This
        paragraph sits inside the reading measure.</p>
-    <p class="la-article__bleed demo-region" data-ve-id="bleed-block">
+    <p class="la-article__bleed demo-region" data-ve-id="bleed-block"
+       data-ve-type="card">
       This block carries <code>.la-article__bleed</code> and extends
       edge to edge — wider than the measured paragraph above it, with
       no inner scrollbar.</p>
@@ -135,17 +136,19 @@ z-index:
   <!-- Group 2a — asymmetric content + sidebar grid. -->
   <h2 id="sec-grid">Asymmetric grid</h2>
   <div class="la-grid la-grid--2-1" data-ve-id="layout-main" data-ve-type="layout">
-    <div class="la-region demo-region" data-ve-id="region-content">
+    <div class="la-region demo-region" data-ve-id="region-content"
+         data-ve-type="region">
       Main content region — about twice the sidebar width on desktop.
     </div>
-    <aside class="la-region demo-region" data-ve-id="region-sidebar">
+    <aside class="la-region demo-region" data-ve-id="region-sidebar"
+           data-ve-type="region">
       Sidebar region.
     </aside>
   </div>
 
   <!-- Group 2b — subgrid card row. Each card is title / body / footer. -->
   <h2 id="sec-cards">Card row</h2>
-  <div class="la-cardrow" data-ve-id="cardrow">
+  <div class="la-cardrow" data-ve-id="cardrow" data-ve-type="layout">
     <article class="la-card" data-ve-id="card-1" data-ve-type="card">
       <h3 class="la-card__title">Short title</h3>
       <div class="la-card__body">A short body.</div>
@@ -166,17 +169,22 @@ z-index:
   <!-- Group 2c — IDE 3-panel + collapse toggle. -->
   <h2 id="sec-ide">IDE panel</h2>
   <button class="la-ide-toggle" data-la-toggle="ide" aria-expanded="true">Toggle sidebar</button>
-  <div class="la-ide" data-ve-id="ide" data-la-sidebar="open">
-    <nav class="la-ide__sidebar demo-region" data-ve-id="ide-sidebar">Sidebar</nav>
-    <div class="la-ide__center demo-region" data-ve-id="ide-center">Center</div>
-    <aside class="la-ide__inspector demo-region" data-ve-id="ide-inspector">Inspector</aside>
+  <div class="la-ide" data-ve-id="ide" data-ve-type="layout" data-la-sidebar="open">
+    <nav class="la-ide__sidebar demo-region" data-ve-id="ide-sidebar"
+         data-ve-type="region">Sidebar</nav>
+    <div class="la-ide__center demo-region" data-ve-id="ide-center"
+         data-ve-type="region">Center</div>
+    <aside class="la-ide__inspector demo-region" data-ve-id="ide-inspector"
+           data-ve-type="region">Inspector</aside>
   </div>
 
   <!-- Group 2d — 12-column dashboard. -->
   <h2 id="sec-dash">Dashboard</h2>
-  <div class="la-dashboard" data-ve-id="dashboard">
-    <section class="demo-region" data-span="8" data-ve-id="dash-chart">8-col</section>
-    <aside class="demo-region" data-span="4" data-ve-id="dash-detail">4-col</aside>
+  <div class="la-dashboard" data-ve-id="dashboard" data-ve-type="layout">
+    <section class="demo-region" data-span="8" data-ve-id="dash-chart"
+             data-ve-type="region">8-col</section>
+    <aside class="demo-region" data-span="4" data-ve-id="dash-detail"
+           data-ve-type="region">4-col</aside>
   </div>
 
   <!-- Group 7b — decorative hero. -->

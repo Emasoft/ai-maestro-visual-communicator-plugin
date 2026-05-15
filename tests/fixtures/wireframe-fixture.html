@@ -176,20 +176,32 @@
   <section class="demo-band">
     <div class="wf-root wf-archetype--app"
          data-wf-root data-wf-fidelity="wireframe" id="wf-app-root">
-      <div class="wf-titlebar" id="wf-app-titlebar">
+      <!-- Phase 2.5 selection contract: every wireframe block is a
+           selection atom — data-ve-id + data-ve-type. The wireframe
+           init() auto-stamps data-ve-comment-id and tabindex, so click
+           toggles selection (3-state visual paint), Ctrl-+ opens the
+           per-block comment thread. -->
+      <div class="wf-titlebar" id="wf-app-titlebar"
+           data-ve-id="wf-app-titlebar" data-ve-type="wireframe-block"
+           data-ve-label="Titlebar">
         <div class="wf-traffic-lights" id="wf-app-lights">
           <span></span><span></span><span></span>
         </div>
         <div class="wf-text" data-wf-lines="1" style="width: 160px"></div>
         <span></span>
       </div>
-      <div class="wf-sidebar" id="wf-app-sidebar">
+      <div class="wf-sidebar" id="wf-app-sidebar"
+           data-ve-id="wf-app-sidebar" data-ve-type="wireframe-block"
+           data-ve-label="Sidebar">
         <div class="wf-nav-item">Inbox</div>
         <div class="wf-nav-item is-active" aria-current="page">Files</div>
         <div class="wf-nav-item">Settings</div>
       </div>
-      <div class="wf-main" id="wf-app-main">
-        <div class="wf-card">
+      <div class="wf-main" id="wf-app-main"
+           data-ve-id="wf-app-main" data-ve-type="wireframe-block"
+           data-ve-label="Main">
+        <div class="wf-card" data-ve-id="wf-app-card-files"
+             data-ve-type="wireframe-block" data-ve-label="Files card">
           <div class="wf-card__title wf-text" data-wf-lines="1">
             Files
           </div>
@@ -206,7 +218,9 @@
           </div>
         </div>
       </div>
-      <div class="wf-statusbar" id="wf-app-statusbar">
+      <div class="wf-statusbar" id="wf-app-statusbar"
+           data-ve-id="wf-app-statusbar" data-ve-type="wireframe-block"
+           data-ve-label="Statusbar">
         <div class="wf-text" data-wf-lines="1" style="width: 200px"></div>
       </div>
     </div>

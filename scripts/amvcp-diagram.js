@@ -1020,7 +1020,12 @@
         'data-ve-data': escapeAttr(JSON.stringify({
           sceneId: sceneId, kind: 'edge', from: edge.from,
           to: edge.to, edgeStyle: style
-        }))
+        })),
+        // Phase 2.5 atom contract — keyboard reachability + a11y role.
+        // Diagram boots AFTER the runtime enhanceFocus() pass, so we
+        // stamp tabindex/role here.
+        tabindex: '0',
+        role: 'button'
       });
       if (typeof edge.label === 'string' && edge.label) {
         g.setAttribute('data-ve-label', escapeAttr(edge.label));
@@ -1079,8 +1084,26 @@
         g.appendChild(lt);
       }
 
+      // Phase 2.5 request #10 — every edge atom gets the 3-radio
+      // Skip/Approve/Deny mini-pill via the runtime helper. Defensive
+      // — the helper ships from the sibling p25-runtime-text-comment
+      // agent and may not be present in standalone fixtures.
+      _attachDecisionMini(g, edgeId);
+
       svg.appendChild(g);
     }
+  }
+
+  // Defensive bridge to amvcpRuntime.attachDecisionMini (request #10).
+  function _attachDecisionMini(atomEl, atomId) {
+    if (!atomEl || atomEl.__veDecisionMiniAttached) { return; }
+    if (typeof window === 'undefined') { return; }
+    var rt = window.amvcpRuntime;
+    if (!rt || typeof rt.attachDecisionMini !== 'function') { return; }
+    try {
+      rt.attachDecisionMini(atomEl, atomId);
+      atomEl.__veDecisionMiniAttached = true;
+    } catch (_) { /* helper failed — diagram stays usable, no pill */ }
   }
 
   function renderNodes(svg, scene, sceneId) {
@@ -1097,7 +1120,10 @@
         'data-ve-data': escapeAttr(JSON.stringify({
           sceneId: sceneId, kind: 'node', nodeType: node.type,
           nodeId: node.id
-        }))
+        })),
+        // Phase 2.5 atom contract — keyboard reachability + a11y role.
+        tabindex: '0',
+        role: 'button'
       });
 
       appendNodeShape(g, node);
@@ -1128,6 +1154,10 @@
         badge.appendChild(bt);
         g.appendChild(badge);
       }
+
+      // Phase 2.5 request #10 — every node atom gets the 3-radio
+      // Skip/Approve/Deny mini-pill via the runtime helper.
+      _attachDecisionMini(g, nodeId);
 
       svg.appendChild(g);
     }
@@ -1436,11 +1466,78 @@
       armScrollReveal(svg);
     }
 
+    // Phase 2.5 — group-handle observer (TRDD-352ef46a contract step 3).
+    // Watches the host subtree for [data-ve-selected="1"] mutations
+    // and mounts ONE .ve-comment-handle on the host when >=1 atom is
+    // selected. Mirrors amvcp-runtime.js updateGroupCommentHandles for
+    // the table/list/section container kinds; .ve-scene-graph is not
+    // in the runtime container list, so we wire the observer here.
+    _wireGroupHandle(hostEl);
+
     // Record the ORIGINAL scene JSON on the host so a theme hot-swap
     // can re-render from a clean copy (the rendered scene was mutated
     // by autoPlace/snap/_stepIndex).
     hostEl.__vcSceneJSON = jsonText(hostEl);
     return svg;
+  }
+
+  // Build / update / remove the per-scene comment-handle. Idempotent.
+  function _updateGroupHandle(host) {
+    if (!host || !host.querySelectorAll) { return; }
+    var selected = host.querySelectorAll('[data-ve-selected="1"]');
+    var existing = host.querySelector(':scope > .ve-comment-handle');
+    if (selected.length === 0) {
+      if (existing) { existing.remove(); }
+      return;
+    }
+    var first = selected[0];
+    var hostRect = host.getBoundingClientRect();
+    var firstRect = first.getBoundingClientRect();
+    var topPx = firstRect.top - hostRect.top + firstRect.height / 2;
+    var handle = existing;
+    if (!handle) {
+      handle = document.createElement('button');
+      handle.type = 'button';
+      handle.className = 've-comment-handle ve-group-handle';
+      handle.textContent = '\u{1F4AC}';   /* speech-bubble glyph */
+      handle.title = 'Open comment thread for selected diagram atoms';
+      handle.setAttribute('data-ve-overlay', '1');
+      handle.addEventListener('click', function (ev) {
+        ev.preventDefault();
+        ev.stopPropagation();
+        var openFn = (typeof window !== 'undefined'
+          && typeof window.__veOpenCommentModal === 'function')
+          ? window.__veOpenCommentModal : null;
+        if (openFn) { openFn(this); }
+      });
+      host.appendChild(handle);
+    }
+    var ids = [];
+    for (var i = 0; i < selected.length; i++) {
+      var aid = selected[i].getAttribute('data-ve-id');
+      if (aid) { ids.push(aid); }
+    }
+    ids.sort();
+    var hostId = host.id || host.getAttribute('data-ve-id') || 'scene';
+    handle.setAttribute('data-ve-comment-id',
+      'diagram:' + hostId + ':' + ids.join(','));
+    handle.style.top = topPx + 'px';
+  }
+
+  function _wireGroupHandle(host) {
+    if (!host || host.__veGroupHandleWired) { return; }
+    host.__veGroupHandleWired = true;
+    _updateGroupHandle(host);
+    if (typeof MutationObserver === 'undefined') { return; }
+    var mo = new MutationObserver(function () {
+      _updateGroupHandle(host);
+    });
+    mo.observe(host, {
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['data-ve-selected']
+    });
+    host.__veGroupHandleObserver = mo;
   }
 
   // jsonText — re-read the host's embedded JSON text (the pristine
@@ -1542,6 +1639,54 @@
     '  filter: brightness(var(--ve-brightness-selected, 1.04));',
     '  stroke-width: ' + STROKE_SELECTED + ';',
     '}',
+    /* Phase 2.5 — keyboard focus parity with hover. Without an explicit
+       :focus-visible rule the keyboard user has no feedback on which
+       atom is focused (the runtime suppresses default outlines on SVG
+       atoms — see scripts/amvcp-runtime.js line 642). */
+    '.ve-scene-graph g[data-ve-id]:focus-visible > rect,',
+    '.ve-scene-graph g[data-ve-id]:focus-visible > circle,',
+    '.ve-scene-graph g[data-ve-id]:focus-visible > polygon,',
+    '.ve-scene-graph g[data-ve-id]:focus-visible > path,',
+    '.ve-scene-graph g[data-ve-id]:focus-visible > polyline {',
+    '  filter: brightness(var(--ve-brightness-hover, 1.08))',
+    '          drop-shadow(0 0 4px var(--ve-accent,',
+    '            var(--vc-color-accent, #b8861f)));',
+    '}',
+    /* Hover-on-selected: keep the boost AND the glow. */
+    '.ve-scene-graph g[data-ve-id][data-ve-selected="1"]:hover > rect,',
+    '.ve-scene-graph g[data-ve-id][data-ve-selected="1"]:hover > circle,',
+    '.ve-scene-graph g[data-ve-id][data-ve-selected="1"]:hover > polygon,',
+    '.ve-scene-graph g[data-ve-id][data-ve-selected="1"]:hover > path,',
+    '.ve-scene-graph g[data-ve-id][data-ve-selected="1"]:hover > polyline {',
+    '  filter: brightness(var(--ve-brightness-hover, 1.12))',
+    '          drop-shadow(0 0 4px var(--ve-accent,',
+    '            var(--vc-color-accent, #b8861f)));',
+    '}',
+    /* Phase 2.5 — outer ring on the .ve-scene-graph host when ANY atom
+       inside is selected. Mirrors the runtime ul/ol/section ring. */
+    '.ve-scene-graph { position: relative; }',
+    '.ve-scene-graph:has([data-ve-selected="1"]) {',
+    '  outline: 2px solid var(--ve-accent,',
+    '            var(--vc-color-accent, #b8861f));',
+    '  outline-offset: 4px;',
+    '  border-radius: var(--vc-radius-sm, 4px);',
+    '}',
+    /* The single per-scene comment-handle injected by the observer. */
+    '.ve-scene-graph > .ve-comment-handle {',
+    '  position: absolute; left: -40px;',
+    '  width: 28px; height: 22px;',
+    '  display: inline-flex; align-items: center; justify-content: center;',
+    '  background: var(--ve-accent,',
+    '            var(--vc-color-accent, #b8861f));',
+    '  color: var(--vc-color-on-accent, #ffffff);',
+    '  border: 0; border-radius: 6px; padding: 0;',
+    '  font: 600 13px/1 ui-sans-serif, system-ui, sans-serif;',
+    '  cursor: pointer;',
+    '  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.24);',
+    '  transform: translateY(-50%);',
+    '  z-index: 2;',
+    '}',
+    '.ve-scene-graph > .ve-comment-handle:hover { filter: brightness(1.08); }',
 
     /* phase-graph chain highlight — when a chain is active, dim every
        node/edge NOT in the chain and brighten the chain. */

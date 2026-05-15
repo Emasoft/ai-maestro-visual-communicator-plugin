@@ -117,15 +117,34 @@
     </figure>
 
     <figure class="demo-card scene-slot">
-      <figcaption>stacked-rects · tint-hierarchy · current-color</figcaption>
+      <figcaption>stacked-rects · tint-hierarchy</figcaption>
       <script type="application/icon-svg+json" id="scene-logo-b">
       {
         "viewBox": [0, 0, 1000, 1000],
-        "ariaLabel": "Stacked rects, tint hierarchy, currentColor logo blocks",
+        "ariaLabel": "Stacked rects and tint hierarchy logo blocks",
         "primitives": [
-          { "type": "logo", "id": "lg-stack", "kind": "stacked-rects",  "x": 40,  "y": 350, "w": 280, "h": 280 },
-          { "type": "logo", "id": "lg-tint",  "kind": "tint-hierarchy", "x": 360, "y": 350, "w": 280, "h": 280 },
-          { "type": "logo", "id": "lg-curr",  "kind": "current-color",  "x": 680, "y": 350, "w": 280, "h": 280 }
+          { "type": "logo", "id": "lg-stack", "kind": "stacked-rects",  "x": 80,  "y": 350, "w": 380, "h": 380 },
+          { "type": "logo", "id": "lg-tint",  "kind": "tint-hierarchy", "x": 540, "y": 350, "w": 380, "h": 380 }
+        ]
+      }
+      </script>
+    </figure>
+  </div>
+  <!-- The current-color logo block uses var(--vc-color-content,
+       currentColor) for its fill — by C7 (lintSvg), a SCENE can be
+       all-currentColor OR all-explicit-token but NEVER mixed. So
+       current-color lives in its OWN scene-figure, separate from the
+       explicit-token logos above. -->
+  <div class="row">
+    <figure class="demo-card scene-slot">
+      <figcaption>current-color (the all-currentColor mark)</figcaption>
+      <script type="application/icon-svg+json" id="scene-logo-c">
+      {
+        "viewBox": [0, 0, 1000, 1000],
+        "ariaLabel": "currentColor logo block",
+        "primitives": [
+          { "type": "logo", "id": "lg-curr", "kind": "current-color",
+            "x": 320, "y": 320, "w": 360, "h": 360 }
         ]
       }
       </script>
@@ -149,17 +168,34 @@
   <h2>Image hotspot annotation</h2>
   <section>
     <figure class="isvg-annotated annotated-wrap" data-ve-id="anatomy-fig"
-            data-ve-type="figure" id="annotated-fig">
+            data-ve-type="figure"
+            data-ve-comment-id="figure:anatomy-fig"
+            tabindex="0" role="img" id="annotated-fig">
       <!-- A small inline-SVG data-URI image so the fixture is fully
            self-contained (no external asset fetch). -->
       <img id="annotated-img" alt="System architecture diagram"
         src="data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns='http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20width='460'%20height='280'%3E%3Crect%20width='460'%20height='280'%20fill='%23e8e2d2'%2F%3E%3Crect%20x='40'%20y='40'%20width='150'%20height='90'%20rx='8'%20fill='%23c9bfa3'%2F%3E%3Crect%20x='270'%20y='150'%20width='150'%20height='90'%20rx='8'%20fill='%23c9bfa3'%2F%3E%3C%2Fsvg%3E">
-      <button class="isvg-hotspot" style="--x:.30; --y:.30"
-              data-ve-id="hotspot-cache" data-ve-type="hotspot"
-              aria-label="Cache layer">1</button>
-      <button class="isvg-hotspot" style="--x:.74; --y:.70"
-              data-ve-id="hotspot-db" data-ve-type="hotspot"
-              aria-label="Database">2</button>
+      <!-- Phase 2.5 selection contract: hotspots are SELECTABLE atoms,
+           NOT raw <button> elements. The runtime's click handler
+           (amvcp-runtime.js isInteractiveControl()) bails on <button>
+           targets — using <span role="button" tabindex="0"> keeps the
+           same a11y semantics (announced as a button, focusable, Enter
+           and Space activate) WITHOUT triggering the bail-out, so the
+           click reaches toggleElementSelection and the atom enters
+           veSelection. data-ve-comment-id makes the Ctrl-+ keyboard
+           fallback open the per-hotspot comment thread. -->
+      <span class="isvg-hotspot" style="--x:.30; --y:.30"
+            data-ve-id="hotspot-cache" data-ve-type="hotspot"
+            data-ve-comment-id="hotspot:hotspot-cache"
+            data-ve-label="Cache layer"
+            role="button" tabindex="0"
+            aria-label="Cache layer">1</span>
+      <span class="isvg-hotspot" style="--x:.74; --y:.70"
+            data-ve-id="hotspot-db" data-ve-type="hotspot"
+            data-ve-comment-id="hotspot:hotspot-db"
+            data-ve-label="Database"
+            role="button" tabindex="0"
+            aria-label="Database">2</span>
     </figure>
   </section>
 

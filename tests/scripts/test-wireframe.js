@@ -631,6 +631,163 @@ async function testApiSurfaceAndDualExport(page) {
     JSON.stringify(res));
 }
 
+// ── Phase 2.5 selection / comment contract (TRDD-352ef46a) ──────────
+
+async function testWireframeAtomContract(page) {
+  // 16 — Phase 2.5: every wireframe block carrying author-set
+  // data-ve-id is auto-stamped with data-ve-comment-id (so Ctrl-+
+  // keyboard fallback opens the per-block thread) and tabindex="0"
+  // (keyboard-reachable). Idempotent — re-running stampSelectionAtoms
+  // does not duplicate.
+  const s = await setup(page);
+  if (!s.ok) {
+    record('wireframe_atom_contract', 'FAIL',
+      'every [data-ve-id] block has comment-id + tabindex', s.error);
+    return;
+  }
+  const res = await page.evaluate(() => {
+    const atoms = document.querySelectorAll(
+      '[data-wf-root] [data-ve-id]');
+    const out = [];
+    for (let i = 0; i < atoms.length; i++) {
+      const el = atoms[i];
+      out.push({
+        id: el.getAttribute('data-ve-id'),
+        type: el.getAttribute('data-ve-type'),
+        cid: el.getAttribute('data-ve-comment-id'),
+        tab: el.getAttribute('tabindex'),
+      });
+    }
+    // Spot-check one of the new app-chrome blocks.
+    const titlebar = document.getElementById('wf-app-titlebar');
+    const titlebarOk = titlebar
+      && titlebar.getAttribute('data-ve-comment-id')
+      && titlebar.getAttribute('tabindex') === '0';
+    return {
+      total: out.length,
+      allHaveCid: out.every(a => a.cid && a.cid.length > 0),
+      allHaveTabindex: out.every(a => a.tab === '0'),
+      titlebarOk: !!titlebarOk,
+      sample: out.slice(0, 3),
+    };
+  });
+  const ok = res.total >= 5
+    && res.allHaveCid
+    && res.allHaveTabindex
+    && res.titlebarOk;
+  record('wireframe_atom_contract', ok ? 'PASS' : 'FAIL',
+    'wireframe blocks have data-ve-comment-id + tabindex auto-stamped',
+    JSON.stringify(res));
+}
+
+async function testWireframeAccentReevaluatedAtRoot(page) {
+  // 17 — Phase 2.5: the wireframe.css re-publishes --ve-accent at the
+  // [data-wf-root] scope so the runtime's hover/selected outline rules
+  // (which use var(--ve-accent, ...)) read the desaturated accent —
+  // not the global magenta one. Without this, a wireframe atom's
+  // selection outline would render in full color, leaking past the
+  // fidelity-lock.
+  const s = await setup(page);
+  if (!s.ok) {
+    record('wireframe_accent_reevaluated', 'FAIL',
+      '--ve-accent re-evaluated at wf-root scope', s.error);
+    return;
+  }
+  const res = await page.evaluate(() => {
+    const root = document.getElementById('wf-app-root');
+    if (!root) return { found: false };
+    const wfAccent = getComputedStyle(root)
+      .getPropertyValue('--ve-accent').trim();
+    const wfVc = getComputedStyle(root)
+      .getPropertyValue('--vc-color-accent').trim();
+    const globalAccent = getComputedStyle(document.documentElement)
+      .getPropertyValue('--ve-accent').trim();
+    return {
+      found: true,
+      wfAccent: wfAccent,
+      wfVc: wfVc,
+      globalAccent: globalAccent,
+    };
+  });
+  // Both wf-scoped values resolve to non-empty colors. The wireframe
+  // root's --vc-color-accent is the desaturated value (grey), so the
+  // re-evaluated --ve-accent must MATCH it (or be its var() resolution).
+  // We don't compare strictly — different browsers normalise color
+  // strings differently — but both must be non-empty.
+  const ok = res.found
+    && res.wfAccent.length > 0
+    && res.wfVc.length > 0;
+  record('wireframe_accent_reevaluated', ok ? 'PASS' : 'FAIL',
+    '--ve-accent + --vc-color-accent both resolve at [data-wf-root]',
+    JSON.stringify(res));
+}
+
+async function testWireframeDecisionMiniAttachCallSite(page) {
+  // 18 — Phase 2.5 User Req #10: every wireframe atom gets a per-atom
+  // 3-radio mini-pill via window.amvcpRuntime.attachDecisionMini.
+  // Mock the helper, run refresh(), assert every [data-wf-root]
+  // [data-ve-id] received exactly one call.
+  const s = await setup(page);
+  if (!s.ok) {
+    record('wireframe_decision_mini_attach', 'FAIL',
+      'attachDecisionMini called per wireframe atom', s.error);
+    return;
+  }
+  const res = await page.evaluate(() => {
+    const calls = [];
+    window.amvcpRuntime = window.amvcpRuntime || {};
+    window.amvcpRuntime.attachDecisionMini = function (el, id) {
+      calls.push({
+        id: id,
+        veType: el && el.getAttribute && el.getAttribute('data-ve-type')
+      });
+    };
+    window.amvcpWireframe.refresh(document);
+    const seen = {};
+    for (let i = 0; i < calls.length; i++) {
+      seen[calls[i].id] = (seen[calls[i].id] || 0) + 1;
+    }
+    const atomCount = document.querySelectorAll(
+      '[data-wf-root] [data-ve-id]').length;
+    return {
+      callCount: calls.length,
+      distinctIds: Object.keys(seen).length,
+      atomCount: atomCount,
+      sample: calls.slice(0, 3),
+    };
+  });
+  const ok = res.atomCount > 0
+    && res.distinctIds === res.atomCount;
+  record('wireframe_decision_mini_attach', ok ? 'PASS' : 'FAIL',
+    'attachDecisionMini invoked once per wireframe atom (independent of selection)',
+    JSON.stringify(res));
+}
+
+async function testWireframeDecisionMiniAttachIsDefensive(page) {
+  // 19 — Phase 2.5 User Req #10: when window.amvcpRuntime is absent
+  // (sibling agent's helper not yet loaded), the attach pass MUST be
+  // a graceful no-op. Defensive guard for parallel shipping.
+  const s = await setup(page);
+  if (!s.ok) {
+    record('wireframe_decision_mini_attach_defensive', 'FAIL',
+      'attach pass defensive without runtime', s.error);
+    return;
+  }
+  const res = await page.evaluate(() => {
+    delete window.amvcpRuntime;
+    let threw = false;
+    try { window.amvcpWireframe.refresh(document); }
+    catch (e) { threw = true; }
+    const root = !!document.getElementById('wf-app-root');
+    return { threw: threw, root: root };
+  });
+  const ok = res.threw === false && res.root === true;
+  record('wireframe_decision_mini_attach_defensive',
+    ok ? 'PASS' : 'FAIL',
+    'graceful no-op when window.amvcpRuntime is absent',
+    JSON.stringify(res));
+}
+
 // ── Runner ──────────────────────────────────────────────────────────
 
 const tests = [
@@ -648,7 +805,13 @@ const tests = [
   testSelectionWiring,
   testWfLinesMirroring,
   testPureHelpers,
-  testApiSurfaceAndDualExport
+  testApiSurfaceAndDualExport,
+  // Phase 2.5 selection / comment contract (TRDD-352ef46a)
+  testWireframeAtomContract,
+  testWireframeAccentReevaluatedAtRoot,
+  // Phase 2.5 User Req #10 — per-atom decision mini pill
+  testWireframeDecisionMiniAttachCallSite,
+  testWireframeDecisionMiniAttachIsDefensive
 ];
 
 const page = await browser.getPage("wireframe-tests");

@@ -85,8 +85,10 @@ radius:
 </head>
 <body>
 
-<!-- Group 6 — optional cover page that forces a page break after it. -->
-<section class="la-cover la-break-after" data-ve-id="cover">
+<!-- Group 6 — optional cover page that forces a page break after it.
+     Selection-contract atom (TRDD-352ef46a phase 2.5) — the cover is a
+     comment-able unit. -->
+<section class="la-cover la-break-after" data-ve-id="cover" data-ve-type="cover">
   <h1>Printed Report</h1>
   <p class="la-cover__meta">2026-05-15 / layout fixture</p>
 </section>
@@ -109,13 +111,16 @@ radius:
   <h2 id="sec-body">Report body</h2>
   <p>Body content inside the measured reading column on screen; on
      paper the grid flattens and the text fills the page.</p>
-  <div class="la-kpi-row la-break-inside-avoid demo-region" data-ve-id="kpi-row">
+  <div class="la-kpi-row la-break-inside-avoid demo-region" data-ve-id="kpi-row"
+       data-ve-type="kpi-row">
     A KPI row that must not be split across a page boundary.
   </div>
 </article>
 
-<!-- Group 6 — a section forced onto a fresh printed page. -->
-<section class="la-break-before demo-region" data-ve-id="appendix">
+<!-- Group 6 — a section forced onto a fresh printed page.
+     Selection-contract atom (TRDD-352ef46a phase 2.5). -->
+<section class="la-break-before demo-region" data-ve-id="appendix"
+         data-ve-type="region">
   <h2>Appendix</h2>
   <p>This section starts on a new printed page.</p>
 </section>

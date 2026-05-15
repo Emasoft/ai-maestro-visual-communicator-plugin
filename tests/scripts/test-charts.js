@@ -739,6 +739,101 @@ async function testMetricCards(page) {
     JSON.stringify(res));
 }
 
+// Phase 2.5 selection contract — atom states + group comment-handle.
+async function testP25SelectionContract(page) {
+  // Setting data-ve-selected="1" on chart marks must:
+  //   1. trigger .ve-chart:has([data-ve-selected="1"]) outer ring
+  //   2. mount exactly ONE .ve-comment-handle on the figure
+  //   3. compose data-ve-comment-id as chart:<figId>:<sortedMarkIds>
+  //   4. clearing -> handle vanishes
+  // Atom contract checks: tabindex="0" + role="button" so keyboard
+  // users can focus/activate the marks.
+  const s = await setup(page);
+  if (!s.ok) {
+    record('chart_p25_selection_contract', 'FAIL',
+      'Phase 2.5 group-handle observer wires up', s.error);
+    return;
+  }
+  // Locate the demo figure by its title text (the <pre> id is consumed
+  // by the chart renderer when it swaps in <figure>).
+  const initial = await page.evaluate(() => {
+    const figs = document.querySelectorAll('figure.ve-chart');
+    let demo = null;
+    for (const f of figs) {
+      const cap = f.querySelector('.ve-chart-title');
+      if (cap && cap.textContent.indexOf('Phase 2.5 demo') >= 0) {
+        demo = f; break;
+      }
+    }
+    if (!demo) { return { setup: false }; }
+    const bars = demo.querySelectorAll('.ve-chart-bar');
+    return {
+      setup: true,
+      barCount: bars.length,
+      barTabindex: bars[0] ? bars[0].getAttribute('tabindex') : null,
+      barRole: bars[0] ? bars[0].getAttribute('role') : null,
+      hasHandle: !!demo.querySelector(':scope > .ve-comment-handle')
+    };
+  });
+  if (!initial.setup) {
+    record('chart_p25_selection_contract', 'FAIL',
+      'Phase 2.5 demo figure not found', JSON.stringify(initial));
+    return;
+  }
+  // Drive selection via the fixture buttons.
+  await page.evaluate(() => {
+    document.getElementById('p25-select-first').click();
+    document.getElementById('p25-select-second').click();
+  });
+  await page.waitForTimeout(120);
+  const afterSelect = await page.evaluate(() => {
+    const figs = document.querySelectorAll('figure.ve-chart');
+    let demo = null;
+    for (const f of figs) {
+      const cap = f.querySelector('.ve-chart-title');
+      if (cap && cap.textContent.indexOf('Phase 2.5 demo') >= 0) {
+        demo = f; break;
+      }
+    }
+    const handle = demo.querySelector(':scope > .ve-comment-handle');
+    const cid = handle ? handle.getAttribute('data-ve-comment-id') : '';
+    return {
+      handleCount: demo.querySelectorAll(':scope > .ve-comment-handle').length,
+      cidPrefix: cid.slice(0, 6),
+      cidIdCount: (cid.match(/ve-chart-[0-9]+-d[0-9]+-i[0-9]+/g) || []).length,
+      handleHasOverlay: handle ? handle.hasAttribute('data-ve-overlay') : false
+    };
+  });
+  await page.evaluate(() => {
+    document.getElementById('p25-clear').click();
+  });
+  await page.waitForTimeout(120);
+  const afterClear = await page.evaluate(() => {
+    const figs = document.querySelectorAll('figure.ve-chart');
+    let demo = null;
+    for (const f of figs) {
+      const cap = f.querySelector('.ve-chart-title');
+      if (cap && cap.textContent.indexOf('Phase 2.5 demo') >= 0) {
+        demo = f; break;
+      }
+    }
+    return {
+      handleCount: demo.querySelectorAll(':scope > .ve-comment-handle').length
+    };
+  });
+  const ok = initial.barCount > 0
+    && initial.barTabindex === '0' && initial.barRole === 'button'
+    && initial.hasHandle === false
+    && afterSelect.handleCount === 1
+    && afterSelect.cidPrefix === 'chart:'
+    && afterSelect.cidIdCount === 2
+    && afterSelect.handleHasOverlay === true
+    && afterClear.handleCount === 0;
+  record('chart_p25_selection_contract', ok ? 'PASS' : 'FAIL',
+    'select 2 bars -> 1 handle with chart:<id>:<ids>; clear -> handle gone',
+    JSON.stringify({ initial, afterSelect, afterClear }));
+}
+
 // ── Runner ──────────────────────────────────────────────────────────
 
 const tests = [
@@ -758,7 +853,8 @@ const tests = [
   testCanvasThreshold,
   testUnknownTypeDegrades,
   testNoNestedScrollbar,
-  testMetricCards
+  testMetricCards,
+  testP25SelectionContract
 ];
 
 const page = await browser.getPage("chart-tests");

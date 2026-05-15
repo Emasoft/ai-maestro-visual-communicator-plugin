@@ -5,6 +5,34 @@
  * plugin's NON-ELEMENT, cross-cutting technique. It does two things no
  * element skill does:
  *
+ * Phase 2.5 selection/comment contract conformance note (TRDD-352ef46a):
+ *   This module is the CROSS-CUTTING QA-gate technique. It does NOT add
+ *   its own selection atoms (slides, code-lines, paragraphs, list items
+ *   are owned by the per-kind modules: amvcp-slide.js, etc.). The
+ *   doc-shell elements it ships (.vc-doc article, .vc-toc nav,
+ *   .vc-callout aside, .vc-rubric table, .vc-pullquote blockquote,
+ *   .vc-metric div) are INERT under the runtime's selection layer —
+ *   they carry NO `data-ve-id` and NO `data-ve-comment-id`, so the
+ *   runtime's universal click handler ignores them. The contract is
+ *   preserved by ABSENCE: if a downstream skill needs the doc shell's
+ *   prose to be selectable it adds the atom markup itself; the doc
+ *   shell stays the inert wrapper. The QA gates also do NOT inject any
+ *   selection-related CSS rules (no `outline`, no `box-shadow`, no
+ *   `[data-ve-*]` selectors), so they cannot conflict with the
+ *   runtime's universal selection ring.
+ *
+ *   Because report-doc has NO atoms of its own, NEW USER REQ #10 (the
+ *   per-atom Skip/Approve/Deny mini-pill) does not apply here — there
+ *   is nothing to attach a pill to. If a downstream skill wraps doc
+ *   sections as atoms, that downstream skill calls
+ *   `window.amvcpRuntime.attachDecisionMini` itself.
+ *
+ *   The `@media print` block at the bottom DOES reach into the runtime's
+ *   namespace by hiding `.ve-comment-modal`, `.ve-decision`,
+ *   `.ve-finding-thread`, `.ve-report-banner` — that is INTENTIONAL: a
+ *   printed page should not show interactive overlays. This is the only
+ *   place the report-doc CSS touches a `.ve-*` class, and it is hide-only.
+ *
  *   1. SCAFFOLD long-form, mostly-static documents — executive summaries,
  *      technical reports, case studies, proposals, whitepapers,
  *      design-system docs. This module supplies the in-page side of that:
