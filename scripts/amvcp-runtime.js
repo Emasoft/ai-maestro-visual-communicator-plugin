@@ -807,12 +807,85 @@
       // perceives section depth at a glance. From H4 the gap shrinks
       // because the reader is already deep enough to lose track of
       // visual hierarchy and rely on numbering instead.
-      '[data-ve-prose] h1 { font-size: 2em;   font-weight: 600; line-height: 1.25; }',
-      '[data-ve-prose] h2 { font-size: 1.55em; font-weight: 600; line-height: 1.3; }',
-      '[data-ve-prose] h3 { font-size: 1.25em; font-weight: 600; line-height: 1.35; }',
-      '[data-ve-prose] h4 { font-size: 1.1em;  font-weight: 600; line-height: 1.4; }',
-      '[data-ve-prose] h5 { font-size: 1.05em; font-weight: 600; line-height: 1.4; }',
-      '[data-ve-prose] h6 { font-size: 1em;    font-weight: 600; line-height: 1.4; font-style: italic; }',
+      //
+      // Phase 1d — DESIGN.md typography binding. Each heading reads its
+      // font-family from --vc-font-heading and its weight from
+      // --vc-weight-bold so a DESIGN.md hot-swap restyles every heading
+      // live. The historic literal value is kept as the var() fallback,
+      // so with the engine absent the appearance is byte-identical.
+      // H1/H2/H3 font-size binds to the type-scale step that matches the
+      // old literal em (the default DESIGN.md scale is [12,14,16,20,24,
+      // 32,48]px → text-5=32 ≈ 2em·16, text-4=24 ≈ 1.55em·16,
+      // text-3=20 = 1.25em·16). H4/H5/H6 (1.1/1.05/1em) have no scale
+      // step that matches, so they stay em-relative — and because em is
+      // relative to the inherited body size (itself now bound to
+      // --vc-text-2 below), a DESIGN.md scale change still moves them.
+      // line-height stays a literal display value: --vc-line-height is
+      // the BODY line-height and is deliberately looser than the tight
+      // heading leading the ramp needs.
+      '[data-ve-prose] h1 { font-family: var(--vc-font-heading, inherit); font-size: var(--vc-text-5, 2em);   font-weight: var(--vc-weight-bold, 600); line-height: 1.25; }',
+      '[data-ve-prose] h2 { font-family: var(--vc-font-heading, inherit); font-size: var(--vc-text-4, 1.55em); font-weight: var(--vc-weight-bold, 600); line-height: 1.3; }',
+      '[data-ve-prose] h3 { font-family: var(--vc-font-heading, inherit); font-size: var(--vc-text-3, 1.25em); font-weight: var(--vc-weight-bold, 600); line-height: 1.35; }',
+      '[data-ve-prose] h4 { font-family: var(--vc-font-heading, inherit); font-size: 1.1em;  font-weight: var(--vc-weight-bold, 600); line-height: 1.4; }',
+      '[data-ve-prose] h5 { font-family: var(--vc-font-heading, inherit); font-size: 1.05em; font-weight: var(--vc-weight-bold, 600); line-height: 1.4; }',
+      '[data-ve-prose] h6 { font-family: var(--vc-font-heading, inherit); font-size: 1em;    font-weight: var(--vc-weight-bold, 600); line-height: 1.4; font-style: italic; }',
+      // Phase 1d — prose body text binding. The [data-ve-prose] container
+      // is the runtime\'s prose-numbering root; binding its font here
+      // makes every numbered paragraph follow the DESIGN.md body font,
+      // base size and line-height. `inherit` fallbacks keep a prose page
+      // on its own host font when the DESIGN.md engine is absent — the
+      // engine, when present, always applies a token set (an embedded
+      // <script type="text/design-md"> or the built-in DEFAULT_DESIGNMD)
+      // so --vc-* are on :root and the prose follows them. font-size
+      // binds to --vc-text-2 because index 2 is the scale\'s base step
+      // (the default scale [12,14,16,20,24,32,48] → text-2 = 16px, the
+      // conventional body size).
+      '[data-ve-prose] {',
+      '  font-family: var(--vc-font-body, inherit);',
+      '  font-size: var(--vc-text-2, inherit);',
+      '  line-height: var(--vc-line-height, inherit);',
+      '}',
+      // ─── Phase 1d — DESIGN.md typography on rendered reports ──────────
+      // Interactive reports are emitted by render-interactive-report.py
+      // as `<article data-ve-report>` and use the renderer\'s OWN body /
+      // heading typography — which predates the DESIGN.md engine and is
+      // therefore NOT token-bound. These rules bind that typography to
+      // --vc-* so a DESIGN.md hot-swap restyles a report\'s body prose
+      // AND its headings live, the same way it already restyles colour.
+      //
+      // The selectors are scoped to [data-ve-report] (the article the
+      // renderer stamps) so they only ever touch this plugin\'s own
+      // report pages — never an arbitrary host page. The runtime style
+      // element is appended to <head> AFTER the renderer\'s <style>, and
+      // `[data-ve-report] h1` (specificity 0,1,1) beats the renderer\'s
+      // bare `h1`/`body` (0,0,1), so these rules win. Every var()
+      // fallback is the renderer\'s EXACT current value, so with the
+      // DESIGN.md engine absent a report renders byte-identically.
+      //
+      // Body text: font-family + base font-size + line-height. The
+      // article sets font-size so descendant prose inherits the bound
+      // size even before initReportMode() copies data-ve-report onto
+      // <body>. The font stack mirrors render-interactive-report.py\'s
+      // `body { font:17px/1.6 ui-sans-serif,… }`.
+      '[data-ve-report] {',
+      '  font-family: var(--vc-font-body, ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif);',
+      '  font-size: var(--vc-text-2, 17px);',
+      '  line-height: var(--vc-line-height, 1.6);',
+      '}',
+      // Report headings: font-family from --vc-font-heading, weight from
+      // --vc-weight-bold, size from the matching type-scale step. The
+      // fallbacks are each heading\'s ACTUAL current value on a report —
+      // the renderer styles only h1 (`font-style:italic; font-weight:
+      // 500`) and leaves h2…h6 at UA defaults, so the per-tag weight /
+      // size fallbacks differ (h1 500 / 2em, h2 700 / 1.5em, …). H1\'s
+      // `font-style:italic` lives in the renderer rule and is a separate
+      // property these rules never set, so the italic survives.
+      '[data-ve-report] h1 { font-family: var(--vc-font-heading, inherit); font-size: var(--vc-text-5, 2em);    font-weight: var(--vc-weight-bold, 500); }',
+      '[data-ve-report] h2 { font-family: var(--vc-font-heading, inherit); font-size: var(--vc-text-4, 1.5em);   font-weight: var(--vc-weight-bold, 700); }',
+      '[data-ve-report] h3 { font-family: var(--vc-font-heading, inherit); font-size: var(--vc-text-3, 1.17em);  font-weight: var(--vc-weight-bold, 700); }',
+      '[data-ve-report] h4 { font-family: var(--vc-font-heading, inherit); font-weight: var(--vc-weight-bold, 700); }',
+      '[data-ve-report] h5 { font-family: var(--vc-font-heading, inherit); font-weight: var(--vc-weight-bold, 700); }',
+      '[data-ve-report] h6 { font-family: var(--vc-font-heading, inherit); font-weight: var(--vc-weight-bold, 700); }',
       // The injected hover/selected outline adds an extra 8px padding.
       // Since we now use margin-left for indent, the inset box-shadow
       // still fires from the paragraph\'s left edge — exactly what the
@@ -1321,7 +1394,22 @@
       '  border-left:3px solid color-mix(in srgb, var(--ve-accent, #b8861f) 60%, transparent);',
       '  border-radius:6px;',
       '}',
-      '[data-ve-finding-id] > h2 { margin:0 0 8px; font-size:1.1em; }',
+      // Finding-card title. Phase 1d binds its font-family + weight to
+      // the DESIGN.md heading tokens explicitly (rather than leaning on
+      // cascade fall-through to the generic [data-ve-report] h2 rule —
+      // this rule and that one tie on specificity, so being explicit
+      // keeps the binding robust if either is ever reordered). font-size
+      // stays the literal 1.1em: it is a deliberately compact card title
+      // with no matching type-scale step, and because em is relative to
+      // the inherited body size — itself bound to --vc-text-2 — a
+      // DESIGN.md scale change still resizes it. Fallbacks reproduce the
+      // pre-Phase-1d look (heading family inherited, UA bold weight).
+      '[data-ve-finding-id] > h2 {',
+      '  margin:0 0 8px;',
+      '  font-family: var(--vc-font-heading, inherit);',
+      '  font-size:1.1em;',
+      '  font-weight: var(--vc-weight-bold, 700);',
+      '}',
       '.ve-finding-meta {',
       '  display:flex; gap:10px; align-items:center; flex-wrap:wrap;',
       '  margin:0 0 14px; font-size:13px;',

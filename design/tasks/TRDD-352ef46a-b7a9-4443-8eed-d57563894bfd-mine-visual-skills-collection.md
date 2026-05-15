@@ -5,13 +5,17 @@
 **Tracked in:** this repo (design/tasks/ is git-tracked)
 
 **Status:** Phase 0 complete (238 projects mined → 922 ideas → 138-idea
-Phase-2 backlog). Phase 1 (DESIGN.md realtime engine): 1a (parser
-`amvcp-designmd.js`) + 1b (runtime wiring, hot-swap loader, schema-driven
-style-controller pad) + 1c (foundation tokens rewired to `--vc-*`) all
-DONE & verified — 61/61 tests; a DESIGN.md hot-swap visibly restyles bg,
-text, accents, surfaces, borders, radius, control/mono fonts, tables,
-code blocks, light+dark. Known gap → Phase 1d: heading font + type scale
-still literal in component rules. Phase 2 backlog:
+Phase-2 backlog). **Phase 1 (DESIGN.md realtime engine) COMPLETE &
+verified** — 1a (parser `amvcp-designmd.js`) + 1b (runtime wiring,
+hot-swap loader, schema-driven style-controller pad) + 1c (foundation
+tokens rewired to `--vc-*`) + 1d (heading + body typography bound to
+`--vc-*`). 61/61 tests; a DESIGN.md hot-swap visibly restyles the whole
+page — bg, text, headings, body type, accents, surfaces, borders,
+radius, fonts, tables, code blocks — light + dark. Commits: ce3daa5
+(1a-1c) + the 1d commit. Phase 2 in progress: 13 per-technique
+build-ready specs being authored (`docs_dev/phase2-specs/`); build then
+proceeds in the backlog's dependency order (design-tokens first).
+Phase 2 backlog:
 `reports/visualizing-triage/20260515_124436+0200-PHASE2-BUILD-BACKLOG.md`.
 
 ## User request — consolidated from 6 messages (2026-05-15)
