@@ -558,7 +558,8 @@ async function testPodLibraryPreset(page) {
 async function testPodCollapseAndExpand(page) {
   // setCollapsed(true) hides the pad body but keeps the head visible
   // (and grabable). setCollapsed(false) shows the body again. The
-  // collapsed state persists in localStorage.
+  // collapsed state persists in localStorage. As of TRDD-9616579c the
+  // pod's first-load default is COLLAPSED (the un-set LS branch).
   if (!(await setup(page))) {
     record('designmd_engine_pod_collapse', 'FAIL', 'collapse/expand toggle', 'runtime/engine never booted');
     return;
@@ -583,7 +584,10 @@ async function testPodCollapseAndExpand(page) {
       expandedDisplay: expandedDisplay
     };
   });
-  const ok = res.initial === false
+  // initial is `true` when LS has no value yet (the new default), or
+  // whatever the last test left in LS. Either way the collapse/expand
+  // toggle itself is what's under test — accept both initial states.
+  const ok = (res.initial === true || res.initial === false)
     && res.collapsedAttr === '1'
     && res.collapsedDisplay === 'none'
     && res.lsCollapsed === '1'
@@ -595,6 +599,94 @@ async function testPodCollapseAndExpand(page) {
     'pod collapses to a handle (body hidden) and expands back',
     JSON.stringify(res)
   );
+}
+
+async function testPodDefaultCollapsedOnFirstLoad(page) {
+  // TRDD-9616579c regression #2: when localStorage carries no saved
+  // collapsed state, the pod starts COLLAPSED so it doesn't cover
+  // page content. The user expands it explicitly when they want to
+  // edit tokens.
+  if (!(await setup(page))) {
+    record('designmd_engine_pod_default_collapsed',
+      'FAIL', 'default-collapsed on first load',
+      'runtime/engine never booted');
+    return;
+  }
+  const res = await page.evaluate(() => {
+    // Clear LS + force the engine to re-init the pod from a clean slate
+    // (by removing+reinjecting it). The simplest path is just to clear
+    // LS, remove the panel, and call applyDesignMd which re-runs
+    // engineInit -> buildDesignMdController(). But that branch is
+    // internal; the public surface is to call window.location.reload —
+    // which we cannot do mid-page-evaluate. Instead inspect the post-
+    // setup behaviour: setCollapsed(false), save its LS value, clear
+    // LS, then verify our default branch by reading the *would-be*
+    // initial state via the same logic the runtime uses.
+    localStorage.removeItem('ve-designmd-pad-collapsed');
+    var raw = localStorage.getItem('ve-designmd-pad-collapsed');
+    var savedCollapsed = raw === null ? true : (raw === '1');
+    return { rawNull: raw === null, savedCollapsed: savedCollapsed };
+  });
+  // Reload the page to actually exercise the boot-time branch.
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  const deadline = Date.now() + 6000;
+  while (Date.now() < deadline) {
+    const ready = await page.evaluate(() =>
+      typeof window.__veDesignMd === 'object'
+      && typeof window.__veDesignMd.isCollapsed === 'function');
+    if (ready) { break; }
+    await page.waitForTimeout(70);
+  }
+  // Clear the LS value the previous test set, then reload again so the
+  // initial branch is exercised with no saved value.
+  await page.evaluate(() => localStorage.removeItem('ve-designmd-pad-collapsed'));
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  const deadline2 = Date.now() + 6000;
+  while (Date.now() < deadline2) {
+    const ready = await page.evaluate(() =>
+      typeof window.__veDesignMd === 'object'
+      && typeof window.__veDesignMd.isCollapsed === 'function');
+    if (ready) { break; }
+    await page.waitForTimeout(70);
+  }
+  const initialOnFreshLoad = await page.evaluate(() =>
+    window.__veDesignMd.isCollapsed());
+  const ok = res.rawNull && res.savedCollapsed === true
+    && initialOnFreshLoad === true;
+  record('designmd_engine_pod_default_collapsed',
+    ok ? 'PASS' : 'FAIL',
+    'pod starts collapsed when LS carries no saved state (TRDD-9616579c #2)',
+    JSON.stringify({ ...res, initialOnFreshLoad }));
+}
+
+async function testPodAutoFadeOnIdle(page) {
+  // TRDD-9616579c regression #2: when the pointer is far from the pod
+  // it fades to a low opacity so content underneath is readable; on
+  // mouseenter it wakes back to full opacity instantly.
+  if (!(await setup(page))) {
+    record('designmd_engine_pod_auto_fade', 'FAIL',
+      'auto-fade when idle', 'runtime/engine never booted');
+    return;
+  }
+  const idleOpacity = await page.evaluate(() => new Promise(res => {
+    const panel = document.getElementById('ve-designmd-panel');
+    // Move pointer to top-left away from the panel
+    const ev = new MouseEvent('mouseleave', { bubbles: true });
+    panel.dispatchEvent(ev);
+    setTimeout(() => res(getComputedStyle(panel).opacity), 1900);
+  }));
+  const awakeOpacity = await page.evaluate(() => new Promise(res => {
+    const panel = document.getElementById('ve-designmd-panel');
+    const ev = new MouseEvent('mouseenter', { bubbles: true });
+    panel.dispatchEvent(ev);
+    // Wait one frame for the 220ms transition to advance
+    setTimeout(() => res(getComputedStyle(panel).opacity), 350);
+  }));
+  const ok = parseFloat(idleOpacity) < 0.6
+    && parseFloat(awakeOpacity) > 0.85;
+  record('designmd_engine_pod_auto_fade', ok ? 'PASS' : 'FAIL',
+    'pod fades to low opacity when idle; wakes on mouseenter',
+    JSON.stringify({ idleOpacity, awakeOpacity }));
 }
 
 async function testPodLibraryDrawerToggle(page) {
@@ -652,6 +744,8 @@ const tests = [
   testPodPositionPersists,
   testPodLibraryPreset,
   testPodCollapseAndExpand,
+  testPodDefaultCollapsedOnFirstLoad,
+  testPodAutoFadeOnIdle,
   testPodLibraryDrawerToggle,
 ];
 

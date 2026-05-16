@@ -9246,6 +9246,60 @@
     return { x: Math.max(8, window.innerWidth - w - 24), y: 24 };
   }
 
+  // Auto-fade-when-idle (TRDD-9616579c regression #2).
+  //
+  // The pod hovers over content. Even with backdrop-filter blur, an
+  // opaque 360-px panel covers significant on-screen real estate. When
+  // the user's pointer is not over the pod, fade to 35% opacity so the
+  // covered content is readable through it. Pointer re-entry wakes it
+  // back to 100% instantly. The pod still accepts clicks while faded
+  // (opacity only — pointer-events stay 'auto'), so dragging it back
+  // into focus is one click away.
+  //
+  // The auto-fade is wired ONCE per pod; re-entry is idempotent via
+  // the data flag.
+  var VE_DESIGNMD_IDLE_OPACITY = '0.35';
+  var VE_DESIGNMD_AWAKE_OPACITY = '1';
+  var VE_DESIGNMD_IDLE_MS = 1500;
+
+  function veDesignMdWireAutoFade(panel) {
+    if (!panel || panel.__veAutoFadeWired) { return; }
+    panel.__veAutoFadeWired = true;
+    panel.style.transition = (panel.style.transition
+      ? panel.style.transition + ', '
+      : '') + 'opacity 220ms ease-out';
+    panel.style.opacity = VE_DESIGNMD_IDLE_OPACITY;
+
+    var idleTimer = null;
+    function wake() {
+      if (idleTimer) {
+        clearTimeout(idleTimer);
+        idleTimer = null;
+      }
+      panel.style.opacity = VE_DESIGNMD_AWAKE_OPACITY;
+    }
+    function scheduleSleep() {
+      if (idleTimer) { clearTimeout(idleTimer); }
+      idleTimer = setTimeout(function () {
+        panel.style.opacity = VE_DESIGNMD_IDLE_OPACITY;
+      }, VE_DESIGNMD_IDLE_MS);
+    }
+
+    panel.addEventListener('mouseenter', wake);
+    panel.addEventListener('mouseleave', scheduleSleep);
+    // Touch interactions wake immediately too.
+    panel.addEventListener('touchstart', wake, { passive: true });
+    panel.addEventListener('touchend', scheduleSleep, { passive: true });
+    // Focus/keyboard activity within the pod also wakes it (so a user
+    // editing a token via the keyboard does not see the pod fade out
+    // under their fingers).
+    panel.addEventListener('focusin', wake);
+    panel.addEventListener('focusout', scheduleSleep);
+
+    // Start sleepy (so the first impression is "non-blocking").
+    scheduleSleep();
+  }
+
   // Wire the title-bar drag. mousedown on the head (excluding buttons)
   // captures the pointer, sets a body flag (suppresses text selection),
   // and updates the pod position on every move. mouseup persists the
@@ -10149,8 +10203,22 @@
       var def = veDesignMdDefaultPosition(panel);
       veDesignMdPlacePod(panel, def.x, def.y);
     }
-    var savedCollapsed = veDesignMdLsRead(VE_DESIGNMD_LS_COLLAPSED) === '1';
+    // Default-collapsed (TRDD-9616579c regression #2): the user objected
+    // that the expanded pod covers content on the right side of the page.
+    // Start collapsed (just the title bar visible) unless the user
+    // explicitly expanded it last session. The grip + theme/load buttons
+    // remain reachable in collapsed state so the discovery affordance is
+    // not lost.
+    var collapsedRaw = veDesignMdLsRead(VE_DESIGNMD_LS_COLLAPSED);
+    var savedCollapsed = collapsedRaw === null ? true : (collapsedRaw === '1');
     veDesignMdSetCollapsed(panel, savedCollapsed);
+
+    // Auto-fade-when-idle (TRDD-9616579c regression #2): when the pointer
+    // is far from the pod, fade to 35% opacity so underlying content is
+    // readable through it. Pointer entering the pod (or its grab zone)
+    // wakes it back to 100% instantly. The fade is purely visual — the
+    // pod still accepts pointer events when faded.
+    veDesignMdWireAutoFade(panel);
 
     // ── Render controls + sync title up front ── the previous design
     // built these lazily on first open, but the pod is now visible by
