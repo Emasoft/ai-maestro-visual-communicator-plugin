@@ -1,376 +1,6 @@
 {
   "sourcePath": "tests/fixtures/all-techniques-sample.md",
   "ids": {
-    "ac267063": {
-      "kind": "section-meta",
-      "sectionId": "finding-1",
-      "text": "1. Executive summary"
-    },
-    "cc80ba3f": {
-      "kind": "p",
-      "sectionId": "finding-1",
-      "text": "Phoenix shipped on **January 14, 2026** \u2014 three weeks behind the originally-committed date and seventeen days after the internal \"hard no-slip\" gate. The release **completed** every functional accepta"
-    },
-    "63cad4f9": {
-      "kind": "p",
-      "sectionId": "finding-1",
-      "text": "This document is the structured artefact of that lesson. The findings are ordered by *severity to future planning*, not by chronology. Each section reads independently and ends with a callable next ac"
-    },
-    "e86f46a9": {
-      "kind": "p",
-      "sectionId": "finding-1",
-      "text": "The supporting visuals \u2014 KPI charts, dependency diagram, before/after wireframe, slide capsule, comparison tables \u2014 were all generated from the underlying instrumentation; no figures were hand-fitted "
-    },
-    "6a648bb8": {
-      "kind": "section-meta",
-      "sectionId": "finding-2",
-      "text": "2. The headline numbers"
-    },
-    "070b8275": {
-      "kind": "p",
-      "sectionId": "finding-2",
-      "text": "The Phoenix release moved three operating metrics in clearly measurable ways. The chart below shows the magnitude of each move against the rolling 12-week baseline; the table after it lists the exact "
-    },
-    "63d83920": {
-      "kind": "p",
-      "sectionId": "finding-2",
-      "text": "The trend over the four weeks following the launch tells a slightly different story. The latency win held steady; queue depth drifted back upward as user adoption climbed; deploy time stayed flat. The"
-    },
-    "d5e552b3": {
-      "kind": "p",
-      "sectionId": "finding-2",
-      "text": "The full headline table is below. *Direction* records whether the movement is in the desired direction (\u2193 for latency / queue / deploy / pages; \u2191 for throughput)."
-    },
-    "0df5757b": {
-      "kind": "tr",
-      "sectionId": "finding-2",
-      "text": "p99 request latency (ms) | 410 | 254 | \u2212156 | \u221238.4% | \u2713"
-    },
-    "e782ebee": {
-      "kind": "tr",
-      "sectionId": "finding-2",
-      "text": "Average queue depth (msgs) | 218 | 104 | \u2212114 | \u221252.1% | \u2713"
-    },
-    "1faefbbc": {
-      "kind": "tr",
-      "sectionId": "finding-2",
-      "text": "Median deploy time (minutes) | 46 | 13 | \u221233 | \u221271.8% | \u2713"
-    },
-    "04052350": {
-      "kind": "tr",
-      "sectionId": "finding-2",
-      "text": "On-call pages per week | 12.3 | 8.9 | \u22123.4 | \u221227.6% | \u2713"
-    },
-    "ce9be905": {
-      "kind": "tr",
-      "sectionId": "finding-2",
-      "text": "Sustained throughput (req/s) | 3,200 | 3,786 | 586 | +18.3% | \u2713"
-    },
-    "1c8a7786": {
-      "kind": "section-meta",
-      "sectionId": "finding-3",
-      "text": "3. What the architecture rewrite actually changed"
-    },
-    "0a10adf1": {
-      "kind": "p",
-      "sectionId": "finding-3",
-      "text": "The cache rewrite was the single largest behavioural shift between the pre-launch system and Phoenix. The old write path went through five hops; the new one goes through three. The reduction is not ju"
-    },
-    "a3a7a596": {
-      "kind": "p",
-      "sectionId": "finding-3",
-      "text": "The flow below sketches the *post-launch* hot path. The dependency diagram beneath it is rendered by the scene-graph module, which is the technique we lean on for any flow with more than four nodes wh"
-    },
-    "8132cd79": {
-      "kind": "p",
-      "sectionId": "finding-3",
-      "text": "Three subtle invariants make the code above safe under load: the cache `setAsync` is fire-and-forget (a backfill that fails simply re-runs on the next miss); `isStale` is a pure function of the cached"
-    },
-    "2a256e67": {
-      "kind": "p",
-      "sectionId": "finding-3",
-      "text": "Three patterns from the Phoenix rewrite are now ready to apply to the search service, the recommendation service, and the analytics ingest path. The order of adoption matters; the search service is th"
-    },
-    "5ac3f789": {
-      "kind": "li",
-      "sectionId": "finding-3",
-      "text": "**Read-through cache with async backfill** \u2014 every read path that has a hot key distribution wider than ~80% of all reads benefits. The recommendation service does not benefit (key distribution is too"
-    },
-    "4cae97de": {
-      "kind": "li",
-      "sectionId": "finding-3",
-      "text": "**Fire-and-forget setAsync** \u2014 works whenever the freshest version is not load-bearing for correctness. The analytics path has a hard correctness gate (audit log), so it needs a different pattern."
-    },
-    "92e87530": {
-      "kind": "li",
-      "sectionId": "finding-3",
-      "text": "**Byte-deterministic key derivation** \u2014 applicable everywhere. The two-step canonicalisation (lower-case \u2192 strip-tags \u2192 hash) we landed in `makeKey` is now extracted as a small library and ready for r"
-    },
-    "7ad66399": {
-      "kind": "section-meta",
-      "sectionId": "finding-4",
-      "text": "4. Where the time went"
-    },
-    "72f8a9a0": {
-      "kind": "p",
-      "sectionId": "finding-4",
-      "text": "The Phoenix project was committed at six weeks of engineering and shipped in nine. The three-week slip is the *deliverable* the team has to learn from \u2014 the codebase is fine, the architecture is fine,"
-    },
-    "d362b081": {
-      "kind": "p",
-      "sectionId": "finding-4",
-      "text": "The breakdown below pulls from the timesheet system and the issue tracker; each line is a single causal category, not a workstream. The sub-bullets are the concrete sub-causes that fed each category."
-    },
-    "3285f2af": {
-      "kind": "li",
-      "sectionId": "finding-4",
-      "text": "**Underestimated cache eviction work (+9 days).** The eviction policy turned out to need a per-tenant override layer; that layer was not in the original spec."
-    },
-    "81e90bf9": {
-      "kind": "li",
-      "sectionId": "finding-4",
-      "text": "The override layer surfaced when a single big-tenant migration triggered an eviction storm during staging load tests."
-    },
-    "a53b035a": {
-      "kind": "li",
-      "sectionId": "finding-4",
-      "text": "The fix required a small allocator change *and* an operational runbook \u2014 neither of which was scoped."
-    },
-    "6ea34583": {
-      "kind": "li",
-      "sectionId": "finding-4",
-      "text": "**Under-tested deploy automation (+5 days).** The new deploy pipeline worked in the dev environment but the prod pipeline needed a manual approval step we had not budgeted for."
-    },
-    "642a15ce": {
-      "kind": "li",
-      "sectionId": "finding-4",
-      "text": "**Late-discovered cross-service dependency (+4 days).** The search service had been relying on an undocumented quirk of the old cache; removing the quirk meant a coordinated cut-over."
-    },
-    "991d9626": {
-      "kind": "li",
-      "sectionId": "finding-4",
-      "text": "**Holiday season throughput drop (+3 days).** Two team members on planned PTO during the third week; estimable, but the buffer in the schedule did not cover it."
-    },
-    "d3f01b86": {
-      "kind": "p",
-      "sectionId": "finding-4",
-      "text": "The fraction of the slip attributable to *unknown unknowns* is the most useful number to remember. Of the 21 days, **9 days** are fairly attributed to scope work that nobody on the team could have kno"
-    },
-    "8fcf3bb3": {
-      "kind": "section-meta",
-      "sectionId": "finding-5",
-      "text": "5. The Phoenix dependency surface"
-    },
-    "8574c081": {
-      "kind": "p",
-      "sectionId": "finding-5",
-      "text": "The icon-svg block below sketches the Phoenix service dependency graph at the architectural level. Five primitive node shapes carry the meaning: `process` for stateful services, `database` for persist"
-    },
-    "a9240665": {
-      "kind": "p",
-      "sectionId": "finding-5",
-      "text": "Two observations the diagram makes obvious that the prose does not. First, **the tenant router is the new single point of contention** \u2014 every request flows through it, and it is the one new service P"
-    },
-    "1df45de5": {
-      "kind": "section-meta",
-      "sectionId": "finding-6",
-      "text": "6. Comparison \u2014 the before/after of the deploy pipeline"
-    },
-    "4a100dfe": {
-      "kind": "p",
-      "sectionId": "finding-6",
-      "text": "The deploy pipeline rewrite is the second-largest behaviour change in Phoenix. The pre-Phoenix pipeline was eleven serial stages with no parallelism; the Phoenix pipeline is six stages with three of t"
-    },
-    "e49aed52": {
-      "kind": "tr",
-      "sectionId": "finding-6",
-      "text": "Stages total | 11 serial | 6 (3 of them parallel)"
-    },
-    "ba99fd58": {
-      "kind": "tr",
-      "sectionId": "finding-6",
-      "text": "Median wall-clock time | 46 min | 13 min"
-    },
-    "4a0d508a": {
-      "kind": "tr",
-      "sectionId": "finding-6",
-      "text": "p95 wall-clock time | 78 min | 21 min"
-    },
-    "3c301376": {
-      "kind": "tr",
-      "sectionId": "finding-6",
-      "text": "Manual approval steps | 2 | 1 (production gate only)"
-    },
-    "cfaef5cb": {
-      "kind": "tr",
-      "sectionId": "finding-6",
-      "text": "Rollback time | 18 min | 90 seconds (canary auto-revert)"
-    },
-    "8c2d7027": {
-      "kind": "tr",
-      "sectionId": "finding-6",
-      "text": "Test parallelism | None | 8-way per stage"
-    },
-    "48bb1873": {
-      "kind": "tr",
-      "sectionId": "finding-6",
-      "text": "Cache layer | None | Per-PR Docker layer cache"
-    },
-    "f5d20abb": {
-      "kind": "tr",
-      "sectionId": "finding-6",
-      "text": "Failure-recovery story | Re-run from start | Re-run from last green stage"
-    },
-    "6fd3f7dc": {
-      "kind": "p",
-      "sectionId": "finding-6",
-      "text": "The single most-cited improvement in the retro was the **rollback time** dropping from 18 minutes to 90 seconds. The canary auto-revert is what makes the on-call experience qualitatively different: a "
-    },
-    "80a72e8b": {
-      "kind": "section-meta",
-      "sectionId": "finding-7",
-      "text": "7. Coverage matrix \u2014 what shipped, what slipped"
-    },
-    "656354fa": {
-      "kind": "p",
-      "sectionId": "finding-7",
-      "text": "The release scope was 17 deliverables; 14 shipped on the launch day, 2 shipped in the patch release one week later, 1 slipped to Q2. The matrix below lists every deliverable, what state it was in at l"
-    },
-    "9deb07f3": {
-      "kind": "tr",
-      "sectionId": "finding-7",
-      "text": "Cache rewrite | Shipped | \u2713 | \u2713 | \u2014 | \u2713"
-    },
-    "dc7cf66c": {
-      "kind": "tr",
-      "sectionId": "finding-7",
-      "text": "Tenant router | Shipped | \u2713 | \u2713 | \u2014 | \u2713"
-    },
-    "6af8de05": {
-      "kind": "tr",
-      "sectionId": "finding-7",
-      "text": "Deploy pipeline rewrite | Shipped | \u2014 | \u2014 | \u2014 | \u2014"
-    },
-    "ef82581e": {
-      "kind": "tr",
-      "sectionId": "finding-7",
-      "text": "Admin dashboard v2 | Shipped | \u2713 | \u2713 | \u2713 | \u2713"
-    },
-    "0f11d681": {
-      "kind": "tr",
-      "sectionId": "finding-7",
-      "text": "Billing webhook v3 | Shipped | \u2713 | \u2713 | \u2713 | \u2713"
-    },
-    "eeeda44f": {
-      "kind": "tr",
-      "sectionId": "finding-7",
-      "text": "SSO provider expansion | Shipped | \u2713 | \u2713 | \u2713 | \u2713"
-    },
-    "bc83dd91": {
-      "kind": "tr",
-      "sectionId": "finding-7",
-      "text": "Audit log retention | Shipped | \u2014 | \u2014 | \u2014 | \u2713"
-    },
-    "6d099634": {
-      "kind": "tr",
-      "sectionId": "finding-7",
-      "text": "Cost dashboard rewrite | Shipped | \u2713 | \u2713 | \u2713 | \u25d0"
-    },
-    "acf2b1c6": {
-      "kind": "tr",
-      "sectionId": "finding-7",
-      "text": "Search relevance tweak | Shipped | \u2713 | \u2713 | \u2713 | \u2713"
-    },
-    "e902a650": {
-      "kind": "tr",
-      "sectionId": "finding-7",
-      "text": "Onboarding redesign | Patch | \u2713 | \u25d0 | \u2717 | \u25d0"
-    },
-    "2fc82e1c": {
-      "kind": "tr",
-      "sectionId": "finding-7",
-      "text": "Mobile push polish | Patch | \u2713 | \u2713 | \u2014 | \u2713"
-    },
-    "f36c9081": {
-      "kind": "tr",
-      "sectionId": "finding-7",
-      "text": "Document export refresh | Slipped Q2 | \u2014 | \u2014 | \u2014 | \u2014"
-    },
-    "7b403caa": {
-      "kind": "p",
-      "sectionId": "finding-7",
-      "text": "The two **partial** dark-mode results are the items we want to revisit first; the **RTL fail** on onboarding is already on the hotfix list. The slipped Q2 item (document export) was a deliberate desco"
-    },
-    "b6b451d2": {
-      "kind": "section-meta",
-      "sectionId": "finding-8",
-      "text": "8. Lessons we are committing to next quarter"
-    },
-    "fe9eee4b": {
-      "kind": "p",
-      "sectionId": "finding-8",
-      "text": "Three concrete changes go into the Q2 plan as a direct result of this postmortem. Each one names an owner, a target date, and the specific instrumentation we want in place to know it worked. The patte"
-    },
-    "d6c14eb3": {
-      "kind": "li",
-      "sectionId": "finding-8",
-      "text": "**Estimation buffer policy.** Every project \u22654 weeks adopts a *20% known-unknowns buffer* on top of the engineering estimate. Owner: planning lead. Target: applied to all Q2 projects."
-    },
-    "554283ed": {
-      "kind": "li",
-      "sectionId": "finding-8",
-      "text": "**Architectural-review gate.** Any project introducing a new *routing-tier* service gets a one-hour cross-team architecture review before kickoff. Owner: principal engineer. Target: added to the proje"
-    },
-    "d2877429": {
-      "kind": "li",
-      "sectionId": "finding-8",
-      "text": "**Deploy-pipeline parity sweep.** Lift the Phoenix six-stage pipeline to the remaining four services. Owner: platform team. Target: end of Q2."
-    },
-    "0e762ea9": {
-      "kind": "blockquote",
-      "sectionId": "finding-8",
-      "text": "The single most important lesson is operational, not architectural: the **canary auto-revert** is what gave the team the confidence to ship into peak load. That pattern, more than any single line of c"
-    },
-    "055fb98a": {
-      "kind": "section-meta",
-      "sectionId": "finding-9",
-      "text": "9. Open questions for the engineering review"
-    },
-    "59be1d0f": {
-      "kind": "p",
-      "sectionId": "finding-9",
-      "text": "The questions below are the ones we explicitly want the engineering review to weigh in on. None of them are urgent; all of them are load-bearing for the Q2 plan."
-    },
-    "9b180b88": {
-      "kind": "li",
-      "sectionId": "finding-9",
-      "text": "Is the **tenant-router single-point-of-contention** worth splitting now (during Q2 plan) or after the next user-growth inflection?"
-    },
-    "b4e526f9": {
-      "kind": "li",
-      "sectionId": "finding-9",
-      "text": "The **cache backfill** is fire-and-forget \u2014 is the lack of an audit trail acceptable for SOC-2 evidence, or should we ship a separate audit log path?"
-    },
-    "b0cabe1f": {
-      "kind": "li",
-      "sectionId": "finding-9",
-      "text": "The **deploy pipeline** uses an in-house orchestrator; the rest of the company is on the standard third-party tool. Is there enough leverage to migrate?"
-    },
-    "01b15171": {
-      "kind": "section-meta",
-      "sectionId": "finding-10",
-      "text": "10. Appendix \u2014 the supporting visuals"
-    },
-    "36562afd": {
-      "kind": "p",
-      "sectionId": "finding-10",
-      "text": "The rest of this page (rendered alongside the prose above) carries the full set of supporting visuals \u2014 design-token contact sheet, layout shells, animation reveals, interactive tab/filter widget, sma"
-    },
-    "2b6bc0c3": {
-      "kind": "p",
-      "sectionId": "finding-10",
-      "text": "The supporting visuals below are written directly into the markdown via the `<!-- ve-raw-html-start -->` / `<!-- ve-raw-html-end -->` pass-through markers added by Phase 4 (DEFECT-E fix). The renderer"
-    },
     "12e6620b": {
       "kind": "p",
       "sectionId": "preamble",
@@ -380,6 +10,326 @@
       "kind": "p",
       "sectionId": "preamble",
       "text": "The page reads top-to-bottom as a real engineering postmortem. Every block has substantive content \u2014 no lorem ipsum, no synthetic placeholders. The visual variety is the point: it is the proof that th"
+    },
+    "cc80ba3f": {
+      "kind": "p",
+      "sectionId": "preamble",
+      "text": "Phoenix shipped on **January 14, 2026** \u2014 three weeks behind the originally-committed date and seventeen days after the internal \"hard no-slip\" gate. The release **completed** every functional accepta"
+    },
+    "63cad4f9": {
+      "kind": "p",
+      "sectionId": "preamble",
+      "text": "This document is the structured artefact of that lesson. The findings are ordered by *severity to future planning*, not by chronology. Each section reads independently and ends with a callable next ac"
+    },
+    "e86f46a9": {
+      "kind": "p",
+      "sectionId": "preamble",
+      "text": "The supporting visuals \u2014 KPI charts, dependency diagram, before/after wireframe, slide capsule, comparison tables \u2014 were all generated from the underlying instrumentation; no figures were hand-fitted "
+    },
+    "070b8275": {
+      "kind": "p",
+      "sectionId": "preamble",
+      "text": "The Phoenix release moved three operating metrics in clearly measurable ways. The chart below shows the magnitude of each move against the rolling 12-week baseline; the table after it lists the exact "
+    },
+    "63d83920": {
+      "kind": "p",
+      "sectionId": "preamble",
+      "text": "The trend over the four weeks following the launch tells a slightly different story. The latency win held steady; queue depth drifted back upward as user adoption climbed; deploy time stayed flat. The"
+    },
+    "d5e552b3": {
+      "kind": "p",
+      "sectionId": "preamble",
+      "text": "The full headline table is below. *Direction* records whether the movement is in the desired direction (\u2193 for latency / queue / deploy / pages; \u2191 for throughput)."
+    },
+    "0df5757b": {
+      "kind": "tr",
+      "sectionId": "preamble",
+      "text": "p99 request latency (ms) | 410 | 254 | \u2212156 | \u221238.4% | \u2713"
+    },
+    "e782ebee": {
+      "kind": "tr",
+      "sectionId": "preamble",
+      "text": "Average queue depth (msgs) | 218 | 104 | \u2212114 | \u221252.1% | \u2713"
+    },
+    "1faefbbc": {
+      "kind": "tr",
+      "sectionId": "preamble",
+      "text": "Median deploy time (minutes) | 46 | 13 | \u221233 | \u221271.8% | \u2713"
+    },
+    "04052350": {
+      "kind": "tr",
+      "sectionId": "preamble",
+      "text": "On-call pages per week | 12.3 | 8.9 | \u22123.4 | \u221227.6% | \u2713"
+    },
+    "ce9be905": {
+      "kind": "tr",
+      "sectionId": "preamble",
+      "text": "Sustained throughput (req/s) | 3,200 | 3,786 | 586 | +18.3% | \u2713"
+    },
+    "0a10adf1": {
+      "kind": "p",
+      "sectionId": "preamble",
+      "text": "The cache rewrite was the single largest behavioural shift between the pre-launch system and Phoenix. The old write path went through five hops; the new one goes through three. The reduction is not ju"
+    },
+    "a3a7a596": {
+      "kind": "p",
+      "sectionId": "preamble",
+      "text": "The flow below sketches the *post-launch* hot path. The dependency diagram beneath it is rendered by the scene-graph module, which is the technique we lean on for any flow with more than four nodes wh"
+    },
+    "8132cd79": {
+      "kind": "p",
+      "sectionId": "preamble",
+      "text": "Three subtle invariants make the code above safe under load: the cache `setAsync` is fire-and-forget (a backfill that fails simply re-runs on the next miss); `isStale` is a pure function of the cached"
+    },
+    "2a256e67": {
+      "kind": "p",
+      "sectionId": "preamble",
+      "text": "Three patterns from the Phoenix rewrite are now ready to apply to the search service, the recommendation service, and the analytics ingest path. The order of adoption matters; the search service is th"
+    },
+    "5ac3f789": {
+      "kind": "li",
+      "sectionId": "preamble",
+      "text": "**Read-through cache with async backfill** \u2014 every read path that has a hot key distribution wider than ~80% of all reads benefits. The recommendation service does not benefit (key distribution is too"
+    },
+    "4cae97de": {
+      "kind": "li",
+      "sectionId": "preamble",
+      "text": "**Fire-and-forget setAsync** \u2014 works whenever the freshest version is not load-bearing for correctness. The analytics path has a hard correctness gate (audit log), so it needs a different pattern."
+    },
+    "92e87530": {
+      "kind": "li",
+      "sectionId": "preamble",
+      "text": "**Byte-deterministic key derivation** \u2014 applicable everywhere. The two-step canonicalisation (lower-case \u2192 strip-tags \u2192 hash) we landed in `makeKey` is now extracted as a small library and ready for r"
+    },
+    "72f8a9a0": {
+      "kind": "p",
+      "sectionId": "preamble",
+      "text": "The Phoenix project was committed at six weeks of engineering and shipped in nine. The three-week slip is the *deliverable* the team has to learn from \u2014 the codebase is fine, the architecture is fine,"
+    },
+    "d362b081": {
+      "kind": "p",
+      "sectionId": "preamble",
+      "text": "The breakdown below pulls from the timesheet system and the issue tracker; each line is a single causal category, not a workstream. The sub-bullets are the concrete sub-causes that fed each category."
+    },
+    "3285f2af": {
+      "kind": "li",
+      "sectionId": "preamble",
+      "text": "**Underestimated cache eviction work (+9 days).** The eviction policy turned out to need a per-tenant override layer; that layer was not in the original spec."
+    },
+    "81e90bf9": {
+      "kind": "li",
+      "sectionId": "preamble",
+      "text": "The override layer surfaced when a single big-tenant migration triggered an eviction storm during staging load tests."
+    },
+    "a53b035a": {
+      "kind": "li",
+      "sectionId": "preamble",
+      "text": "The fix required a small allocator change *and* an operational runbook \u2014 neither of which was scoped."
+    },
+    "6ea34583": {
+      "kind": "li",
+      "sectionId": "preamble",
+      "text": "**Under-tested deploy automation (+5 days).** The new deploy pipeline worked in the dev environment but the prod pipeline needed a manual approval step we had not budgeted for."
+    },
+    "642a15ce": {
+      "kind": "li",
+      "sectionId": "preamble",
+      "text": "**Late-discovered cross-service dependency (+4 days).** The search service had been relying on an undocumented quirk of the old cache; removing the quirk meant a coordinated cut-over."
+    },
+    "991d9626": {
+      "kind": "li",
+      "sectionId": "preamble",
+      "text": "**Holiday season throughput drop (+3 days).** Two team members on planned PTO during the third week; estimable, but the buffer in the schedule did not cover it."
+    },
+    "d3f01b86": {
+      "kind": "p",
+      "sectionId": "preamble",
+      "text": "The fraction of the slip attributable to *unknown unknowns* is the most useful number to remember. Of the 21 days, **9 days** are fairly attributed to scope work that nobody on the team could have kno"
+    },
+    "8574c081": {
+      "kind": "p",
+      "sectionId": "preamble",
+      "text": "The icon-svg block below sketches the Phoenix service dependency graph at the architectural level. Five primitive node shapes carry the meaning: `process` for stateful services, `database` for persist"
+    },
+    "a9240665": {
+      "kind": "p",
+      "sectionId": "preamble",
+      "text": "Two observations the diagram makes obvious that the prose does not. First, **the tenant router is the new single point of contention** \u2014 every request flows through it, and it is the one new service P"
+    },
+    "4a100dfe": {
+      "kind": "p",
+      "sectionId": "preamble",
+      "text": "The deploy pipeline rewrite is the second-largest behaviour change in Phoenix. The pre-Phoenix pipeline was eleven serial stages with no parallelism; the Phoenix pipeline is six stages with three of t"
+    },
+    "e49aed52": {
+      "kind": "tr",
+      "sectionId": "preamble",
+      "text": "Stages total | 11 serial | 6 (3 of them parallel)"
+    },
+    "ba99fd58": {
+      "kind": "tr",
+      "sectionId": "preamble",
+      "text": "Median wall-clock time | 46 min | 13 min"
+    },
+    "4a0d508a": {
+      "kind": "tr",
+      "sectionId": "preamble",
+      "text": "p95 wall-clock time | 78 min | 21 min"
+    },
+    "3c301376": {
+      "kind": "tr",
+      "sectionId": "preamble",
+      "text": "Manual approval steps | 2 | 1 (production gate only)"
+    },
+    "cfaef5cb": {
+      "kind": "tr",
+      "sectionId": "preamble",
+      "text": "Rollback time | 18 min | 90 seconds (canary auto-revert)"
+    },
+    "8c2d7027": {
+      "kind": "tr",
+      "sectionId": "preamble",
+      "text": "Test parallelism | None | 8-way per stage"
+    },
+    "48bb1873": {
+      "kind": "tr",
+      "sectionId": "preamble",
+      "text": "Cache layer | None | Per-PR Docker layer cache"
+    },
+    "f5d20abb": {
+      "kind": "tr",
+      "sectionId": "preamble",
+      "text": "Failure-recovery story | Re-run from start | Re-run from last green stage"
+    },
+    "6fd3f7dc": {
+      "kind": "p",
+      "sectionId": "preamble",
+      "text": "The single most-cited improvement in the retro was the **rollback time** dropping from 18 minutes to 90 seconds. The canary auto-revert is what makes the on-call experience qualitatively different: a "
+    },
+    "656354fa": {
+      "kind": "p",
+      "sectionId": "preamble",
+      "text": "The release scope was 17 deliverables; 14 shipped on the launch day, 2 shipped in the patch release one week later, 1 slipped to Q2. The matrix below lists every deliverable, what state it was in at l"
+    },
+    "9deb07f3": {
+      "kind": "tr",
+      "sectionId": "preamble",
+      "text": "Cache rewrite | Shipped | \u2713 | \u2713 | \u2014 | \u2713"
+    },
+    "dc7cf66c": {
+      "kind": "tr",
+      "sectionId": "preamble",
+      "text": "Tenant router | Shipped | \u2713 | \u2713 | \u2014 | \u2713"
+    },
+    "6af8de05": {
+      "kind": "tr",
+      "sectionId": "preamble",
+      "text": "Deploy pipeline rewrite | Shipped | \u2014 | \u2014 | \u2014 | \u2014"
+    },
+    "ef82581e": {
+      "kind": "tr",
+      "sectionId": "preamble",
+      "text": "Admin dashboard v2 | Shipped | \u2713 | \u2713 | \u2713 | \u2713"
+    },
+    "0f11d681": {
+      "kind": "tr",
+      "sectionId": "preamble",
+      "text": "Billing webhook v3 | Shipped | \u2713 | \u2713 | \u2713 | \u2713"
+    },
+    "eeeda44f": {
+      "kind": "tr",
+      "sectionId": "preamble",
+      "text": "SSO provider expansion | Shipped | \u2713 | \u2713 | \u2713 | \u2713"
+    },
+    "bc83dd91": {
+      "kind": "tr",
+      "sectionId": "preamble",
+      "text": "Audit log retention | Shipped | \u2014 | \u2014 | \u2014 | \u2713"
+    },
+    "6d099634": {
+      "kind": "tr",
+      "sectionId": "preamble",
+      "text": "Cost dashboard rewrite | Shipped | \u2713 | \u2713 | \u2713 | \u25d0"
+    },
+    "acf2b1c6": {
+      "kind": "tr",
+      "sectionId": "preamble",
+      "text": "Search relevance tweak | Shipped | \u2713 | \u2713 | \u2713 | \u2713"
+    },
+    "e902a650": {
+      "kind": "tr",
+      "sectionId": "preamble",
+      "text": "Onboarding redesign | Patch | \u2713 | \u25d0 | \u2717 | \u25d0"
+    },
+    "2fc82e1c": {
+      "kind": "tr",
+      "sectionId": "preamble",
+      "text": "Mobile push polish | Patch | \u2713 | \u2713 | \u2014 | \u2713"
+    },
+    "f36c9081": {
+      "kind": "tr",
+      "sectionId": "preamble",
+      "text": "Document export refresh | Slipped Q2 | \u2014 | \u2014 | \u2014 | \u2014"
+    },
+    "7b403caa": {
+      "kind": "p",
+      "sectionId": "preamble",
+      "text": "The two **partial** dark-mode results are the items we want to revisit first; the **RTL fail** on onboarding is already on the hotfix list. The slipped Q2 item (document export) was a deliberate desco"
+    },
+    "fe9eee4b": {
+      "kind": "p",
+      "sectionId": "preamble",
+      "text": "Three concrete changes go into the Q2 plan as a direct result of this postmortem. Each one names an owner, a target date, and the specific instrumentation we want in place to know it worked. The patte"
+    },
+    "d6c14eb3": {
+      "kind": "li",
+      "sectionId": "preamble",
+      "text": "**Estimation buffer policy.** Every project \u22654 weeks adopts a *20% known-unknowns buffer* on top of the engineering estimate. Owner: planning lead. Target: applied to all Q2 projects."
+    },
+    "554283ed": {
+      "kind": "li",
+      "sectionId": "preamble",
+      "text": "**Architectural-review gate.** Any project introducing a new *routing-tier* service gets a one-hour cross-team architecture review before kickoff. Owner: principal engineer. Target: added to the proje"
+    },
+    "d2877429": {
+      "kind": "li",
+      "sectionId": "preamble",
+      "text": "**Deploy-pipeline parity sweep.** Lift the Phoenix six-stage pipeline to the remaining four services. Owner: platform team. Target: end of Q2."
+    },
+    "0e762ea9": {
+      "kind": "blockquote",
+      "sectionId": "preamble",
+      "text": "The single most important lesson is operational, not architectural: the **canary auto-revert** is what gave the team the confidence to ship into peak load. That pattern, more than any single line of c"
+    },
+    "59be1d0f": {
+      "kind": "p",
+      "sectionId": "preamble",
+      "text": "The questions below are the ones we explicitly want the engineering review to weigh in on. None of them are urgent; all of them are load-bearing for the Q2 plan."
+    },
+    "9b180b88": {
+      "kind": "li",
+      "sectionId": "preamble",
+      "text": "Is the **tenant-router single-point-of-contention** worth splitting now (during Q2 plan) or after the next user-growth inflection?"
+    },
+    "b4e526f9": {
+      "kind": "li",
+      "sectionId": "preamble",
+      "text": "The **cache backfill** is fire-and-forget \u2014 is the lack of an audit trail acceptable for SOC-2 evidence, or should we ship a separate audit log path?"
+    },
+    "b0cabe1f": {
+      "kind": "li",
+      "sectionId": "preamble",
+      "text": "The **deploy pipeline** uses an in-house orchestrator; the rest of the company is on the standard third-party tool. Is there enough leverage to migrate?"
+    },
+    "36562afd": {
+      "kind": "p",
+      "sectionId": "preamble",
+      "text": "The rest of this page (rendered alongside the prose above) carries the full set of supporting visuals \u2014 design-token contact sheet, layout shells, animation reveals, interactive tab/filter widget, sma"
+    },
+    "2b6bc0c3": {
+      "kind": "p",
+      "sectionId": "preamble",
+      "text": "The supporting visuals below are written directly into the markdown via the `<!-- ve-raw-html-start -->` / `<!-- ve-raw-html-end -->` pass-through markers added by Phase 4 (DEFECT-E fix). The renderer"
     }
   }
 }
