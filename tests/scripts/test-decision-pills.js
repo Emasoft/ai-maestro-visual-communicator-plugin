@@ -386,6 +386,112 @@ async function testDecisionSummaryPersisted(page) {
   );
 }
 
+async function testAutoStampMissingParagraphAtoms(page) {
+  // TRDD-9616579c regression #3: a hand-authored fixture may forget to
+  // stamp data-ve-comment-id on every body paragraph. The runtime's
+  // stampMissingBodyAtoms() boot pass must fill the gap so EVERY body
+  // paragraph (excluding chrome regions + fake-headings + short
+  // list-bullet glyphs) becomes selectable.
+  await page.setViewportSize({ width: 1400, height: 1000 });
+  await page.evaluate(() => { try { localStorage.clear(); } catch (_) {} });
+  await page.goto('http://127.0.0.1:8767/all-techniques-sample.html?cb='
+    + Date.now(), { waitUntil: 'domcontentloaded' });
+  await page.waitForTimeout(800);
+
+  const r = await page.evaluate(() => {
+    const allP = Array.from(document.querySelectorAll('p'));
+    const stampedP = Array.from(document.querySelectorAll('p[data-ve-comment-id]'));
+    // Auto-stamped paragraphs have data-ve-pnum >= 1000 (the autostamp base)
+    const autoStampedP = stampedP.filter(p => {
+      const n = parseInt(p.getAttribute('data-ve-pnum') || '0', 10);
+      return n >= 1000;
+    });
+    // Fake-headings should still be UN-stamped
+    const fakeHeadings = allP.filter(p => {
+      let strong = null;
+      for (const n of p.childNodes) {
+        if (n.nodeType === 3 && (n.textContent || '').trim()) return false;
+        if (n.nodeType === 1) {
+          const t = n.tagName.toUpperCase();
+          if (t === 'STRONG' || t === 'B' || t === 'EM' || t === 'I') {
+            if (strong) return false;
+            strong = n;
+          } else return false;
+        }
+      }
+      return !!strong;
+    });
+    const fakeUnstamped = fakeHeadings.filter(p =>
+      !p.hasAttribute('data-ve-comment-id'));
+    // Try clicking an auto-stamped paragraph
+    let clickWorked = null;
+    if (autoStampedP.length > 0) {
+      const t = autoStampedP[0];
+      const rect = t.getBoundingClientRect();
+      t.dispatchEvent(new MouseEvent('mousedown',
+        { bubbles: true, clientX: rect.left + 30, clientY: rect.top + 20, button: 0 }));
+      t.dispatchEvent(new MouseEvent('mouseup',
+        { bubbles: true, clientX: rect.left + 30, clientY: rect.top + 20, button: 0 }));
+      clickWorked = t.getAttribute('data-ve-pressed') === '1';
+    }
+    return {
+      pTotal: allP.length,
+      pStamped: stampedP.length,
+      autoStampedCount: autoStampedP.length,
+      fakeHeadingTotal: fakeHeadings.length,
+      // (fakeHeadings ARE detected & explicitly NOT auto-stamped)
+      fakeHeadingsUnstamped: fakeUnstamped.length,
+      clickSelectsAuto: clickWorked
+    };
+  });
+  // Every paragraph (minus genuine fake-headings) should now be stamped,
+  // at least one auto-stamp must have fired, and the auto-stamp must
+  // produce selectable elements.
+  const ok = r.pStamped === (r.pTotal - r.fakeHeadingTotal)
+    + (r.fakeHeadingTotal - r.fakeHeadingsUnstamped)
+    && r.autoStampedCount >= 1
+    && r.clickSelectsAuto === true;
+  record('runtime_auto_stamp_missing_atoms', ok ? 'PASS' : 'FAIL',
+    'stampMissingBodyAtoms fills gaps; auto-stamped paragraphs are clickable',
+    JSON.stringify(r));
+}
+
+async function testAutoStampSkipsChromeAndFakeHeadings(page) {
+  // The auto-stamper must NOT touch elements inside chrome regions
+  // (banners, panels, code blocks, etc.) or fake-heading paragraphs.
+  await page.setViewportSize({ width: 1400, height: 1000 });
+  await page.evaluate(() => { try { localStorage.clear(); } catch (_) {} });
+  await page.goto('http://127.0.0.1:8767/all-techniques-sample.html?cb='
+    + Date.now(), { waitUntil: 'domcontentloaded' });
+  await page.waitForTimeout(800);
+
+  const r = await page.evaluate(() => {
+    function isInChrome(el) {
+      return !!el.closest(
+        'thead,tfoot,pre,code,aside,header,footer,figure,figcaption,'
+        + '.ve-banner,.ve-report-banner,.ve-decision-mini,.ve-bulk-default,'
+        + '.ve-scene-graph,.ve-finding-round,.ve-designmd-panel,'
+        + '.ve-snippet-popup,.ve-modal,.ve-overlay,.ve-style-pad,'
+        + '.ve-comment-handle,.ve-comment-modal,.ve-comment-pill,'
+        + '#ve-designmd-panel'
+      );
+    }
+    const stamped = Array.from(document.querySelectorAll(
+      'p[data-ve-comment-id], li[data-ve-comment-id]'));
+    const stampedInsideChrome = stamped.filter(isInChrome);
+    return {
+      stampedCount: stamped.length,
+      stampedInsideChrome: stampedInsideChrome.length,
+      chromeViolatorTags: stampedInsideChrome.slice(0, 5)
+        .map(e => e.tagName + ' inside ' + (e.parentElement && e.parentElement.tagName))
+    };
+  });
+  const ok = r.stampedInsideChrome === 0;
+  record('runtime_auto_stamp_skips_chrome', ok ? 'PASS' : 'FAIL',
+    'auto-stamp skips chrome regions (no data-ve-comment-id stamped inside)',
+    JSON.stringify(r));
+}
+
 // ── Runner ──────────────────────────────────────────────────────────
 
 const tests = [
@@ -394,6 +500,8 @@ const tests = [
   testDecisionWithComment,
   testDecisionMutex,
   testDecisionSummaryPersisted,
+  testAutoStampMissingParagraphAtoms,
+  testAutoStampSkipsChromeAndFakeHeadings,
 ];
 
 const page = await browser.getPage("decision-pill-tests");

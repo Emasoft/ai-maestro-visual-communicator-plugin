@@ -10648,9 +10648,66 @@
     var report = document.querySelector('[data-ve-report]');
     if (!report) return;
     document.body.setAttribute('data-ve-report', '');
+    stampMissingBodyAtoms();
     stripFakeHeadingCommentIds();
     injectDecisionMinis();
     injectBulkDefaultSwitch();
+  }
+
+  // TRDD-9616579c regression #3 — stamp data-ve-comment-id on every body
+  // paragraph / list item / blockquote / table row that is missing it.
+  // The hand-authored fixture and the Python renderer have historically
+  // disagreed on coverage: the renderer stamps every <p>/<li>/<tr> it
+  // emits, but a fixture author who hand-writes HTML may forget. Without
+  // this auto-stamp, those un-stamped elements are silently
+  // non-selectable (isSelectableAtom returns null), the user can't open
+  // a comment thread on them, and the decision-mini pill is never
+  // injected. The user-facing complaint: "practically no paragraph or
+  // bullet point is selectable as item".
+  //
+  // Skipped (matching the existing chrome exclusions used elsewhere):
+  //   - elements already carrying data-ve-comment-id (idempotent)
+  //   - elements inside <thead>, <tfoot>, <pre>, <code>, <aside>,
+  //     <header>, <footer>, <figure>, <figcaption>
+  //   - elements inside .ve-banner, .ve-report-banner, .ve-decision-mini,
+  //     .ve-bulk-default, .ve-scene-graph, .ve-finding-round,
+  //     .ve-designmd-panel, .ve-snippet-popup, .ve-modal, .ve-overlay,
+  //     .ve-style-pad
+  //   - "fake heading" paragraphs (<p><strong>Title</strong></p>) —
+  //     they get treated as headings throughout the pipeline
+  //   - empty elements (whitespace-only text)
+  //
+  // The data-ve-comment-id is a content-hash via simpleHash() so a
+  // round-trip through the renderer would produce the same id.
+  var VE_AUTOSTAMP_CHROME_SELECTOR =
+    'thead,tfoot,pre,code,aside,header,footer,figure,figcaption,'
+    + '.ve-banner,.ve-report-banner,.ve-decision-mini,.ve-bulk-default,'
+    + '.ve-scene-graph,.ve-finding-round,'
+    + '[id="ve-designmd-panel"],.ve-designmd-panel,.ve-snippet-popup,'
+    + '.ve-modal,.ve-overlay,.ve-style-pad,.ve-comment-handle,'
+    + '.ve-comment-modal,.ve-comment-pill';
+
+  function stampMissingBodyAtoms() {
+    var candidates = document.querySelectorAll(
+      'p:not([data-ve-comment-id]),li:not([data-ve-comment-id]),'
+      + 'blockquote:not([data-ve-comment-id])'
+    );
+    var pnumBase = 1000;
+    for (var i = 0; i < candidates.length; i++) {
+      var el = candidates[i];
+      if (el.closest(VE_AUTOSTAMP_CHROME_SELECTOR)) continue;
+      // Fake-headings get the same non-selectable treatment as real <h*>.
+      if (el.tagName === 'P' && isFakeHeadingParagraph(el)) continue;
+      var text = (el.textContent || '').trim();
+      if (text.length === 0) continue;
+      // Skip degenerate single-character list bullets (e.g. nav arrows)
+      if (el.tagName === 'LI' && text.length <= 2) continue;
+      var cid = simpleHash((el.tagName || '') + ':' + text);
+      el.setAttribute('data-ve-comment-id', cid);
+      if (!el.hasAttribute('data-ve-pnum')) {
+        el.setAttribute('data-ve-pnum', String(pnumBase + i));
+      }
+    }
   }
 
   // Strip data-ve-comment-id from "fake heading" paragraphs (markdown
