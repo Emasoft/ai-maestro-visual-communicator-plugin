@@ -616,7 +616,11 @@
         cell.setAttribute('data-ve-id', atomId);
         cell.setAttribute('data-ve-type', 'matrix-cell');
       }
-      attachDecisionMiniSafe(cell, atomId);
+      // NOTE: NO per-cell decision-mini pill. The user contract is
+      // "decision pill per ROW only", not per cell — pills on every
+      // cell crowd the table and break the row-grain selection model.
+      // Cells remain selectable atoms (data-ve-id stamped above);
+      // commenting on a cell still works via the modal handle.
     }
   }
 
@@ -655,7 +659,11 @@
             cell.setAttribute('data-ve-id', atomId);
             cell.setAttribute('data-ve-type', 'compare-cell');
           }
-          attachDecisionMiniSafe(cell, atomId);
+          // NOTE: NO per-cell decision-mini pill — pills are per-ROW
+          // only (set in stampRowAtoms). The cell remains a selectable
+          // atom (data-ve-id above) so commenting on a single cell
+          // still works through the modal handle, but the decision
+          // S/A/D pill belongs to the row, not the cell.
         }
       }
     }

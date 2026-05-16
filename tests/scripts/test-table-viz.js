@@ -1155,20 +1155,20 @@ async function testDecisionMiniInvoked(page) {
       }))).sort(),
     };
   });
-  // 5 data rows + 400 virtual rows + 15 matrix cells + 9 compare cells
-  // + 3 compare rows + 2 grouped rows + 3 rowspan rows + 3 csv rows
-  // = 440 atom calls. Use ≥ 30 as a robust lower bound (avoids brittle
-  // exact match if fixture row counts change). The kinds-seen array
-  // proves all three atom-kind code paths fired.
-  const ok = res.callCount >= 30
+  // Contract update (user feedback 2026-05-16): decision-mini is per
+  // ROW only. Matrix cells and compare cells are still selectable atoms
+  // (data-ve-id remains on them) but they do NOT get their own pill —
+  // pills at cell-grain crowd the table and break the row-grain model
+  // the user wants. Only 'row' should appear in kindsSeen.
+  const ok = res.callCount >= 15
     && res.sampleCall !== null
     && res.kindsSeen.indexOf('row') >= 0
-    && res.kindsSeen.indexOf('matrix-cell') >= 0
-    && res.kindsSeen.indexOf('compare-cell') >= 0;
+    && res.kindsSeen.indexOf('matrix-cell') === -1
+    && res.kindsSeen.indexOf('compare-cell') === -1;
   record(
     'tables_decision_mini_invoked',
     ok ? 'PASS' : 'FAIL',
-    'attachDecisionMini bridge forwards on every atom (always-on per req #10)',
+    'attachDecisionMini bridge forwards on row atoms only (per-row contract)',
     JSON.stringify({ callCount: res.callCount, kindsSeen: res.kindsSeen })
   );
 }

@@ -344,7 +344,15 @@
       '  --ve-brightness-selected: 1.15;',
       '  --ve-overlay-hover: rgba(255,255,255,0.10);',
       '  --ve-overlay-selected: rgba(255,255,255,0.05);',
-      '  --ve-glow-hover: 0 0 8px var(--ve-accent, currentColor);',
+      // Hover GLOW — the signature 3-layer aura: a tight inner ring + a
+      // mid-distance halo + a soft long-throw spread, all in the active
+      // accent. This is the effect the user remembers as "amazing" —
+      // do not flatten back to a single 8px box-shadow.
+      '  --ve-glow-hover:',
+      '    0 0 0 1px color-mix(in srgb, var(--ve-accent, currentColor) 80%, transparent),',
+      '    0 0 8px color-mix(in srgb, var(--ve-accent, currentColor) 65%, transparent),',
+      '    0 0 18px color-mix(in srgb, var(--ve-accent, currentColor) 40%, transparent),',
+      '    0 0 36px color-mix(in srgb, var(--ve-accent, currentColor) 20%, transparent);',
       // Code-block soft-wrap "extra indent" marker — paints the 2ch
       // hanging-indent zone on wrapped continuation rows in a darker
       // shade so the user can distinguish it from real source-code
@@ -612,23 +620,33 @@
       // bg tint via background-color + outer accent glow via box-shadow.
       // Box-shadow combines the outline-style ring AND the soft outer
       // halo so they read as ONE highlight.
-      '[data-ve-id]:not([data-ve-type="table-form"]):hover {',
+      // CONTAINER EXCLUSION RULE (user contract): a CONTAINER whose
+      // children are atoms (table → rows; pre → code-lines) must NEVER
+      // itself be a selection atom — otherwise hovering the table
+      // glows the whole thing AND clicks bubble up so child rows/lines
+      // become unclickable. `:not(table):not(pre)` enforces this. The
+      // table/pre may still carry data-ve-id for internal bookkeeping
+      // (column-highlight rules, etc.) but the GLOBAL hover/select
+      // effect is suppressed on them. Their child rows/lines have
+      // their own data-ve-comment-id / data-ve-id and remain fully
+      // interactive.
+      '[data-ve-id]:not([data-ve-type="table-form"]):not(table):not(pre):hover {',
       '  outline:2px solid var(--ve-accent, currentColor); outline-offset:3px;',
       '  background-color: var(--ve-overlay-hover);',
       '  box-shadow: var(--ve-glow-hover);',
       '  filter: brightness(var(--ve-brightness-hover));',
       '}',
-      '[data-ve-id]:not([data-ve-type="table-form"]):focus-visible {',
+      '[data-ve-id]:not([data-ve-type="table-form"]):not(table):not(pre):focus-visible {',
       '  outline:2px solid var(--ve-accent, currentColor); outline-offset:3px;',
       '}',
       // HTML selected: outline + smaller brightness + smaller bg tint, no glow.
-      '[data-ve-id]:not([data-ve-type="table-form"])[data-ve-selected="1"] {',
+      '[data-ve-id]:not([data-ve-type="table-form"]):not(table):not(pre)[data-ve-selected="1"] {',
       '  outline:2px solid var(--ve-accent, currentColor); outline-offset:3px;',
       '  background-color: var(--ve-overlay-selected);',
       '  filter: brightness(var(--ve-brightness-selected));',
       '}',
       // Hover-on-selected: heavier overlay + heavier brightness + glow.
-      '[data-ve-id]:not([data-ve-type="table-form"])[data-ve-selected="1"]:hover {',
+      '[data-ve-id]:not([data-ve-type="table-form"]):not(table):not(pre)[data-ve-selected="1"]:hover {',
       '  background-color: var(--ve-overlay-hover);',
       '  box-shadow: var(--ve-glow-hover);',
       '  filter: brightness(var(--ve-brightness-hover));',
@@ -8969,6 +8987,40 @@
           },
           fontHeading: 'Iowan Old Style, Georgia, serif',
           fontBody: 'system-ui, -apple-system, Segoe UI, sans-serif'
+        })
+      },
+      {
+        key: 'blueprint',
+        label: 'Blueprint',
+        text: veDesignMdBuildPreset({
+          name: 'Blueprint',
+          defaultTheme: 'dark',
+          // Drafting-paper light: pale blue-white background with cyan
+          // ink. Drafting-blueprint dark: deep navy paper with white/
+          // cyan grid (architect's classic). Accent = drafting cyan.
+          light: {
+            canvas: '#e8f0fb', surface: '#f3f7fd',
+            surfaceRaised: '#ffffff', surfaceSunken: '#d6e2f0',
+            content: '#0c1f3a', contentMuted: '#3b4d6d',
+            contentSubtle: '#6a7c9d', border: '#a5bcd9',
+            borderStrong: '#6f8db6', accent: '#0a6cbe',
+            onAccent: '#f3f7fd', success: '#1a6e4f',
+            warning: '#a06820', danger: '#a83020',
+            info: '#0a6cbe'
+          },
+          dark: {
+            canvas: '#0a1d3f', surface: '#0f254d',
+            surfaceRaised: '#152d5b', surfaceSunken: '#06132c',
+            content: '#e5f1ff', contentMuted: '#9fbbe0',
+            contentSubtle: '#6a86ac', border: '#1d3a6d',
+            borderStrong: '#2f5394', accent: '#7adfff',
+            onAccent: '#0a1d3f', success: '#7fd8b0',
+            warning: '#ffc56b', danger: '#ff8475',
+            info: '#7adfff'
+          },
+          fontHeading: 'Inter, system-ui, sans-serif',
+          fontBody: 'Inter, system-ui, sans-serif',
+          fontMono: 'JetBrains Mono, ui-monospace, monospace'
         })
       },
       {
