@@ -299,6 +299,34 @@
     </script>
   </div>
 
+  <h2>password input (with strength meter)</h2>
+  <div class="ve-password-input" data-ve-id="pw:admin">
+    <script type="application/json">
+      {
+        "label": "New admin password:",
+        "placeholder": "type a strong password…",
+        "minLength": 8,
+        "minStrength": 3,
+        "persist": false
+      }
+    </script>
+  </div>
+
+  <h2>currency input (multi-currency)</h2>
+  <div class="ve-currency-input" data-ve-id="money:budget">
+    <script type="application/json">
+      {
+        "label": "Project budget:",
+        "amount": 12500,
+        "currency": "USD",
+        "currencies": ["USD", "EUR", "GBP", "JPY"],
+        "locale": "en-US",
+        "min": 0,
+        "step": 1
+      }
+    </script>
+  </div>
+
   <h2>rank list (drag to reorder)</h2>
   <div class="ve-rank-list" data-ve-id="rank:priorities">
     <p class="ve-quiz-label">Drag to rank the priorities:</p>

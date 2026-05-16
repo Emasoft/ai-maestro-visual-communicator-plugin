@@ -1230,7 +1230,257 @@
     paintReadout();
   }
 
-  // ── §15 ve-rank-list ───────────────────────────────────────────────
+  // ── §15 ve-password-input ──────────────────────────────────────────
+  //
+  // Masked text input with a show/hide eye toggle and a 4-bar strength
+  // meter. Strength is computed from length + char-class diversity
+  // (lower / upper / digit / symbol) so the score is portable across
+  // browsers. The event payload is { value: <string>, strength: 0..4 }
+  // so downstream code can gate on a minimum.
+  //
+  // Privacy note: the LS persistence default for password is OFF (a
+  // saved password in localStorage is a footgun on a shared machine).
+  // Set `persist: true` in the model JSON to opt in.
+  function _passwordStrength(s) {
+    if (!s) { return 0; }
+    var hasLower = /[a-z]/.test(s);
+    var hasUpper = /[A-Z]/.test(s);
+    var hasDigit = /[0-9]/.test(s);
+    var hasSymbol = /[^A-Za-z0-9]/.test(s);
+    var classes = (hasLower ? 1 : 0) + (hasUpper ? 1 : 0)
+                + (hasDigit ? 1 : 0) + (hasSymbol ? 1 : 0);
+    var len = s.length;
+    // Score 0..4 — weights chosen so 8+ chars + 3 classes lands at 3,
+    // 12+ chars + 4 classes lands at 4.
+    if (len < 4) { return 0; }
+    if (len < 8 || classes <= 1) { return 1; }
+    if (len < 10 || classes <= 2) { return 2; }
+    if (len < 12 || classes <= 3) { return 3; }
+    return 4;
+  }
+  var PASSWORD_STRENGTH_LABELS = [
+    'too short', 'weak', 'fair', 'good', 'strong'
+  ];
+
+  function initPasswordInput(el) {
+    if (!el || el.__veInited) { return; }
+    var id = requireId(el);
+    if (!id) { return; }
+    var model = readModel(el) || {};
+    el.__veInited = true;
+    el.setAttribute('data-ve-type', 'password-input');
+    var persist = model.persist === true;
+    var current = persist ? loadValue(id, model.value || '')
+                          : (model.value || '');
+    var labelText = model.label || el.getAttribute('data-ve-label') || '';
+    var minLen = typeof model.minLength === 'number' ? model.minLength : 0;
+    var minStrength = typeof model.minStrength === 'number'
+      ? model.minStrength : 0;
+    el.textContent = '';
+    if (labelText) {
+      var lab = document.createElement('label');
+      lab.className = 've-password-input-label';
+      lab.textContent = labelText;
+      el.appendChild(lab);
+    }
+    var row = document.createElement('div');
+    row.className = 've-password-input-row';
+    var input = document.createElement('input');
+    input.type = 'password';
+    input.className = 've-password-input-field';
+    input.value = current;
+    if (model.placeholder) { input.placeholder = model.placeholder; }
+    if (model.autocomplete) { input.autocomplete = model.autocomplete; }
+    var toggle = document.createElement('button');
+    toggle.type = 'button';
+    toggle.className = 've-password-input-toggle';
+    toggle.title = 'Show / hide password';
+    toggle.setAttribute('aria-label', 'Toggle password visibility');
+    toggle.setAttribute('aria-pressed', 'false');
+    toggle.textContent = '\u{1F441}';        // 👁
+    toggle.addEventListener('click', function () {
+      var hidden = input.type === 'password';
+      input.type = hidden ? 'text' : 'password';
+      toggle.setAttribute('aria-pressed', hidden ? 'true' : 'false');
+      toggle.textContent = hidden ? '\u{1F576}' : '\u{1F441}'; // 🕶 / 👁
+    });
+    row.appendChild(input);
+    row.appendChild(toggle);
+    el.appendChild(row);
+    var meter = document.createElement('div');
+    meter.className = 've-password-input-meter';
+    meter.setAttribute('aria-hidden', 'true');
+    var bars = [];
+    for (var i = 0; i < 4; i++) {
+      var bar = document.createElement('span');
+      bar.className = 've-password-input-bar';
+      meter.appendChild(bar);
+      bars.push(bar);
+    }
+    el.appendChild(meter);
+    var status = document.createElement('span');
+    status.className = 've-password-input-status';
+    status.setAttribute('aria-live', 'polite');
+    el.appendChild(status);
+    function paint() {
+      var v = input.value;
+      var s = _passwordStrength(v);
+      // Light up s bars (s in [0,4])
+      for (var k = 0; k < bars.length; k++) {
+        bars[k].classList.toggle('ve-password-input-bar-on', k < s);
+        // Tint progressive bars
+        bars[k].classList.remove('ve-password-input-bar-weak',
+          've-password-input-bar-fair', 've-password-input-bar-good',
+          've-password-input-bar-strong');
+        if (k < s) {
+          var cls = 've-password-input-bar-' +
+            (s === 1 ? 'weak' : s === 2 ? 'fair'
+             : s === 3 ? 'good' : 'strong');
+          bars[k].classList.add(cls);
+        }
+      }
+      var problems = [];
+      if (v.length < minLen) {
+        problems.push('min length ' + minLen);
+      }
+      if (s < minStrength) {
+        problems.push('strength must be ≥ '
+          + PASSWORD_STRENGTH_LABELS[minStrength]);
+      }
+      var label = PASSWORD_STRENGTH_LABELS[s];
+      status.textContent = label + (problems.length
+        ? ' · ' + problems.join(' · ') : '');
+      el.classList.toggle('ve-password-input-invalid', problems.length > 0);
+      return { strength: s, valid: problems.length === 0 };
+    }
+    input.addEventListener('input', function () {
+      var r = paint();
+      if (persist) { saveValue(id, input.value); }
+      emitChange('password-input', id, {
+        value: input.value,
+        strength: r.strength,
+        valid: r.valid
+      });
+    });
+    paint();
+  }
+
+  // ── §16 ve-currency-input ──────────────────────────────────────────
+  //
+  // Numeric amount with a currency-symbol prefix and an optional
+  // dropdown to switch currencies. The display formats with the
+  // browser's Intl.NumberFormat when available (so 1234.5 renders
+  // "$1,234.50" in en-US, "1.234,50 €" in de-DE) but stores + emits
+  // the raw {amount, currency} payload.
+  var CURRENCY_SYMBOLS = {
+    USD: '$', EUR: '€', GBP: '£', JPY: '¥', CHF: 'Fr',
+    CAD: 'CA$', AUD: 'A$', CNY: '¥', INR: '₹', BTC: '₿'
+  };
+
+  function _formatCurrency(amount, currency, locale) {
+    if (typeof Intl === 'undefined' || !Intl.NumberFormat) {
+      var sym = CURRENCY_SYMBOLS[currency] || (currency + ' ');
+      return sym + (isFinite(amount) ? amount.toFixed(2) : '0.00');
+    }
+    try {
+      return new Intl.NumberFormat(locale || undefined, {
+        style: 'currency', currency: currency
+      }).format(amount);
+    } catch (e) {
+      return (CURRENCY_SYMBOLS[currency] || currency + ' ')
+        + (isFinite(amount) ? amount.toFixed(2) : '0.00');
+    }
+  }
+
+  function initCurrencyInput(el) {
+    if (!el || el.__veInited) { return; }
+    var id = requireId(el);
+    if (!id) { return; }
+    var model = readModel(el) || {};
+    el.__veInited = true;
+    el.setAttribute('data-ve-type', 'currency-input');
+    var def = {
+      amount: typeof model.amount === 'number' ? model.amount : 0,
+      currency: model.currency || 'USD'
+    };
+    var current = loadValue(id, def);
+    if (!current || typeof current.amount !== 'number') { current = def; }
+    var labelText = model.label || el.getAttribute('data-ve-label') || '';
+    var locale = model.locale || undefined;
+    var currencies = Array.isArray(model.currencies) && model.currencies.length
+      ? model.currencies : [current.currency];
+    el.textContent = '';
+    if (labelText) {
+      var lab = document.createElement('label');
+      lab.className = 've-currency-input-label';
+      lab.textContent = labelText;
+      el.appendChild(lab);
+    }
+    var row = document.createElement('div');
+    row.className = 've-currency-input-row';
+    var sym = document.createElement('span');
+    sym.className = 've-currency-input-symbol';
+    function paintSymbol(c) {
+      sym.textContent = CURRENCY_SYMBOLS[c] || c;
+    }
+    paintSymbol(current.currency);
+    row.appendChild(sym);
+    var input = document.createElement('input');
+    input.type = 'number';
+    input.className = 've-currency-input-amount';
+    input.value = String(current.amount);
+    input.step = model.step ? String(model.step) : '0.01';
+    if (typeof model.min === 'number') { input.min = String(model.min); }
+    if (typeof model.max === 'number') { input.max = String(model.max); }
+    row.appendChild(input);
+    var sel = null;
+    if (currencies.length > 1) {
+      sel = document.createElement('select');
+      sel.className = 've-currency-input-select';
+      for (var i = 0; i < currencies.length; i++) {
+        var o = document.createElement('option');
+        o.value = currencies[i];
+        o.textContent = currencies[i];
+        if (currencies[i] === current.currency) { o.selected = true; }
+        sel.appendChild(o);
+      }
+      row.appendChild(sel);
+    }
+    el.appendChild(row);
+    var preview = document.createElement('span');
+    preview.className = 've-currency-input-preview';
+    function paintPreview() {
+      preview.textContent = _formatCurrency(
+        parseFloat(input.value) || 0,
+        sel ? sel.value : current.currency,
+        locale
+      );
+    }
+    paintPreview();
+    el.appendChild(preview);
+    function fire() {
+      var v = {
+        amount: parseFloat(input.value),
+        currency: sel ? sel.value : current.currency
+      };
+      if (!isFinite(v.amount)) { v.amount = 0; }
+      saveValue(id, v);
+      emitChange('currency-input', id, v);
+    }
+    input.addEventListener('input', function () {
+      paintPreview();
+      fire();
+    });
+    if (sel) {
+      sel.addEventListener('change', function () {
+        paintSymbol(sel.value);
+        paintPreview();
+        fire();
+      });
+    }
+  }
+
+  // ── §17 ve-rank-list ───────────────────────────────────────────────
   //
   // Drag-to-reorder a <li> stack. Uses HTML5 drag-and-drop. Persists
   // the post-drag order as an array of `data-ve-rank-key` values; on
@@ -1359,6 +1609,10 @@
     for (var y = 0; y < url.length; y++) { initUrlInput(url[y]); }
     var trp = d.querySelectorAll('.ve-tree-picker');
     for (var z = 0; z < trp.length; z++) { initTreePicker(trp[z]); }
+    var pwd = d.querySelectorAll('.ve-password-input');
+    for (var aa = 0; aa < pwd.length; aa++) { initPasswordInput(pwd[aa]); }
+    var cur = d.querySelectorAll('.ve-currency-input');
+    for (var bb = 0; bb < cur.length; bb++) { initCurrencyInput(cur[bb]); }
     var rnk = d.querySelectorAll('.ve-rank-list');
     for (var n = 0; n < rnk.length; n++) { initRankList(rnk[n]); }
   }
@@ -1370,7 +1624,8 @@
     '.ve-quiz-radio, .ve-quiz-multi, .ve-numeric-input,',
     '.ve-date-input, .ve-color-input, .ve-slider, .ve-toggle,',
     '.ve-rating, .ve-card-picker, .ve-tag-input, .ve-text-input,',
-    '.ve-text-area, .ve-url-input, .ve-tree-picker, .ve-rank-list {',
+    '.ve-text-area, .ve-url-input, .ve-tree-picker,',
+    '.ve-password-input, .ve-currency-input, .ve-rank-list {',
     '  display: block;',
     '  margin-block: 12px;',
     '  padding: 12px 14px;',
@@ -1391,6 +1646,8 @@
     '.ve-card-picker[data-ve-id]:hover, .ve-tag-input[data-ve-id]:hover,',
     '.ve-text-input[data-ve-id]:hover, .ve-text-area[data-ve-id]:hover,',
     '.ve-url-input[data-ve-id]:hover, .ve-tree-picker[data-ve-id]:hover,',
+    '.ve-password-input[data-ve-id]:hover,',
+    '.ve-currency-input[data-ve-id]:hover,',
     '.ve-rank-list[data-ve-id]:hover {',
     '  border-color: var(--vc-color-accent, #b8861f);',
     '}',
@@ -1408,6 +1665,8 @@
     '.ve-text-area[data-ve-selected="1"],',
     '.ve-url-input[data-ve-selected="1"],',
     '.ve-tree-picker[data-ve-selected="1"],',
+    '.ve-password-input[data-ve-selected="1"],',
+    '.ve-currency-input[data-ve-selected="1"],',
     '.ve-rank-list[data-ve-selected="1"] {',
     '  border-color: var(--vc-color-accent, #b8861f);',
     '  box-shadow: 0 0 0 2px color-mix(in srgb,'
@@ -1419,7 +1678,8 @@
     '.ve-slider-label, .ve-rating-label, .ve-card-picker-label,',
     '.ve-tag-input-label, .ve-text-input-label,',
     '.ve-text-area-label, .ve-url-input-label,',
-    '.ve-tree-picker-label {',
+    '.ve-tree-picker-label, .ve-password-input-label,',
+    '.ve-currency-input-label {',
     '  display: block;',
     '  font-weight: 600;',
     '  color: var(--vc-color-content, #1f1a14);',
@@ -1969,6 +2229,125 @@
     '  border-radius: var(--vc-radius-sm, 4px);',
     '}',
 
+    /* Password input */
+    '.ve-password-input-row {',
+    '  display: flex;',
+    '  align-items: center;',
+    '  gap: 6px;',
+    '}',
+    '.ve-password-input-field {',
+    '  flex: 1;',
+    '  padding: 8px 10px;',
+    '  font: inherit;',
+    '  color: var(--vc-color-content, #1f1a14);',
+    '  background: var(--vc-color-surface, #ffffff);',
+    '  border: 1px solid var(--vc-color-border-strong, #c9bfa3);',
+    '  border-radius: var(--vc-radius-sm, 4px);',
+    '  outline: none;',
+    '  letter-spacing: 0.06em;',
+    '}',
+    '.ve-password-input-field:focus {',
+    '  border-color: var(--vc-color-accent, #b8861f);',
+    '  box-shadow: 0 0 0 2px color-mix(in srgb,'
+      + ' var(--vc-color-accent, #b8861f) 25%, transparent);',
+    '}',
+    '.ve-password-input-toggle {',
+    '  -webkit-appearance: none;',
+    '  appearance: none;',
+    '  border: 1px solid var(--vc-color-border-strong, #c9bfa3);',
+    '  background: var(--vc-color-surface, #ffffff);',
+    '  color: var(--vc-color-content, #1f1a14);',
+    '  padding: 6px 10px;',
+    '  font-size: 16px;',
+    '  line-height: 1;',
+    '  border-radius: var(--vc-radius-sm, 4px);',
+    '  cursor: pointer;',
+    '}',
+    '.ve-password-input-toggle:hover {',
+    '  border-color: var(--vc-color-accent, #b8861f);',
+    '}',
+    '.ve-password-input-meter {',
+    '  display: flex;',
+    '  gap: 4px;',
+    '  margin-top: 8px;',
+    '}',
+    '.ve-password-input-bar {',
+    '  flex: 1;',
+    '  height: 5px;',
+    '  border-radius: 3px;',
+    '  background: var(--vc-color-surface-sunken, #f1ece0);',
+    '  transition: background 160ms ease;',
+    '}',
+    '.ve-password-input-bar-weak    { background: var(--vc-color-danger, #a84a32); }',
+    '.ve-password-input-bar-fair    { background: var(--vc-color-warning, #a8791f); }',
+    '.ve-password-input-bar-good    { background: var(--vc-color-info, #3464a8); }',
+    '.ve-password-input-bar-strong  { background: var(--vc-color-success, #3a6b5c); }',
+    '.ve-password-input-status {',
+    '  display: block;',
+    '  margin-top: 6px;',
+    '  font: 12px/1.3 var(--vc-font-mono,'
+      + ' ui-monospace, monospace);',
+    '  color: var(--vc-color-content-muted, #5b5343);',
+    '}',
+    '.ve-password-input-invalid .ve-password-input-status {',
+    '  color: var(--vc-color-danger, #a84a32);',
+    '}',
+
+    /* Currency input */
+    '.ve-currency-input-row {',
+    '  display: inline-flex;',
+    '  align-items: stretch;',
+    '  gap: 0;',
+    '  border: 1px solid var(--vc-color-border-strong, #c9bfa3);',
+    '  border-radius: var(--vc-radius-sm, 4px);',
+    '  background: var(--vc-color-surface, #ffffff);',
+    '  overflow: hidden;',
+    '}',
+    '.ve-currency-input-row:focus-within {',
+    '  border-color: var(--vc-color-accent, #b8861f);',
+    '  box-shadow: 0 0 0 2px color-mix(in srgb,'
+      + ' var(--vc-color-accent, #b8861f) 25%, transparent);',
+    '}',
+    '.ve-currency-input-symbol {',
+    '  padding: 8px 10px;',
+    '  background: var(--vc-color-surface-sunken, #f1ece0);',
+    '  color: var(--vc-color-content-muted, #5b5343);',
+    '  font: 600 14px/1.2 var(--vc-font-mono,'
+      + ' ui-monospace, monospace);',
+    '  display: inline-flex;',
+    '  align-items: center;',
+    '  border-right: 1px solid var(--vc-color-border, #e3dcc9);',
+    '}',
+    '.ve-currency-input-amount {',
+    '  padding: 8px 10px;',
+    '  font: inherit;',
+    '  color: var(--vc-color-content, #1f1a14);',
+    '  background: transparent;',
+    '  border: 0;',
+    '  outline: none;',
+    '  width: 140px;',
+    '  font-variant-numeric: tabular-nums;',
+    '}',
+    '.ve-currency-input-select {',
+    '  padding: 8px 10px;',
+    '  font: inherit;',
+    '  color: var(--vc-color-content, #1f1a14);',
+    '  background: var(--vc-color-surface-sunken, #f1ece0);',
+    '  border: 0;',
+    '  border-left: 1px solid var(--vc-color-border, #e3dcc9);',
+    '  outline: none;',
+    '  cursor: pointer;',
+    '}',
+    '.ve-currency-input-preview {',
+    '  display: inline-block;',
+    '  margin-left: 12px;',
+    '  font: 600 13px/1 var(--vc-font-mono,'
+      + ' ui-monospace, monospace);',
+    '  color: var(--vc-color-content-muted, #5b5343);',
+    '  letter-spacing: 0.01em;',
+    '  vertical-align: middle;',
+    '}',
+
     /* Rank list */
     '.ve-rank-list > ol, .ve-rank-list > ul {',
     '  list-style: decimal inside;',
@@ -2046,6 +2425,8 @@
     initTextArea: initTextArea,
     initUrlInput: initUrlInput,
     initTreePicker: initTreePicker,
+    initPasswordInput: initPasswordInput,
+    initCurrencyInput: initCurrencyInput,
     initRankList: initRankList,
     readModel: readModel,
     loadValue: loadValue,

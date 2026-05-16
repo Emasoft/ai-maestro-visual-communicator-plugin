@@ -19,13 +19,14 @@ description: |
 
 # Form-input widgets
 
-A dependency-free runtime module that ships fifteen structured-response
+A dependency-free runtime module that ships seventeen structured-response
 input widgets for conversational agent reports. The agent renders a
 question; the user answers via a typed widget (radio, checkbox,
 number+unit, date, color, slider, toggle, rating, card-picker,
-tag-input, text, textarea, URL, file/folder tree, rank) instead of
-typing prose. The result lands in a `ve-form-change` event with a
-stable payload the runtime threads into the comment-turn record.
+tag-input, text, textarea, URL, file/folder tree, password, currency,
+rank) instead of typing prose. The result lands in a `ve-form-change`
+event with a stable payload the runtime threads into the comment-turn
+record.
 
 ## When to use this skill
 
@@ -48,6 +49,8 @@ Reach for a form-input widget whenever the agent's question has a
 | "Type a longer note."                             | `ve-text-area`    |
 | "Paste a URL (with preview)."                     | `ve-url-input`    |
 | "Pick a file from this project tree."             | `ve-tree-picker`  |
+| "Set a password (with strength check)."           | `ve-password-input` |
+| "Enter a monetary amount + currency."             | `ve-currency-input` |
 | "Order these by priority."                        | `ve-rank-list`    |
 
 For anything **open-ended** (write a paragraph, paste a snippet,
@@ -395,6 +398,58 @@ so a reload restores BOTH. Branches not listed in the expanded set
 fall back to `defaultDepth` (depth-0 + depth-1 open by default when
 `defaultDepth = 1`).
 
+### `ve-password-input` — masked text with strength meter
+
+```html
+<div class="ve-password-input" data-ve-id="<id>">
+  <script type="application/json">
+    {
+      "label":       "<question>",
+      "placeholder": "type a strong password…",
+      "minLength":   8,
+      "minStrength": 3,          // 0..4 (too-short, weak, fair, good, strong)
+      "persist":     false       // DEFAULT — passwords NOT saved to LS
+    }
+  </script>
+</div>
+```
+
+Emits `{ kind: "password-input", id, value: { value: "<text>", strength: 0..4, valid: <boolean> } }`.
+A 4-bar meter colours bars by strength (danger / warning / info /
+success). The `👁` toggle button flips `input.type` between
+`password` and `text` and updates `aria-pressed` for screen readers.
+
+**Privacy:** `persist` defaults to **false** for password inputs — a
+saved password in `localStorage` is a footgun on a shared machine.
+Set `persist: true` only when the use-case is local-only and the
+user is aware.
+
+### `ve-currency-input` — monetary amount + currency switcher
+
+```html
+<div class="ve-currency-input" data-ve-id="<id>">
+  <script type="application/json">
+    {
+      "label":      "<question>",
+      "amount":     12500,
+      "currency":   "USD",
+      "currencies": ["USD", "EUR", "GBP", "JPY"],
+      "locale":     "en-US",     // optional; formatting honours user-agent default if omitted
+      "min":        0,
+      "step":       1
+    }
+  </script>
+</div>
+```
+
+Emits `{ kind: "currency-input", id, value: { amount: <number>, currency: "<code>" } }`.
+A currency-symbol chip (using ISO-4217 codes) prefixes the amount
+input; an optional dropdown switches between `currencies[]`. The
+preview text to the right uses `Intl.NumberFormat` for proper
+locale-aware grouping (`$12,500.00`, `12.500,00 €`, `¥12,500`) but
+the emitted payload is always `{ amount: <raw number>, currency: <code> }` so
+downstream code doesn't have to parse formatted strings.
+
 ### `ve-rank-list` — drag-to-reorder
 
 ```html
@@ -512,6 +567,10 @@ See `tests/scripts/test-form-inputs.js`:
   open/closed, leaf click selects + emits.
 - `form_inputs_tree_persistence` — collapsing a branch persists
   across reload via the `:expanded` LS key.
+- `form_inputs_password` — meter colors bars by strength; toggle
+  flips type + aria.
+- `form_inputs_currency` — renders symbol + Intl preview; typing +
+  currency switch both emit.
 
 The fixture is `tests/fixtures/form-inputs-fixture.html` (one of
 each widget kind).

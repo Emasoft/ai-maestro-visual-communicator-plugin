@@ -73,6 +73,8 @@ async function testAllWidgetsInit(page) {
         '.ve-text-area': 'text-area',
         '.ve-url-input': 'url-input',
         '.ve-tree-picker': 'tree-picker',
+        '.ve-password-input': 'password-input',
+        '.ve-currency-input': 'currency-input',
         '.ve-rank-list': 'rank-list'
       };
       const bad = [];
@@ -874,6 +876,132 @@ async function testTreePickerExpansionPersists(page) {
     JSON.stringify(r));
 }
 
+async function testPasswordStrengthAndToggle(page) {
+  // ve-password-input renders 4 bars + status + toggle button.
+  // - empty: "too short" + violations
+  // - weak: 1 bar weak-colored
+  // - strong: 4 bars strong-colored + valid
+  // - toggle flips input type password ↔ text + aria-pressed
+  const s = await setup(page);
+  if (!s.ok) {
+    record('form_inputs_password', 'FAIL',
+      'password strength + toggle', s.error);
+    return;
+  }
+  const r = await page.evaluate(() => {
+    const root = document.querySelector('.ve-password-input');
+    const input = root.querySelector('.ve-password-input-field');
+    const status = root.querySelector('.ve-password-input-status');
+    const toggle = root.querySelector('.ve-password-input-toggle');
+    const initial = {
+      type: input.type,
+      statusContains: status.textContent.indexOf('too short') >= 0,
+      hasInvalid: root.classList.contains('ve-password-input-invalid')
+    };
+    // Weak (only letters, short)
+    input.value = 'abcd';
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    const weak = {
+      statusContainsWeak: status.textContent.indexOf('weak') >= 0,
+      weakBars: root.querySelectorAll('.ve-password-input-bar-weak').length,
+      strongBars: root.querySelectorAll('.ve-password-input-bar-strong').length
+    };
+    // Strong (length + 4 char classes)
+    input.value = 'Sup3rStrong!Pw';
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    const strong = {
+      statusContainsStrong: status.textContent.indexOf('strong') >= 0,
+      strongBars: root.querySelectorAll('.ve-password-input-bar-strong').length,
+      hasInvalid: root.classList.contains('ve-password-input-invalid'),
+      event: window.__vcFormChanges
+        .filter(e => e.kind === 'password-input').pop()
+    };
+    // Toggle visibility
+    toggle.click();
+    const togglePressed = {
+      type: input.type,
+      aria: toggle.getAttribute('aria-pressed')
+    };
+    return { initial, weak, strong, togglePressed };
+  });
+  const ok = r.initial.type === 'password'
+    && r.initial.statusContains === true
+    && r.initial.hasInvalid === true
+    && r.weak.statusContainsWeak === true
+    && r.weak.weakBars >= 1
+    && r.weak.strongBars === 0
+    && r.strong.statusContainsStrong === true
+    && r.strong.strongBars === 4
+    && r.strong.hasInvalid === false
+    && r.strong.event && r.strong.event.value.strength === 4
+    && r.strong.event.value.valid === true
+    && r.togglePressed.type === 'text'
+    && r.togglePressed.aria === 'true';
+  record('form_inputs_password', ok ? 'PASS' : 'FAIL',
+    'password meter colors bars by strength; toggle flips type + aria',
+    JSON.stringify(r));
+}
+
+async function testCurrencyAmountAndSwitch(page) {
+  // ve-currency-input renders symbol + amount + dropdown + preview.
+  // - initial state matches model.amount/model.currency
+  // - typing a new amount updates the preview + LS + event
+  // - switching the currency dropdown flips symbol + preview + event
+  const s = await setup(page);
+  if (!s.ok) {
+    record('form_inputs_currency', 'FAIL',
+      'currency amount + switch', s.error);
+    return;
+  }
+  const r = await page.evaluate(() => {
+    const root = document.querySelector('.ve-currency-input');
+    const symbol = root.querySelector('.ve-currency-input-symbol');
+    const amount = root.querySelector('.ve-currency-input-amount');
+    const sel = root.querySelector('.ve-currency-input-select');
+    const preview = root.querySelector('.ve-currency-input-preview');
+    const initial = {
+      symbol: symbol.textContent,
+      amount: amount.value,
+      preview: preview.textContent,
+      optionCount: sel ? sel.querySelectorAll('option').length : 0
+    };
+    // Type new amount
+    amount.value = '500';
+    amount.dispatchEvent(new Event('input', { bubbles: true }));
+    const typed = {
+      preview: preview.textContent,
+      event: window.__vcFormChanges
+        .filter(e => e.kind === 'currency-input').pop()
+    };
+    // Switch to EUR
+    sel.value = 'EUR';
+    sel.dispatchEvent(new Event('change', { bubbles: true }));
+    const switched = {
+      symbol: symbol.textContent,
+      preview: preview.textContent,
+      event: window.__vcFormChanges
+        .filter(e => e.kind === 'currency-input').pop(),
+      lsValue: JSON.parse(localStorage.getItem(
+        'amvcp-form-input:money:budget') || 'null')
+    };
+    return { initial, typed, switched };
+  });
+  const ok = r.initial.symbol === '$'
+    && r.initial.amount === '12500'
+    && r.initial.preview.indexOf('12,500') >= 0
+    && r.initial.optionCount === 4
+    && r.typed.preview.indexOf('500') >= 0
+    && r.typed.event && r.typed.event.value.amount === 500
+    && r.typed.event.value.currency === 'USD'
+    && r.switched.symbol === '€'
+    && r.switched.preview.indexOf('€') >= 0
+    && r.switched.event.value.currency === 'EUR'
+    && r.switched.lsValue && r.switched.lsValue.currency === 'EUR';
+  record('form_inputs_currency', ok ? 'PASS' : 'FAIL',
+    'currency renders symbol + Intl preview; typing + currency switch both emit',
+    JSON.stringify(r));
+}
+
 // ── Runner ───────────────────────────────────────────────────────────
 
 const tests = [
@@ -895,7 +1023,9 @@ const tests = [
   testTextAreaCharCounter,
   testUrlInputValidationAndPreview,
   testTreePickerMountsAndSelects,
-  testTreePickerExpansionPersists
+  testTreePickerExpansionPersists,
+  testPasswordStrengthAndToggle,
+  testCurrencyAmountAndSwitch
 ];
 
 const page = await browser.getPage("form-inputs-tests");
