@@ -1090,6 +1090,75 @@
     return out;
   }
 
+  // ── DEFECT-D fix: scan(root) — walk the runtime's wrapped code blocks
+  //
+  // Before this function existed the module exposed only the per-line
+  // / per-block utility API (highlightLine / highlightBlock) and
+  // shipped NO auto-scan. The runtime's bootEverything therefore had
+  // nothing to call, the renderer didn't either, and the per-block
+  // syntax tokens never appeared on a page. The runtime side wraps
+  // every code line as
+  //    <pre><code>
+  //      <span class="ve-code-line"><span class="ve-code-linenum">
+  //        </span><span class="ve-code-content">...escaped src...
+  //        </span></span>
+  //      …repeated per line…
+  //    </code></pre>
+  // (initCodeGutter, runtime line 6881). scan() walks every
+  // .ve-code-block, detects the language from the still-present
+  // language-* class on the <code>, gathers the textContent of each
+  // .ve-code-content, runs highlightBlock() to produce per-line
+  // tokenised HTML, and replaces each .ve-code-content's innerHTML
+  // with the matching tokenised line. The wrapper structure (gutter
+  // numbers, click affordances, copy button) survives untouched.
+  //
+  // Idempotent — sets pre.__veCodeHighlighted=1 on first scan, skips
+  // anything already marked. Safe to call from bootEverything AND
+  // from a theme-rescan listener.
+  function scan(root) {
+    if (typeof document === 'undefined') return 0;
+    var d = root || document;
+    var blocks = d.querySelectorAll('.ve-code-block');
+    var n = 0;
+    for (var i = 0; i < blocks.length; i++) {
+      var block = blocks[i];
+      var pre = block.querySelector('pre');
+      if (!pre) continue;
+      if (pre.__veCodeHighlighted) continue;
+      var lang = detectLanguage(pre);
+      if (!lang) {
+        pre.__veCodeHighlighted = 1;       // mark as visited — no lang
+        continue;
+      }
+      var contentSpans = pre.querySelectorAll('.ve-code-content');
+      if (!contentSpans.length) continue;
+      var lines = [];
+      for (var li = 0; li < contentSpans.length; li++) {
+        // textContent is the un-escaped source — exactly what the
+        // tokenizer expects. Escaped HTML in innerHTML would be
+        // double-escaped on output; textContent strips the markup.
+        lines.push(contentSpans[li].textContent || '');
+      }
+      var rendered;
+      try {
+        rendered = highlightBlock(lines, lang);
+      } catch (_e) {
+        pre.__veCodeHighlighted = 1;       // mark as visited — bad lang
+        continue;
+      }
+      if (!rendered || rendered.length !== lines.length) {
+        pre.__veCodeHighlighted = 1;       // mark as visited — count drift
+        continue;
+      }
+      for (var lj = 0; lj < contentSpans.length; lj++) {
+        contentSpans[lj].innerHTML = rendered[lj];
+      }
+      pre.__veCodeHighlighted = 1;
+      n++;
+    }
+    return n;
+  }
+
   // ── API surface ────────────────────────────────────────────────────
   var api = {
     highlightLine: highlightLine,
@@ -1098,7 +1167,8 @@
     normalizeLang: normalizeLang,
     languages: LANGUAGES,
     tokenRoles: TOKEN_ROLES,
-    escapeHtml: escapeHtml
+    escapeHtml: escapeHtml,
+    scan: scan
   };
 
   // Dual export — browser global + Node require. Same guard pattern as

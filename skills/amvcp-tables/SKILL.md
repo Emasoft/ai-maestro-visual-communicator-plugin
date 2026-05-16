@@ -9,6 +9,8 @@ metadata:
 
 # Tables
 
+> **Parent umbrella:** [`skills/amvcp-visual-communication/SKILL.md`](../amvcp-visual-communication/SKILL.md) — load the umbrella first to route between the 13 category skills.
+
 ## Overview
 
 Loads when the agent needs a styled, interactive `<table>` that goes beyond the runtime's static-table baseline. Author plain semantic HTML plus one `data-ve-table` attribute; `amvcp-tables.js` injects sorting, virtualization, status glyphs, comparison emphasis and a CSV button. The runtime already ships the table chrome (borders, zebra rows, `<tr>`-as-selectable-atom, no-nested-scrollbars) — this skill adds the five modes on top of it AND documents the per-row decoration vocabulary (risk dot, severity badge, key/value pill, stat card, chip strip, kanban-as-table, decision matrix, pro/con grid, impact mini-table, token spec table) that composes inside tables and reports.

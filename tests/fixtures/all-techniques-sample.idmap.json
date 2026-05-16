@@ -31,10 +31,10 @@
       "sectionId": "finding-2",
       "text": "The Phoenix release moved three operating metrics in clearly measurable ways. The chart below shows the magnitude of each move against the rolling 12-week baseline; the table after it lists the exact "
     },
-    "207f05e2": {
+    "63d83920": {
       "kind": "p",
       "sectionId": "finding-2",
-      "text": "```chart:bar@1 { \"title\": \"Phoenix release \u2014 operating metrics deltas vs 12-week baseline\", \"series\": [{ \"label\": \"delta %\", \"data\": [ {\"x\":\"p99 latency\",\"y\":-38.4}, {\"x\":\"queue depth\",\"y\":-52.1}, {\"x"
+      "text": "The trend over the four weeks following the launch tells a slightly different story. The latency win held steady; queue depth drifted back upward as user adoption climbed; deploy time stayed flat. The"
     },
     "d5e552b3": {
       "kind": "p",
@@ -166,10 +166,10 @@
       "sectionId": "finding-5",
       "text": "The icon-svg block below sketches the Phoenix service dependency graph at the architectural level. Five primitive node shapes carry the meaning: `process` for stateful services, `database` for persist"
     },
-    "27c86043": {
+    "a9240665": {
       "kind": "p",
       "sectionId": "finding-5",
-      "text": "```icon-svg { \"viewBox\": [0, 0, 1000, 1000], \"ariaLabel\": \"Phoenix service dependency graph\", \"primitives\": [ { \"type\": \"process\", \"id\": \"api\", \"x\": 60, \"y\": 60, \"w\": 380, \"h\": 150, \"label\": \"API gate"
+      "text": "Two observations the diagram makes obvious that the prose does not. First, **the tenant router is the new single point of contention** \u2014 every request flows through it, and it is the one new service P"
     },
     "1df45de5": {
       "kind": "section-meta",
@@ -366,10 +366,10 @@
       "sectionId": "finding-10",
       "text": "The rest of this page (rendered alongside the prose above) carries the full set of supporting visuals \u2014 design-token contact sheet, layout shells, animation reveals, interactive tab/filter widget, sma"
     },
-    "5a983423": {
+    "2b6bc0c3": {
       "kind": "p",
       "sectionId": "finding-10",
-      "text": "The supporting visuals are written directly into the rendered HTML (below this paragraph) rather than through the markdown source, because the markdown renderer does not pass raw HTML through; that is"
+      "text": "The supporting visuals below are written directly into the markdown via the `<!-- ve-raw-html-start -->` / `<!-- ve-raw-html-end -->` pass-through markers added by Phase 4 (DEFECT-E fix). The renderer"
     },
     "12e6620b": {
       "kind": "p",

@@ -316,10 +316,583 @@ mock-up the design team produced. Each of those is a separate
 the proof that all 13 of them compose into one document without
 runtime conflict.
 
-The supporting visuals are written directly into the rendered HTML
-(below this paragraph) rather than through the markdown source,
-because the markdown renderer does not pass raw HTML through; that
-is a known and deliberate limitation of the interactive-report
-pipeline. The supporting blocks therefore live in the rendered
-HTML between the `<!-- begin all-techniques injection -->` and
-`<!-- end all-techniques injection -->` markers.
+The supporting visuals below are written directly into the markdown
+via the `<!-- ve-raw-html-start -->` / `<!-- ve-raw-html-end -->`
+pass-through markers added by Phase 4 (DEFECT-E fix). The renderer
+emits the lines between the markers verbatim, no HTML escaping, so
+the structured DOM that several visualize-skill techniques require
+(scene-graph, wireframe, layout grids, interactive controls,
+token-sheet, slide-deck JSON) survives intact.
+
+<!-- ve-raw-html-start -->
+  <hr>
+
+  <h2>Appendix A — Layout shells (technique #2 — amvcp-layout)</h2>
+
+  <!-- la-grid--2-1 — asymmetric content + sidebar grid -->
+  <div class="la-grid la-grid--2-1" data-ve-id="phoenix-grid"
+       data-ve-type="layout"
+       style="background:var(--vc-color-surface,#fff);
+              border:1px solid var(--vc-color-border,#e3dcc9);
+              border-radius:var(--vc-radius-md,8px);
+              padding:var(--vc-space-4,16px);
+              gap:var(--vc-space-4,16px);">
+    <div class="la-region" data-ve-id="phoenix-grid-main"
+         style="padding:var(--vc-space-3,12px)">
+      <strong>Main column.</strong> The cache rewrite is the single
+      highest-leverage change in Phoenix. It removed two synchronous
+      hops from the request path and made the worst-case behaviour
+      cache-first.
+    </div>
+    <aside class="la-region" data-ve-id="phoenix-grid-side"
+           style="padding:var(--vc-space-3,12px);
+                  background:var(--vc-color-surface-sunken,#f1ece0);
+                  border-radius:var(--vc-radius-sm,4px)">
+      <strong>Sidebar.</strong> p99 dropped 38%. Queue depth dropped
+      52%. Throughput up 18%.
+    </aside>
+  </div>
+
+  <!-- la-cardrow + la-card — equal-width subgrid card row -->
+  <div class="la-cardrow" data-ve-id="phoenix-cards"
+       style="margin-block:var(--vc-space-4,16px);
+              gap:var(--vc-space-3,12px)">
+    <article class="la-card" data-ve-id="card-cache" data-ve-type="card"
+             style="background:var(--vc-color-surface,#fff);
+                    border:1px solid var(--vc-color-border,#e3dcc9);
+                    border-radius:var(--vc-radius-md,8px);
+                    padding:var(--vc-space-3,12px);
+                    display:flex;flex-direction:column;
+                    gap:var(--vc-space-2,8px)">
+      <h3 class="la-card__title"
+          style="margin:0;font-size:var(--vc-text-3,18px)">
+        Cache rewrite
+      </h3>
+      <div class="la-card__body">Three hops down to two. Read-through
+        with async backfill, fire-and-forget setAsync, byte-deterministic
+        keys.</div>
+      <footer class="la-card__footer"
+              style="font-size:var(--vc-text-1,13px);
+                     color:var(--vc-color-content-muted,#5b5343)">
+        Owner: platform · landed W-3
+      </footer>
+    </article>
+    <article class="la-card" data-ve-id="card-pipeline" data-ve-type="card"
+             style="background:var(--vc-color-surface,#fff);
+                    border:1px solid var(--vc-color-border,#e3dcc9);
+                    border-radius:var(--vc-radius-md,8px);
+                    padding:var(--vc-space-3,12px);
+                    display:flex;flex-direction:column;
+                    gap:var(--vc-space-2,8px)">
+      <h3 class="la-card__title"
+          style="margin:0;font-size:var(--vc-text-3,18px)">
+        Deploy pipeline
+      </h3>
+      <div class="la-card__body">11 serial stages reduced to 6 stages,
+        3 of them parallel. Wall-clock time 46m → 13m.</div>
+      <footer class="la-card__footer"
+              style="font-size:var(--vc-text-1,13px);
+                     color:var(--vc-color-content-muted,#5b5343)">
+        Owner: release eng · landed W-2
+      </footer>
+    </article>
+    <article class="la-card" data-ve-id="card-router" data-ve-type="card"
+             style="background:var(--vc-color-surface,#fff);
+                    border:1px solid var(--vc-color-border,#e3dcc9);
+                    border-radius:var(--vc-radius-md,8px);
+                    padding:var(--vc-space-3,12px);
+                    display:flex;flex-direction:column;
+                    gap:var(--vc-space-2,8px)">
+      <h3 class="la-card__title"
+          style="margin:0;font-size:var(--vc-text-3,18px)">
+        Tenant router
+      </h3>
+      <div class="la-card__body">New routing tier. Single point of
+        contention; next architectural review item for Q2.</div>
+      <footer class="la-card__footer"
+              style="font-size:var(--vc-text-1,13px);
+                     color:var(--vc-color-content-muted,#5b5343)">
+        Owner: platform · landed W-1
+      </footer>
+    </article>
+  </div>
+
+  <h2>Appendix B — Animation reveal (technique #4 — amvcp-animation)</h2>
+
+  <!-- data-va-reveal=fade — fires once on first scroll-into-view -->
+  <div data-va-reveal="fade" data-ve-id="phoenix-reveal"
+       style="background:var(--vc-color-surface-raised,#fffdf8);
+              border:1px solid var(--vc-color-border,#e3dcc9);
+              border-radius:var(--vc-radius-md,8px);
+              padding:var(--vc-space-4,16px);
+              margin-block:var(--vc-space-3,12px)">
+    <p><strong>Reveal-on-scroll.</strong> This block fades in the first
+       time it crosses the viewport (IntersectionObserver, fire-once,
+       <code>prefers-reduced-motion</code> safe — when the OS flag is on
+       the block is rendered immediately at full opacity instead of
+       fading).</p>
+    <ul data-va-reveal="stagger" data-va-stagger="80"
+        style="margin:var(--vc-space-2,8px) 0;padding-left:1.4em">
+      <li class="va-stagger-item" style="--va-index:0">First takeaway —
+        the cache pattern lifts to the search service first.</li>
+      <li class="va-stagger-item" style="--va-index:1">Second takeaway —
+        canary auto-revert is the operational win to preserve.</li>
+      <li class="va-stagger-item" style="--va-index:2">Third takeaway —
+        every project ≥4 weeks gets a 20% known-unknowns buffer.</li>
+    </ul>
+  </div>
+
+  <h2>Appendix C — Interactive controls (technique #5 — amvcp-interactive)</h2>
+
+  <!-- The interactive module needs an embedded JSON model + structured
+       widget HTML. This is the tabset + filter-pill demo. -->
+  <script type="application/json" id="ic-data">
+  {
+    "tabs": [
+      { "id": "tab-summary",   "label": "Summary"   },
+      { "id": "tab-causes",    "label": "Causes"    },
+      { "id": "tab-followups", "label": "Follow-ups" }
+    ],
+    "filters": [
+      { "id": "flt-all",  "label": "All",  "tag": "*" },
+      { "id": "flt-arch", "label": "Architecture", "tag": "arch" },
+      { "id": "flt-ops",  "label": "Ops",  "tag": "ops" }
+    ]
+  }
+  </script>
+
+  <style>
+    /* Page-local rules so the CSS-only baseline of the interactive
+       widget works; the JS layer adds ARIA + persistence on top. */
+    #tab-summary:checked ~ .ic-tabpanels .ic-tabpanel[data-tab="tab-summary"],
+    #tab-causes:checked ~ .ic-tabpanels .ic-tabpanel[data-tab="tab-causes"],
+    #tab-followups:checked ~ .ic-tabpanels .ic-tabpanel[data-tab="tab-followups"] {
+      display: block;
+    }
+    #tab-summary:checked ~ .ic-tablist .ic-tab[for="tab-summary"],
+    #tab-causes:checked ~ .ic-tablist .ic-tab[for="tab-causes"],
+    #tab-followups:checked ~ .ic-tablist .ic-tab[for="tab-followups"] {
+      color: var(--ve-control-fg, #14110b);
+      border-bottom-color: var(--vc-color-accent, #b8861f);
+    }
+    #flt-all:checked ~ .ic-filtered { display: block; }
+    #flt-arch:checked ~ .ic-filtered { display: none; }
+    #flt-arch:checked ~ .ic-filtered[data-filter-tag="arch"] { display: block; }
+    #flt-ops:checked  ~ .ic-filtered { display: none; }
+    #flt-ops:checked  ~ .ic-filtered[data-filter-tag="ops"] { display: block; }
+  </style>
+
+  <div class="ic-tabs" data-ic-persist data-id="phoenix-tabs"
+       data-ve-id="phoenix-tabset" data-ve-type="widget">
+    <input class="ic-tab-radio" type="radio" name="phoenix-tabs"
+           id="tab-summary" checked>
+    <input class="ic-tab-radio" type="radio" name="phoenix-tabs"
+           id="tab-causes">
+    <input class="ic-tab-radio" type="radio" name="phoenix-tabs"
+           id="tab-followups">
+    <div class="ic-tablist">
+      <label class="ic-tab" for="tab-summary">Summary</label>
+      <label class="ic-tab" for="tab-causes">Causes</label>
+      <label class="ic-tab" for="tab-followups">Follow-ups</label>
+    </div>
+    <div class="ic-tabpanels">
+      <section class="ic-tabpanel" data-tab="tab-summary">
+        <p><strong>Summary panel.</strong> Phoenix shipped on January
+           14, 2026; three weeks late; 14/17 deliverables on the launch
+           day. The architecture rewrite is durable and the deploy
+           pipeline rewrite is the operational win we want to lift.</p>
+      </section>
+      <section class="ic-tabpanel" data-tab="tab-causes">
+        <p><strong>Causes panel.</strong> 9 days unknown-unknowns
+           (eviction-policy override layer surfaced in load test).
+           12 days sub-estimates of known tasks. Holiday throughput
+           drop accounted for, but the schedule buffer was thin.</p>
+      </section>
+      <section class="ic-tabpanel" data-tab="tab-followups">
+        <p><strong>Follow-ups panel.</strong> 20% known-unknowns
+           buffer policy; routing-tier architectural-review gate;
+           lift the six-stage pipeline to the remaining four
+           services by end-of-Q2.</p>
+      </section>
+    </div>
+  </div>
+
+  <p style="margin-top:var(--vc-space-4,16px)">
+    <strong>Filter the issue list.</strong> Click a pill to narrow
+    the list to one category.
+  </p>
+  <div class="ic-filterbar" data-ic-persist data-id="phoenix-filters"
+       role="radiogroup" aria-label="Filter Phoenix issues">
+    <span class="ic-pill-group">
+      <input class="ic-pill-radio" type="radio" name="phoenix-filters"
+             id="flt-all" value="*" checked>
+      <label class="ic-pill" for="flt-all">All
+        <span class="ic-pill-count"></span></label>
+      <input class="ic-pill-radio" type="radio" name="phoenix-filters"
+             id="flt-arch" value="arch">
+      <label class="ic-pill" for="flt-arch">Architecture
+        <span class="ic-pill-count"></span></label>
+      <input class="ic-pill-radio" type="radio" name="phoenix-filters"
+             id="flt-ops" value="ops">
+      <label class="ic-pill" for="flt-ops">Ops
+        <span class="ic-pill-count"></span></label>
+    </span>
+  </div>
+  <div class="ic-filtered" data-filter-tag="arch"
+       style="padding:var(--vc-space-2,8px);
+              border-left:3px solid var(--vc-color-accent,#b8861f);
+              margin-block:var(--vc-space-1,4px)">
+    Cache cluster + primary store coupled under tenant router (arch).
+  </div>
+  <div class="ic-filtered" data-filter-tag="ops"
+       style="padding:var(--vc-space-2,8px);
+              border-left:3px solid var(--vc-color-accent,#b8861f);
+              margin-block:var(--vc-space-1,4px)">
+    Canary auto-revert latency &lt; 90s — keep this; lift to other services (ops).
+  </div>
+  <div class="ic-filtered" data-filter-tag="arch"
+       style="padding:var(--vc-space-2,8px);
+              border-left:3px solid var(--vc-color-accent,#b8861f);
+              margin-block:var(--vc-space-1,4px)">
+    Tenant-router single point of contention — Q2 review (arch).
+  </div>
+  <div class="ic-filtered" data-filter-tag="ops"
+       style="padding:var(--vc-space-2,8px);
+              border-left:3px solid var(--vc-color-accent,#b8861f);
+              margin-block:var(--vc-space-1,4px)">
+    Manual approval steps reduced 2 → 1 — production gate only (ops).
+  </div>
+
+  <h2>Appendix D — Scene-graph diagram (technique #9 — amvcp-diagram)</h2>
+
+  <!-- .ve-scene-graph + embedded JSON — the diagram module renders
+       this into a themed SVG flow chart. -->
+  <div class="ve-scene-graph" id="phoenix-flow"
+       data-ve-scene-preset="process-flow"
+       data-ve-id="phoenix-flow" data-ve-type="diagram"
+       style="background:var(--vc-color-surface,#fff);
+              border:1px solid var(--vc-color-border,#e3dcc9);
+              border-radius:var(--vc-radius-md,8px);
+              padding:var(--vc-space-3,12px)">
+    <script type="application/json">
+    {
+      "version": 1,
+      "preset": "process-flow",
+      "grid": 4,
+      "width": 1040,
+      "height": 240,
+      "nodes": [
+        { "id": "in",      "type": "start",      "label": "Request" },
+        { "id": "router",  "type": "process",    "label": "Tenant router",
+          "role": "service" },
+        { "id": "lookup",  "type": "decision",   "label": "Cache hit?" },
+        { "id": "respond", "type": "subprocess", "label": "Reply",
+          "role": "service" },
+        { "id": "fetch",   "type": "process",    "label": "Primary fetch",
+          "role": "data" },
+        { "id": "out",     "type": "end",        "label": "Done" }
+      ],
+      "edges": [
+        { "from": "in",      "to": "router" },
+        { "from": "router",  "to": "lookup" },
+        { "from": "lookup",  "to": "respond", "label": "yes" },
+        { "from": "lookup",  "to": "fetch",   "label": "no" },
+        { "from": "fetch",   "to": "respond", "style": "dashed" },
+        { "from": "respond", "to": "out" }
+      ]
+    }
+    </script>
+  </div>
+
+  <!-- ASCII fallback diagram — a second diagram primitive the module
+       owns: <pre class="ve-ascii"> styled with monospace + token
+       colors. The runtime's gutter wraps every <pre>; the diagram
+       module's own ascii-class CSS overrides take precedence. -->
+  <p>The cache backfill happens off the request path; the loop
+     below sketches it (ASCII fallback for the diagram module's
+     <code>.ve-ascii</code> primitive):</p>
+  <pre class="ve-ascii" data-ve-no-gutter
+       data-ve-id="phoenix-ascii" data-ve-type="diagram"
+       style="background:var(--vc-color-surface-sunken,#f1ece0);
+              border:1px solid var(--vc-color-border,#e3dcc9);
+              border-radius:var(--vc-radius-md,8px);
+              padding:var(--vc-space-3,12px);
+              font:13px/1.55 var(--vc-font-mono,ui-monospace,Menlo,monospace);
+              overflow:visible">
+   request --> router --> lookup --(hit)--> reply --> done
+                            |
+                          (miss)
+                            |
+                            v
+                          fetch --(value)--> reply
+                            |
+                            +--> setAsync(cache)   // fire-and-forget
+  </pre>
+
+  <h2>Appendix E — Wireframe (technique #11 — amvcp-wireframe)</h2>
+
+  <!-- .wf-root with data-wf-fidelity — the wireframe module
+       desaturates colors + applies a wireframe grain to the children. -->
+  <div class="wf-root wf-archetype--web"
+       data-wf-root data-wf-fidelity="wireframe" id="phoenix-wf-root"
+       data-ve-id="phoenix-wf" data-ve-type="wireframe"
+       style="background:var(--vc-color-surface,#fff);
+              border:1px solid var(--vc-color-border,#e3dcc9);
+              border-radius:var(--vc-radius-md,8px);
+              padding:var(--vc-space-3,12px)">
+    <section class="wf-screen" id="wf-screen-dash"
+             data-ve-id="wf-screen-dash" data-ve-type="wireframe-screen">
+      <div class="wf-header">
+        <div class="wf-text" data-wf-lines="1" style="width:120px"></div>
+        <div class="wf-nav">
+          <div class="wf-nav-item">Dashboard</div>
+          <div class="wf-nav-item">Services</div>
+          <div class="wf-nav-item">Reports</div>
+        </div>
+      </div>
+      <div class="wf-main">
+        <div class="wf-card" data-ve-id="wf-card-kpi"
+             data-ve-type="wireframe-block">
+          <div class="wf-card__title wf-text" data-wf-lines="1">
+            KPI strip
+          </div>
+          <div class="wf-text" data-wf-lines="2"></div>
+          <div class="wf-image" style="height:80px"></div>
+          <div class="wf-card__actions">
+            <a class="wf-button" href="#">Drill in</a>
+            <a class="wf-button wf-button--ghost" href="#">Export</a>
+          </div>
+        </div>
+        <div class="wf-card" data-ve-id="wf-card-list"
+             data-ve-type="wireframe-block">
+          <div class="wf-card__title wf-text" data-wf-lines="1">
+            Issue list
+          </div>
+          <div class="wf-text" data-wf-lines="4"></div>
+          <div class="wf-card__actions">
+            <button class="wf-button">Filter</button>
+            <a class="wf-button wf-button--ghost" href="#">Reset</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <h2>Appendix F — Token contact-sheet (technique #1 — amvcp-token-sheet)</h2>
+
+  <!-- The token-sheet module mounts a contact-sheet inside a host
+       element when called — it does NOT auto-scan. We wire a small
+       boot script that runs after the engine resolves the embedded
+       DESIGN.md. -->
+  <div id="phoenix-token-sheet" class="vc-sheet" data-ve-id="phoenix-tokens"
+       data-ve-type="design-tokens"
+       style="background:var(--vc-color-surface,#fff);
+              border:1px solid var(--vc-color-border,#e3dcc9);
+              border-radius:var(--vc-radius-md,8px);
+              padding:var(--vc-space-3,12px);
+              min-height:80px">
+    <div class="vc-sheet-loading"
+         style="color:var(--vc-color-content-muted,#5b5343);
+                font-size:var(--vc-text-1,13px)">
+      Token contact sheet — waits for the DESIGN.md engine to mount.
+      Click any swatch to copy the token name.
+    </div>
+  </div>
+
+  <h2>Appendix G — Slide capsule (technique #12 — amvcp-slide)</h2>
+
+  <p>The slide module renders a deck as a <code>position:fixed;
+     inset:0</code> letterbox viewport — by design. On a single page
+     hosting twelve other techniques, an auto-mounted deck would
+     obscure the entire document. The deck JSON is therefore embedded
+     deferred (the head sets <code>__vsdManualInit = true</code>);
+     pressing the launch button below mounts the deck full-screen.
+     Click any slide background to dismiss.</p>
+
+  <button id="phoenix-deck-launch" type="button"
+          style="font:var(--vc-weight-medium,500) var(--vc-text-2,15px)/1.2
+                 var(--vc-font-body,system-ui,sans-serif);
+                 padding:10px 16px;
+                 background:var(--vc-color-accent,#b8861f);
+                 color:var(--vc-color-on-accent,#fff);
+                 border:none;
+                 border-radius:var(--vc-radius-md,8px);
+                 cursor:pointer">
+    Launch Phoenix slide deck
+  </button>
+
+  <!-- vsd-deck-template — the slide deck JSON, parked under a non-vsd
+       id so neither the slide module's own auto-boot guard NOR the
+       runtime's bootEverything() pass (which calls amvcpSlideDeck.boot()
+       unconditionally on bootEverything regardless of __vsdManualInit
+       — confirmed defect, see report) discovers it on page load.
+       The launch button below promotes this to id="vsd-deck" and then
+       calls boot() so the deck mounts only on demand. -->
+  <script type="application/json" id="phoenix-deck-template">
+  {
+    "kind": "deck",
+    "title": "Phoenix Postmortem — capsule",
+    "id": "phoenix-deck-capsule",
+    "aspect": "16:9",
+    "fit": "letterbox",
+    "mood": "editorial",
+    "transition": "crossfade",
+    "loop": false,
+    "slides": [
+      {
+        "layout": "manifesto",
+        "blocks": [
+          { "type": "eyebrow", "text": "Q1 2026 — engineering" },
+          { "type": "heading", "text": "Latency dropped 38% after the cache rewrite shipped." },
+          { "type": "text",    "text": "Every p99 path now clears 200ms — a margin we have not held since the platform launched." }
+        ]
+      },
+      {
+        "layout": "metrics",
+        "blocks": [
+          { "type": "heading", "text": "Three numbers tell the whole quarter." },
+          { "type": "metric", "value": "38%",  "label": "p99 latency drop", "delta": "+12pts vs Q4" },
+          { "type": "metric", "value": "13m",  "label": "median deploy time", "delta": "-71% vs baseline" },
+          { "type": "metric", "value": "90s",  "label": "rollback time",      "delta": "-96% vs baseline" }
+        ]
+      },
+      {
+        "layout": "closing",
+        "blocks": [
+          { "type": "heading", "text": "Three follow-ups carry into Q2." },
+          { "type": "text",    "text": "Buffer policy, architectural-review gate, deploy-pipeline parity sweep." },
+          { "type": "quote",   "text": "Cache it once, serve it everywhere.", "cite": "Platform team motto" }
+        ]
+      }
+    ]
+  }
+  </script>
+
+  <h2>Appendix H — Page is a report-doc (technique #13 — amvcp-report-doc)</h2>
+
+  <p>The whole page IS a report-doc. The runtime's QA pipeline applies
+     to it: <code>window.amvcpReportDoc.runGates(document)</code> in
+     the browser console produces a per-gate verdict
+     (<code>no-nested-scrollbars</code>, <code>wcag-contrast</code>,
+     <code>reduced-motion</code>, <code>print-css</code>,
+     <code>semantic-html</code>, <code>banned-color</code>,
+     <code>banned-font</code>) for the assembled document. The runtime
+     auto-injects the report-doc CSS so callouts / metrics / pull-quotes
+     all theme off the same <code>--vc-*</code> tokens.</p>
+
+  <!-- Boot script: mount the token sheet + wire the slide-launch
+       button. Runs after the runtime has booted so window.amvcpDesignMd /
+       window.amvcpTokenSheet / window.amvcpSlideDeck are all installed. -->
+  <script>
+    (function () {
+      'use strict';
+      function boot() {
+        // Mount the token contact sheet into its host now that
+        // the DESIGN.md engine has applied tokens to :root.
+        try {
+          if (window.amvcpDesignMd && window.amvcpTokenSheet) {
+            var raw = document.getElementById('ve-designmd');
+            if (raw) {
+              var src = (raw.textContent || '').replace(/^\s+/, '')
+                                                 .replace(/\s+$/, '');
+              var parsed = window.amvcpDesignMd.parseDesignMd(src);
+              if (parsed && parsed.ok) {
+                var host = document.getElementById('phoenix-token-sheet');
+                if (host) {
+                  host.innerHTML = '';
+                  window.amvcpTokenSheet.mountContactSheet(
+                    parsed.designmd, host);
+                }
+              }
+            }
+          }
+        } catch (e) {
+          if (window.console && console.warn) {
+            console.warn('phoenix: token-sheet mount failed — '
+              + (e && e.message || e));
+          }
+        }
+
+        // Apply per-line syntax highlighting to every .ve-code-block.
+        // The code-highlight module is a PURE utility — it ships no
+        // auto-scan; a host page or renderer must call highlightBlock()
+        // per block. The runtime's initCodeGutter has already wrapped
+        // each line as <span class="ve-code-content">…</span>; we
+        // tokenize that text in place. Documented integration gap
+        // between amvcp-runtime.js and amvcp-code-highlight.js.
+        try {
+          if (window.amvcpCodeHighlight) {
+            var blocks = document.querySelectorAll('.ve-code-block');
+            for (var bi = 0; bi < blocks.length; bi++) {
+              var block = blocks[bi];
+              if (block.__vcCodeHighlighted) continue;
+              if (block.closest('.vc-sheet-panel')) continue;
+              var pre = block.querySelector('pre');
+              if (!pre) continue;
+              var codeEl = pre.querySelector('code');
+              if (!codeEl) continue;
+              var lang = window.amvcpCodeHighlight.detectLanguage(pre);
+              if (!lang) continue;
+              var contentSpans = block.querySelectorAll(
+                '.ve-code-content');
+              if (contentSpans.length === 0) continue;
+              var lines = [];
+              for (var li = 0; li < contentSpans.length; li++) {
+                lines.push(contentSpans[li].textContent || '');
+              }
+              var rendered = window.amvcpCodeHighlight.highlightBlock(
+                lines, lang);
+              if (rendered && rendered.length === contentSpans.length) {
+                for (var ri = 0; ri < contentSpans.length; ri++) {
+                  contentSpans[ri].innerHTML = rendered[ri];
+                }
+                block.__vcCodeHighlighted = true;
+              }
+            }
+          }
+        } catch (e) {
+          if (window.console && console.warn) {
+            console.warn('phoenix: code-highlight pass failed — '
+              + (e && e.message || e));
+          }
+        }
+
+        // Wire the deferred slide-launch button. The launch flow:
+        //   1. Promote the parked deck-template script to id="vsd-deck"
+        //      so the slide module's boot() can find it.
+        //   2. Call window.amvcpSlideDeck.boot(document) — that mounts
+        //      the position:fixed inset:0 letterbox viewport.
+        // The slide module's own auto-init was already deferred via
+        // window.__vsdManualInit, AND the runtime's bootEverything pass
+        // skipped the deck because it was parked under a non-vsd id.
+        var btn = document.getElementById('phoenix-deck-launch');
+        if (btn && window.amvcpSlideDeck) {
+          btn.addEventListener('click', function () {
+            try {
+              var template = document.getElementById('phoenix-deck-template');
+              if (template && !document.getElementById('vsd-deck')) {
+                template.setAttribute('id', 'vsd-deck');
+              }
+              window.amvcpSlideDeck.boot(document);
+            } catch (e) {
+              if (window.console && console.error) {
+                console.error('phoenix: slide-deck boot failed — '
+                  + (e && e.message || e));
+              }
+            }
+          });
+        }
+      }
+      // The runtime boots on DOMContentLoaded; defer one frame so
+      // every module has installed its globals.
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function () {
+          setTimeout(boot, 0);
+        });
+      } else {
+        setTimeout(boot, 0);
+      }
+    })();
+  </script>
+
+<!-- ve-raw-html-end -->

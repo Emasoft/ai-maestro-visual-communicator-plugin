@@ -8,6 +8,8 @@ metadata:
 
 # Interactive Controls
 
+> **Parent umbrella:** [`skills/amvcp-visual-communication/SKILL.md`](../amvcp-visual-communication/SKILL.md) — load the umbrella first to route between the 13 category skills.
+
 ## Overview
 
 Emits scaffoldable, DESIGN.md-themed HTML control widgets — accordion,

@@ -1787,7 +1787,22 @@
     var hosts = d.querySelectorAll(
       '.ve-scene-graph, [data-ve-scene-graph]');
     for (var i = 0; i < hosts.length; i++) {
-      renderSceneGraph(hosts[i]);
+      // DEFECT-B fix: idempotent init. renderSceneGraph wipes ALL
+      // children of the host (including the embedded JSON script);
+      // a SECOND init() call would then find no script and fail-fast
+      // with red error text — wiping the SVG that the FIRST call
+      // rendered. The diagram is initialised TWICE on every page that
+      // loads the runtime: by the module's own DOMContentLoaded
+      // self-init AND by the runtime's bootEverything pass. We detect
+      // a previously-rendered host via the __vcSceneJSON marker that
+      // renderSceneGraph stashes on first render, and route through
+      // reRenderScene (which re-injects the JSON script before
+      // calling renderSceneGraph again).
+      if (hosts[i].__vcSceneJSON) {
+        reRenderScene(hosts[i]);
+      } else {
+        renderSceneGraph(hosts[i]);
+      }
     }
     styleAsciiDiagrams(d);
   }

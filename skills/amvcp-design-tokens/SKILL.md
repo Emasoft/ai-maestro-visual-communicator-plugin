@@ -8,6 +8,8 @@ metadata:
 
 # Design Tokens
 
+> **Parent umbrella:** [`skills/amvcp-visual-communication/SKILL.md`](../amvcp-visual-communication/SKILL.md) — load the umbrella first to route between the 13 category skills.
+
 ## Overview
 
 The token-vocabulary and token-rendering layer that sits on top of the

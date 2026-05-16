@@ -9,6 +9,8 @@ metadata:
 
 # Animation
 
+> **Parent umbrella:** [`skills/amvcp-visual-communication/SKILL.md`](../amvcp-visual-communication/SKILL.md) — load the umbrella first to route between the 13 category skills.
+
 ## Overview
 
 Loads on requests to animate, add an entrance / scroll reveal / count-up / loading skeleton / floating element / hover polish / 3D tilt / parallax / spring overshoot / progress bar / SVG line-draw. Adds **motion** to any visual-communicator artifact through six layers — all dependency-free CSS + vanilla JS, all `prefers-reduced-motion` safe with a meaning-preserving substitute (never a blanket `animation: none`), all themed off the DESIGN.md `--vc-motion-*` / `--vc-duration-*` / `--vc-easing-*` / `--vc-color-*` tokens.

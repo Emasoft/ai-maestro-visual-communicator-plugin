@@ -9,6 +9,8 @@ metadata:
 
 # Code Highlight
 
+> **Parent umbrella:** [`skills/amvcp-visual-communication/SKILL.md`](../amvcp-visual-communication/SKILL.md) — load the umbrella first to route between the 13 category skills.
+
 ## Overview
 
 Loads when an agent needs to scaffold a code-display surface — a syntax-

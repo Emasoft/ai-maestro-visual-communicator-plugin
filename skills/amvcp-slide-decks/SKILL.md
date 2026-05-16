@@ -9,6 +9,8 @@ metadata:
 
 # Slide Decks
 
+> **Parent umbrella:** [`skills/amvcp-visual-communication/SKILL.md`](../amvcp-visual-communication/SKILL.md) — load the umbrella first to route between the 13 category skills.
+
 ## Overview
 
 Loads on requests for a presentation, slide deck, pitch deck, or "turn this into slides". Renders a deck of fixed-aspect "stage" slides from a JSON deck contract — the consolidated top-of-stack composite that converged five third-party slide projects into one dependency-free renderer. Seven sub-systems, all themed off the DESIGN.md `--vc-*` tokens, all `prefers-reduced-motion` safe, all light + dark correct by construction.

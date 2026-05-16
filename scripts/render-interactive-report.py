@@ -263,7 +263,18 @@ def parse_report(md: str, *, mode: str = "finding") -> Report:
 # ─────────────────────────────────────────────────────────────────────
 
 
-CODE_FENCE_RE = re.compile(r"^```(\w*)\s*$")
+# DEFECT-F fix: widen the fence's language token from \w* to a richer
+# set so namespaced/versioned visualize-skill fences survive.
+# Original `\w*` matched only [A-Za-z0-9_], so `chart:bar@1`,
+# `icon-svg`, and `chart:line@1.2` were silently dropped (the fence
+# itself was un-recognised, the JSON body was treated as ordinary
+# paragraph text and html-escaped — every chart / icon-svg block
+# rendered as escaped JSON in a <p>). The character class
+# [\w:.@+-] is the minimal superset that covers every fence the
+# visualize-skill module ships today (chart:*, icon-svg, slide-deck,
+# chart:bar@1, chart:line@1.2, chart:diverging-bar, etc.) AND remains
+# fully backward-compatible with plain ```js / ```python / ```bash.
+CODE_FENCE_RE = re.compile(r"^```([\w:.@+-]*)\s*$")
 HEADING_RE = re.compile(r"^(#{1,6})\s+(.+?)\s*$")
 UL_RE = re.compile(r"^\s*[-*+]\s+(.*)$")
 OL_RE = re.compile(r"^\s*(\d+)\.\s+(.*)$")
@@ -400,6 +411,32 @@ def md_to_html(md: str) -> str:
 
     while i < len(lines):
         line = lines[i]
+        # DEFECT-E fix: raw-HTML pass-through region. Lines between
+        # <!-- ve-raw-html-start --> and <!-- ve-raw-html-end --> are
+        # emitted verbatim — no html.escape, no inline parsing, no
+        # paragraph wrapping. This lets a markdown source embed the
+        # structured DOM that several visualize-skill techniques
+        # require: scene-graph (<div class="ve-scene-graph">…),
+        # wireframe (<div class="wf-root">…), layout grids
+        # (<div class="la-grid--2-1">…), interactive controls (tab +
+        # filter checkboxes), token-sheet hosts, and slide-deck JSON
+        # (<script id="vsd-deck">…). Without this escape hatch, even
+        # `<div class="ve-scene-graph">` was escaped to
+        # `&lt;div class="ve-scene-graph"&gt;` inside a <p>, and the
+        # visualize-skill modules that scan for those host elements
+        # found nothing to render. Markers must each be on a line by
+        # themselves; nesting is not supported (the second start
+        # marker is rendered verbatim like any other line inside the
+        # region).
+        sline = line.strip()
+        if sline == "<!-- ve-raw-html-start -->":
+            flush_paragraph()
+            i += 1
+            while i < len(lines) and lines[i].strip() != "<!-- ve-raw-html-end -->":
+                out.append(lines[i])
+                i += 1
+            i += 1   # consume the end marker
+            continue
         # Horizontal rule (---, ***, ___) — emit <hr>, never a paragraph.
         # Per R3, <hr> is structural chrome, not selectable.
         if HR_RE.match(line):

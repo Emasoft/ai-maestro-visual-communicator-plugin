@@ -9,6 +9,8 @@ metadata:
 
 # Charts and Dashboards
 
+> **Parent umbrella:** [`skills/amvcp-visual-communication/SKILL.md`](../amvcp-visual-communication/SKILL.md) — load the umbrella first to route between the 13 category skills.
+
 ## Overview
 
 Loads when the agent needs charts, dashboards, KPI tiles, sparklines, status

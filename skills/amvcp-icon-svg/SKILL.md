@@ -9,6 +9,8 @@ metadata:
 
 # Icon-SVG
 
+> **Parent umbrella:** [`skills/amvcp-visual-communication/SKILL.md`](../amvcp-visual-communication/SKILL.md) — load the umbrella first to route between the 13 category skills.
+
 ## Overview
 
 Loads when the user asks for an authored asset: an icon, a logo, a

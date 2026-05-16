@@ -10269,11 +10269,22 @@
       if (typeof m.init === 'function') m.init();
     });
 
-    // code-highlight — pure utility module (highlightLine /
-    // highlightBlock / detectLanguage). No init / scan / CSS-inject
-    // API; per-block highlighting is the renderer's job. The page
-    // must <link> amvcp-code-highlight.css for the role classes to
+    // code-highlight — DEFECT-D fix: the module now exposes a
+    // `scan(root)` that walks every .ve-code-block (the wrapper
+    // initCodeGutter inserts), reads each .ve-code-content's
+    // textContent line-by-line, runs highlightBlock(lines, lang)
+    // and replaces each .ve-code-content's innerHTML with the
+    // tokenised HTML. scan() is idempotent (per-pre __veCodeHighlighted
+    // flag). MUST run AFTER initAllCodeGutters wraps the lines —
+    // bootVisualizeModules runs after initAllCodeGutters in
+    // bootEverything (line 10417 vs 10427), so the .ve-code-content
+    // structure is in place by the time we reach this point. No CSS
+    // injection from this module — the page must <link>
+    // amvcp-code-highlight.css for the .ve-tok-* role classes to
     // resolve.
+    tryModule('amvcpCodeHighlight', function (m) {
+      if (typeof m.scan === 'function') m.scan(document);
+    });
 
     // chart — injectChartCSS + scan walks every fenced ```chart block,
     // parses the JSON, and renders to inline SVG.
@@ -10318,10 +10329,19 @@
     // slide — injectSlideCSS + boot parses every `slide-deck` fence
     // and renders the deck stage. The browser global is named
     // amvcpSlideDeck (not amvcpSlide — verified in scripts/amvcp-slide.js).
+    //
+    // DEFECT-A fix: respect the slide module's own opt-out flag so a
+    // multi-technique page (where the slide deck is one of MANY
+    // visualisations) can defer the boot — boot() always renders the
+    // deck full-bleed (position:fixed; inset:0) and would otherwise
+    // bury the rest of the page. The fixture sets __vsdManualInit=true
+    // and parks the deck JSON under a non-default id; a button later
+    // promotes the script to id="vsd-deck" and calls boot() on demand.
     tryModule('amvcpSlideDeck', function (m) {
       if (typeof m.injectSlideCSS === 'function') {
         m.injectSlideCSS(document);
       }
+      if (window.__vsdManualInit) return;
       if (typeof m.boot === 'function') m.boot(document);
     });
 

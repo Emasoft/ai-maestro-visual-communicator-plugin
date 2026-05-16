@@ -912,12 +912,24 @@
     }
 
     var tk;
-    if (isDiverging) {
+    // DEFECT-C fix: a plain `chart:bar@1` with negative values
+    // (e.g. {y:-38.4}) used to compute `niceTicks(0, dataMax, …)` which
+    // clamped the y-domain to 0..max-positive — every negative bar
+    // disappeared (height fell out of the [0,…] domain, was clamped
+    // to 0). We now treat any single-series chart that contains
+    // negative values exactly the same way as `chart:diverging-bar@1`:
+    // the y-domain spans `min(0,dataMin) … dataMax`, the zero line is
+    // explicit, negative bars descend from y=0. Diverging-bar is still
+    // the recommended technique for signed data (it adds the
+    // green/red semantic colouring); plain bar is now safe rather
+    // than silently lossy.
+    var hasNegatives = (dataMin < 0);
+    if (isDiverging || hasNegatives) {
       tk = niceTicks(dataMin, dataMax, 4);
     } else {
       tk = niceTicks(0, dataMax, 4);
     }
-    var domBottom = isDiverging ? tk.bottom : 0;
+    var domBottom = (isDiverging || hasNegatives) ? tk.bottom : 0;
     var yScale = scale(domBottom, tk.top, yBase, M.t);
     _drawGrid(svgEl, tk.ticks, yScale, x0, x1);
 
@@ -928,7 +940,11 @@
     var gXlabels = svg('g', { 'class': 've-chart-xlabels' });
     var gVlabels = svg('g', { 'class': 've-chart-vlabels' });
 
-    var zeroY = isDiverging ? yScale(0) : yBase;
+    // DEFECT-C fix continued: when a plain bar series has negative
+    // values the zero line is INSIDE the plot, not at the bottom edge.
+    // zeroY tracks where the y=0 baseline lives; negative bars descend
+    // from that line down to yScale(val).
+    var zeroY = (isDiverging || hasNegatives) ? yScale(0) : yBase;
 
     for (var k = 0; k < n; k++) {
       var catIdx = order[k];
@@ -1065,8 +1081,25 @@
             var slotW = multi ? barW / series.length : barW;
             rx = bandCenter - barW / 2 + si * slotW;
             rw = slotW * (multi ? 0.86 : 1);
-            ry = yScale(val);
-            rh = yBase - ry;
+            // DEFECT-C fix: when the series contains negative values
+            // we extended the y-domain to span [min(0,dataMin)..dataMax]
+            // and explicitly tracked the zero baseline as `zeroY`. A
+            // negative bar must descend from y=0 to its (lower) value
+            // — top is at `zeroY`, height is `yScale(val) - zeroY`.
+            // The earlier `rh = yBase - ry` (with `ry = yScale(val)`
+            // for a negative value) produced a negative `rh` that the
+            // fail-safe clamp `if (rh < 0) rh = 0` then dropped to a
+            // zero-height bar — the source of the silent data loss.
+            if (hasNegatives && val < 0) {
+              ry = zeroY;
+              rh = yScale(val) - zeroY;
+            } else if (hasNegatives) {
+              ry = yScale(val);
+              rh = zeroY - ry;
+            } else {
+              ry = yScale(val);
+              rh = yBase - ry;
+            }
           }
           if (rh < 0) { rh = 0; }
           var bar = svg('rect', {
@@ -1088,10 +1121,25 @@
           gBars.appendChild(bar);
 
           // Value label above non-stacked bars when asked.
+          //
+          // DEFECT-H fix: for a NEGATIVE bar (descends below the y=0
+          // baseline) the bar's `ry` is at the zero line — so
+          // `ry - 6` placed the label ABOVE the y=0 line instead of
+          // near the value's actual position. The reader saw every
+          // negative-value label clustered at y=0, indistinguishable.
+          // Place the label JUST BELOW the bar's bottom edge for
+          // negatives; above the top edge for positives. Same offset
+          // (6 px) on either side of the bar tip for visual symmetry.
           if (opts.valueLabels && !isStacked) {
+            var labelY;
+            if ((isDiverging || hasNegatives) && val < 0) {
+              labelY = ry + rh + 14;   // below the bar's bottom tip
+            } else {
+              labelY = ry - 6;          // above the bar's top tip
+            }
             var vl = svg('text', {
               'class': 've-chart-value-label',
-              x: rx + rw / 2, y: ry - 6, 'text-anchor': 'middle'
+              x: rx + rw / 2, y: labelY, 'text-anchor': 'middle'
             });
             vl.appendChild(document.createTextNode(fmtNum(val)));
             gVlabels.appendChild(vl);

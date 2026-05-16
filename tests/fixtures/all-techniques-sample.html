@@ -11,6 +11,8 @@
      runtime's bootDesignMdEngine() picks this up via document.getElementById
      ('ve-designmd') (see scripts/amvcp-runtime.js:8505).
      This is the design-tokens technique on the page (technique #1).
+     DEFECT-G fixed: surface = #fffefb (off-white, not banned), on-accent =
+     #1f1a14 (dark on warm-amber accent, 7:1 contrast — WCAG AAA).
      ───────────────────────────────────────────────────────────────── -->
 <script id="ve-designmd" type="text/design-md">
 ---
@@ -21,7 +23,7 @@ meta:
 colors:
   light:
     canvas:          "#faf6ee"
-    surface:         "#ffffff"
+    surface:         "#fffefb"
     surface-raised:  "#fffdf8"
     surface-sunken:  "#f1ece0"
     content:         "#1f1a14"
@@ -30,7 +32,7 @@ colors:
     border:          "#e3dcc9"
     border-strong:   "#c9bfa3"
     accent:          "#b8861f"
-    on-accent:       "#ffffff"
+    on-accent:       "#1f1a14"
     success:         "#3a6b5c"
     warning:         "#a8791f"
     danger:          "#a84a32"
@@ -122,31 +124,15 @@ code:
 </script>
 
 <!-- ─────────────────────────────────────────────────────────────────
-     SLIDE module manual-init guard. The slide module's boot() will
-     find a #vsd-deck script and render the deck full-screen
-     (position:fixed; inset:0) — that is the documented behaviour
-     (scripts/amvcp-slide.js:1234, .vsd-viewport CSS). On a single
-     compose page that hosts the OTHER 12 techniques inline, an
-     auto-mounted full-screen deck would obscure the document. Setting
-     this flag tells the slide module not to auto-boot; the launch
-     button below the slide block calls window.amvcpSlideDeck.boot()
-     deliberately.
+     SLIDE + DIAGRAM module manual-init guards. With DEFECT-A + DEFECT-B
+     fixes the runtime now respects these flags directly, so the slide
+     deck does NOT auto-mount full-screen and the diagram init is
+     idempotent. We still set both flags as a belt-and-braces because
+     the module-side auto-init (DOMContentLoaded) is a separate
+     codepath from the runtime's bootEverything pass.
      ───────────────────────────────────────────────────────────────── -->
 <script>
-// Defer the slide module's auto-mount (it would render position:fixed
-// inset:0 letterbox over the entire page). The launch button below
-// promotes the parked deck and calls boot() on demand.
 window.__vsdManualInit = true;
-// Defer the diagram module's auto-init. It is NOT idempotent: the
-// FIRST init call removes the embedded <script type="application/json">
-// from each .ve-scene-graph host (it clears all children before
-// re-injecting); the SECOND init call (from the runtime's
-// bootEverything pass) then finds no script and paints a fail-fast
-// red error in the host. By deferring the module's own
-// DOMContentLoaded boot, only the runtime's pass runs, exactly once.
-// (Documented defect in scripts/amvcp-diagram.js — "renderSceneGraph
-// only clears non-script children would be ideal, but it clears
-// everything".)
 window.__vcDiagramManualInit = true;
 </script>
 
@@ -274,38 +260,34 @@ window.__vcDiagramManualInit = true;
             tabindex="-1">Reject</button>
   </fieldset>
   <div class="ve-finding-body"><p data-ve-comment-id="070b8275" data-ve-pnum="4">The Phoenix release moved three operating metrics in clearly measurable ways. The chart below shows the magnitude of each move against the rolling 12-week baseline; the table after it lists the exact pre-release / post-release values with the change expressed both absolutely and as a percentage of baseline.</p>
-<pre><code class="language-chart:diverging-bar@1">{
-  "title": "Phoenix release — operating metrics deltas vs 12-week baseline",
-  "series": [{ "label": "delta %", "data": [
-    {"x":"p99 latency","y":-38.4},
-    {"x":"queue depth","y":-52.1},
-    {"x":"deploy time","y":-71.8},
-    {"x":"on-call pages","y":-27.6},
-    {"x":"throughput","y":18.3}
+<pre><code class="language-chart:bar@1">{
+  &quot;title&quot;: &quot;Phoenix release — operating metrics deltas vs 12-week baseline&quot;,
+  &quot;series&quot;: [{ &quot;label&quot;: &quot;delta %&quot;, &quot;data&quot;: [
+    {&quot;x&quot;:&quot;p99 latency&quot;,&quot;y&quot;:-38.4},
+    {&quot;x&quot;:&quot;queue depth&quot;,&quot;y&quot;:-52.1},
+    {&quot;x&quot;:&quot;deploy time&quot;,&quot;y&quot;:-71.8},
+    {&quot;x&quot;:&quot;on-call pages&quot;,&quot;y&quot;:-27.6},
+    {&quot;x&quot;:&quot;throughput&quot;,&quot;y&quot;:18.3}
   ] }],
-  "options": { "valueLabels": true }
+  &quot;options&quot;: { &quot;sortDescending&quot;: false, &quot;valueLabels&quot;: true }
 }</code></pre>
-<p>The trend over the four weeks following the launch tells a slightly
-different story. The latency win held steady; queue depth drifted
-back upward as user adoption climbed; deploy time stayed flat. The
-line chart below shows the four-week weekly average for the three
-infrastructure metrics, indexed to the pre-launch baseline (= 100).</p>
+<p data-ve-comment-id="63d83920" data-ve-pnum="5">The trend over the four weeks following the launch tells a slightly different story. The latency win held steady; queue depth drifted back upward as user adoption climbed; deploy time stayed flat. The line chart below shows the four-week weekly average for the three infrastructure metrics, indexed to the pre-launch baseline (= 100).</p>
 <pre><code class="language-chart:line@1">{
-  "title": "Post-launch four-week trajectory (baseline = 100)",
-  "series": [
-    { "label": "p99 latency", "data": [
-      {"x":"W+1","y":62},{"x":"W+2","y":64},
-      {"x":"W+3","y":61},{"x":"W+4","y":63}] },
-    { "label": "queue depth", "data": [
-      {"x":"W+1","y":48},{"x":"W+2","y":55},
-      {"x":"W+3","y":64},{"x":"W+4","y":71}] },
-    { "label": "deploy time", "data": [
-      {"x":"W+1","y":28},{"x":"W+2","y":29},
-      {"x":"W+3","y":28},{"x":"W+4","y":31}] }
+  &quot;title&quot;: &quot;Post-launch four-week trajectory (baseline = 100)&quot;,
+  &quot;series&quot;: [
+    { &quot;label&quot;: &quot;p99 latency&quot;, &quot;data&quot;: [
+      {&quot;x&quot;:&quot;W+1&quot;,&quot;y&quot;:62},{&quot;x&quot;:&quot;W+2&quot;,&quot;y&quot;:64},
+      {&quot;x&quot;:&quot;W+3&quot;,&quot;y&quot;:61},{&quot;x&quot;:&quot;W+4&quot;,&quot;y&quot;:63}] },
+    { &quot;label&quot;: &quot;queue depth&quot;, &quot;data&quot;: [
+      {&quot;x&quot;:&quot;W+1&quot;,&quot;y&quot;:48},{&quot;x&quot;:&quot;W+2&quot;,&quot;y&quot;:55},
+      {&quot;x&quot;:&quot;W+3&quot;,&quot;y&quot;:64},{&quot;x&quot;:&quot;W+4&quot;,&quot;y&quot;:71}] },
+    { &quot;label&quot;: &quot;deploy time&quot;, &quot;data&quot;: [
+      {&quot;x&quot;:&quot;W+1&quot;,&quot;y&quot;:28},{&quot;x&quot;:&quot;W+2&quot;,&quot;y&quot;:29},
+      {&quot;x&quot;:&quot;W+3&quot;,&quot;y&quot;:28},{&quot;x&quot;:&quot;W+4&quot;,&quot;y&quot;:31}] }
   ]
 }</code></pre>
 <p data-ve-comment-id="d5e552b3" data-ve-pnum="6">The full headline table is below. <em>Direction</em> records whether the movement is in the desired direction (↓ for latency / queue / deploy / pages; ↑ for throughput).</p>
-<table data-ve-table="data" data-ve-table-csv="1"><thead><tr><th>Metric</th><th>Baseline</th><th>Post-launch</th><th>Δ absolute</th><th>Δ %</th><th>Direction</th></tr></thead><tbody><tr data-ve-comment-id="0df5757b" data-ve-pnum="7"><td>p99 request latency (ms)</td><td>410</td><td>254</td><td>−156</td><td>−38.4%</td><td>✓</td></tr><tr data-ve-comment-id="e782ebee" data-ve-pnum="8"><td>Average queue depth (msgs)</td><td>218</td><td>104</td><td>−114</td><td>−52.1%</td><td>✓</td></tr><tr data-ve-comment-id="1faefbbc" data-ve-pnum="9"><td>Median deploy time (minutes)</td><td>46</td><td>13</td><td>−33</td><td>−71.8%</td><td>✓</td></tr><tr data-ve-comment-id="04052350" data-ve-pnum="10"><td>On-call pages per week</td><td>12.3</td><td>8.9</td><td>−3.4</td><td>−27.6%</td><td>✓</td></tr><tr data-ve-comment-id="ce9be905" data-ve-pnum="11"><td>Sustained throughput (req/s)</td><td>3,200</td><td>3,786</td><td>586</td><td>+18.3%</td><td>✓</td></tr></tbody></table></div>
+<table><thead><tr><th>Metric</th><th>Baseline</th><th>Post-launch</th><th>Δ absolute</th><th>Δ %</th><th>Direction</th></tr></thead><tbody><tr data-ve-comment-id="0df5757b" data-ve-pnum="7"><td>p99 request latency (ms)</td><td>410</td><td>254</td><td>−156</td><td>−38.4%</td><td>✓</td></tr><tr data-ve-comment-id="e782ebee" data-ve-pnum="8"><td>Average queue depth (msgs)</td><td>218</td><td>104</td><td>−114</td><td>−52.1%</td><td>✓</td></tr><tr data-ve-comment-id="1faefbbc" data-ve-pnum="9"><td>Median deploy time (minutes)</td><td>46</td><td>13</td><td>−33</td><td>−71.8%</td><td>✓</td></tr><tr data-ve-comment-id="04052350" data-ve-pnum="10"><td>On-call pages per week</td><td>12.3</td><td>8.9</td><td>−3.4</td><td>−27.6%</td><td>✓</td></tr><tr data-ve-comment-id="ce9be905" data-ve-pnum="11"><td>Sustained throughput (req/s)</td><td>3,200</td><td>3,786</td><td>586</td><td>+18.3%</td><td>✓</td></tr></tbody></table></div>
   <div class="ve-finding-thread">
     
     <textarea class="ve-finding-reply" data-ve-finding-reply
@@ -420,25 +402,19 @@ async function handle(request) {
   </fieldset>
   <div class="ve-finding-body"><p data-ve-comment-id="8574c081" data-ve-pnum="28">The icon-svg block below sketches the Phoenix service dependency graph at the architectural level. Five primitive node shapes carry the meaning: <code>process</code> for stateful services, <code>database</code> for persistent stores, <code>decision</code> for routing services, <code>external</code> for third-party APIs, and <code>network</code> for shared edge infrastructure.</p>
 <pre><code class="language-icon-svg">{
-  "viewBox": [0, 0, 1000, 1000],
-  "ariaLabel": "Phoenix service dependency graph",
-  "primitives": [
-    { "type": "process",  "id": "api",     "x": 60,  "y": 60,  "w": 380, "h": 150, "label": "API gateway" },
-    { "type": "process",  "id": "auth",    "x": 560, "y": 60,  "w": 380, "h": 150, "label": "Auth service" },
-    { "type": "decision", "id": "router",  "x": 320, "y": 280, "w": 360, "h": 160, "label": "Tenant router", "variant": "warning" },
-    { "type": "process",  "id": "cache",   "x": 60,  "y": 500, "w": 380, "h": 160, "label": "Cache cluster", "variant": "info" },
-    { "type": "database", "id": "primary", "x": 560, "y": 500, "w": 380, "h": 200, "label": "Primary store" },
-    { "type": "external", "id": "billing", "x": 60,  "y": 760, "w": 380, "h": 180, "label": "Billing API" },
-    { "type": "network",  "id": "edge",    "x": 560, "y": 760, "w": 380, "h": 180, "label": "CDN edge", "variant": "success" }
+  &quot;viewBox&quot;: [0, 0, 1000, 1000],
+  &quot;ariaLabel&quot;: &quot;Phoenix service dependency graph&quot;,
+  &quot;primitives&quot;: [
+    { &quot;type&quot;: &quot;process&quot;,  &quot;id&quot;: &quot;api&quot;,     &quot;x&quot;: 60,  &quot;y&quot;: 60,  &quot;w&quot;: 380, &quot;h&quot;: 150, &quot;label&quot;: &quot;API gateway&quot; },
+    { &quot;type&quot;: &quot;process&quot;,  &quot;id&quot;: &quot;auth&quot;,    &quot;x&quot;: 560, &quot;y&quot;: 60,  &quot;w&quot;: 380, &quot;h&quot;: 150, &quot;label&quot;: &quot;Auth service&quot; },
+    { &quot;type&quot;: &quot;decision&quot;, &quot;id&quot;: &quot;router&quot;,  &quot;x&quot;: 320, &quot;y&quot;: 280, &quot;w&quot;: 360, &quot;h&quot;: 160, &quot;label&quot;: &quot;Tenant router&quot;, &quot;variant&quot;: &quot;warning&quot; },
+    { &quot;type&quot;: &quot;process&quot;,  &quot;id&quot;: &quot;cache&quot;,   &quot;x&quot;: 60,  &quot;y&quot;: 500, &quot;w&quot;: 380, &quot;h&quot;: 160, &quot;label&quot;: &quot;Cache cluster&quot;, &quot;variant&quot;: &quot;info&quot; },
+    { &quot;type&quot;: &quot;database&quot;, &quot;id&quot;: &quot;primary&quot;, &quot;x&quot;: 560, &quot;y&quot;: 500, &quot;w&quot;: 380, &quot;h&quot;: 200, &quot;label&quot;: &quot;Primary store&quot; },
+    { &quot;type&quot;: &quot;external&quot;, &quot;id&quot;: &quot;billing&quot;, &quot;x&quot;: 60,  &quot;y&quot;: 760, &quot;w&quot;: 380, &quot;h&quot;: 180, &quot;label&quot;: &quot;Billing API&quot; },
+    { &quot;type&quot;: &quot;network&quot;,  &quot;id&quot;: &quot;edge&quot;,    &quot;x&quot;: 560, &quot;y&quot;: 760, &quot;w&quot;: 380, &quot;h&quot;: 180, &quot;label&quot;: &quot;CDN edge&quot;, &quot;variant&quot;: &quot;success&quot; }
   ]
 }</code></pre>
-<p>Two observations the diagram makes obvious that the prose does not.
-First, <strong>the tenant router is the new single point of contention</strong>
-— every request flows through it, and it is the one new service
-Phoenix introduced. Second, <strong>the cache cluster and primary store
-are siblings</strong> under the router, which means a router outage takes
-both reads and writes offline together. That coupling is the next
-piece of architectural work we want to revisit.</p></div>
+<p data-ve-comment-id="a9240665" data-ve-pnum="29">Two observations the diagram makes obvious that the prose does not. First, <strong>the tenant router is the new single point of contention</strong> — every request flows through it, and it is the one new service Phoenix introduced. Second, **the cache cluster and primary store are siblings** under the router, which means a router outage takes both reads and writes offline together. That coupling is the next piece of architectural work we want to revisit.</p></div>
   <div class="ve-finding-thread">
     
     <textarea class="ve-finding-reply" data-ve-finding-reply
@@ -470,7 +446,7 @@ piece of architectural work we want to revisit.</p></div>
             tabindex="-1">Reject</button>
   </fieldset>
   <div class="ve-finding-body"><p data-ve-comment-id="4a100dfe" data-ve-pnum="30">The deploy pipeline rewrite is the second-largest behaviour change in Phoenix. The pre-Phoenix pipeline was eleven serial stages with no parallelism; the Phoenix pipeline is six stages with three of them parallel. The table below compares the two side-by-side; the &quot;After&quot; column is the one we want to lift to the rest of the fleet.</p>
-<table data-ve-table="compare"><thead><tr><th>Stage / property</th><th data-ve-col-icon="✗">Before (pre-Phoenix)</th><th data-ve-col-icon="✓" data-ve-col-emphasis="1">After (Phoenix)</th></tr></thead><tbody><tr data-ve-comment-id="e49aed52" data-ve-pnum="31"><td>Stages total</td><td>11 serial</td><td>6 (3 of them parallel)</td></tr><tr data-ve-comment-id="ba99fd58" data-ve-pnum="32"><td>Median wall-clock time</td><td>46 min</td><td>13 min</td></tr><tr data-ve-comment-id="4a0d508a" data-ve-pnum="33"><td>p95 wall-clock time</td><td>78 min</td><td>21 min</td></tr><tr data-ve-comment-id="3c301376" data-ve-pnum="34"><td>Manual approval steps</td><td>2</td><td>1 (production gate only)</td></tr><tr data-ve-comment-id="cfaef5cb" data-ve-pnum="35"><td>Rollback time</td><td>18 min</td><td>90 seconds (canary auto-revert)</td></tr><tr data-ve-comment-id="8c2d7027" data-ve-pnum="36"><td>Test parallelism</td><td>None</td><td>8-way per stage</td></tr><tr data-ve-comment-id="48bb1873" data-ve-pnum="37"><td>Cache layer</td><td>None</td><td>Per-PR Docker layer cache</td></tr><tr data-ve-comment-id="f5d20abb" data-ve-pnum="38"><td>Failure-recovery story</td><td>Re-run from start</td><td>Re-run from last green stage</td></tr></tbody></table>
+<table><thead><tr><th>Stage / property</th><th>Before (pre-Phoenix)</th><th>After (Phoenix)</th></tr></thead><tbody><tr data-ve-comment-id="e49aed52" data-ve-pnum="31"><td>Stages total</td><td>11 serial</td><td>6 (3 of them parallel)</td></tr><tr data-ve-comment-id="ba99fd58" data-ve-pnum="32"><td>Median wall-clock time</td><td>46 min</td><td>13 min</td></tr><tr data-ve-comment-id="4a0d508a" data-ve-pnum="33"><td>p95 wall-clock time</td><td>78 min</td><td>21 min</td></tr><tr data-ve-comment-id="3c301376" data-ve-pnum="34"><td>Manual approval steps</td><td>2</td><td>1 (production gate only)</td></tr><tr data-ve-comment-id="cfaef5cb" data-ve-pnum="35"><td>Rollback time</td><td>18 min</td><td>90 seconds (canary auto-revert)</td></tr><tr data-ve-comment-id="8c2d7027" data-ve-pnum="36"><td>Test parallelism</td><td>None</td><td>8-way per stage</td></tr><tr data-ve-comment-id="48bb1873" data-ve-pnum="37"><td>Cache layer</td><td>None</td><td>Per-PR Docker layer cache</td></tr><tr data-ve-comment-id="f5d20abb" data-ve-pnum="38"><td>Failure-recovery story</td><td>Re-run from start</td><td>Re-run from last green stage</td></tr></tbody></table>
 <p data-ve-comment-id="6fd3f7dc" data-ve-pnum="39">The single most-cited improvement in the retro was the **rollback time** dropping from 18 minutes to 90 seconds. The canary auto-revert is what makes the on-call experience qualitatively different: a shipped regression is now an annoyance, not an incident.</p></div>
   <div class="ve-finding-thread">
     
@@ -503,7 +479,7 @@ piece of architectural work we want to revisit.</p></div>
             tabindex="-1">Reject</button>
   </fieldset>
   <div class="ve-finding-body"><p data-ve-comment-id="656354fa" data-ve-pnum="40">The release scope was 17 deliverables; 14 shipped on the launch day, 2 shipped in the patch release one week later, 1 slipped to Q2. The matrix below lists every deliverable, what state it was in at launch, and whether it cleared its acceptance test (light / dark / RTL / a11y). A dash means the criterion did not apply.</p>
-<table data-ve-table="data"><thead><tr><th>Deliverable</th><th>Status</th><th data-ve-nosort>Light</th><th data-ve-nosort>Dark</th><th data-ve-nosort>RTL</th><th data-ve-nosort>a11y</th></tr></thead><tbody><tr data-ve-comment-id="9deb07f3" data-ve-pnum="41"><td>Cache rewrite</td><td>Shipped</td><td>✓</td><td>✓</td><td>—</td><td>✓</td></tr><tr data-ve-comment-id="dc7cf66c" data-ve-pnum="42"><td>Tenant router</td><td>Shipped</td><td>✓</td><td>✓</td><td>—</td><td>✓</td></tr><tr data-ve-comment-id="6af8de05" data-ve-pnum="43"><td>Deploy pipeline rewrite</td><td>Shipped</td><td>—</td><td>—</td><td>—</td><td>—</td></tr><tr data-ve-comment-id="ef82581e" data-ve-pnum="44"><td>Admin dashboard v2</td><td>Shipped</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr><tr data-ve-comment-id="0f11d681" data-ve-pnum="45"><td>Billing webhook v3</td><td>Shipped</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr><tr data-ve-comment-id="eeeda44f" data-ve-pnum="46"><td>SSO provider expansion</td><td>Shipped</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr><tr data-ve-comment-id="bc83dd91" data-ve-pnum="47"><td>Audit log retention</td><td>Shipped</td><td>—</td><td>—</td><td>—</td><td>✓</td></tr><tr data-ve-comment-id="6d099634" data-ve-pnum="48"><td>Cost dashboard rewrite</td><td>Shipped</td><td>✓</td><td>✓</td><td>✓</td><td>◐</td></tr><tr data-ve-comment-id="acf2b1c6" data-ve-pnum="49"><td>Search relevance tweak</td><td>Shipped</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr><tr data-ve-comment-id="e902a650" data-ve-pnum="50"><td>Onboarding redesign</td><td>Patch</td><td>✓</td><td>◐</td><td>✗</td><td>◐</td></tr><tr data-ve-comment-id="2fc82e1c" data-ve-pnum="51"><td>Mobile push polish</td><td>Patch</td><td>✓</td><td>✓</td><td>—</td><td>✓</td></tr><tr data-ve-comment-id="f36c9081" data-ve-pnum="52"><td>Document export refresh</td><td>Slipped Q2</td><td>—</td><td>—</td><td>—</td><td>—</td></tr></tbody></table>
+<table><thead><tr><th>Deliverable</th><th>Status</th><th>Light</th><th>Dark</th><th>RTL</th><th>a11y</th></tr></thead><tbody><tr data-ve-comment-id="9deb07f3" data-ve-pnum="41"><td>Cache rewrite</td><td>Shipped</td><td>✓</td><td>✓</td><td>—</td><td>✓</td></tr><tr data-ve-comment-id="dc7cf66c" data-ve-pnum="42"><td>Tenant router</td><td>Shipped</td><td>✓</td><td>✓</td><td>—</td><td>✓</td></tr><tr data-ve-comment-id="6af8de05" data-ve-pnum="43"><td>Deploy pipeline rewrite</td><td>Shipped</td><td>—</td><td>—</td><td>—</td><td>—</td></tr><tr data-ve-comment-id="ef82581e" data-ve-pnum="44"><td>Admin dashboard v2</td><td>Shipped</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr><tr data-ve-comment-id="0f11d681" data-ve-pnum="45"><td>Billing webhook v3</td><td>Shipped</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr><tr data-ve-comment-id="eeeda44f" data-ve-pnum="46"><td>SSO provider expansion</td><td>Shipped</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr><tr data-ve-comment-id="bc83dd91" data-ve-pnum="47"><td>Audit log retention</td><td>Shipped</td><td>—</td><td>—</td><td>—</td><td>✓</td></tr><tr data-ve-comment-id="6d099634" data-ve-pnum="48"><td>Cost dashboard rewrite</td><td>Shipped</td><td>✓</td><td>✓</td><td>✓</td><td>◐</td></tr><tr data-ve-comment-id="acf2b1c6" data-ve-pnum="49"><td>Search relevance tweak</td><td>Shipped</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr><tr data-ve-comment-id="e902a650" data-ve-pnum="50"><td>Onboarding redesign</td><td>Patch</td><td>✓</td><td>◐</td><td>✗</td><td>◐</td></tr><tr data-ve-comment-id="2fc82e1c" data-ve-pnum="51"><td>Mobile push polish</td><td>Patch</td><td>✓</td><td>✓</td><td>—</td><td>✓</td></tr><tr data-ve-comment-id="f36c9081" data-ve-pnum="52"><td>Document export refresh</td><td>Slipped Q2</td><td>—</td><td>—</td><td>—</td><td>—</td></tr></tbody></table>
 <p data-ve-comment-id="7b403caa" data-ve-pnum="53">The two <strong>partial</strong> dark-mode results are the items we want to revisit first; the <strong>RTL fail</strong> on onboarding is already on the hotfix list. The slipped Q2 item (document export) was a deliberate descope, not a missed deadline — the scope expanded mid-flight and we made the call to do it right next quarter.</p></div>
   <div class="ve-finding-thread">
     
@@ -601,26 +577,7 @@ piece of architectural work we want to revisit.</p></div>
             tabindex="-1">Reject</button>
   </fieldset>
   <div class="ve-finding-body"><p data-ve-comment-id="36562afd" data-ve-pnum="63">The rest of this page (rendered alongside the prose above) carries the full set of supporting visuals — design-token contact sheet, layout shells, animation reveals, interactive tab/filter widget, small slide capsule, low-fidelity wireframe of the dashboard mock-up the design team produced. Each of those is a separate <em>technique</em> shipped by the plugin&#x27;s visualize layer; this page is the proof that all 13 of them compose into one document without runtime conflict.</p>
-<p data-ve-comment-id="5a983423" data-ve-pnum="64">The supporting visuals are written directly into the rendered HTML (below this paragraph) rather than through the markdown source, because the markdown renderer does not pass raw HTML through; that is a known and deliberate limitation of the interactive-report pipeline. The supporting blocks therefore live in the rendered HTML between the <code>&lt;!-- begin all-techniques injection --&gt;</code> and <code>&lt;!-- end all-techniques injection --&gt;</code> markers.</p></div>
-  <div class="ve-finding-thread">
-    
-    <textarea class="ve-finding-reply" data-ve-finding-reply
-              data-ve-finding-id="finding-10"
-              placeholder="Reply to this finding…" rows="3"></textarea>
-  </div>
-</section>
-
-  </article>
-
-  <!-- ─────────────────────────────────────────────────────────────────
-       BEGIN ALL-TECHNIQUES INJECTION
-
-       The blocks below exercise every visualize-skill module that
-       requires raw HTML (the markdown renderer escapes raw HTML, so
-       these cannot live in the .md source). Each section is one
-       technique — the comments name the module bundle that consumes it.
-       ───────────────────────────────────────────────────────────────── -->
-
+<p data-ve-comment-id="2b6bc0c3" data-ve-pnum="64">The supporting visuals below are written directly into the markdown via the <code>&lt;!-- ve-raw-html-start --&gt;</code> / <code>&lt;!-- ve-raw-html-end --&gt;</code> pass-through markers added by Phase 4 (DEFECT-E fix). The renderer emits the lines between the markers verbatim, no HTML escaping, so the structured DOM that several visualize-skill techniques require (scene-graph, wireframe, layout grids, interactive controls, token-sheet, slide-deck JSON) survives intact.</p>
   <hr>
 
   <h2>Appendix A — Layout shells (technique #2 — amvcp-layout)</h2>
@@ -1190,8 +1147,16 @@ piece of architectural work we want to revisit.</p></div>
       }
     })();
   </script>
+</div>
+  <div class="ve-finding-thread">
+    
+    <textarea class="ve-finding-reply" data-ve-finding-reply
+              data-ve-finding-id="finding-10"
+              placeholder="Reply to this finding…" rows="3"></textarea>
+  </div>
+</section>
 
-  <!-- END ALL-TECHNIQUES INJECTION ─────────────────────────────────── -->
+  </article>
 </main>
 <!-- The DESIGN.md style engine MUST load BEFORE every Phase 2 module
      bundle (those modules consume the design tokens it installs) and

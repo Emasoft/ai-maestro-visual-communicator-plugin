@@ -9,6 +9,8 @@ metadata:
 
 # Typography
 
+> **Parent umbrella:** [`skills/amvcp-visual-communication/SKILL.md`](../amvcp-visual-communication/SKILL.md) — load the umbrella first to route between the 13 category skills.
+
 ## Overview
 
 The typography skill is the **foundation recipe** (Tier 1) that gives

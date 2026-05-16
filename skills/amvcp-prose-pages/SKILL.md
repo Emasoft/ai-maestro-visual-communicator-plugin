@@ -8,6 +8,8 @@ metadata:
 
 # Report-doc — the cross-cutting non-element technique
 
+> **Parent umbrella:** [`skills/amvcp-visual-communication/SKILL.md`](../amvcp-visual-communication/SKILL.md) — load the umbrella first to route between the 13 category skills.
+
 ## What this skill does
 
 `report-doc` is the visual-communicator plugin's **non-element,

@@ -9,6 +9,8 @@ metadata:
 
 # Layout
 
+> **Parent umbrella:** [`skills/amvcp-visual-communication/SKILL.md`](../amvcp-visual-communication/SKILL.md) — load the umbrella first to route between the 13 category skills.
+
 ## Overview
 
 Loads on requests for a layout, grid, dashboard, reading page, KPI row, table of contents, sticky header, toolbar, hero, print / PDF layout, cover page, device mockup, or RTL-aware document. Produces one self-contained `.html` themed entirely by the DESIGN.md engine — every region is a `data-ve-id` selectable atom and every length is a `--vc-space-*` token or a `--la-*` alias. The layout system is greenfield: named CSS-Grid presets, a measured reading container with wide-bleed escape hatches, a scroll-spy TOC, print rules with page breaks and cover pages, sticky page chrome (opaque + glass), and decorative surfaces.

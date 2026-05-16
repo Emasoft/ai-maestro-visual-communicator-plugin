@@ -9,6 +9,8 @@ metadata:
 
 # Wireframe
 
+> **Parent umbrella:** [`skills/amvcp-visual-communication/SKILL.md`](../amvcp-visual-communication/SKILL.md) — load the umbrella first to route between the 13 category skills.
+
 ## Overview
 
 Loads on requests to wireframe, mock up, prototype, or sketch a UI at low fidelity. Renders a **navigable grayscale wireframe** through four cohesive layers — all dependency-free CSS + plain HTML, with one small vanilla-JS module for the fidelity engine.
