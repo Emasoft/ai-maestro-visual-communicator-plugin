@@ -363,7 +363,236 @@
     el.appendChild(hex);
   }
 
-  // ── §6 ve-rank-list ────────────────────────────────────────────────
+  // ── §6 ve-slider ───────────────────────────────────────────────────
+  //
+  // Themed range slider. Optional ticks[] array renders labeled
+  // marks below the track via a <datalist>. The current value
+  // displays to the right of the slider with its (optional) unit.
+  function initSlider(el) {
+    if (!el || el.__veInited) { return; }
+    var id = requireId(el);
+    if (!id) { return; }
+    var model = readModel(el) || {};
+    el.__veInited = true;
+    el.setAttribute('data-ve-type', 'slider');
+    var def = {
+      value: typeof model.value === 'number' ? model.value : 0,
+      min:   typeof model.min   === 'number' ? model.min   : 0,
+      max:   typeof model.max   === 'number' ? model.max   : 100,
+      step:  typeof model.step  === 'number' ? model.step  : 1,
+      unit:  model.unit || ''
+    };
+    var current = loadValue(id, def.value);
+    if (typeof current !== 'number') { current = def.value; }
+    var labelText = model.label || el.getAttribute('data-ve-label') || '';
+    el.textContent = '';
+    if (labelText) {
+      var lab = document.createElement('label');
+      lab.className = 've-slider-label';
+      lab.textContent = labelText;
+      el.appendChild(lab);
+    }
+    var row = document.createElement('div');
+    row.className = 've-slider-row';
+    var input = document.createElement('input');
+    input.type = 'range';
+    input.className = 've-slider-value';
+    input.min  = String(def.min);
+    input.max  = String(def.max);
+    input.step = String(def.step);
+    input.value = String(current);
+    var listId = '';
+    if (Array.isArray(model.ticks) && model.ticks.length) {
+      listId = 've-slider-ticks-' + Math.random().toString(36).slice(2, 8);
+      var dl = document.createElement('datalist');
+      dl.id = listId;
+      for (var t = 0; t < model.ticks.length; t++) {
+        var tick = model.ticks[t];
+        var op = document.createElement('option');
+        op.value = String(tick.value !== undefined ? tick.value : tick);
+        if (tick.label) { op.label = tick.label; }
+        dl.appendChild(op);
+      }
+      el.appendChild(dl);
+      input.setAttribute('list', listId);
+    }
+    var readout = document.createElement('span');
+    readout.className = 've-slider-readout';
+    function paint(v) {
+      readout.textContent = v + (def.unit ? (' ' + def.unit) : '');
+    }
+    paint(current);
+    input.addEventListener('input', function () {
+      var v = parseFloat(input.value);
+      if (!isFinite(v)) { v = def.value; }
+      paint(v);
+      saveValue(id, v);
+      emitChange('slider', id, v);
+    });
+    row.appendChild(input);
+    row.appendChild(readout);
+    el.appendChild(row);
+    // Render tick labels under the track when supplied
+    if (Array.isArray(model.ticks) && model.ticks.length) {
+      var legend = document.createElement('div');
+      legend.className = 've-slider-tick-labels';
+      var range = (def.max - def.min) || 1;
+      for (var ti = 0; ti < model.ticks.length; ti++) {
+        var tk = model.ticks[ti];
+        var val = tk.value !== undefined ? tk.value : tk;
+        var pct = ((val - def.min) / range) * 100;
+        var sp = document.createElement('span');
+        sp.className = 've-slider-tick';
+        sp.style.left = pct + '%';
+        sp.textContent = tk.label || String(val);
+        legend.appendChild(sp);
+      }
+      el.appendChild(legend);
+    }
+  }
+
+  // ── §7 ve-toggle ───────────────────────────────────────────────────
+  //
+  // Themed boolean switch. Renders a label + an aria-checked button
+  // styled as a sliding pill (track + knob). Click toggles the state
+  // and fires ve-form-change with a boolean.
+  function initToggle(el) {
+    if (!el || el.__veInited) { return; }
+    var id = requireId(el);
+    if (!id) { return; }
+    var model = readModel(el) || {};
+    el.__veInited = true;
+    el.setAttribute('data-ve-type', 'toggle');
+    var current = loadValue(id,
+      typeof model.value === 'boolean' ? model.value : false);
+    var labelText = model.label || el.getAttribute('data-ve-label') || '';
+    el.textContent = '';
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 've-toggle-switch';
+    btn.setAttribute('role', 'switch');
+    btn.setAttribute('aria-checked', current ? 'true' : 'false');
+    if (labelText) { btn.setAttribute('aria-label', labelText); }
+    var knob = document.createElement('span');
+    knob.className = 've-toggle-knob';
+    btn.appendChild(knob);
+    var lab = document.createElement('span');
+    lab.className = 've-toggle-label';
+    lab.textContent = labelText;
+    el.appendChild(btn);
+    el.appendChild(lab);
+    // Optional on/off captions
+    if (model.onLabel || model.offLabel) {
+      var cap = document.createElement('span');
+      cap.className = 've-toggle-caption';
+      cap.textContent = current ? (model.onLabel || 'on')
+                                : (model.offLabel || 'off');
+      el.appendChild(cap);
+      btn.__veCaption = cap;
+      btn.__veCapOn  = model.onLabel  || 'on';
+      btn.__veCapOff = model.offLabel || 'off';
+    }
+    function flip() {
+      var v = !(btn.getAttribute('aria-checked') === 'true');
+      btn.setAttribute('aria-checked', v ? 'true' : 'false');
+      if (btn.__veCaption) {
+        btn.__veCaption.textContent = v ? btn.__veCapOn : btn.__veCapOff;
+      }
+      saveValue(id, v);
+      emitChange('toggle', id, v);
+    }
+    btn.addEventListener('click', flip);
+    btn.addEventListener('keydown', function (ev) {
+      if (ev.key === ' ' || ev.key === 'Enter') {
+        ev.preventDefault();
+        flip();
+      }
+    });
+    // Clicking the label also flips (matches native <label> behaviour)
+    lab.addEventListener('click', function () { btn.focus(); flip(); });
+  }
+
+  // ── §8 ve-rating ───────────────────────────────────────────────────
+  //
+  // 1-N star (or dot) rating. Reads model.max (default 5) and
+  // model.shape ("star" | "dot") to pick the glyph. Hover paints up
+  // to the hovered slot; click commits the choice. A 0 ("clear")
+  // button is shown on the right.
+  function initRating(el) {
+    if (!el || el.__veInited) { return; }
+    var id = requireId(el);
+    if (!id) { return; }
+    var model = readModel(el) || {};
+    el.__veInited = true;
+    el.setAttribute('data-ve-type', 'rating');
+    var max = (typeof model.max === 'number' && model.max > 0) ? model.max : 5;
+    var shape = (model.shape === 'dot') ? 'dot' : 'star';
+    var current = loadValue(id,
+      typeof model.value === 'number' ? model.value : 0);
+    if (typeof current !== 'number' || current < 0 || current > max) {
+      current = 0;
+    }
+    var labelText = model.label || el.getAttribute('data-ve-label') || '';
+    el.textContent = '';
+    if (labelText) {
+      var lab = document.createElement('label');
+      lab.className = 've-rating-label';
+      lab.textContent = labelText;
+      el.appendChild(lab);
+    }
+    var row = document.createElement('div');
+    row.className = 've-rating-row';
+    var slots = [];
+    function paint(level) {
+      for (var i = 0; i < slots.length; i++) {
+        if (i < level) { slots[i].classList.add('ve-rating-filled'); }
+        else { slots[i].classList.remove('ve-rating-filled'); }
+      }
+      readout.textContent = level + ' / ' + max;
+    }
+    for (var i = 0; i < max; i++) {
+      (function (idx) {
+        var slot = document.createElement('button');
+        slot.type = 'button';
+        slot.className = 've-rating-slot ve-rating-' + shape;
+        slot.setAttribute('aria-label', 'rate ' + (idx + 1));
+        slot.setAttribute('data-rating-value', String(idx + 1));
+        slot.textContent = (shape === 'star') ? '★' : '●';
+        slot.addEventListener('mouseenter', function () { paint(idx + 1); });
+        slot.addEventListener('focus',      function () { paint(idx + 1); });
+        slot.addEventListener('click', function (ev) {
+          ev.preventDefault();
+          current = idx + 1;
+          paint(current);
+          saveValue(id, current);
+          emitChange('rating', id, current);
+        });
+        row.appendChild(slot);
+        slots.push(slot);
+      })(i);
+    }
+    row.addEventListener('mouseleave', function () { paint(current); });
+    var clearBtn = document.createElement('button');
+    clearBtn.type = 'button';
+    clearBtn.className = 've-rating-clear';
+    clearBtn.textContent = '✕';
+    clearBtn.title = 'Clear rating';
+    clearBtn.setAttribute('aria-label', 'Clear rating');
+    clearBtn.addEventListener('click', function () {
+      current = 0;
+      paint(0);
+      saveValue(id, 0);
+      emitChange('rating', id, 0);
+    });
+    row.appendChild(clearBtn);
+    var readout = document.createElement('span');
+    readout.className = 've-rating-readout';
+    row.appendChild(readout);
+    el.appendChild(row);
+    paint(current);
+  }
+
+  // ── §9 ve-rank-list ────────────────────────────────────────────────
   //
   // Drag-to-reorder a <li> stack. Uses HTML5 drag-and-drop. Persists
   // the post-drag order as an array of `data-ve-rank-key` values; on
@@ -474,6 +703,12 @@
     for (var l = 0; l < dat.length; l++) { initDateInput(dat[l]); }
     var col = d.querySelectorAll('.ve-color-input');
     for (var m = 0; m < col.length; m++) { initColorInput(col[m]); }
+    var sld = d.querySelectorAll('.ve-slider');
+    for (var o = 0; o < sld.length; o++) { initSlider(sld[o]); }
+    var tog = d.querySelectorAll('.ve-toggle');
+    for (var p = 0; p < tog.length; p++) { initToggle(tog[p]); }
+    var rat = d.querySelectorAll('.ve-rating');
+    for (var q = 0; q < rat.length; q++) { initRating(rat[q]); }
     var rnk = d.querySelectorAll('.ve-rank-list');
     for (var n = 0; n < rnk.length; n++) { initRankList(rnk[n]); }
   }
@@ -483,7 +718,8 @@
     '/* ai-maestro-visual-communicator — form-inputs skill (injected) */',
 
     '.ve-quiz-radio, .ve-quiz-multi, .ve-numeric-input,',
-    '.ve-date-input, .ve-color-input, .ve-rank-list {',
+    '.ve-date-input, .ve-color-input, .ve-slider, .ve-toggle,',
+    '.ve-rating, .ve-rank-list {',
     '  display: block;',
     '  margin-block: 12px;',
     '  padding: 12px 14px;',
@@ -499,7 +735,9 @@
        model wires data-ve-id, but standalone usage still gets a hint. */
     '.ve-quiz-radio[data-ve-id]:hover, .ve-quiz-multi[data-ve-id]:hover,',
     '.ve-numeric-input[data-ve-id]:hover, .ve-date-input[data-ve-id]:hover,',
-    '.ve-color-input[data-ve-id]:hover, .ve-rank-list[data-ve-id]:hover {',
+    '.ve-color-input[data-ve-id]:hover, .ve-slider[data-ve-id]:hover,',
+    '.ve-toggle[data-ve-id]:hover, .ve-rating[data-ve-id]:hover,',
+    '.ve-rank-list[data-ve-id]:hover {',
     '  border-color: var(--vc-color-accent, #b8861f);',
     '}',
     '.ve-quiz-radio[data-ve-selected="1"],',
@@ -507,6 +745,9 @@
     '.ve-numeric-input[data-ve-selected="1"],',
     '.ve-date-input[data-ve-selected="1"],',
     '.ve-color-input[data-ve-selected="1"],',
+    '.ve-slider[data-ve-selected="1"],',
+    '.ve-toggle[data-ve-selected="1"],',
+    '.ve-rating[data-ve-selected="1"],',
     '.ve-rank-list[data-ve-selected="1"] {',
     '  border-color: var(--vc-color-accent, #b8861f);',
     '  box-shadow: 0 0 0 2px color-mix(in srgb,'
@@ -514,7 +755,8 @@
     '}',
 
     /* Shared labels */
-    '.ve-quiz-label, .ve-numeric-label, .ve-date-label, .ve-color-label {',
+    '.ve-quiz-label, .ve-numeric-label, .ve-date-label, .ve-color-label,',
+    '.ve-slider-label, .ve-rating-label {',
     '  display: block;',
     '  font-weight: 600;',
     '  color: var(--vc-color-content, #1f1a14);',
@@ -610,6 +852,148 @@
     '  letter-spacing: 0.02em;',
     '}',
 
+    /* Slider */
+    '.ve-slider-row {',
+    '  display: flex;',
+    '  align-items: center;',
+    '  gap: 12px;',
+    '}',
+    '.ve-slider-value {',
+    '  flex: 1;',
+    '  accent-color: var(--vc-color-accent, #b8861f);',
+    '  height: 18px;',
+    '  cursor: pointer;',
+    '}',
+    '.ve-slider-readout {',
+    '  font: 600 13px/1 var(--vc-font-mono, ui-monospace, monospace);',
+    '  color: var(--vc-color-content, #1f1a14);',
+    '  letter-spacing: 0.01em;',
+    '  min-width: 64px;',
+    '  text-align: right;',
+    '}',
+    '.ve-slider-tick-labels {',
+    '  position: relative;',
+    '  height: 18px;',
+    '  margin-top: 4px;',
+    '}',
+    '.ve-slider-tick {',
+    '  position: absolute;',
+    '  transform: translateX(-50%);',
+    '  font: 11px/1 var(--vc-font-body,'
+      + ' ui-sans-serif, system-ui, sans-serif);',
+    '  color: var(--vc-color-content-muted, #5b5343);',
+    '}',
+
+    /* Toggle */
+    '.ve-toggle {',
+    '  display: flex;',
+    '  align-items: center;',
+    '  gap: 12px;',
+    '  flex-wrap: wrap;',
+    '}',
+    '.ve-toggle-switch {',
+    '  -webkit-appearance: none;',
+    '  appearance: none;',
+    '  width: 42px;',
+    '  height: 24px;',
+    '  border-radius: 999px;',
+    '  border: 1px solid var(--vc-color-border-strong, #c9bfa3);',
+    '  background: var(--vc-color-surface-sunken, #f1ece0);',
+    '  position: relative;',
+    '  cursor: pointer;',
+    '  transition: background 160ms ease, border-color 160ms ease;',
+    '  padding: 0;',
+    '  flex: none;',
+    '}',
+    '.ve-toggle-switch:focus-visible {',
+    '  outline: 2px solid var(--vc-color-accent, #b8861f);',
+    '  outline-offset: 2px;',
+    '}',
+    '.ve-toggle-switch[aria-checked="true"] {',
+    '  background: var(--vc-color-accent, #b8861f);',
+    '  border-color: var(--vc-color-accent, #b8861f);',
+    '}',
+    '.ve-toggle-knob {',
+    '  position: absolute;',
+    '  top: 2px;',
+    '  left: 2px;',
+    '  width: 18px;',
+    '  height: 18px;',
+    '  border-radius: 50%;',
+    '  background: var(--vc-color-surface, #ffffff);',
+    '  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);',
+    '  transition: transform 160ms ease;',
+    '}',
+    '.ve-toggle-switch[aria-checked="true"] .ve-toggle-knob {',
+    '  transform: translateX(18px);',
+    '  background: var(--vc-color-on-accent, #ffffff);',
+    '}',
+    '.ve-toggle-label {',
+    '  font-weight: 600;',
+    '  color: var(--vc-color-content, #1f1a14);',
+    '  cursor: pointer;',
+    '}',
+    '.ve-toggle-caption {',
+    '  margin-left: auto;',
+    '  font: 600 12px/1 var(--vc-font-mono, ui-monospace, monospace);',
+    '  color: var(--vc-color-content-muted, #5b5343);',
+    '  text-transform: lowercase;',
+    '  letter-spacing: 0.04em;',
+    '}',
+
+    /* Rating */
+    '.ve-rating-row {',
+    '  display: flex;',
+    '  align-items: center;',
+    '  gap: 4px;',
+    '}',
+    '.ve-rating-slot {',
+    '  -webkit-appearance: none;',
+    '  appearance: none;',
+    '  background: transparent;',
+    '  border: 0;',
+    '  font: 22px/1 var(--vc-font-body,'
+      + ' ui-sans-serif, system-ui, sans-serif);',
+    '  color: var(--vc-color-border-strong, #c9bfa3);',
+    '  cursor: pointer;',
+    '  padding: 2px 4px;',
+    '  line-height: 1;',
+    '  transition: color 120ms ease;',
+    '}',
+    '.ve-rating-slot:focus-visible {',
+    '  outline: 2px solid var(--vc-color-accent, #b8861f);',
+    '  outline-offset: 2px;',
+    '  border-radius: 4px;',
+    '}',
+    '.ve-rating-filled {',
+    '  color: var(--vc-color-accent, #b8861f);',
+    '}',
+    '.ve-rating-dot { font-size: 18px; }',
+    '.ve-rating-clear {',
+    '  -webkit-appearance: none;',
+    '  appearance: none;',
+    '  background: transparent;',
+    '  border: 0;',
+    '  color: var(--vc-color-content-subtle, #8a8170);',
+    '  cursor: pointer;',
+    '  font: 14px/1 var(--vc-font-body,'
+      + ' ui-sans-serif, system-ui, sans-serif);',
+    '  margin-left: 8px;',
+    '  padding: 4px 6px;',
+    '  border-radius: 4px;',
+    '}',
+    '.ve-rating-clear:hover {',
+    '  background: color-mix(in srgb,'
+      + ' var(--vc-color-danger, #a84a32) 12%, transparent);',
+    '  color: var(--vc-color-danger, #a84a32);',
+    '}',
+    '.ve-rating-readout {',
+    '  margin-left: 12px;',
+    '  font: 600 12px/1 var(--vc-font-mono, ui-monospace, monospace);',
+    '  color: var(--vc-color-content-muted, #5b5343);',
+    '  font-variant-numeric: tabular-nums;',
+    '}',
+
     /* Rank list */
     '.ve-rank-list > ol, .ve-rank-list > ul {',
     '  list-style: decimal inside;',
@@ -678,6 +1062,9 @@
     initNumericInput: initNumericInput,
     initDateInput: initDateInput,
     initColorInput: initColorInput,
+    initSlider: initSlider,
+    initToggle: initToggle,
+    initRating: initRating,
     initRankList: initRankList,
     readModel: readModel,
     loadValue: loadValue,

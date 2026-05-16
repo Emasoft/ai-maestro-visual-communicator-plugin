@@ -64,6 +64,9 @@ async function testAllWidgetsInit(page) {
         '.ve-numeric-input': 'numeric-input',
         '.ve-date-input': 'date-input',
         '.ve-color-input': 'color-input',
+        '.ve-slider': 'slider',
+        '.ve-toggle': 'toggle',
+        '.ve-rating': 'rating',
         '.ve-rank-list': 'rank-list'
       };
       const bad = [];
@@ -348,6 +351,134 @@ async function testFailFastOnMissingId(page) {
     JSON.stringify(r));
 }
 
+async function testSliderRendersAndEmits(page) {
+  // ve-slider mounts a range input + readout, optional ticks, emits
+  // ve-form-change(kind=slider, value=<number>) on input.
+  const s = await setup(page);
+  if (!s.ok) {
+    record('form_inputs_slider_change', 'FAIL',
+      'slider mounts + emits change', s.error);
+    return;
+  }
+  const r = await page.evaluate(() => {
+    const root = document.querySelector('.ve-slider');
+    const input = root.querySelector('.ve-slider-value');
+    const readout = root.querySelector('.ve-slider-readout');
+    const ticks = root.querySelectorAll('.ve-slider-tick').length;
+    const initialReadout = readout.textContent;
+    input.value = '70';
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    const ev = window.__vcFormChanges.filter(e => e.kind === 'slider').pop();
+    return {
+      typeAttr: root.getAttribute('data-ve-type'),
+      tickCount: ticks,
+      initialReadout: initialReadout,
+      afterReadout: readout.textContent,
+      eventValue: ev ? ev.value : null,
+      lsValue: JSON.parse(localStorage.getItem(
+        'amvcp-form-input:slider:rollout-percent') || 'null')
+    };
+  });
+  const ok = r.typeAttr === 'slider'
+    && r.tickCount === 5
+    && r.afterReadout === '70 %'
+    && r.eventValue === 70
+    && r.lsValue === 70;
+  record('form_inputs_slider_change', ok ? 'PASS' : 'FAIL',
+    'slider renders ticks; input event fires + persists',
+    JSON.stringify(r));
+}
+
+async function testToggleFlipsState(page) {
+  // ve-toggle starts in model.value state; clicking flips aria-checked
+  // and emits ve-form-change(kind=toggle, value=<boolean>).
+  const s = await setup(page);
+  if (!s.ok) {
+    record('form_inputs_toggle_change', 'FAIL',
+      'toggle flips state + emits', s.error);
+    return;
+  }
+  const r = await page.evaluate(() => {
+    const root = document.querySelector('.ve-toggle');
+    const btn = root.querySelector('.ve-toggle-switch');
+    const initial = btn.getAttribute('aria-checked');
+    btn.click();
+    const after = btn.getAttribute('aria-checked');
+    const captionAfter = (root.querySelector('.ve-toggle-caption') || {}).textContent;
+    const ev = window.__vcFormChanges.filter(e => e.kind === 'toggle').pop();
+    // Keyboard Space flip
+    btn.dispatchEvent(new KeyboardEvent('keydown',
+      { bubbles: true, key: ' ', cancelable: true }));
+    const afterKey = btn.getAttribute('aria-checked');
+    return {
+      typeAttr: root.getAttribute('data-ve-type'),
+      initial: initial,
+      afterClick: after,
+      captionAfterClick: captionAfter,
+      eventValue: ev ? ev.value : null,
+      afterKeyboard: afterKey,
+      lsValue: JSON.parse(localStorage.getItem(
+        'amvcp-form-input:toggle:auto-rollback') || 'null')
+    };
+  });
+  const ok = r.typeAttr === 'toggle'
+    && r.initial === 'true'
+    && r.afterClick === 'false'
+    && r.captionAfterClick === 'OFF'
+    && r.eventValue === false
+    && r.afterKeyboard === 'true'
+    && r.lsValue === true;
+  record('form_inputs_toggle_change', ok ? 'PASS' : 'FAIL',
+    'toggle flips on click + Space; caption + LS update',
+    JSON.stringify(r));
+}
+
+async function testRatingClickAndClear(page) {
+  // ve-rating starts with model.value filled; clicking slot N fills
+  // N slots and emits N. Clearing fires 0 and zero filled slots.
+  const s = await setup(page);
+  if (!s.ok) {
+    record('form_inputs_rating_change', 'FAIL',
+      'rating click + clear', s.error);
+    return;
+  }
+  const r = await page.evaluate(() => {
+    const root = document.querySelector('.ve-rating');
+    const slots = root.querySelectorAll('.ve-rating-slot');
+    const initialFilled = root.querySelectorAll('.ve-rating-filled').length;
+    slots[4].click();  // pick the 5th star
+    const fillAfter5 = root.querySelectorAll('.ve-rating-filled').length;
+    const ev5 = window.__vcFormChanges.filter(e => e.kind === 'rating').pop();
+    root.querySelector('.ve-rating-clear').click();
+    const fillAfterClear = root.querySelectorAll('.ve-rating-filled').length;
+    const ev0 = window.__vcFormChanges.filter(e => e.kind === 'rating').pop();
+    return {
+      typeAttr: root.getAttribute('data-ve-type'),
+      slotCount: slots.length,
+      initialFilled: initialFilled,
+      fillAfter5: fillAfter5,
+      ev5Value: ev5 ? ev5.value : null,
+      fillAfterClear: fillAfterClear,
+      ev0Value: ev0 ? ev0.value : null,
+      readout: root.querySelector('.ve-rating-readout').textContent,
+      lsValue: JSON.parse(localStorage.getItem(
+        'amvcp-form-input:rating:confidence') || 'null')
+    };
+  });
+  const ok = r.typeAttr === 'rating'
+    && r.slotCount === 5
+    && r.initialFilled === 3
+    && r.fillAfter5 === 5
+    && r.ev5Value === 5
+    && r.fillAfterClear === 0
+    && r.ev0Value === 0
+    && r.readout === '0 / 5'
+    && r.lsValue === 0;
+  record('form_inputs_rating_change', ok ? 'PASS' : 'FAIL',
+    'rating slot click fills N + emits N; clear empties + emits 0',
+    JSON.stringify(r));
+}
+
 // ── Runner ───────────────────────────────────────────────────────────
 
 const tests = [
@@ -359,7 +490,10 @@ const tests = [
   testRankDragReorders,
   testPersistenceAcrossReload,
   testThemeTokensApplied,
-  testFailFastOnMissingId
+  testFailFastOnMissingId,
+  testSliderRendersAndEmits,
+  testToggleFlipsState,
+  testRatingClickAndClear
 ];
 
 const page = await browser.getPage("form-inputs-tests");

@@ -19,12 +19,12 @@ description: |
 
 # Form-input widgets
 
-A dependency-free runtime module that ships six structured-response
+A dependency-free runtime module that ships nine structured-response
 input widgets for conversational agent reports. The agent renders a
 question; the user answers via a typed widget (radio, checkbox,
-number+unit, date, color, rank) instead of typing prose. The result
-lands in a `ve-form-change` event with a stable payload the runtime
-threads into the comment-turn record.
+number+unit, date, color, slider, toggle, rating, rank) instead of
+typing prose. The result lands in a `ve-form-change` event with a
+stable payload the runtime threads into the comment-turn record.
 
 ## When to use this skill
 
@@ -38,6 +38,9 @@ Reach for a form-input widget whenever the agent's question has a
 | "How many [units of X]?"                          | `ve-numeric-input`|
 | "By what date should this ship?"                  | `ve-date-input`   |
 | "Pick a brand colour."                            | `ve-color-input`  |
+| "Tune a value on a 0–N scale."                    | `ve-slider`       |
+| "On / off?"                                       | `ve-toggle`       |
+| "Rate this 1–5."                                  | `ve-rating`       |
 | "Order these by priority."                        | `ve-rank-list`    |
 
 For anything **open-ended** (write a paragraph, paste a snippet,
@@ -156,6 +159,72 @@ Emits `{ kind: "date-input", id, value: "<yyyy-mm-dd>" }`.
 Emits `{ kind: "color-input", id, value: "#rrggbb" }`. The hex text
 next to the swatch updates live during drag.
 
+### `ve-slider` — themed range slider with optional ticks
+
+```html
+<div class="ve-slider" data-ve-id="<id>">
+  <script type="application/json">
+    {
+      "label": "<question>",
+      "value": 5,
+      "min":   0,
+      "max":   100,
+      "step":  1,
+      "unit":  "%",
+      "ticks": [
+        { "value":   0, "label":   "0%" },
+        { "value":  50, "label":  "50%" },
+        { "value": 100, "label": "100%" }
+      ]
+    }
+  </script>
+</div>
+```
+
+Emits `{ kind: "slider", id, value: <number> }`. Ticks are optional;
+when supplied the values land in a `<datalist>` (so HTML's native
+snap-to-tick works on browsers that support it) AND in a labelled
+row below the track.
+
+### `ve-toggle` — themed boolean switch
+
+```html
+<div class="ve-toggle" data-ve-id="<id>">
+  <script type="application/json">
+    {
+      "label":    "<question>",
+      "value":    true,
+      "onLabel":  "ON",          // optional caption
+      "offLabel": "OFF"
+    }
+  </script>
+</div>
+```
+
+Emits `{ kind: "toggle", id, value: <boolean> }`. Click OR keyboard
+Space/Enter flip the state. `aria-checked` and `role="switch"` are
+set so screen readers announce the state. The label flips state too
+(matches native `<label>` behaviour).
+
+### `ve-rating` — 1-N star (or dot) rating
+
+```html
+<div class="ve-rating" data-ve-id="<id>">
+  <script type="application/json">
+    {
+      "label": "<question>",
+      "max":   5,                // total slots (default 5)
+      "shape": "star",           // "star" | "dot"
+      "value": 3                 // initial filled count (0 = no rating)
+    }
+  </script>
+</div>
+```
+
+Emits `{ kind: "rating", id, value: <0..max> }`. Hover paints
+preview-fill; click commits. The ✕ button next to the row clears
+the rating (emits 0).
+
 ### `ve-rank-list` — drag-to-reorder
 
 ```html
@@ -253,6 +322,12 @@ See `tests/scripts/test-form-inputs.js`:
   hex color via `--vc-*`.
 - `form_inputs_fail_fast_no_id` — missing `data-ve-id` paints
   `[form-input error]` and renders nothing.
+- `form_inputs_slider_change` — slider renders ticks; input event
+  fires; LS persists.
+- `form_inputs_toggle_change` — toggle flips on click + Space;
+  caption + LS update.
+- `form_inputs_rating_change` — rating click fills N + emits N;
+  clear empties + emits 0.
 
 The fixture is `tests/fixtures/form-inputs-fixture.html` (one of
 each widget kind).

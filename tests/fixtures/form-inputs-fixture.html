@@ -120,6 +120,51 @@
     </script>
   </div>
 
+  <h2>slider (with ticks)</h2>
+  <div class="ve-slider" data-ve-id="slider:rollout-percent">
+    <script type="application/json">
+      {
+        "label": "Initial canary percentage:",
+        "value": 5,
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "unit": "%",
+        "ticks": [
+          { "value": 0,   "label": "0%" },
+          { "value": 25,  "label": "25%" },
+          { "value": 50,  "label": "50%" },
+          { "value": 75,  "label": "75%" },
+          { "value": 100, "label": "100%" }
+        ]
+      }
+    </script>
+  </div>
+
+  <h2>toggle</h2>
+  <div class="ve-toggle" data-ve-id="toggle:auto-rollback">
+    <script type="application/json">
+      {
+        "label": "Auto-rollback on regression?",
+        "value": true,
+        "onLabel": "ON",
+        "offLabel": "OFF"
+      }
+    </script>
+  </div>
+
+  <h2>rating (1-5 stars)</h2>
+  <div class="ve-rating" data-ve-id="rating:confidence">
+    <script type="application/json">
+      {
+        "label": "How confident are you?",
+        "max": 5,
+        "shape": "star",
+        "value": 3
+      }
+    </script>
+  </div>
+
   <h2>rank list (drag to reorder)</h2>
   <div class="ve-rank-list" data-ve-id="rank:priorities">
     <p class="ve-quiz-label">Drag to rank the priorities:</p>
