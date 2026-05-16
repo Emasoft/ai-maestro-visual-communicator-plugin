@@ -9238,66 +9238,160 @@
     panel.style.bottom = 'auto';
   }
 
-  // Pick the initial pod position when no saved one applies. Top-right
-  // with a 24px offset reads as "non-blocking" on a typical document.
+  // Pick the initial pod position when no saved one applies.
+  // BOTTOM-right (TRDD-9616579c regression #2 v2): top-right blocked
+  // findings header text. Bottom-right is well below typical
+  // report content density. 24px offset reads as "non-blocking".
   function veDesignMdDefaultPosition(panel) {
     var rect = panel.getBoundingClientRect();
     var w = rect.width || 360;
-    return { x: Math.max(8, window.innerWidth - w - 24), y: 24 };
+    var h = rect.height || 60;
+    return {
+      x: Math.max(8, window.innerWidth - w - 24),
+      y: Math.max(8, window.innerHeight - h - 24)
+    };
   }
 
-  // Auto-fade-when-idle (TRDD-9616579c regression #2).
+  // Auto-hide-when-idle (TRDD-9616579c regression #2, v2).
   //
-  // The pod hovers over content. Even with backdrop-filter blur, an
-  // opaque 360-px panel covers significant on-screen real estate. When
-  // the user's pointer is not over the pod, fade to 35% opacity so the
-  // covered content is readable through it. Pointer re-entry wakes it
-  // back to 100% instantly. The pod still accepts clicks while faded
-  // (opacity only — pointer-events stay 'auto'), so dragging it back
-  // into focus is one click away.
+  // v1 (opacity:0.35 fade) was insufficient: at the screenshot
+  // resolution the pod's text tokens (color names, "Choose File",
+  // "Loaded:") rendered through to overlap underlying table cells,
+  // creating a visual mess. The user explicitly flagged this in
+  // their second-day review: "still so messy".
   //
-  // The auto-fade is wired ONCE per pod; re-entry is idempotent via
-  // the data flag.
-  var VE_DESIGNMD_IDLE_OPACITY = '0.35';
-  var VE_DESIGNMD_AWAKE_OPACITY = '1';
+  // v2 strategy: when the pod is collapsed AND idle, hide the entire
+  // pod (visibility:hidden) and leave ONLY a tiny "🎨" handle button
+  // at the corner. Hovering the handle restores the pod to its full
+  // collapsed-but-visible state; clicking expands. The pod's
+  // text/color tokens never appear over content unless the user
+  // intentionally summons them.
+  //
+  // When the pod is EXPANDED (the user is actively editing tokens)
+  // it stays full-opacity — fading an active editing surface is
+  // anti-UX.
   var VE_DESIGNMD_IDLE_MS = 1500;
+  var VE_DESIGNMD_HANDLE_ID = 've-designmd-handle';
+
+  function _ensureDesignMdHandle() {
+    var existing = document.getElementById(VE_DESIGNMD_HANDLE_ID);
+    if (existing) { return existing; }
+    var btn = document.createElement('button');
+    btn.id = VE_DESIGNMD_HANDLE_ID;
+    btn.type = 'button';
+    btn.title = 'Open theme controls';
+    btn.setAttribute('aria-label', 'Open theme controls');
+    btn.textContent = '\u{1F3A8}';   // 🎨
+    btn.style.cssText = [
+      'position:fixed',
+      'right:8px',
+      'bottom:8px',
+      'z-index:2147483645',
+      'width:36px',
+      'height:36px',
+      'padding:0',
+      'border:1px solid var(--ve-control-border, rgba(0,0,0,0.18))',
+      'border-radius:50%',
+      'background:var(--ve-control-overlay-bg, rgba(255,255,255,0.92))',
+      'color:var(--ve-control-fg, #14110b)',
+      'font-size:18px',
+      'line-height:1',
+      'cursor:pointer',
+      'box-shadow:0 2px 8px rgba(0,0,0,0.22)',
+      'display:none',
+      'transition:transform 160ms ease, box-shadow 160ms ease',
+      ''
+    ].join(';');
+    btn.addEventListener('mouseenter', function () {
+      btn.style.transform = 'scale(1.08)';
+    });
+    btn.addEventListener('mouseleave', function () {
+      btn.style.transform = '';
+    });
+    document.body.appendChild(btn);
+    return btn;
+  }
 
   function veDesignMdWireAutoFade(panel) {
     if (!panel || panel.__veAutoFadeWired) { return; }
     panel.__veAutoFadeWired = true;
     panel.style.transition = (panel.style.transition
       ? panel.style.transition + ', '
-      : '') + 'opacity 220ms ease-out';
-    panel.style.opacity = VE_DESIGNMD_IDLE_OPACITY;
+      : '') + 'opacity 220ms ease-out, visibility 0ms linear 220ms';
 
+    var handle = _ensureDesignMdHandle();
     var idleTimer = null;
+
+    function isCollapsed() {
+      return panel.getAttribute('data-collapsed') === '1';
+    }
+    function hidePod() {
+      // Only hide when collapsed — expanded means the user is editing.
+      if (!isCollapsed()) { return; }
+      panel.style.opacity = '0';
+      panel.style.visibility = 'hidden';
+      panel.style.pointerEvents = 'none';
+      handle.style.display = 'inline-flex';
+    }
+    function showPod() {
+      panel.style.opacity = '1';
+      panel.style.visibility = 'visible';
+      panel.style.pointerEvents = 'auto';
+      handle.style.display = 'none';
+    }
     function wake() {
       if (idleTimer) {
         clearTimeout(idleTimer);
         idleTimer = null;
       }
-      panel.style.opacity = VE_DESIGNMD_AWAKE_OPACITY;
+      showPod();
     }
     function scheduleSleep() {
       if (idleTimer) { clearTimeout(idleTimer); }
-      idleTimer = setTimeout(function () {
-        panel.style.opacity = VE_DESIGNMD_IDLE_OPACITY;
-      }, VE_DESIGNMD_IDLE_MS);
+      // Don't sleep when expanded (user is editing tokens).
+      if (!isCollapsed()) { return; }
+      idleTimer = setTimeout(hidePod, VE_DESIGNMD_IDLE_MS);
     }
 
     panel.addEventListener('mouseenter', wake);
     panel.addEventListener('mouseleave', scheduleSleep);
-    // Touch interactions wake immediately too.
     panel.addEventListener('touchstart', wake, { passive: true });
     panel.addEventListener('touchend', scheduleSleep, { passive: true });
-    // Focus/keyboard activity within the pod also wakes it (so a user
-    // editing a token via the keyboard does not see the pod fade out
-    // under their fingers).
     panel.addEventListener('focusin', wake);
     panel.addEventListener('focusout', scheduleSleep);
 
-    // Start sleepy (so the first impression is "non-blocking").
-    scheduleSleep();
+    // Handle: hover/click restores the pod
+    handle.addEventListener('mouseenter', wake);
+    handle.addEventListener('click', function () {
+      wake();
+      // Auto-focus a sensible interactive target so screen readers
+      // announce that the pod is open.
+      var firstBtn = panel.querySelector('.ve-designmd-theme-toggle,'
+        + ' .ve-designmd-collapse');
+      if (firstBtn && firstBtn.focus) { firstBtn.focus(); }
+    });
+
+    // Re-evaluate sleep on collapse-state changes (so expanding the
+    // pod doesn't immediately get hidden by a pending timer).
+    var mo = new MutationObserver(function () {
+      if (!isCollapsed()) {
+        // Expanded — cancel any pending hide
+        if (idleTimer) { clearTimeout(idleTimer); idleTimer = null; }
+        showPod();
+      } else {
+        // Just collapsed — start the idle timer fresh
+        scheduleSleep();
+      }
+    });
+    mo.observe(panel, { attributes: true,
+      attributeFilter: ['data-collapsed'] });
+
+    // First-load behaviour: if pod started collapsed, hide it right
+    // away (the handle replaces it). Otherwise stay visible — the
+    // user is actively editing.
+    if (isCollapsed()) {
+      hidePod();
+    }
   }
 
   // Wire the title-bar drag. mousedown on the head (excluding buttons)
