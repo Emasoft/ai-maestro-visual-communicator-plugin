@@ -382,6 +382,120 @@
     </div>
   </section>
 
+  <h2>viewport scaffold (data-ve-scene-viewport) — pan + zoom + mini-map</h2>
+  <section>
+    <p>A wide, dense diagram inside a fixed-height viewport. Drag the
+       background to pan; scroll-wheel to zoom centred on the cursor;
+       use the toolbar (top-right) for explicit controls; drag inside
+       the mini-map (bottom-right) to jump.</p>
+    <div class="ve-scene-graph" id="scene-viewport"
+         data-ve-scene-preset="free"
+         data-ve-scene-viewport="420">
+      <script type="application/json">
+      {
+        "version": 1,
+        "preset": "free",
+        "grid": 4,
+        "width": 1800,
+        "height": 1100,
+        "background": "grid",
+        "groups": [
+          { "id": "vg-edge",   "label": "Edge",     "role": "client",
+            "x": 40,  "y": 40,  "w": 1720, "h": 200 },
+          { "id": "vg-svc",    "label": "Services", "role": "service",
+            "x": 40,  "y": 280, "w": 1720, "h": 360 },
+          { "id": "vg-data",   "label": "Data",     "role": "data",
+            "x": 40,  "y": 680, "w": 1720, "h": 200 },
+          { "id": "vg-infra",  "label": "Infra",    "role": "infra",
+            "x": 40,  "y": 920, "w": 1720, "h": 140 }
+        ],
+        "nodes": [
+          { "id": "vp-cdn",    "type": "process", "label": "CDN",
+            "role": "client",  "x": 80,   "y": 80 },
+          { "id": "vp-www",    "type": "process", "label": "Web app",
+            "role": "client",  "x": 320,  "y": 80 },
+          { "id": "vp-mob",    "type": "process", "label": "Mobile app",
+            "role": "client",  "x": 560,  "y": 80 },
+          { "id": "vp-edge2",  "type": "process", "label": "API edge",
+            "role": "client",  "x": 800,  "y": 80 },
+          { "id": "vp-bff1",   "type": "process", "label": "BFF web",
+            "role": "service", "x": 80,   "y": 320 },
+          { "id": "vp-bff2",   "type": "process", "label": "BFF mob",
+            "role": "service", "x": 320,  "y": 320 },
+          { "id": "vp-auth",   "type": "process", "label": "Auth",
+            "role": "service", "x": 560,  "y": 320 },
+          { "id": "vp-cat",    "type": "process", "label": "Catalog",
+            "role": "service", "x": 800,  "y": 320 },
+          { "id": "vp-cart",   "type": "process", "label": "Cart",
+            "role": "service", "x": 1040, "y": 320 },
+          { "id": "vp-order",  "type": "process", "label": "Orders",
+            "role": "service", "x": 1280, "y": 320 },
+          { "id": "vp-pay",    "type": "process", "label": "Payments",
+            "role": "service", "x": 1520, "y": 320 },
+          { "id": "vp-search", "type": "process", "label": "Search",
+            "role": "service", "x": 80,   "y": 480 },
+          { "id": "vp-rec",    "type": "process", "label": "Recommend",
+            "role": "service", "x": 320,  "y": 480 },
+          { "id": "vp-noti",   "type": "process", "label": "Notify",
+            "role": "service", "x": 560,  "y": 480 },
+          { "id": "vp-loyal",  "type": "process", "label": "Loyalty",
+            "role": "service", "x": 800,  "y": 480 },
+          { "id": "vp-fraud",  "type": "process", "label": "Fraud",
+            "role": "service", "x": 1040, "y": 480 },
+          { "id": "vp-ship",   "type": "process", "label": "Shipping",
+            "role": "service", "x": 1280, "y": 480 },
+          { "id": "vp-inv",    "type": "process", "label": "Inventory",
+            "role": "service", "x": 1520, "y": 480 },
+          { "id": "vp-pgsql",  "type": "process", "label": "Postgres",
+            "role": "data",    "x": 200,  "y": 720 },
+          { "id": "vp-redis",  "type": "process", "label": "Redis",
+            "role": "data",    "x": 480,  "y": 720 },
+          { "id": "vp-search2","type": "process", "label": "Search idx",
+            "role": "data",    "x": 760,  "y": 720 },
+          { "id": "vp-s3",     "type": "process", "label": "Object store",
+            "role": "data",    "x": 1040, "y": 720 },
+          { "id": "vp-kafka",  "type": "process", "label": "Kafka",
+            "role": "infra",   "x": 200,  "y": 960 },
+          { "id": "vp-otel",   "type": "process", "label": "OTel",
+            "role": "infra",   "x": 480,  "y": 960 },
+          { "id": "vp-vault",  "type": "process", "label": "Secrets",
+            "role": "infra",   "x": 760,  "y": 960 }
+        ],
+        "edges": [
+          { "from": "vp-cdn",   "to": "vp-www" },
+          { "from": "vp-www",   "to": "vp-edge2" },
+          { "from": "vp-mob",   "to": "vp-edge2" },
+          { "from": "vp-edge2", "to": "vp-bff1" },
+          { "from": "vp-edge2", "to": "vp-bff2" },
+          { "from": "vp-bff1",  "to": "vp-auth" },
+          { "from": "vp-bff1",  "to": "vp-cat" },
+          { "from": "vp-bff2",  "to": "vp-auth" },
+          { "from": "vp-bff2",  "to": "vp-cart" },
+          { "from": "vp-cart",  "to": "vp-order" },
+          { "from": "vp-order", "to": "vp-pay" },
+          { "from": "vp-order", "to": "vp-fraud" },
+          { "from": "vp-order", "to": "vp-ship" },
+          { "from": "vp-cat",   "to": "vp-search" },
+          { "from": "vp-cat",   "to": "vp-rec" },
+          { "from": "vp-pay",   "to": "vp-loyal" },
+          { "from": "vp-pay",   "to": "vp-noti" },
+          { "from": "vp-cat",   "to": "vp-pgsql" },
+          { "from": "vp-cart",  "to": "vp-redis" },
+          { "from": "vp-search","to": "vp-search2" },
+          { "from": "vp-order", "to": "vp-pgsql" },
+          { "from": "vp-pay",   "to": "vp-pgsql" },
+          { "from": "vp-noti",  "to": "vp-kafka" },
+          { "from": "vp-order", "to": "vp-kafka" },
+          { "from": "vp-pay",   "to": "vp-kafka" },
+          { "from": "vp-otel",  "to": "vp-kafka" },
+          { "from": "vp-auth",  "to": "vp-vault" },
+          { "from": "vp-pay",   "to": "vp-vault" }
+        ]
+      }
+      </script>
+    </div>
+  </section>
+
   <div style="height: 300px;"></div>
 </main>
 

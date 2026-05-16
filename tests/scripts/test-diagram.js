@@ -940,6 +940,272 @@ async function testP25SelectionContract(page) {
     JSON.stringify({ initial, afterSelect, afterClear }));
 }
 
+async function testViewportScaffoldMounted(page) {
+  // Viewport mode opt-in via data-ve-scene-viewport — host gets fixed
+  // height, overflow:hidden, and a 4-piece scaffold (stage, canvas,
+  // toolbar, mini-map). Default-mode scenes are unaffected.
+  const s = await setup(page);
+  if (!s.ok) {
+    record('diagram_viewport_scaffold_mounted', 'FAIL',
+      'viewport scaffold mounted', s.error);
+    return;
+  }
+  const r = await page.evaluate(() => {
+    const host = document.getElementById('scene-viewport');
+    if (!host) return { error: 'no scene-viewport' };
+    const stage   = host.querySelector(':scope > .ve-scene-stage');
+    const canvas  = stage ? stage.querySelector(':scope > .ve-scene-canvas') : null;
+    const svg     = canvas ? canvas.querySelector(':scope > svg') : null;
+    const tb      = host.querySelector(':scope > .ve-scene-toolbar');
+    const slider  = tb ? tb.querySelector('.ve-scene-zoom-slider') : null;
+    const minimap = host.querySelector(':scope > .ve-scene-minimap');
+    const frame   = minimap ? minimap.querySelector('.ve-scene-minimap-frame') : null;
+    const cs = window.getComputedStyle(host);
+    // Default-mode scene must NOT get the scaffold
+    const def = document.getElementById('scene-flow');
+    const defStage = def ? def.querySelector('.ve-scene-stage') : 'no-def';
+    return {
+      hostHeight: cs.height,
+      hostOverflow: cs.overflow,
+      hasStage: !!stage,
+      hasCanvas: !!canvas,
+      svgInsideCanvas: !!svg && svg.parentNode === canvas,
+      hasToolbar: !!tb,
+      hasSlider: !!slider,
+      toolbarBtnTitles: tb ? Array.from(tb.querySelectorAll('button'))
+        .map(b => b.title) : [],
+      hasMinimap: !!minimap,
+      hasMinimapFrame: !!frame,
+      defaultModeUntouched: !defStage
+    };
+  });
+  const titles = r.toolbarBtnTitles || [];
+  const ok = r.hostHeight === '420px'
+    && r.hostOverflow === 'hidden'
+    && r.hasStage && r.hasCanvas && r.svgInsideCanvas
+    && r.hasToolbar && r.hasSlider
+    && titles.indexOf('Zoom out') >= 0
+    && titles.indexOf('Zoom in')  >= 0
+    && titles.indexOf('Fit all')  >= 0
+    && titles.indexOf('Actual size') >= 0
+    && titles.indexOf('Fit width') >= 0
+    && r.hasMinimap && r.hasMinimapFrame
+    && r.defaultModeUntouched === true;
+  record('diagram_viewport_scaffold_mounted', ok ? 'PASS' : 'FAIL',
+    'data-ve-scene-viewport mounts stage+canvas+toolbar+minimap; defaults untouched',
+    JSON.stringify(r));
+}
+
+async function testViewportFitAllOnLoad(page) {
+  // The initial transform should be a fit-all centring of the scene
+  // inside the stage — scale ≈ min(stageW/sceneW, stageH/sceneH).
+  const s = await setup(page);
+  if (!s.ok) {
+    record('diagram_viewport_fit_all_on_load', 'FAIL',
+      'viewport fit-all on load', s.error);
+    return;
+  }
+  const r = await page.evaluate(() => {
+    const host = document.getElementById('scene-viewport');
+    const canvas = host.querySelector('.ve-scene-canvas');
+    const stage = host.querySelector('.ve-scene-stage');
+    const stageR = stage.getBoundingClientRect();
+    const m = canvas.style.transform.match(/scale\(([0-9.]+)\)/);
+    const scale = m ? parseFloat(m[1]) : null;
+    const expectScale = Math.min(stageR.width / 1800, stageR.height / 1100);
+    return {
+      scale: scale,
+      expect: expectScale,
+      stageW: stageR.width,
+      stageH: stageR.height,
+      delta: scale && expectScale
+        ? Math.abs(scale - expectScale) : 999
+    };
+  });
+  const ok = r.delta < 0.01;   // fit-all within 1%
+  record('diagram_viewport_fit_all_on_load', ok ? 'PASS' : 'FAIL',
+    'initial canvas transform is a fit-all scale (within 1% of computed)',
+    JSON.stringify(r));
+}
+
+async function testViewportZoomButtonsAndSlider(page) {
+  // Zoom in / out buttons + slider mutate scale + slider value;
+  // wheel zoom centres on cursor.
+  const s = await setup(page);
+  if (!s.ok) {
+    record('diagram_viewport_zoom_controls', 'FAIL',
+      'viewport zoom controls', s.error);
+    return;
+  }
+  const r = await page.evaluate(() => {
+    const host = document.getElementById('scene-viewport');
+    const tb = host.querySelector('.ve-scene-toolbar');
+    const btnIn  = Array.from(tb.querySelectorAll('button'))
+      .find(b => b.title === 'Zoom in');
+    const btnOut = Array.from(tb.querySelectorAll('button'))
+      .find(b => b.title === 'Zoom out');
+    const slider = tb.querySelector('.ve-scene-zoom-slider');
+    function scale() {
+      const m = host.querySelector('.ve-scene-canvas').style.transform
+        .match(/scale\(([0-9.]+)\)/);
+      return m ? parseFloat(m[1]) : null;
+    }
+    const s0 = scale();
+    btnIn.click();
+    btnIn.click();
+    const s1 = scale();
+    btnOut.click();
+    const s2 = scale();
+    // Now drive the slider to ~80%
+    slider.value = '80';
+    slider.dispatchEvent(new Event('input', { bubbles: true }));
+    const s3 = scale();
+    // Wheel zoom on stage
+    const stage = host.querySelector('.ve-scene-stage');
+    const r2 = stage.getBoundingClientRect();
+    stage.dispatchEvent(new WheelEvent('wheel', {
+      bubbles: true, cancelable: true,
+      clientX: r2.left + 50, clientY: r2.top + 50, deltaY: -120
+    }));
+    const s4 = scale();
+    return { s0, s1, s2, s3, s4 };
+  });
+  const ok = r.s1 > r.s0
+    && r.s2 < r.s1
+    && r.s3 !== null && r.s3 > 0.5
+    && r.s4 > r.s3;
+  record('diagram_viewport_zoom_controls', ok ? 'PASS' : 'FAIL',
+    'zoom-in/out, slider, and wheel all monotonically mutate scale',
+    JSON.stringify(r));
+}
+
+async function testViewportPanDrag(page) {
+  // After zoom-to-actual-size, dragging the stage shifts the canvas
+  // translate by the drag delta (clamped against scene bounds).
+  const s = await setup(page);
+  if (!s.ok) {
+    record('diagram_viewport_pan_drag', 'FAIL',
+      'viewport pan drag', s.error);
+    return;
+  }
+  const r = await page.evaluate(() => {
+    const host = document.getElementById('scene-viewport');
+    const tb = host.querySelector('.ve-scene-toolbar');
+    const btn1to1 = Array.from(tb.querySelectorAll('button'))
+      .find(b => b.title === 'Actual size');
+    btn1to1.click();
+    const stage = host.querySelector('.ve-scene-stage');
+    const canvas = host.querySelector('.ve-scene-canvas');
+    const before = canvas.style.transform;
+    const r2 = stage.getBoundingClientRect();
+    const cx = r2.left + r2.width / 2;
+    const cy = r2.top + r2.height / 2;
+    stage.dispatchEvent(new MouseEvent('mousedown',
+      { bubbles: true, clientX: cx, clientY: cy, button: 0 }));
+    document.dispatchEvent(new MouseEvent('mousemove',
+      { bubbles: true, clientX: cx + 100, clientY: cy + 60 }));
+    const after = canvas.style.transform;
+    document.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }));
+    function tx(t) {
+      const m = t.match(/translate\((-?[0-9.]+)px,\s*(-?[0-9.]+)px\)/);
+      return m ? { x: parseFloat(m[1]), y: parseFloat(m[2]) } : null;
+    }
+    const a = tx(before), b = tx(after);
+    return { before, after, dx: b.x - a.x, dy: b.y - a.y };
+  });
+  // Clamping may shave a few pixels — accept anything in the ball-park
+  const ok = r.dx > 50 && r.dx <= 100 && r.dy > 30 && r.dy <= 60;
+  record('diagram_viewport_pan_drag', ok ? 'PASS' : 'FAIL',
+    'mousedown+drag on stage pans canvas by the drag delta (clamped)',
+    JSON.stringify(r));
+}
+
+async function testViewportMinimapFrame(page) {
+  // Mini-map renders a clone of the SVG (with no data-ve-id stamps) and
+  // a frame div whose left/top/width/height are non-zero. A click in
+  // the mini-map updates the canvas transform to centre that point.
+  const s = await setup(page);
+  if (!s.ok) {
+    record('diagram_viewport_minimap_frame', 'FAIL',
+      'viewport mini-map frame', s.error);
+    return;
+  }
+  const r = await page.evaluate(() => {
+    const host = document.getElementById('scene-viewport');
+    const minimap = host.querySelector('.ve-scene-minimap');
+    const cloneSvg = minimap.querySelector('svg');
+    const cloneIds = cloneSvg.querySelectorAll('[data-ve-id]').length;
+    const frame = minimap.querySelector('.ve-scene-minimap-frame');
+    const fl = parseFloat(frame.style.left);
+    const fw = parseFloat(frame.style.width);
+    const fh = parseFloat(frame.style.height);
+    // Zoom in via 1:1 first so the minimap drag actually has somewhere
+    // to pan to (at fit-all the canvas-clamp keeps it centred no
+    // matter where the user clicks in the minimap — that is correct
+    // behaviour, not a bug).
+    const tb = host.querySelector('.ve-scene-toolbar');
+    const btn1to1 = Array.from(tb.querySelectorAll('button'))
+      .find(b => b.title === 'Actual size');
+    btn1to1.click();
+    const r2 = minimap.getBoundingClientRect();
+    const tBefore = host.querySelector('.ve-scene-canvas').style.transform;
+    minimap.dispatchEvent(new MouseEvent('mousedown', {
+      bubbles: true, clientX: r2.left + 20, clientY: r2.top + 20, button: 0
+    }));
+    const tAfter = host.querySelector('.ve-scene-canvas').style.transform;
+    document.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }));
+    return {
+      cloneSvgPresent: !!cloneSvg,
+      cloneStrippedIds: cloneIds === 0,
+      frameLeftNonZero: fl > 0,
+      frameWidthNonZero: fw > 0,
+      frameHeightNonZero: fh > 0,
+      transformChanged: tBefore !== tAfter,
+      tBefore: tBefore,
+      tAfter: tAfter
+    };
+  });
+  const ok = r.cloneSvgPresent
+    && r.cloneStrippedIds
+    && r.frameLeftNonZero && r.frameWidthNonZero && r.frameHeightNonZero
+    && r.transformChanged;
+  record('diagram_viewport_minimap_frame', ok ? 'PASS' : 'FAIL',
+    'mini-map clones SVG (no atom ids), shows a frame, and pans on drag',
+    JSON.stringify(r));
+}
+
+async function testViewportNonViewportSceneUnaffected(page) {
+  // Scenes WITHOUT data-ve-scene-viewport keep the original behaviour:
+  // SVG is width:100%, no .ve-scene-stage, host overflow:visible.
+  const s = await setup(page);
+  if (!s.ok) {
+    record('diagram_viewport_non_viewport_unaffected', 'FAIL',
+      'non-viewport scene unaffected', s.error);
+    return;
+  }
+  const r = await page.evaluate(() => {
+    const host = document.getElementById('scene-flow');
+    const svg = host.querySelector('svg');
+    const cs = window.getComputedStyle(host);
+    const sw = window.getComputedStyle(svg).width;
+    return {
+      hostHasViewportAttr: host.hasAttribute('data-ve-scene-viewport'),
+      hostOverflow: cs.overflow,
+      hasStage: !!host.querySelector('.ve-scene-stage'),
+      hasToolbar: !!host.querySelector('.ve-scene-toolbar'),
+      hasMinimap: !!host.querySelector('.ve-scene-minimap'),
+      svgWidth: sw
+    };
+  });
+  const ok = !r.hostHasViewportAttr
+    && r.hostOverflow === 'visible'
+    && !r.hasStage && !r.hasToolbar && !r.hasMinimap
+    && /px$/.test(r.svgWidth);
+  record('diagram_viewport_non_viewport_unaffected', ok ? 'PASS' : 'FAIL',
+    'scenes without data-ve-scene-viewport keep default extend-page mode',
+    JSON.stringify(r));
+}
+
 // ── Runner ───────────────────────────────────────────────────────────
 
 const tests = [
@@ -966,7 +1232,13 @@ const tests = [
   testNoNestedScroll,
   testAsciiOverflowVisible,
   testSelfInitClean,
-  testP25SelectionContract
+  testP25SelectionContract,
+  testViewportScaffoldMounted,
+  testViewportFitAllOnLoad,
+  testViewportZoomButtonsAndSlider,
+  testViewportPanDrag,
+  testViewportMinimapFrame,
+  testViewportNonViewportSceneUnaffected
 ];
 
 const page = await browser.getPage("diagram-tests");

@@ -1456,6 +1456,14 @@
     hostEl.textContent = '';
     hostEl.appendChild(svg);
 
+    // Viewport scaffold (opt-in via data-ve-scene-viewport="<height>").
+    // Must run BEFORE chain-highlight + scroll-reveal because those wire
+    // listeners on the SVG, and the viewport wrapper re-mounts the SVG
+    // inside .ve-scene-canvas (no DOM identity change — the SVG node is
+    // moved, listeners survive — but layout-dependent calls like
+    // armScrollReveal need to see the final structure).
+    _wrapInViewport(hostEl, svg, scene);
+
     // phase-graph chain highlight.
     if (preset === 'phase-graph') {
       wireChainHighlight(svg, scene, sceneId);
@@ -1540,6 +1548,384 @@
     host.__veGroupHandleObserver = mo;
   }
 
+  // ── viewport scaffold — opt-in via data-ve-scene-viewport ───────────
+  //
+  // When a scene-graph host carries data-ve-scene-viewport="<height>",
+  // the rendered SVG is wrapped in a fixed-height viewport with:
+  //   - draggable pan via mousedown on stage (mouse-cursor = grab)
+  //   - mouse-wheel zoom centred on cursor
+  //   - toolbar with [zoom-out, slider, zoom-in, label, fit-all, 1:1, fit-width]
+  //   - mini-map overlay in bottom-right (drag the frame to pan)
+  //
+  // This is the "true application surface" exception to the
+  // no-nested-scrollbars rule (~/.claude/rules/no-nested-scrollbars.md):
+  // diagrams are map-like surfaces (zoomable, pannable), not flowing
+  // documents — same exemption a code editor or video timeline gets.
+  //
+  // Without the attribute the SVG keeps width:100% and extends the page
+  // (default behaviour preserved).
+
+  var MINIMAP_W = 180;
+  var MINIMAP_H = 120;
+  var MINIMAP_PAD = 4;
+  var SCALE_MIN = 0.2;
+  var SCALE_MAX = 4;
+
+  function _ensureViewportState(hostEl, sceneW, sceneH) {
+    if (hostEl.__vcViewport) { return hostEl.__vcViewport; }
+    var s = {
+      scale: 1, tx: 0, ty: 0,
+      sceneW: sceneW, sceneH: sceneH,
+      minScale: SCALE_MIN, maxScale: SCALE_MAX,
+      stage: null, canvas: null, svg: null,
+      toolbar: null, slider: null, label: null,
+      minimap: null, minimapFrame: null
+    };
+    hostEl.__vcViewport = s;
+    return s;
+  }
+
+  function _setTransform(s) {
+    if (!s || !s.stage || !s.canvas) { return; }
+    var stageRect = s.stage.getBoundingClientRect();
+    var sw = s.sceneW * s.scale;
+    var sh = s.sceneH * s.scale;
+    if (sw < stageRect.width) {
+      s.tx = (stageRect.width - sw) / 2;
+    } else {
+      var minTx = stageRect.width - sw;
+      if (s.tx > 0) { s.tx = 0; }
+      if (s.tx < minTx) { s.tx = minTx; }
+    }
+    if (sh < stageRect.height) {
+      s.ty = (stageRect.height - sh) / 2;
+    } else {
+      var minTy = stageRect.height - sh;
+      if (s.ty > 0) { s.ty = 0; }
+      if (s.ty < minTy) { s.ty = minTy; }
+    }
+    s.canvas.style.transform =
+      'translate(' + s.tx + 'px, ' + s.ty + 'px) ' +
+      'scale(' + s.scale + ')';
+    if (s.label) {
+      s.label.textContent = Math.round(s.scale * 100) + '%';
+    }
+    if (s.slider) {
+      var ratio = (s.scale - s.minScale) / (s.maxScale - s.minScale);
+      s.slider.value = String(Math.round(ratio * 100));
+    }
+    _updateMinimapFrame(s);
+  }
+
+  function _minimapMetrics(s) {
+    var ms = Math.min(MINIMAP_W / s.sceneW, MINIMAP_H / s.sceneH);
+    var rw = s.sceneW * ms;
+    var rh = s.sceneH * ms;
+    return {
+      scale: ms,
+      renderW: rw,
+      renderH: rh,
+      offX: (MINIMAP_W - rw) / 2 + MINIMAP_PAD,
+      offY: (MINIMAP_H - rh) / 2 + MINIMAP_PAD
+    };
+  }
+
+  function _updateMinimapFrame(s) {
+    if (!s.minimapFrame || !s.stage) { return; }
+    var m = _minimapMetrics(s);
+    var stageRect = s.stage.getBoundingClientRect();
+    var vx = (-s.tx / s.scale) * m.scale;
+    var vy = (-s.ty / s.scale) * m.scale;
+    var vw = (stageRect.width / s.scale) * m.scale;
+    var vh = (stageRect.height / s.scale) * m.scale;
+    if (vx < 0) { vx = 0; }
+    if (vy < 0) { vy = 0; }
+    if (vx + vw > m.renderW) { vw = m.renderW - vx; }
+    if (vy + vh > m.renderH) { vh = m.renderH - vy; }
+    if (vw < 6) { vw = 6; }
+    if (vh < 6) { vh = 6; }
+    s.minimapFrame.style.left = (m.offX + vx) + 'px';
+    s.minimapFrame.style.top = (m.offY + vy) + 'px';
+    s.minimapFrame.style.width = vw + 'px';
+    s.minimapFrame.style.height = vh + 'px';
+  }
+
+  function _zoomAt(s, factor, cx, cy) {
+    var newScale = s.scale * factor;
+    if (newScale < s.minScale) { newScale = s.minScale; }
+    if (newScale > s.maxScale) { newScale = s.maxScale; }
+    if (newScale === s.scale) { return; }
+    var sceneX = (cx - s.tx) / s.scale;
+    var sceneY = (cy - s.ty) / s.scale;
+    s.scale = newScale;
+    s.tx = cx - sceneX * s.scale;
+    s.ty = cy - sceneY * s.scale;
+    _setTransform(s);
+  }
+
+  function _fitAll(s) {
+    var stageRect = s.stage.getBoundingClientRect();
+    if (stageRect.width === 0 || stageRect.height === 0) { return; }
+    var sc = Math.min(stageRect.width / s.sceneW,
+                      stageRect.height / s.sceneH);
+    if (sc < s.minScale) { sc = s.minScale; }
+    if (sc > s.maxScale) { sc = s.maxScale; }
+    s.scale = sc;
+    s.tx = (stageRect.width - s.sceneW * sc) / 2;
+    s.ty = (stageRect.height - s.sceneH * sc) / 2;
+    _setTransform(s);
+  }
+
+  function _fitWidth(s) {
+    var stageRect = s.stage.getBoundingClientRect();
+    if (stageRect.width === 0) { return; }
+    var sc = stageRect.width / s.sceneW;
+    if (sc < s.minScale) { sc = s.minScale; }
+    if (sc > s.maxScale) { sc = s.maxScale; }
+    s.scale = sc;
+    s.tx = 0;
+    s.ty = (stageRect.height - s.sceneH * sc) / 2;
+    if (s.ty > 0) { s.ty = 0; }
+    _setTransform(s);
+  }
+
+  function _actualSize(s) {
+    var stageRect = s.stage.getBoundingClientRect();
+    s.scale = 1;
+    s.tx = (stageRect.width - s.sceneW) / 2;
+    s.ty = (stageRect.height - s.sceneH) / 2;
+    _setTransform(s);
+  }
+
+  function _wirePan(s) {
+    var dragging = false;
+    var startX = 0;
+    var startY = 0;
+    var origTx = 0;
+    var origTy = 0;
+    function onDown(ev) {
+      // Don't start a pan when mousedown lands on a node atom — that's
+      // a selection click, not a pan gesture.
+      var t = ev.target;
+      while (t && t !== s.stage) {
+        if (t.getAttribute && t.getAttribute('data-ve-id')) { return; }
+        if (t.classList && (t.classList.contains('ve-scene-toolbar')
+            || t.classList.contains('ve-scene-minimap')
+            || t.classList.contains('ve-scene-tool')
+            || t.classList.contains('ve-scene-zoom-slider'))) { return; }
+        t = t.parentNode;
+      }
+      dragging = true;
+      startX = ev.clientX;
+      startY = ev.clientY;
+      origTx = s.tx;
+      origTy = s.ty;
+      s.stage.style.cursor = 'grabbing';
+      if (ev.preventDefault) { ev.preventDefault(); }
+    }
+    function onMove(ev) {
+      if (!dragging) { return; }
+      s.tx = origTx + (ev.clientX - startX);
+      s.ty = origTy + (ev.clientY - startY);
+      _setTransform(s);
+    }
+    function onUp() {
+      if (!dragging) { return; }
+      dragging = false;
+      s.stage.style.cursor = 'grab';
+    }
+    s.stage.addEventListener('mousedown', onDown);
+    var d = s.stage.ownerDocument;
+    d.addEventListener('mousemove', onMove);
+    d.addEventListener('mouseup', onUp);
+    s.stage.style.cursor = 'grab';
+  }
+
+  function _wireWheelZoom(s) {
+    s.stage.addEventListener('wheel', function (ev) {
+      if (ev.preventDefault) { ev.preventDefault(); }
+      var rect = s.stage.getBoundingClientRect();
+      var cx = ev.clientX - rect.left;
+      var cy = ev.clientY - rect.top;
+      var factor = ev.deltaY < 0 ? 1.1 : (1 / 1.1);
+      _zoomAt(s, factor, cx, cy);
+    }, { passive: false });
+  }
+
+  function _wireMinimap(s) {
+    if (!s.minimap) { return; }
+    var dragging = false;
+    function move(ev) {
+      var rect = s.minimap.getBoundingClientRect();
+      var m = _minimapMetrics(s);
+      var mx = ev.clientX - rect.left - m.offX;
+      var my = ev.clientY - rect.top - m.offY;
+      var sceneX = mx / m.scale;
+      var sceneY = my / m.scale;
+      var stageRect = s.stage.getBoundingClientRect();
+      s.tx = stageRect.width / 2 - sceneX * s.scale;
+      s.ty = stageRect.height / 2 - sceneY * s.scale;
+      _setTransform(s);
+    }
+    s.minimap.addEventListener('mousedown', function (ev) {
+      // Don't pan/select the underlying SVG
+      ev.stopPropagation();
+      dragging = true;
+      move(ev);
+      if (ev.preventDefault) { ev.preventDefault(); }
+    });
+    var d = s.minimap.ownerDocument;
+    d.addEventListener('mousemove', function (ev) {
+      if (dragging) { move(ev); }
+    });
+    d.addEventListener('mouseup', function () { dragging = false; });
+  }
+
+  function _buildToolbar(s, host) {
+    var doc = host.ownerDocument;
+    var bar = doc.createElement('div');
+    bar.className = 've-scene-toolbar';
+    bar.setAttribute('role', 'toolbar');
+    bar.setAttribute('aria-label', 'diagram viewport controls');
+
+    function btn(label, title, onClick) {
+      var b = doc.createElement('button');
+      b.type = 'button';
+      b.className = 've-scene-tool';
+      b.textContent = label;
+      b.title = title;
+      b.setAttribute('aria-label', title);
+      b.addEventListener('click', function (ev) {
+        ev.stopPropagation();
+        onClick();
+      });
+      return b;
+    }
+
+    bar.appendChild(btn('−', 'Zoom out', function () {
+      var rect = s.stage.getBoundingClientRect();
+      _zoomAt(s, 1 / 1.2, rect.width / 2, rect.height / 2);
+    }));
+
+    s.slider = doc.createElement('input');
+    s.slider.type = 'range';
+    s.slider.min = '0';
+    s.slider.max = '100';
+    s.slider.value = '50';
+    s.slider.className = 've-scene-zoom-slider';
+    s.slider.title = 'Zoom';
+    s.slider.setAttribute('aria-label', 'Zoom level');
+    s.slider.addEventListener('input', function () {
+      var v = parseInt(s.slider.value, 10) / 100;
+      var newScale = s.minScale + v * (s.maxScale - s.minScale);
+      var rect = s.stage.getBoundingClientRect();
+      var factor = newScale / s.scale;
+      _zoomAt(s, factor, rect.width / 2, rect.height / 2);
+    });
+    s.slider.addEventListener('mousedown', function (ev) {
+      ev.stopPropagation();
+    });
+    bar.appendChild(s.slider);
+
+    bar.appendChild(btn('+', 'Zoom in', function () {
+      var rect = s.stage.getBoundingClientRect();
+      _zoomAt(s, 1.2, rect.width / 2, rect.height / 2);
+    }));
+
+    s.label = doc.createElement('span');
+    s.label.className = 've-scene-zoom-label';
+    s.label.textContent = '100%';
+    bar.appendChild(s.label);
+
+    bar.appendChild(btn('Fit', 'Fit all', function () { _fitAll(s); }));
+    bar.appendChild(btn('1:1', 'Actual size', function () {
+      _actualSize(s);
+    }));
+    bar.appendChild(btn('W', 'Fit width', function () { _fitWidth(s); }));
+
+    s.toolbar = bar;
+    return bar;
+  }
+
+  function _buildMinimap(s, sourceSvg) {
+    var doc = s.stage.ownerDocument;
+    var wrap = doc.createElement('div');
+    wrap.className = 've-scene-minimap';
+    wrap.title = 'Drag to pan';
+    var clone = sourceSvg.cloneNode(true);
+    var ids = clone.querySelectorAll('[data-ve-id]');
+    for (var i = 0; i < ids.length; i++) {
+      ids[i].removeAttribute('data-ve-id');
+      ids[i].removeAttribute('data-ve-type');
+      ids[i].removeAttribute('tabindex');
+    }
+    clone.removeAttribute('width');
+    clone.removeAttribute('height');
+    clone.style.width = '100%';
+    clone.style.height = '100%';
+    clone.style.maxWidth = 'none';
+    clone.style.pointerEvents = 'none';
+    clone.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+    wrap.appendChild(clone);
+    var frame = doc.createElement('div');
+    frame.className = 've-scene-minimap-frame';
+    wrap.appendChild(frame);
+    s.minimap = wrap;
+    s.minimapFrame = frame;
+    return wrap;
+  }
+
+  function _wrapInViewport(hostEl, svg, scene) {
+    var raw = hostEl.getAttribute('data-ve-scene-viewport');
+    if (!raw) { return; }
+    var height = parseInt(raw, 10);
+    if (!isFinite(height) || height < 120) { height = 480; }
+
+    var s = _ensureViewportState(hostEl,
+      scene.width || 800, scene.height || 600);
+
+    hostEl.classList.add('ve-scene-viewport-on');
+    hostEl.style.height = height + 'px';
+    hostEl.style.position = 'relative';
+
+    if (svg.parentNode === hostEl) { hostEl.removeChild(svg); }
+
+    // Switch SVG to natural size for transform-based zoom
+    svg.style.width = scene.width + 'px';
+    svg.style.height = scene.height + 'px';
+    svg.style.maxWidth = 'none';
+    svg.style.display = 'block';
+    svg.setAttribute('width', String(scene.width));
+    svg.setAttribute('height', String(scene.height));
+
+    var doc = hostEl.ownerDocument;
+    var stage = doc.createElement('div');
+    stage.className = 've-scene-stage';
+    var canvas = doc.createElement('div');
+    canvas.className = 've-scene-canvas';
+    canvas.appendChild(svg);
+    stage.appendChild(canvas);
+    hostEl.appendChild(stage);
+
+    s.stage = stage;
+    s.canvas = canvas;
+    s.svg = svg;
+
+    hostEl.appendChild(_buildToolbar(s, hostEl));
+    hostEl.appendChild(_buildMinimap(s, svg));
+
+    _wirePan(s);
+    _wireWheelZoom(s);
+    _wireMinimap(s);
+
+    // Defer fit-all to next frame so the stage has a measured size.
+    if (typeof requestAnimationFrame === 'function') {
+      requestAnimationFrame(function () { _fitAll(s); });
+    } else {
+      setTimeout(function () { _fitAll(s); }, 0);
+    }
+  }
+
   // jsonText — re-read the host's embedded JSON text (the pristine
   // source, before any in-place mutation).
   function jsonText(hostEl) {
@@ -1597,18 +1983,162 @@
   var CSS_LINES = [
     '/* ai-maestro-visual-communicator — diagram skill (injected) */',
 
-    /* scene-graph host — wide diagrams extend the document; the SVG is
-       width:100% so there is NEVER an inner scrollbar. */
-    '.ve-scene-graph {',
+    /* scene-graph host — default mode: wide diagrams extend the
+       document; the SVG is width:100% so there is NEVER an inner
+       scrollbar. Viewport mode (opt-in) overrides this — see below. */
+    '.ve-scene-graph:not([data-ve-scene-viewport]) {',
     '  display: block;',
     '  overflow: visible;',
     '  max-width: none;',
     '}',
-    '.ve-scene-graph svg {',
+    '.ve-scene-graph:not([data-ve-scene-viewport]) svg {',
     '  width: 100%;',
     '  height: auto;',
     '  max-width: none;',
     '  overflow: visible;',
+    '}',
+
+    /* viewport mode (opt-in via data-ve-scene-viewport="<height>") —
+       a fixed-height pannable/zoomable surface with toolbar + mini-map.
+       This is the "true application surface" exception to the
+       no-nested-scrollbars rule (~/.claude/rules/no-nested-scrollbars.md):
+       diagrams are map-like, not flowing documents. */
+    '.ve-scene-graph[data-ve-scene-viewport] {',
+    '  position: relative;',
+    '  display: block;',
+    '  overflow: hidden;',
+    '  border: 1px solid var(--vc-color-border, #e3dcc9);',
+    '  border-radius: var(--vc-radius-md, 8px);',
+    '  background: var(--vc-color-surface, #ffffff);',
+    '  margin-block: 16px;',
+    '  contain: layout style;',
+    '}',
+    '.ve-scene-stage {',
+    '  position: absolute;',
+    '  inset: 0;',
+    '  overflow: hidden;',
+    '  cursor: grab;',
+    '  background: var(--vc-color-surface-sunken, #f1ece0);',
+    '  background-image:',
+    '    linear-gradient(',
+    '      color-mix(in srgb, var(--vc-color-border, #e3dcc9) 40%,'
+      + ' transparent) 1px, transparent 1px),',
+    '    linear-gradient(90deg,',
+    '      color-mix(in srgb, var(--vc-color-border, #e3dcc9) 40%,'
+      + ' transparent) 1px, transparent 1px);',
+    '  background-size: 24px 24px;',
+    '}',
+    '.ve-scene-canvas {',
+    '  position: absolute;',
+    '  top: 0;',
+    '  left: 0;',
+    '  transform-origin: 0 0;',
+    '  will-change: transform;',
+    '  pointer-events: auto;',
+    '}',
+    '.ve-scene-canvas > svg {',
+    '  display: block;',
+    '  width: auto;',
+    '  height: auto;',
+    '  max-width: none;',
+    '  overflow: visible;',
+    '}',
+
+    /* toolbar — top-right strip */
+    '.ve-scene-toolbar {',
+    '  position: absolute;',
+    '  top: 8px;',
+    '  right: 8px;',
+    '  display: inline-flex;',
+    '  align-items: center;',
+    '  gap: 4px;',
+    '  padding: 4px 6px;',
+    '  background: color-mix(in srgb,'
+      + ' var(--vc-color-surface, #ffffff) 92%, transparent);',
+    '  border: 1px solid var(--vc-color-border, #e3dcc9);',
+    '  border-radius: var(--vc-radius-md, 8px);',
+    '  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.10);',
+    '  z-index: 4;',
+    '  font: 600 12px/1 var(--vc-font-body, ui-sans-serif,'
+      + ' system-ui, sans-serif);',
+    '  color: var(--vc-color-content, #1f1a14);',
+    '}',
+    '.ve-scene-tool {',
+    '  -webkit-appearance: none;',
+    '  appearance: none;',
+    '  background: transparent;',
+    '  border: 1px solid transparent;',
+    '  color: inherit;',
+    '  cursor: pointer;',
+    '  font: inherit;',
+    '  padding: 4px 8px;',
+    '  border-radius: var(--vc-radius-sm, 4px);',
+    '  min-width: 26px;',
+    '  height: 24px;',
+    '  line-height: 1;',
+    '}',
+    '.ve-scene-tool:hover {',
+    '  background: color-mix(in srgb,'
+      + ' var(--vc-color-accent, #b8861f) 14%, transparent);',
+    '  border-color: var(--vc-color-accent, #b8861f);',
+    '}',
+    '.ve-scene-tool:focus-visible {',
+    '  outline: 2px solid var(--vc-color-accent, #b8861f);',
+    '  outline-offset: 1px;',
+    '}',
+    '.ve-scene-zoom-slider {',
+    '  width: 84px;',
+    '  margin: 0 4px;',
+    '  accent-color: var(--vc-color-accent, #b8861f);',
+    '  height: 16px;',
+    '}',
+    '.ve-scene-zoom-label {',
+    '  min-width: 38px;',
+    '  text-align: right;',
+    '  color: var(--vc-color-content-muted, #5b5343);',
+    '  font-variant-numeric: tabular-nums;',
+    '}',
+
+    /* mini-map — bottom-right */
+    '.ve-scene-minimap {',
+    '  position: absolute;',
+    '  bottom: 8px;',
+    '  right: 8px;',
+    '  width: ' + (MINIMAP_W + MINIMAP_PAD * 2) + 'px;',
+    '  height: ' + (MINIMAP_H + MINIMAP_PAD * 2) + 'px;',
+    '  background: color-mix(in srgb,'
+      + ' var(--vc-color-surface, #ffffff) 92%, transparent);',
+    '  border: 1px solid var(--vc-color-border, #e3dcc9);',
+    '  border-radius: var(--vc-radius-sm, 4px);',
+    '  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);',
+    '  cursor: crosshair;',
+    '  overflow: hidden;',
+    '  z-index: 3;',
+    '  padding: ' + MINIMAP_PAD + 'px;',
+    '}',
+    '.ve-scene-minimap > svg {',
+    '  display: block;',
+    '  pointer-events: none;',
+    '}',
+    '.ve-scene-minimap-frame {',
+    '  position: absolute;',
+    '  border: 2px solid var(--vc-color-accent, #b8861f);',
+    '  background: color-mix(in srgb,'
+      + ' var(--vc-color-accent, #b8861f) 12%, transparent);',
+    '  pointer-events: none;',
+    '  border-radius: 2px;',
+    '}',
+
+    /* In viewport mode, the comment-handle would be clipped at left:-40px
+       (host has overflow:hidden). Re-position it inside the viewport at
+       the left edge, above the toolbar/minimap stack. */
+    '.ve-scene-graph[data-ve-scene-viewport] > .ve-comment-handle {',
+    '  left: 8px;',
+    '  z-index: 5;',
+    '}',
+
+    '@media (prefers-reduced-motion: reduce) {',
+    '  .ve-scene-canvas { will-change: auto; }',
     '}',
 
     /* selection — every node/edge <g data-ve-id> lights up on hover and

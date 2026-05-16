@@ -165,14 +165,21 @@ For the interaction patterns built on top:
   recomputes live.
 - `references/group-collapse-handles.md` — large-diagram
   ergonomics: collapse a group to one line and back.
+- `references/viewport-scaffold.md` — opt-in `data-ve-scene-
+  viewport` mode for dense/large diagrams: fixed-height stage with
+  pan, mouse-wheel zoom, toolbar, and mini-map (the documented
+  "true application surface" exception to no-nested-scrollbars).
 
 ## Output
 
 Self-contained HTML: the diagram CSS is injected by
 `amvcp-diagram.js` on boot, the module ships beside the file, no
-CDN, no build step. The scene-graph SVG is `width:100%;
+CDN, no build step. The scene-graph SVG defaults to `width:100%;
 height:auto` so a wide diagram extends the document — there is
-never an inner scrollbar.
+never an inner scrollbar. **Opt-in:** add
+`data-ve-scene-viewport="<height>"` to the host for a fixed-height
+pannable / zoomable surface with mini-map; see
+`references/viewport-scaffold.md`.
 
 ## Error handling
 
