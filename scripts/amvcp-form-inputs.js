@@ -828,7 +828,223 @@
     paintHints();
   }
 
-  // ── §11 ve-rank-list ───────────────────────────────────────────────
+  // ── §11 ve-text-input ──────────────────────────────────────────────
+  //
+  // Themed single-line text input with optional live validation. The
+  // model carries:
+  //   value:        initial string (or "")
+  //   placeholder:  ghost text
+  //   pattern:      JS regex source (without slashes)
+  //   patternMsg:   error string when pattern doesn't match
+  //   minLength:    optional
+  //   maxLength:    optional (also caps the input)
+  //   required:     true → empty value = invalid
+  //
+  // The event payload is { value: <string>, valid: <boolean> } so
+  // downstream code can gate on validity.
+  function initTextInput(el) {
+    if (!el || el.__veInited) { return; }
+    var id = requireId(el);
+    if (!id) { return; }
+    var model = readModel(el) || {};
+    el.__veInited = true;
+    el.setAttribute('data-ve-type', 'text-input');
+    var current = loadValue(id, model.value || '');
+    var labelText = model.label || el.getAttribute('data-ve-label') || '';
+    var pat = null;
+    if (model.pattern) {
+      try { pat = new RegExp('^(?:' + model.pattern + ')$'); }
+      catch (e) {
+        paintError(el, 'text-input pattern is not a valid regex: '
+          + (e && e.message));
+        return;
+      }
+    }
+    el.textContent = '';
+    if (labelText) {
+      var lab = document.createElement('label');
+      lab.className = 've-text-input-label';
+      lab.textContent = labelText;
+      el.appendChild(lab);
+    }
+    var input = document.createElement('input');
+    input.type = 'text';
+    input.className = 've-text-input-field';
+    if (model.placeholder) { input.placeholder = model.placeholder; }
+    if (typeof model.maxLength === 'number') {
+      input.maxLength = model.maxLength;
+    }
+    if (typeof model.minLength === 'number') {
+      input.minLength = model.minLength;
+    }
+    input.value = current;
+    var err = document.createElement('span');
+    err.className = 've-text-input-error';
+    err.setAttribute('aria-live', 'polite');
+    function validate() {
+      var v = input.value;
+      var problems = [];
+      if (model.required && !v.trim()) { problems.push('required'); }
+      if (pat && v && !pat.test(v)) {
+        problems.push(model.patternMsg || 'invalid format');
+      }
+      if (typeof model.minLength === 'number'
+          && v.length < model.minLength) {
+        problems.push('min length ' + model.minLength);
+      }
+      err.textContent = problems.join(' · ');
+      var valid = problems.length === 0;
+      el.classList.toggle('ve-text-input-invalid', !valid);
+      return valid;
+    }
+    input.addEventListener('input', function () {
+      var valid = validate();
+      saveValue(id, input.value);
+      emitChange('text-input', id, { value: input.value, valid: valid });
+    });
+    input.addEventListener('blur', validate);
+    el.appendChild(input);
+    el.appendChild(err);
+    validate();
+  }
+
+  // ── §12 ve-text-area ───────────────────────────────────────────────
+  //
+  // Themed multi-line textarea with optional maxLength + live char count.
+  function initTextArea(el) {
+    if (!el || el.__veInited) { return; }
+    var id = requireId(el);
+    if (!id) { return; }
+    var model = readModel(el) || {};
+    el.__veInited = true;
+    el.setAttribute('data-ve-type', 'text-area');
+    var current = loadValue(id, model.value || '');
+    var labelText = model.label || el.getAttribute('data-ve-label') || '';
+    el.textContent = '';
+    if (labelText) {
+      var lab = document.createElement('label');
+      lab.className = 've-text-area-label';
+      lab.textContent = labelText;
+      el.appendChild(lab);
+    }
+    var ta = document.createElement('textarea');
+    ta.className = 've-text-area-field';
+    if (model.placeholder) { ta.placeholder = model.placeholder; }
+    if (typeof model.maxLength === 'number') {
+      ta.maxLength = model.maxLength;
+    }
+    if (typeof model.rows === 'number') {
+      ta.rows = model.rows;
+    } else {
+      ta.rows = 4;
+    }
+    ta.value = current;
+    var counter = document.createElement('span');
+    counter.className = 've-text-area-counter';
+    counter.setAttribute('aria-live', 'polite');
+    function paintCounter() {
+      if (typeof model.maxLength === 'number') {
+        counter.textContent = ta.value.length + ' / ' + model.maxLength;
+        var nearLimit = ta.value.length >= model.maxLength * 0.9;
+        counter.classList.toggle('ve-text-area-near-limit', nearLimit);
+      } else {
+        counter.textContent = ta.value.length + ' chars';
+      }
+    }
+    paintCounter();
+    ta.addEventListener('input', function () {
+      paintCounter();
+      saveValue(id, ta.value);
+      emitChange('text-area', id, ta.value);
+    });
+    el.appendChild(ta);
+    el.appendChild(counter);
+  }
+
+  // ── §13 ve-url-input ───────────────────────────────────────────────
+  //
+  // Single-line URL input. Validates with the URL constructor (so
+  // anything `new URL(value)` accepts is valid). When valid, shows
+  // a small "preview" link to the right that opens in a new tab.
+  function initUrlInput(el) {
+    if (!el || el.__veInited) { return; }
+    var id = requireId(el);
+    if (!id) { return; }
+    var model = readModel(el) || {};
+    el.__veInited = true;
+    el.setAttribute('data-ve-type', 'url-input');
+    var current = loadValue(id, model.value || '');
+    var labelText = model.label || el.getAttribute('data-ve-label') || '';
+    el.textContent = '';
+    if (labelText) {
+      var lab = document.createElement('label');
+      lab.className = 've-url-input-label';
+      lab.textContent = labelText;
+      el.appendChild(lab);
+    }
+    var row = document.createElement('div');
+    row.className = 've-url-input-row';
+    var input = document.createElement('input');
+    input.type = 'url';
+    input.className = 've-url-input-field';
+    input.value = current;
+    if (model.placeholder) {
+      input.placeholder = model.placeholder;
+    } else {
+      input.placeholder = 'https://…';
+    }
+    var preview = document.createElement('a');
+    preview.className = 've-url-input-preview';
+    preview.target = '_blank';
+    preview.rel = 'noopener noreferrer';
+    preview.textContent = 'open ↗';
+    var err = document.createElement('span');
+    err.className = 've-url-input-error';
+    err.setAttribute('aria-live', 'polite');
+    function parse(v) {
+      if (!v) { return { ok: !model.required, error: '' }; }
+      try {
+        var u = new URL(v);
+        if (Array.isArray(model.allowedProtocols)
+            && model.allowedProtocols.length) {
+          var p = u.protocol.replace(':', '');
+          if (model.allowedProtocols.indexOf(p) === -1) {
+            return { ok: false, error: 'protocol must be one of '
+              + model.allowedProtocols.join(', ') };
+          }
+        }
+        return { ok: true, error: '', url: v };
+      } catch (e) {
+        return { ok: false, error: 'not a valid URL' };
+      }
+    }
+    function paint() {
+      var p = parse(input.value);
+      err.textContent = p.error;
+      el.classList.toggle('ve-url-input-invalid', !p.ok);
+      if (p.ok && p.url) {
+        preview.href = p.url;
+        preview.style.display = '';
+      } else {
+        preview.removeAttribute('href');
+        preview.style.display = 'none';
+      }
+      return p.ok;
+    }
+    input.addEventListener('input', function () {
+      var valid = paint();
+      saveValue(id, input.value);
+      emitChange('url-input', id, { value: input.value, valid: valid });
+    });
+    input.addEventListener('blur', paint);
+    row.appendChild(input);
+    row.appendChild(preview);
+    el.appendChild(row);
+    el.appendChild(err);
+    paint();
+  }
+
+  // ── §14 ve-rank-list ───────────────────────────────────────────────
   //
   // Drag-to-reorder a <li> stack. Uses HTML5 drag-and-drop. Persists
   // the post-drag order as an array of `data-ve-rank-key` values; on
@@ -949,6 +1165,12 @@
     for (var u = 0; u < crd.length; u++) { initCardPicker(crd[u]); }
     var tag = d.querySelectorAll('.ve-tag-input');
     for (var v = 0; v < tag.length; v++) { initTagInput(tag[v]); }
+    var txt = d.querySelectorAll('.ve-text-input');
+    for (var w = 0; w < txt.length; w++) { initTextInput(txt[w]); }
+    var ta  = d.querySelectorAll('.ve-text-area');
+    for (var x = 0; x < ta.length; x++) { initTextArea(ta[x]); }
+    var url = d.querySelectorAll('.ve-url-input');
+    for (var y = 0; y < url.length; y++) { initUrlInput(url[y]); }
     var rnk = d.querySelectorAll('.ve-rank-list');
     for (var n = 0; n < rnk.length; n++) { initRankList(rnk[n]); }
   }
@@ -959,7 +1181,8 @@
 
     '.ve-quiz-radio, .ve-quiz-multi, .ve-numeric-input,',
     '.ve-date-input, .ve-color-input, .ve-slider, .ve-toggle,',
-    '.ve-rating, .ve-card-picker, .ve-tag-input, .ve-rank-list {',
+    '.ve-rating, .ve-card-picker, .ve-tag-input, .ve-text-input,',
+    '.ve-text-area, .ve-url-input, .ve-rank-list {',
     '  display: block;',
     '  margin-block: 12px;',
     '  padding: 12px 14px;',
@@ -978,7 +1201,8 @@
     '.ve-color-input[data-ve-id]:hover, .ve-slider[data-ve-id]:hover,',
     '.ve-toggle[data-ve-id]:hover, .ve-rating[data-ve-id]:hover,',
     '.ve-card-picker[data-ve-id]:hover, .ve-tag-input[data-ve-id]:hover,',
-    '.ve-rank-list[data-ve-id]:hover {',
+    '.ve-text-input[data-ve-id]:hover, .ve-text-area[data-ve-id]:hover,',
+    '.ve-url-input[data-ve-id]:hover, .ve-rank-list[data-ve-id]:hover {',
     '  border-color: var(--vc-color-accent, #b8861f);',
     '}',
     '.ve-quiz-radio[data-ve-selected="1"],',
@@ -991,6 +1215,9 @@
     '.ve-rating[data-ve-selected="1"],',
     '.ve-card-picker[data-ve-selected="1"],',
     '.ve-tag-input[data-ve-selected="1"],',
+    '.ve-text-input[data-ve-selected="1"],',
+    '.ve-text-area[data-ve-selected="1"],',
+    '.ve-url-input[data-ve-selected="1"],',
     '.ve-rank-list[data-ve-selected="1"] {',
     '  border-color: var(--vc-color-accent, #b8861f);',
     '  box-shadow: 0 0 0 2px color-mix(in srgb,'
@@ -1000,7 +1227,8 @@
     /* Shared labels */
     '.ve-quiz-label, .ve-numeric-label, .ve-date-label, .ve-color-label,',
     '.ve-slider-label, .ve-rating-label, .ve-card-picker-label,',
-    '.ve-tag-input-label {',
+    '.ve-tag-input-label, .ve-text-input-label,',
+    '.ve-text-area-label, .ve-url-input-label {',
     '  display: block;',
     '  font-weight: 600;',
     '  color: var(--vc-color-content, #1f1a14);',
@@ -1390,6 +1618,83 @@
     '  color: var(--vc-color-content, #1f1a14);',
     '}',
 
+    /* Text input + textarea + URL input — shared field styling */
+    '.ve-text-input-field, .ve-text-area-field, .ve-url-input-field {',
+    '  width: 100%;',
+    '  box-sizing: border-box;',
+    '  padding: 8px 10px;',
+    '  font: inherit;',
+    '  color: var(--vc-color-content, #1f1a14);',
+    '  background: var(--vc-color-surface, #ffffff);',
+    '  border: 1px solid var(--vc-color-border-strong, #c9bfa3);',
+    '  border-radius: var(--vc-radius-sm, 4px);',
+    '  outline: none;',
+    '}',
+    '.ve-text-input-field:focus, .ve-text-area-field:focus,',
+    '.ve-url-input-field:focus {',
+    '  border-color: var(--vc-color-accent, #b8861f);',
+    '  box-shadow: 0 0 0 2px color-mix(in srgb,'
+      + ' var(--vc-color-accent, #b8861f) 25%, transparent);',
+    '}',
+    '.ve-text-input-field::placeholder, .ve-text-area-field::placeholder,',
+    '.ve-url-input-field::placeholder {',
+    '  color: var(--vc-color-content-subtle, #8a8170);',
+    '}',
+    '.ve-text-area-field {',
+    '  resize: vertical;',
+    '  min-height: 80px;',
+    '  font-family: var(--vc-font-body,'
+      + ' ui-sans-serif, system-ui, sans-serif);',
+    '}',
+    '.ve-text-input-error, .ve-url-input-error {',
+    '  display: block;',
+    '  margin-top: 6px;',
+    '  min-height: 1.2em;',
+    '  font: 12px/1.3 var(--vc-font-mono,'
+      + ' ui-monospace, monospace);',
+    '  color: var(--vc-color-danger, #a84a32);',
+    '}',
+    '.ve-text-input-invalid .ve-text-input-field,',
+    '.ve-url-input-invalid .ve-url-input-field {',
+    '  border-color: var(--vc-color-danger, #a84a32);',
+    '}',
+    '.ve-text-input-invalid .ve-text-input-field:focus,',
+    '.ve-url-input-invalid .ve-url-input-field:focus {',
+    '  box-shadow: 0 0 0 2px color-mix(in srgb,'
+      + ' var(--vc-color-danger, #a84a32) 25%, transparent);',
+    '}',
+    '.ve-text-area-counter {',
+    '  display: block;',
+    '  margin-top: 6px;',
+    '  font: 11px/1 var(--vc-font-mono,'
+      + ' ui-monospace, monospace);',
+    '  color: var(--vc-color-content-muted, #5b5343);',
+    '  text-align: right;',
+    '  font-variant-numeric: tabular-nums;',
+    '}',
+    '.ve-text-area-near-limit {',
+    '  color: var(--vc-color-warning, #a8791f);',
+    '  font-weight: 700;',
+    '}',
+    /* URL input — preview link sits to the right of the field */
+    '.ve-url-input-row {',
+    '  display: flex;',
+    '  align-items: center;',
+    '  gap: 8px;',
+    '}',
+    '.ve-url-input-row > .ve-url-input-field { flex: 1; }',
+    '.ve-url-input-preview {',
+    '  flex: none;',
+    '  padding: 7px 12px;',
+    '  font: 600 12px/1 var(--vc-font-body,'
+      + ' ui-sans-serif, system-ui, sans-serif);',
+    '  color: var(--vc-color-on-accent, #ffffff);',
+    '  background: var(--vc-color-accent, #b8861f);',
+    '  border-radius: var(--vc-radius-sm, 4px);',
+    '  text-decoration: none;',
+    '}',
+    '.ve-url-input-preview:hover { filter: brightness(1.08); }',
+
     /* Rank list */
     '.ve-rank-list > ol, .ve-rank-list > ul {',
     '  list-style: decimal inside;',
@@ -1463,6 +1768,9 @@
     initRating: initRating,
     initCardPicker: initCardPicker,
     initTagInput: initTagInput,
+    initTextInput: initTextInput,
+    initTextArea: initTextArea,
+    initUrlInput: initUrlInput,
     initRankList: initRankList,
     readModel: readModel,
     loadValue: loadValue,

@@ -213,6 +213,46 @@
     </script>
   </div>
 
+  <h2>text input (with pattern)</h2>
+  <div class="ve-text-input" data-ve-id="text:semver">
+    <script type="application/json">
+      {
+        "label": "Target semver:",
+        "value": "1.2.0",
+        "placeholder": "e.g. 1.2.0",
+        "pattern": "[0-9]+\\.[0-9]+\\.[0-9]+",
+        "patternMsg": "expected major.minor.patch like 1.2.0",
+        "required": true,
+        "maxLength": 32
+      }
+    </script>
+  </div>
+
+  <h2>textarea (with char count)</h2>
+  <div class="ve-text-area" data-ve-id="textarea:notes">
+    <script type="application/json">
+      {
+        "label": "Release notes:",
+        "value": "",
+        "placeholder": "What changed in this release?",
+        "rows": 5,
+        "maxLength": 280
+      }
+    </script>
+  </div>
+
+  <h2>URL input (with preview)</h2>
+  <div class="ve-url-input" data-ve-id="url:dashboard">
+    <script type="application/json">
+      {
+        "label": "Dashboard URL:",
+        "value": "https://grafana.internal/d/api-latency",
+        "placeholder": "https://…",
+        "allowedProtocols": ["http", "https"]
+      }
+    </script>
+  </div>
+
   <h2>rank list (drag to reorder)</h2>
   <div class="ve-rank-list" data-ve-id="rank:priorities">
     <p class="ve-quiz-label">Drag to rank the priorities:</p>

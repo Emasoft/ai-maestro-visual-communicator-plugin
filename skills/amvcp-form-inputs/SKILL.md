@@ -19,13 +19,13 @@ description: |
 
 # Form-input widgets
 
-A dependency-free runtime module that ships eleven structured-response
+A dependency-free runtime module that ships fourteen structured-response
 input widgets for conversational agent reports. The agent renders a
 question; the user answers via a typed widget (radio, checkbox,
 number+unit, date, color, slider, toggle, rating, card-picker,
-tag-input, rank) instead of typing prose. The result lands in a
-`ve-form-change` event with a stable payload the runtime threads into
-the comment-turn record.
+tag-input, text, textarea, URL, rank) instead of typing prose. The
+result lands in a `ve-form-change` event with a stable payload the
+runtime threads into the comment-turn record.
 
 ## When to use this skill
 
@@ -44,6 +44,9 @@ Reach for a form-input widget whenever the agent's question has a
 | "Rate this 1–5."                                  | `ve-rating`       |
 | "Pick one of these rich proposals."               | `ve-card-picker`  |
 | "Apply these tags."                               | `ve-tag-input`    |
+| "Type a short string (with regex validation)."    | `ve-text-input`   |
+| "Type a longer note."                             | `ve-text-area`    |
+| "Paste a URL (with preview)."                     | `ve-url-input`    |
 | "Order these by priority."                        | `ve-rank-list`    |
 
 For anything **open-ended** (write a paragraph, paste a snippet,
@@ -284,6 +287,73 @@ suggestion chip adds it AND hides it from the suggestion row. Chip
 trailing value (so a "Done" click works without first pressing
 Enter).
 
+### `ve-text-input` — single-line text with optional pattern validation
+
+```html
+<div class="ve-text-input" data-ve-id="<id>">
+  <script type="application/json">
+    {
+      "label":       "<question>",
+      "value":       "1.2.0",
+      "placeholder": "e.g. 1.2.0",
+      "pattern":     "[0-9]+\\.[0-9]+\\.[0-9]+",
+      "patternMsg":  "expected major.minor.patch like 1.2.0",
+      "required":    true,
+      "minLength":   3,
+      "maxLength":   32
+    }
+  </script>
+</div>
+```
+
+Emits `{ kind: "text-input", id, value: { value: "<text>", valid: <boolean> } }`.
+The regex is anchored (`^(?:pattern)$`) so partial matches don't pass.
+Invalid values paint a red error line under the field and the host
+gets `.ve-text-input-invalid` for styling.
+
+### `ve-text-area` — multi-line with character counter
+
+```html
+<div class="ve-text-area" data-ve-id="<id>">
+  <script type="application/json">
+    {
+      "label":       "<question>",
+      "value":       "",
+      "placeholder": "What changed?",
+      "rows":        5,
+      "maxLength":   280
+    }
+  </script>
+</div>
+```
+
+Emits `{ kind: "text-area", id, value: "<text>" }`. The counter
+reads `"<n> / <max>"` (or `"<n> chars"` if `maxLength` is omitted)
+and adds `.ve-text-area-near-limit` (warning color) past 90% of
+`maxLength`.
+
+### `ve-url-input` — URL with live validation and preview link
+
+```html
+<div class="ve-url-input" data-ve-id="<id>">
+  <script type="application/json">
+    {
+      "label":            "<question>",
+      "value":            "https://example.com",
+      "placeholder":      "https://…",
+      "allowedProtocols": ["http", "https"]
+    }
+  </script>
+</div>
+```
+
+Emits `{ kind: "url-input", id, value: { value: "<text>", valid: <boolean> } }`.
+Validation goes through the browser's `URL` constructor (so anything
+`new URL(value)` accepts is valid). When valid AND the protocol is
+in `allowedProtocols` (defaults to "any"), a small "open ↗" button
+appears that opens the URL in a new tab. Invalid values paint a red
+error line.
+
 ### `ve-rank-list` — drag-to-reorder
 
 ```html
@@ -391,6 +461,12 @@ See `tests/scripts/test-form-inputs.js`:
   swaps selection + emits.
 - `form_inputs_tag_input` — type+Enter adds; click suggestion adds;
   ✕ removes.
+- `form_inputs_text_pattern` — regex pattern flags invalid + clears
+  on valid; event carries `.valid`.
+- `form_inputs_textarea_counter` — counter formats N/max and
+  near-limit flag past 90%.
+- `form_inputs_url_validation` — preview link visible only when
+  URL is valid; honours `allowedProtocols`.
 
 The fixture is `tests/fixtures/form-inputs-fixture.html` (one of
 each widget kind).

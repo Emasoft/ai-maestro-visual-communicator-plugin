@@ -69,6 +69,9 @@ async function testAllWidgetsInit(page) {
         '.ve-rating': 'rating',
         '.ve-card-picker': 'card-picker',
         '.ve-tag-input': 'tag-input',
+        '.ve-text-input': 'text-input',
+        '.ve-text-area': 'text-area',
+        '.ve-url-input': 'url-input',
         '.ve-rank-list': 'rank-list'
       };
       const bad = [];
@@ -602,6 +605,162 @@ async function testTagInputAddRemoveSuggest(page) {
     JSON.stringify(r));
 }
 
+async function testTextInputPatternValidation(page) {
+  // ve-text-input mounts, applies model.pattern as regex, paints
+  // model.patternMsg in red when value doesn't match, clears the
+  // error when value matches. Event payload is {value, valid}.
+  const s = await setup(page);
+  if (!s.ok) {
+    record('form_inputs_text_pattern', 'FAIL',
+      'text-input pattern validation', s.error);
+    return;
+  }
+  const r = await page.evaluate(() => {
+    const root = document.querySelector('.ve-text-input');
+    const input = root.querySelector('.ve-text-input-field');
+    const err = root.querySelector('.ve-text-input-error');
+    const initial = {
+      value: input.value,
+      error: err.textContent,
+      hasInvalid: root.classList.contains('ve-text-input-invalid')
+    };
+    // Bad value
+    input.value = 'not-a-semver';
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    const badEv = window.__vcFormChanges
+      .filter(e => e.kind === 'text-input').pop();
+    const bad = {
+      error: err.textContent,
+      hasInvalid: root.classList.contains('ve-text-input-invalid'),
+      eventValid: badEv ? badEv.value.valid : null
+    };
+    // Good value
+    input.value = '3.4.5';
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    const goodEv = window.__vcFormChanges
+      .filter(e => e.kind === 'text-input').pop();
+    const good = {
+      error: err.textContent,
+      hasInvalid: root.classList.contains('ve-text-input-invalid'),
+      eventValid: goodEv ? goodEv.value.valid : null
+    };
+    return { initial, bad, good };
+  });
+  const ok = r.initial.value === '1.2.0' && !r.initial.hasInvalid
+    && r.bad.hasInvalid && r.bad.error.indexOf('major.minor.patch') >= 0
+    && r.bad.eventValid === false
+    && !r.good.hasInvalid && r.good.error === ''
+    && r.good.eventValid === true;
+  record('form_inputs_text_pattern', ok ? 'PASS' : 'FAIL',
+    'text-input regex pattern flags invalid + clears on valid; event carries .valid',
+    JSON.stringify(r));
+}
+
+async function testTextAreaCharCounter(page) {
+  // ve-text-area counter shows "<n> / <max>" and goes "near-limit"
+  // (warning color) past 90% of maxLength.
+  const s = await setup(page);
+  if (!s.ok) {
+    record('form_inputs_textarea_counter', 'FAIL',
+      'textarea counter', s.error);
+    return;
+  }
+  const r = await page.evaluate(() => {
+    const root = document.querySelector('.ve-text-area');
+    const ta = root.querySelector('.ve-text-area-field');
+    const counter = root.querySelector('.ve-text-area-counter');
+    // Type short
+    ta.value = 'short note';
+    ta.dispatchEvent(new Event('input', { bubbles: true }));
+    const shortRes = {
+      counter: counter.textContent,
+      nearLimit: counter.classList.contains('ve-text-area-near-limit')
+    };
+    // Type near limit (>= 90% of 280 = 252+)
+    ta.value = 'x'.repeat(260);
+    ta.dispatchEvent(new Event('input', { bubbles: true }));
+    const longRes = {
+      counter: counter.textContent,
+      nearLimit: counter.classList.contains('ve-text-area-near-limit')
+    };
+    const ev = window.__vcFormChanges
+      .filter(e => e.kind === 'text-area').pop();
+    return { shortRes, longRes, eventValue: ev ? ev.value.length : null };
+  });
+  const ok = r.shortRes.counter === '10 / 280'
+    && !r.shortRes.nearLimit
+    && r.longRes.counter === '260 / 280'
+    && r.longRes.nearLimit
+    && r.eventValue === 260;
+  record('form_inputs_textarea_counter', ok ? 'PASS' : 'FAIL',
+    'textarea counter formats N / max + flags near-limit past 90%',
+    JSON.stringify(r));
+}
+
+async function testUrlInputValidationAndPreview(page) {
+  // ve-url-input shows/hides the preview link based on URL validity,
+  // sets href to the typed URL, paints error text when invalid, and
+  // honours allowedProtocols.
+  const s = await setup(page);
+  if (!s.ok) {
+    record('form_inputs_url_validation', 'FAIL',
+      'url-input validation', s.error);
+    return;
+  }
+  const r = await page.evaluate(() => {
+    const root = document.querySelector('.ve-url-input');
+    const input = root.querySelector('.ve-url-input-field');
+    const preview = root.querySelector('.ve-url-input-preview');
+    const err = root.querySelector('.ve-url-input-error');
+    const initial = {
+      previewVisible: getComputedStyle(preview).display !== 'none',
+      previewHref: preview.href,
+      error: err.textContent
+    };
+    // Invalid
+    input.value = 'definitely not a url';
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    const invalid = {
+      previewVisible: getComputedStyle(preview).display !== 'none',
+      error: err.textContent,
+      hasInvalidClass: root.classList.contains('ve-url-input-invalid')
+    };
+    // Disallowed protocol (model declares ["http","https"])
+    input.value = 'ftp://example.com/file';
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    const wrongProto = {
+      error: err.textContent,
+      hasInvalidClass: root.classList.contains('ve-url-input-invalid')
+    };
+    // Valid
+    input.value = 'https://example.com/dashboard';
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    const valid = {
+      previewVisible: getComputedStyle(preview).display !== 'none',
+      previewHref: preview.href,
+      error: err.textContent,
+      hasInvalidClass: root.classList.contains('ve-url-input-invalid'),
+      event: window.__vcFormChanges
+        .filter(e => e.kind === 'url-input').pop()
+    };
+    return { initial, invalid, wrongProto, valid };
+  });
+  const ok = r.initial.previewVisible
+    && r.initial.previewHref.indexOf('grafana.internal') >= 0
+    && !r.invalid.previewVisible
+    && r.invalid.hasInvalidClass
+    && r.invalid.error.indexOf('not a valid URL') >= 0
+    && r.wrongProto.error.indexOf('protocol') >= 0
+    && r.wrongProto.hasInvalidClass
+    && r.valid.previewVisible
+    && r.valid.previewHref.indexOf('example.com/dashboard') >= 0
+    && !r.valid.hasInvalidClass
+    && r.valid.event && r.valid.event.value.valid === true;
+  record('form_inputs_url_validation', ok ? 'PASS' : 'FAIL',
+    'url-input shows preview when valid; flags bad URLs + wrong protocol',
+    JSON.stringify(r));
+}
+
 // ── Runner ───────────────────────────────────────────────────────────
 
 const tests = [
@@ -618,7 +777,10 @@ const tests = [
   testToggleFlipsState,
   testRatingClickAndClear,
   testCardPickerSelection,
-  testTagInputAddRemoveSuggest
+  testTagInputAddRemoveSuggest,
+  testTextInputPatternValidation,
+  testTextAreaCharCounter,
+  testUrlInputValidationAndPreview
 ];
 
 const page = await browser.getPage("form-inputs-tests");
