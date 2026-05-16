@@ -1044,7 +1044,193 @@
     paint();
   }
 
-  // ── §14 ve-rank-list ───────────────────────────────────────────────
+  // ── §14 ve-tree-picker ─────────────────────────────────────────────
+  //
+  // Hierarchical single-select picker for file trees, folder pickers,
+  // skill catalogues, etc. The model is a nested {label, value?,
+  // children?} tree. Each non-leaf node is a "branch" that can be
+  // expanded/collapsed by clicking its caret or label. Each leaf
+  // (no children) is selectable; click commits its `value` (or its
+  // accumulated dot-joined path when `value` is omitted) and emits a
+  // ve-form-change.
+  //
+  // Persistence: the selected path AND the set of expanded branch
+  // paths are saved separately to localStorage so a refresh restores
+  // both the selection and the expansion state.
+  function _renderTreeNode(doc, node, depth, parentPath, ctx) {
+    var path = node.value !== undefined && node.value !== null
+      ? String(node.value)
+      : (parentPath ? parentPath + '/' : '') + (node.label || '');
+    var hasChildren = Array.isArray(node.children)
+                      && node.children.length > 0;
+    var li = doc.createElement('li');
+    li.className = 've-tree-node ' + (hasChildren
+      ? 've-tree-branch' : 've-tree-leaf');
+    li.setAttribute('role', 'treeitem');
+    li.setAttribute('aria-level', String(depth + 1));
+    li.setAttribute('data-tree-path', path);
+
+    var row = doc.createElement('div');
+    row.className = 've-tree-row';
+    row.style.paddingLeft = (depth * 16 + 6) + 'px';
+
+    if (hasChildren) {
+      var caret = doc.createElement('button');
+      caret.type = 'button';
+      caret.className = 've-tree-caret';
+      caret.setAttribute('aria-label',
+        'Expand or collapse ' + (node.label || ''));
+      caret.textContent = '▸';
+      caret.addEventListener('click', function (ev) {
+        ev.preventDefault();
+        ev.stopPropagation();
+        toggleBranch();
+      });
+      row.appendChild(caret);
+    } else {
+      var spacer = doc.createElement('span');
+      spacer.className = 've-tree-bullet';
+      spacer.textContent = '·';
+      row.appendChild(spacer);
+    }
+
+    var icon = doc.createElement('span');
+    icon.className = 've-tree-icon';
+    icon.setAttribute('aria-hidden', 'true');
+    icon.textContent = node.icon
+      || (hasChildren ? '\u{1F4C1}' : '\u{1F4C4}');   // 📁 / 📄
+    row.appendChild(icon);
+
+    var label = doc.createElement('span');
+    label.className = 've-tree-label';
+    label.textContent = node.label || node.value || '?';
+    row.appendChild(label);
+
+    li.appendChild(row);
+
+    var childList = null;
+    if (hasChildren) {
+      childList = doc.createElement('ul');
+      childList.className = 've-tree-children';
+      childList.setAttribute('role', 'group');
+      for (var i = 0; i < node.children.length; i++) {
+        childList.appendChild(_renderTreeNode(doc, node.children[i],
+          depth + 1, path, ctx));
+      }
+      li.appendChild(childList);
+      // Restore expanded state
+      var open = ctx.expanded[path] === true
+        || ctx.expanded[path] === undefined && (depth < ctx.defaultDepth);
+      setOpen(open);
+    }
+
+    function setOpen(o) {
+      li.classList.toggle('ve-tree-open', o);
+      li.setAttribute('aria-expanded', o ? 'true' : 'false');
+      if (childList) {
+        childList.style.display = o ? '' : 'none';
+      }
+      if (row.querySelector('.ve-tree-caret')) {
+        row.querySelector('.ve-tree-caret').textContent = o ? '▾' : '▸';
+      }
+      ctx.expanded[path] = o;
+      ctx.saveExpanded();
+    }
+    function toggleBranch() {
+      setOpen(!li.classList.contains('ve-tree-open'));
+    }
+
+    // Click handler — leaf selects, branch toggles
+    function rowActivate(ev) {
+      if (ev.preventDefault) { ev.preventDefault(); }
+      if (hasChildren) {
+        toggleBranch();
+      } else {
+        ctx.selectLeaf(path, li);
+      }
+    }
+    row.addEventListener('click', rowActivate);
+    row.addEventListener('keydown', function (ev) {
+      if (ev.key === ' ' || ev.key === 'Enter') { rowActivate(ev); }
+    });
+
+    if (!hasChildren) {
+      label.setAttribute('tabindex', '0');
+      label.setAttribute('role', 'option');
+      if (path === ctx.selectedPath) {
+        li.classList.add('ve-tree-selected');
+        label.setAttribute('aria-selected', 'true');
+      }
+    }
+
+    return li;
+  }
+
+  function initTreePicker(el) {
+    if (!el || el.__veInited) { return; }
+    var id = requireId(el);
+    if (!id) { return; }
+    var model = readModel(el);
+    if (!model || !Array.isArray(model.tree) || model.tree.length === 0) {
+      paintError(el, 'tree-picker requires a non-empty tree[] array');
+      return;
+    }
+    el.__veInited = true;
+    el.setAttribute('data-ve-type', 'tree-picker');
+    var LS_EXP = id + ':expanded';
+    var selectedPath = loadValue(id, model['default'] || '');
+    var expanded = loadValue(LS_EXP, {}) || {};
+    var labelText = model.label || el.getAttribute('data-ve-label') || '';
+    var defaultDepth = typeof model.defaultDepth === 'number'
+      ? model.defaultDepth : 1;
+    el.textContent = '';
+    if (labelText) {
+      var lab = document.createElement('label');
+      lab.className = 've-tree-picker-label';
+      lab.textContent = labelText;
+      el.appendChild(lab);
+    }
+    var readout = document.createElement('span');
+    readout.className = 've-tree-picker-readout';
+    function paintReadout() {
+      readout.textContent = selectedPath
+        ? ('selected: ' + selectedPath) : '(no selection)';
+    }
+    var rootList = document.createElement('ul');
+    rootList.className = 've-tree-root';
+    rootList.setAttribute('role', 'tree');
+    if (labelText) { rootList.setAttribute('aria-label', labelText); }
+    var ctx = {
+      selectedPath: selectedPath,
+      expanded: expanded,
+      defaultDepth: defaultDepth,
+      saveExpanded: function () { saveValue(LS_EXP, expanded); },
+      selectLeaf: function (path, li) {
+        // Repaint old selection off
+        var prev = rootList.querySelector('.ve-tree-selected');
+        if (prev) { prev.classList.remove('ve-tree-selected'); }
+        var prevLabel = rootList.querySelector('[aria-selected="true"]');
+        if (prevLabel) { prevLabel.removeAttribute('aria-selected'); }
+        selectedPath = path;
+        ctx.selectedPath = path;
+        li.classList.add('ve-tree-selected');
+        var newLabel = li.querySelector('.ve-tree-label');
+        if (newLabel) { newLabel.setAttribute('aria-selected', 'true'); }
+        paintReadout();
+        saveValue(id, path);
+        emitChange('tree-picker', id, path);
+      }
+    };
+    for (var i = 0; i < model.tree.length; i++) {
+      rootList.appendChild(_renderTreeNode(document, model.tree[i],
+        0, '', ctx));
+    }
+    el.appendChild(rootList);
+    el.appendChild(readout);
+    paintReadout();
+  }
+
+  // ── §15 ve-rank-list ───────────────────────────────────────────────
   //
   // Drag-to-reorder a <li> stack. Uses HTML5 drag-and-drop. Persists
   // the post-drag order as an array of `data-ve-rank-key` values; on
@@ -1171,6 +1357,8 @@
     for (var x = 0; x < ta.length; x++) { initTextArea(ta[x]); }
     var url = d.querySelectorAll('.ve-url-input');
     for (var y = 0; y < url.length; y++) { initUrlInput(url[y]); }
+    var trp = d.querySelectorAll('.ve-tree-picker');
+    for (var z = 0; z < trp.length; z++) { initTreePicker(trp[z]); }
     var rnk = d.querySelectorAll('.ve-rank-list');
     for (var n = 0; n < rnk.length; n++) { initRankList(rnk[n]); }
   }
@@ -1182,7 +1370,7 @@
     '.ve-quiz-radio, .ve-quiz-multi, .ve-numeric-input,',
     '.ve-date-input, .ve-color-input, .ve-slider, .ve-toggle,',
     '.ve-rating, .ve-card-picker, .ve-tag-input, .ve-text-input,',
-    '.ve-text-area, .ve-url-input, .ve-rank-list {',
+    '.ve-text-area, .ve-url-input, .ve-tree-picker, .ve-rank-list {',
     '  display: block;',
     '  margin-block: 12px;',
     '  padding: 12px 14px;',
@@ -1202,7 +1390,8 @@
     '.ve-toggle[data-ve-id]:hover, .ve-rating[data-ve-id]:hover,',
     '.ve-card-picker[data-ve-id]:hover, .ve-tag-input[data-ve-id]:hover,',
     '.ve-text-input[data-ve-id]:hover, .ve-text-area[data-ve-id]:hover,',
-    '.ve-url-input[data-ve-id]:hover, .ve-rank-list[data-ve-id]:hover {',
+    '.ve-url-input[data-ve-id]:hover, .ve-tree-picker[data-ve-id]:hover,',
+    '.ve-rank-list[data-ve-id]:hover {',
     '  border-color: var(--vc-color-accent, #b8861f);',
     '}',
     '.ve-quiz-radio[data-ve-selected="1"],',
@@ -1218,6 +1407,7 @@
     '.ve-text-input[data-ve-selected="1"],',
     '.ve-text-area[data-ve-selected="1"],',
     '.ve-url-input[data-ve-selected="1"],',
+    '.ve-tree-picker[data-ve-selected="1"],',
     '.ve-rank-list[data-ve-selected="1"] {',
     '  border-color: var(--vc-color-accent, #b8861f);',
     '  box-shadow: 0 0 0 2px color-mix(in srgb,'
@@ -1228,7 +1418,8 @@
     '.ve-quiz-label, .ve-numeric-label, .ve-date-label, .ve-color-label,',
     '.ve-slider-label, .ve-rating-label, .ve-card-picker-label,',
     '.ve-tag-input-label, .ve-text-input-label,',
-    '.ve-text-area-label, .ve-url-input-label {',
+    '.ve-text-area-label, .ve-url-input-label,',
+    '.ve-tree-picker-label {',
     '  display: block;',
     '  font-weight: 600;',
     '  color: var(--vc-color-content, #1f1a14);',
@@ -1695,6 +1886,89 @@
     '}',
     '.ve-url-input-preview:hover { filter: brightness(1.08); }',
 
+    /* Tree picker */
+    '.ve-tree-root, .ve-tree-children {',
+    '  list-style: none;',
+    '  margin: 0;',
+    '  padding: 0;',
+    '}',
+    '.ve-tree-row {',
+    '  display: flex;',
+    '  align-items: center;',
+    '  gap: 6px;',
+    '  padding: 4px 6px;',
+    '  border-radius: var(--vc-radius-sm, 4px);',
+    '  cursor: pointer;',
+    '  user-select: none;',
+    '}',
+    '.ve-tree-row:hover {',
+    '  background: color-mix(in srgb,'
+      + ' var(--vc-color-accent, #b8861f) 8%, transparent);',
+    '}',
+    '.ve-tree-caret {',
+    '  -webkit-appearance: none;',
+    '  appearance: none;',
+    '  background: transparent;',
+    '  border: 0;',
+    '  color: var(--vc-color-content-muted, #5b5343);',
+    '  cursor: pointer;',
+    '  font: 12px/1 var(--vc-font-body,'
+      + ' ui-sans-serif, system-ui, sans-serif);',
+    '  width: 18px;',
+    '  height: 18px;',
+    '  padding: 0;',
+    '  display: inline-flex;',
+    '  align-items: center;',
+    '  justify-content: center;',
+    '  border-radius: 4px;',
+    '}',
+    '.ve-tree-caret:hover {',
+    '  background: color-mix(in srgb,'
+      + ' var(--vc-color-accent, #b8861f) 16%, transparent);',
+    '  color: var(--vc-color-content, #1f1a14);',
+    '}',
+    '.ve-tree-bullet {',
+    '  width: 18px;',
+    '  text-align: center;',
+    '  color: var(--vc-color-content-subtle, #8a8170);',
+    '}',
+    '.ve-tree-icon {',
+    '  font-size: 14px;',
+    '  line-height: 1;',
+    '  flex: none;',
+    '}',
+    '.ve-tree-label {',
+    '  font: 14px/1.3 var(--vc-font-body,'
+      + ' ui-sans-serif, system-ui, sans-serif);',
+    '  color: var(--vc-color-content, #1f1a14);',
+    '  white-space: nowrap;',
+    '  overflow: hidden;',
+    '  text-overflow: ellipsis;',
+    '}',
+    '.ve-tree-selected > .ve-tree-row {',
+    '  background: color-mix(in srgb,'
+      + ' var(--vc-color-accent, #b8861f) 18%, transparent);',
+    '  outline: 2px solid var(--vc-color-accent, #b8861f);',
+    '  outline-offset: -2px;',
+    '}',
+    '.ve-tree-selected > .ve-tree-row > .ve-tree-label {',
+    '  font-weight: 600;',
+    '  color: var(--vc-color-content, #1f1a14);',
+    '}',
+    '.ve-tree-leaf .ve-tree-icon {',
+    '  color: var(--vc-color-content-muted, #5b5343);',
+    '}',
+    '.ve-tree-picker-readout {',
+    '  display: block;',
+    '  margin-top: 8px;',
+    '  padding: 6px 10px;',
+    '  font: 12px/1 var(--vc-font-mono,'
+      + ' ui-monospace, monospace);',
+    '  color: var(--vc-color-content-muted, #5b5343);',
+    '  background: var(--vc-color-surface-sunken, #f1ece0);',
+    '  border-radius: var(--vc-radius-sm, 4px);',
+    '}',
+
     /* Rank list */
     '.ve-rank-list > ol, .ve-rank-list > ul {',
     '  list-style: decimal inside;',
@@ -1771,6 +2045,7 @@
     initTextInput: initTextInput,
     initTextArea: initTextArea,
     initUrlInput: initUrlInput,
+    initTreePicker: initTreePicker,
     initRankList: initRankList,
     readModel: readModel,
     loadValue: loadValue,

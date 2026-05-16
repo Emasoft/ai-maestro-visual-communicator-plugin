@@ -253,6 +253,52 @@
     </script>
   </div>
 
+  <h2>tree picker (file tree)</h2>
+  <div class="ve-tree-picker" data-ve-id="tree:file-picker">
+    <script type="application/json">
+      {
+        "label": "Pick the file to load:",
+        "defaultDepth": 1,
+        "tree": [
+          {
+            "label": "scripts",
+            "icon": "📁",
+            "children": [
+              { "label": "amvcp-runtime.js",   "value": "scripts/amvcp-runtime.js" },
+              { "label": "amvcp-diagram.js",   "value": "scripts/amvcp-diagram.js" },
+              { "label": "amvcp-form-inputs.js",
+                "value": "scripts/amvcp-form-inputs.js" }
+            ]
+          },
+          {
+            "label": "skills",
+            "icon": "📁",
+            "children": [
+              {
+                "label": "amvcp-form-inputs",
+                "icon": "📁",
+                "children": [
+                  { "label": "SKILL.md", "value": "skills/amvcp-form-inputs/SKILL.md" }
+                ]
+              },
+              {
+                "label": "amvcp-diagram",
+                "icon": "📁",
+                "children": [
+                  { "label": "SKILL.md", "value": "skills/amvcp-diagram/SKILL.md" }
+                ]
+              }
+            ]
+          },
+          {
+            "label": "README.md",
+            "value": "README.md"
+          }
+        ]
+      }
+    </script>
+  </div>
+
   <h2>rank list (drag to reorder)</h2>
   <div class="ve-rank-list" data-ve-id="rank:priorities">
     <p class="ve-quiz-label">Drag to rank the priorities:</p>

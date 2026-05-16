@@ -72,6 +72,7 @@ async function testAllWidgetsInit(page) {
         '.ve-text-input': 'text-input',
         '.ve-text-area': 'text-area',
         '.ve-url-input': 'url-input',
+        '.ve-tree-picker': 'tree-picker',
         '.ve-rank-list': 'rank-list'
       };
       const bad = [];
@@ -761,6 +762,118 @@ async function testUrlInputValidationAndPreview(page) {
     JSON.stringify(r));
 }
 
+async function testTreePickerMountsAndSelects(page) {
+  // ve-tree-picker walks the nested tree, mounts branches (closed by
+  // default beyond defaultDepth, open at and above) and leaves.
+  // Clicking a caret toggles open/closed; clicking a leaf row commits
+  // its `value` and emits ve-form-change.
+  const s = await setup(page);
+  if (!s.ok) {
+    record('form_inputs_tree_picker', 'FAIL',
+      'tree picker mount + select', s.error);
+    return;
+  }
+  const r = await page.evaluate(() => {
+    const root = document.querySelector('.ve-tree-picker');
+    const branches = root.querySelectorAll('.ve-tree-branch');
+    const leaves   = root.querySelectorAll('.ve-tree-leaf');
+    const initialOpen = root.querySelectorAll('.ve-tree-branch.ve-tree-open').length;
+    // Expand a previously-closed branch (the one nested inside skills/)
+    const closed = Array.from(branches).find(b =>
+      !b.classList.contains('ve-tree-open'));
+    let toggleRes = null;
+    if (closed) {
+      const sym0 = closed.querySelector('.ve-tree-caret').textContent;
+      closed.querySelector('.ve-tree-caret').click();
+      const sym1 = closed.querySelector('.ve-tree-caret').textContent;
+      toggleRes = {
+        wasOpen: closed.classList.contains('ve-tree-open'),
+        symBefore: sym0,
+        symAfter: sym1
+      };
+    }
+    // Select a visible leaf — pick scripts/amvcp-diagram.js
+    const target = root.querySelector(
+      '[data-tree-path="scripts/amvcp-diagram.js"]');
+    target.querySelector('.ve-tree-row').click();
+    const selectedNow = root.querySelectorAll('.ve-tree-selected').length;
+    const readout = root.querySelector('.ve-tree-picker-readout').textContent;
+    const ev = window.__vcFormChanges
+      .filter(e => e.kind === 'tree-picker').pop();
+    return {
+      typeAttr: root.getAttribute('data-ve-type'),
+      branchCount: branches.length,
+      leafCount: leaves.length,
+      initialOpen: initialOpen,
+      toggleRes: toggleRes,
+      selectedNow: selectedNow,
+      readout: readout,
+      eventValue: ev ? ev.value : null,
+      lsValue: JSON.parse(localStorage.getItem(
+        'amvcp-form-input:tree:file-picker') || 'null')
+    };
+  });
+  const ok = r.typeAttr === 'tree-picker'
+    && r.branchCount >= 3
+    && r.leafCount >= 4
+    && r.initialOpen >= 2          // depth-0 branches open by default
+    && r.toggleRes
+    && r.toggleRes.wasOpen === true
+    && r.toggleRes.symAfter === '▾'
+    && r.selectedNow === 1
+    && r.readout.indexOf('scripts/amvcp-diagram.js') >= 0
+    && r.eventValue === 'scripts/amvcp-diagram.js'
+    && r.lsValue === 'scripts/amvcp-diagram.js';
+  record('form_inputs_tree_picker', ok ? 'PASS' : 'FAIL',
+    'tree picker mounts, caret toggles open/closed, leaf click selects + emits',
+    JSON.stringify(r));
+}
+
+async function testTreePickerExpansionPersists(page) {
+  // The expanded state of each branch is persisted to LS under a
+  // separate key so a reload restores the user's expansion choices.
+  const s = await setup(page);
+  if (!s.ok) {
+    record('form_inputs_tree_persistence', 'FAIL',
+      'tree expansion persists', s.error);
+    return;
+  }
+  await page.evaluate(() => {
+    // Collapse the scripts branch (depth-0, normally open)
+    const branches = document.querySelectorAll('.ve-tree-branch');
+    const scripts = Array.from(branches).find(b =>
+      b.querySelector('.ve-tree-label').textContent === 'scripts');
+    if (scripts && scripts.classList.contains('ve-tree-open')) {
+      scripts.querySelector('.ve-tree-caret').click();
+    }
+  });
+  // Reload
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  const deadline = Date.now() + 6000;
+  while (Date.now() < deadline) {
+    const ready = await page.evaluate(() => window.__vcFixtureReady === true);
+    if (ready) break;
+    await page.waitForTimeout(70);
+  }
+  const r = await page.evaluate(() => {
+    const branches = document.querySelectorAll('.ve-tree-branch');
+    const scripts = Array.from(branches).find(b =>
+      b.querySelector('.ve-tree-label').textContent === 'scripts');
+    return {
+      scriptsOpen: scripts ? scripts.classList.contains('ve-tree-open') : null,
+      caretSym: scripts ? scripts.querySelector('.ve-tree-caret').textContent : null,
+      lsExpanded: JSON.parse(localStorage.getItem(
+        'amvcp-form-input:tree:file-picker:expanded') || '{}')
+    };
+  });
+  const ok = r.scriptsOpen === false
+    && r.caretSym === '▸'
+    && r.lsExpanded && r.lsExpanded.scripts === false;
+  record('form_inputs_tree_persistence', ok ? 'PASS' : 'FAIL',
+    'collapsing a branch persists across reload via the :expanded LS key',
+    JSON.stringify(r));
+}
+
 // ── Runner ───────────────────────────────────────────────────────────
 
 const tests = [
@@ -780,7 +893,9 @@ const tests = [
   testTagInputAddRemoveSuggest,
   testTextInputPatternValidation,
   testTextAreaCharCounter,
-  testUrlInputValidationAndPreview
+  testUrlInputValidationAndPreview,
+  testTreePickerMountsAndSelects,
+  testTreePickerExpansionPersists
 ];
 
 const page = await browser.getPage("form-inputs-tests");

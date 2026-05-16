@@ -19,13 +19,13 @@ description: |
 
 # Form-input widgets
 
-A dependency-free runtime module that ships fourteen structured-response
+A dependency-free runtime module that ships fifteen structured-response
 input widgets for conversational agent reports. The agent renders a
 question; the user answers via a typed widget (radio, checkbox,
 number+unit, date, color, slider, toggle, rating, card-picker,
-tag-input, text, textarea, URL, rank) instead of typing prose. The
-result lands in a `ve-form-change` event with a stable payload the
-runtime threads into the comment-turn record.
+tag-input, text, textarea, URL, file/folder tree, rank) instead of
+typing prose. The result lands in a `ve-form-change` event with a
+stable payload the runtime threads into the comment-turn record.
 
 ## When to use this skill
 
@@ -47,6 +47,7 @@ Reach for a form-input widget whenever the agent's question has a
 | "Type a short string (with regex validation)."    | `ve-text-input`   |
 | "Type a longer note."                             | `ve-text-area`    |
 | "Paste a URL (with preview)."                     | `ve-url-input`    |
+| "Pick a file from this project tree."             | `ve-tree-picker`  |
 | "Order these by priority."                        | `ve-rank-list`    |
 
 For anything **open-ended** (write a paragraph, paste a snippet,
@@ -354,6 +355,46 @@ in `allowedProtocols` (defaults to "any"), a small "open ↗" button
 appears that opens the URL in a new tab. Invalid values paint a red
 error line.
 
+### `ve-tree-picker` — hierarchical single-select
+
+```html
+<div class="ve-tree-picker" data-ve-id="<id>">
+  <script type="application/json">
+    {
+      "label": "<question>",
+      "defaultDepth": 1,        // branches at depth < N start expanded
+      "default": "<value>",     // optional initial selection
+      "tree": [
+        {
+          "label": "scripts",
+          "icon":  "📁",         // optional, defaults to folder emoji
+          "children": [
+            { "label": "amvcp-runtime.js",
+              "value": "scripts/amvcp-runtime.js" },
+            { "label": "amvcp-diagram.js",
+              "value": "scripts/amvcp-diagram.js" }
+          ]
+        },
+        { "label": "README.md", "value": "README.md" }
+      ]
+    }
+  </script>
+</div>
+```
+
+Emits `{ kind: "tree-picker", id, value: "<leaf-value>" }`. The
+model is a nested `{label, value?, icon?, children?}` tree. Branches
+(nodes with children) expand/collapse on caret OR row click; leaves
+(no children) select on row click. If a leaf has no `value`, the
+emitted value is the slash-joined path from root to leaf.
+
+**Persistence:** the SELECTION is saved under
+`amvcp-form-input:<data-ve-id>` and the EXPANDED branch set is
+saved separately under `amvcp-form-input:<data-ve-id>:expanded`,
+so a reload restores BOTH. Branches not listed in the expanded set
+fall back to `defaultDepth` (depth-0 + depth-1 open by default when
+`defaultDepth = 1`).
+
 ### `ve-rank-list` — drag-to-reorder
 
 ```html
@@ -467,6 +508,10 @@ See `tests/scripts/test-form-inputs.js`:
   near-limit flag past 90%.
 - `form_inputs_url_validation` — preview link visible only when
   URL is valid; honours `allowedProtocols`.
+- `form_inputs_tree_picker` — mounts branches/leaves, caret toggles
+  open/closed, leaf click selects + emits.
+- `form_inputs_tree_persistence` — collapsing a branch persists
+  across reload via the `:expanded` LS key.
 
 The fixture is `tests/fixtures/form-inputs-fixture.html` (one of
 each widget kind).
