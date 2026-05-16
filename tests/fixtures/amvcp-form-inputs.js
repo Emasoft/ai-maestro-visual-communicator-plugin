@@ -1,0 +1,1 @@
+../../scripts/amvcp-form-inputs.js

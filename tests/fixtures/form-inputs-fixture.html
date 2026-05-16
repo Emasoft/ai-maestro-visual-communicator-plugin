@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>form-inputs skill test fixture</title>
+<style>
+  :root,
+  html[data-ve-theme="light"] {
+    --vc-color-canvas: #faf6ee;
+    --vc-color-surface: #ffffff;
+    --vc-color-surface-raised: #fffdf8;
+    --vc-color-surface-sunken: #f1ece0;
+    --vc-color-content: #1f1a14;
+    --vc-color-content-muted: #5b5343;
+    --vc-color-content-subtle: #8a8170;
+    --vc-color-border: #e3dcc9;
+    --vc-color-border-strong: #c9bfa3;
+    --vc-color-accent: #b8861f;
+    --vc-color-on-accent: #ffffff;
+    --vc-color-success: #3a6b5c;
+    --vc-color-warning: #a8791f;
+    --vc-color-danger: #a84a32;
+    --vc-color-info: #3464a8;
+    --vc-font-body: "Inter, system-ui, sans-serif";
+    --vc-font-mono: "JetBrains Mono, ui-monospace, monospace";
+    --vc-radius-sm: 4px;
+    --vc-radius-md: 8px;
+  }
+  html[data-ve-theme="dark"] {
+    --vc-color-canvas: #1b1813;
+    --vc-color-surface: #262119;
+    --vc-color-surface-raised: #2f2920;
+    --vc-color-content: #f3ecdd;
+    --vc-color-content-muted: #b5ab93;
+    --vc-color-content-subtle: #857c66;
+    --vc-color-border: #3a3327;
+    --vc-color-border-strong: #564c39;
+    --vc-color-accent: #d8a83f;
+  }
+  body {
+    margin: 0;
+    padding: 28px;
+    background: var(--vc-color-canvas);
+    color: var(--vc-color-content);
+    font: 15px/1.5 var(--vc-font-body, system-ui, sans-serif);
+  }
+  main { max-width: 720px; margin: 0 auto; }
+  h1 { font-size: 22px; margin-bottom: 8px; }
+  h2 { font-size: 16px; margin-top: 28px; border-bottom: 1px solid
+       var(--vc-color-border); padding-bottom: 6px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>form-input widgets — fixture</h1>
+
+  <h2>quiz (radio)</h2>
+  <div class="ve-quiz-radio" data-ve-id="quiz-radio:rollout-strategy">
+    <script type="application/json">
+      {
+        "label": "Pick the rollout strategy:",
+        "options": [
+          { "value": "canary",       "label": "Canary (5% → 50% → 100%)" },
+          { "value": "blue-green",   "label": "Blue/green (full switch)" },
+          { "value": "feature-flag", "label": "Feature flag (off → on)" }
+        ],
+        "default": "canary"
+      }
+    </script>
+  </div>
+
+  <h2>quiz (multi)</h2>
+  <div class="ve-quiz-multi" data-ve-id="quiz-multi:notify-teams">
+    <script type="application/json">
+      {
+        "label": "Which teams should we ping?",
+        "options": [
+          { "value": "auth",     "label": "Auth team" },
+          { "value": "billing",  "label": "Billing team" },
+          { "value": "frontend", "label": "Frontend team" },
+          { "value": "infra",    "label": "Infra team" }
+        ],
+        "default": ["auth"]
+      }
+    </script>
+  </div>
+
+  <h2>numeric input (with units)</h2>
+  <div class="ve-numeric-input" data-ve-id="num:cache-ttl">
+    <script type="application/json">
+      {
+        "label": "Cache TTL:",
+        "value": 300,
+        "unit": "s",
+        "units": ["s", "m", "h"],
+        "min": 0,
+        "step": 1
+      }
+    </script>
+  </div>
+
+  <h2>date input</h2>
+  <div class="ve-date-input" data-ve-id="date:deadline">
+    <script type="application/json">
+      {
+        "label": "Deadline:",
+        "value": "2026-06-01"
+      }
+    </script>
+  </div>
+
+  <h2>color input</h2>
+  <div class="ve-color-input" data-ve-id="color:brand-accent">
+    <script type="application/json">
+      {
+        "label": "Brand accent:",
+        "value": "#b8861f"
+      }
+    </script>
+  </div>
+
+  <h2>rank list (drag to reorder)</h2>
+  <div class="ve-rank-list" data-ve-id="rank:priorities">
+    <p class="ve-quiz-label">Drag to rank the priorities:</p>
+    <ol>
+      <li data-ve-rank-key="logs">Improve logging</li>
+      <li data-ve-rank-key="metrics">Add metrics</li>
+      <li data-ve-rank-key="tests">Backfill tests</li>
+      <li data-ve-rank-key="docs">Update docs</li>
+    </ol>
+  </div>
+</main>
+
+<script>window.__vcFormInputsManualInit = true;</script>
+<script src="amvcp-form-inputs.js"></script>
+<script>
+(function () {
+  function boot() {
+    try {
+      document.documentElement.setAttribute('data-ve-theme', 'light');
+      window.amvcpFormInputs.injectStyles(document);
+      window.amvcpFormInputs.init(document);
+      // Capture every form-change event for the test to inspect.
+      window.__vcFormChanges = [];
+      document.addEventListener('ve-form-change', function (ev) {
+        window.__vcFormChanges.push(ev.detail);
+      });
+      window.__vcFixtureReady = true;
+    } catch (e) {
+      window.__vcFixtureError = String(e && e.message || e);
+    }
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot);
+  } else { boot(); }
+})();
+</script>
+</body>
+</html>
