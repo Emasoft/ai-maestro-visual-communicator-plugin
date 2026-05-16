@@ -252,7 +252,12 @@ async function testSheetClickToCopy(page) {
       return { missing: true };
     }
     const expected = swatch.getAttribute('data-vc-copy');
-    swatch.click();
+    // CONTRACT (user 2026-05-16): plain click now SELECTS the swatch
+    // for comment; clipboard-copy moved behind Alt/Option modifier.
+    // Dispatch an Alt+click so the copy path fires.
+    swatch.dispatchEvent(new MouseEvent('click', {
+      bubbles: true, cancelable: true, altKey: true
+    }));
     // Let the writeText promise settle.
     await new Promise(function (r) { setTimeout(r, 60); });
     // Restore.
@@ -268,7 +273,7 @@ async function testSheetClickToCopy(page) {
   record(
     'sheet_click_to_copy',
     ok ? 'PASS' : 'FAIL',
-    'clicking a swatch calls navigator.clipboard.writeText with the token value',
+    'Alt-clicking a swatch calls navigator.clipboard.writeText with the token value',
     JSON.stringify(res)
   );
 }

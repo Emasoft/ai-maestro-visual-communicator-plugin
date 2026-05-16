@@ -161,10 +161,18 @@
     for (i = 0; i < roles.length; i++) {
       var role = roles[i];
       var value = String(themeColors[role]);
+      // CONTRACT (user 2026-05-16): a palette swatch is a SELECTION ATOM
+      // (select-for-comment), NOT a clipboard-copy affordance. Clicking
+      // selects so the agent learns "user wants to discuss this color".
+      // Holding Alt/Option while clicking still copies the hex to the
+      // clipboard as a secondary convenience (handled in attachCopy).
       var cell = el('button', 'vc-sheet-swatch', {
         type: 'button',
         'data-vc-copy': value,
-        'data-vc-role': role
+        'data-vc-role': role,
+        'data-ve-id': 'color-swatch:' + themeName + ':' + role,
+        'data-ve-type': 'color-swatch',
+        'data-ve-label': role + ' ' + value
       });
       // The colored face.
       var face = el('span', 'vc-sheet-swatch-face');
@@ -205,7 +213,7 @@
     var section = el('section', 'vc-sheet-panel',
       { 'data-vc-panel': 'color' });
     section.appendChild(panelHeading('Color',
-      'Every color role, both themes. Click a swatch to copy its value.'));
+      'Every color role, both themes. Click a swatch to select it for comment; hold Alt to copy the hex.'));
     var colors = designmd.tokens.colors;
     var active = activeTheme(designmd);
     var other = active === 'light' ? 'dark' : 'light';
@@ -706,7 +714,18 @@
       if (!node || node === root) {
         return;
       }
+      // CONTRACT (user 2026-05-16): the swatch's PRIMARY action is
+      // select-for-comment (the runtime's data-ve-id click handler
+      // toggles selection). Clipboard copy is now a SECONDARY action,
+      // only fired when the user holds Alt/Option (Mac convention for
+      // "actually copy this raw value").
+      if (!(ev.altKey || ev.metaKey)) {
+        // Let the runtime's [data-ve-id] click handler run so the swatch
+        // gets added to veSelection and the comment-handle appears.
+        return;
+      }
       var value = node.getAttribute('data-vc-copy');
+      ev.stopPropagation();   // prevent runtime selection on copy path
       copyValue(value, node);
     });
   }
