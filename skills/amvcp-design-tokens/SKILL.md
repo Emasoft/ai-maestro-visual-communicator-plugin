@@ -1,6 +1,6 @@
 ---
 name: amvcp-design-tokens
-description: "Generate, validate, and visualize a design-token system: principled scales (phi spacing, OKLCH color ramp, MD3 elevation, motion library, z-index), named dual-theme presets, semantic-role color maps, and a click-to-copy token contact sheet. Use when asked to 'make a design system', 'pick a palette / theme', 'generate a color ramp', 'show the design tokens', 'render a style guide / living design page', 'check for AI-slop colors', or 'apply a brand preset'. Triggers: 'design tokens', 'token contact sheet', 'color ramp', 'palette preset', 'elevation scale', 'anti-slop check'."
+description: "The token-vocabulary and token-rendering layer on top of the DESIGN.md engine. Generates, validates, and visualizes design-token systems: principled scales (phi spacing, OKLCh color ramp, MD3 elevation, motion library, 9-level z-index), 13 named dual-theme presets, semantic-role color maps (badge / activity / graph-node / icon-tint), one consolidated anti-AI-slop gate, and a click-to-copy token contact sheet (the 'living design page'). Every other visual-communicator technique themes off the --vc-* vocabulary this skill defines. Progressive-discovery: a fixed 5-recipe playbook in SKILL.md (color ramp / scales / preset / role-map / contact sheet) + 40+ references/ files for deep dives on individual generators, presets, panels, and contracts. Triggers: 'design tokens', 'design system', 'token contact sheet', 'living design page', 'style guide', 'color ramp', 'color palette', 'palette preset', 'pick a theme / palette', 'apply brand preset', 'elevation scale', 'spacing scale', 'motion tokens', 'z-index scale', 'anti-slop check', 'AI-slop colors', 'OKLCH ramp', 'phi spacing', 'MD3 elevation', 'token vocabulary', 'CSS custom properties', 'theme generator', 'badge severity colors', 'graph-node colors', 'hot-swap restyle'."
 license: MIT
 metadata:
   author: Emasoft
@@ -115,18 +115,163 @@ This is a decision recipe — match the request to one numbered step.
   `window.__veDesignMd.hotSwap(amvcpTokens.PRESETS['factory-dark'])`
   (step 3) — the page re-themes live.
 
+## When to choose this category
+
+The decision recipe in §Instructions is the primary entry point. Match
+the request to a step; each step links to one or more references for
+the deep dive.
+
+| If the user asks for … | Start at step | Then read |
+|---|---|---|
+| "make a design system" / "design tokens" | step 3 + step 6 | [preset-library.md](./references/preset-library.md), [contact-sheet-schema.md](./references/contact-sheet-schema.md), [dual-theme-contract.md](./references/dual-theme-contract.md) |
+| "show me the design tokens" / "living design page" / "style guide" | step 6 | [contact-sheet-schema.md](./references/contact-sheet-schema.md), [contact-sheet-color-panel.md](./references/contact-sheet-color-panel.md), [click-to-copy.md](./references/click-to-copy.md) |
+| "generate a color ramp" / "blue palette" | step 1 | [oklch-color-ramp.md](./references/oklch-color-ramp.md), [oklch-color-space.md](./references/oklch-color-space.md), [wcag-contrast.md](./references/wcag-contrast.md) |
+| "pick a palette" / "apply a preset" / "make it warm" | step 3 | [preset-library.md](./references/preset-library.md), [preset-category-system.md](./references/preset-category-system.md), [heritage-warm-palette.md](./references/heritage-warm-palette.md), [factory-dark-palette.md](./references/factory-dark-palette.md) |
+| "make it warmer / cooler / playful / corporate" | step 3 | [personality-deltas.md](./references/personality-deltas.md), [hot-swap-restyling.md](./references/hot-swap-restyling.md) |
+| "live-token playground" / "token tuner UI" | step 3 | [live-token-playground.md](./references/live-token-playground.md), [hot-swap-restyling.md](./references/hot-swap-restyling.md) |
+| "spacing scale" / "8pt grid" / "phi spacing" | step 2 | [phi-spacing-generator.md](./references/phi-spacing-generator.md) |
+| "elevation" / "shadow scale" / "cinematic shadows" | step 2 | [elevation-scale.md](./references/elevation-scale.md) |
+| "motion tokens" / "easing library" / "duration scale" | step 2 | [motion-token-library.md](./references/motion-token-library.md), [contact-sheet-motion-panel.md](./references/contact-sheet-motion-panel.md) |
+| "z-index scale" / "stacking levels" | step 2 | [z-index-scale.md](./references/z-index-scale.md), [contact-sheet-z-panel.md](./references/contact-sheet-z-panel.md) |
+| "neutral gray scale" / "derived from one ink" | step 2 | [neutral-scale-generator.md](./references/neutral-scale-generator.md) |
+| "interaction states" / "hover/focus/pressed" | (downstream of step 3) | [interaction-state-tokens.md](./references/interaction-state-tokens.md), [contact-sheet-state-panel.md](./references/contact-sheet-state-panel.md) |
+| "dark text hierarchy" / "on-surface text tiers" | (downstream of step 3) | [dark-text-hierarchy.md](./references/dark-text-hierarchy.md) |
+| "badge / severity colors" (MUST/IMO/Q/FYI) | step 4 | [badge-severity-roles.md](./references/badge-severity-roles.md), [derived-state-color-split.md](./references/derived-state-color-split.md) |
+| "activity colors" (working/meeting/break/...) | step 4 | [activity-color-map.md](./references/activity-color-map.md), [golden-angle-categorical.md](./references/golden-angle-categorical.md) |
+| "graph-node colors" (source/filter/transform/...) | step 4 | [graph-node-color-map.md](./references/graph-node-color-map.md) |
+| "icon tints" / "auto-tinted feature cards" | step 4 | [icon-tint-rotation.md](./references/icon-tint-rotation.md) |
+| "check for AI-slop" / "anti-slop audit" | step 5 | [anti-slop-rules.md](./references/anti-slop-rules.md), [lint-live-document.md](./references/lint-live-document.md) |
+| "code syntax highlighting" / "code theme" | step 7 (CSS class) | [code-syntax-tokens.md](./references/code-syntax-tokens.md), [contact-sheet-code-panel.md](./references/contact-sheet-code-panel.md) |
+| "syntax-highlight tokens / Code panel" | step 6 | [code-syntax-tokens.md](./references/code-syntax-tokens.md), [contact-sheet-code-panel.md](./references/contact-sheet-code-panel.md) |
+| "CJK / Japanese / Chinese / Korean typography" | step 3 | [cjk-typography-tokens.md](./references/cjk-typography-tokens.md) |
+| "wireframe colors / grayscale" | step 3 | [wireframe-grayscale-palette.md](./references/wireframe-grayscale-palette.md) |
+| "P3 wide-gamut accent" | step 1 (opts.p3) | [p3-wide-gamut.md](./references/p3-wide-gamut.md) |
+| "scope theme to one section" / "sidebar with different palette" | step 3 (per-rootEl) | [scoped-theming.md](./references/scoped-theming.md) |
+| "multi-brand blend" / "co-branded artifact" | (advanced) | [multi-brand-mixer.md](./references/multi-brand-mixer.md) |
+| "Tailwind-shaped utility classes" / "what classes exist" | step 7 | [tailwind-utility-classes.md](./references/tailwind-utility-classes.md) |
+| "@layer architecture" / "CSS cascade" | (architecture) | [layer-architecture.md](./references/layer-architecture.md), [token-vocabulary.md](./references/token-vocabulary.md) |
+| "delegate one token to another" | (architecture) | [token-delegation-chain.md](./references/token-delegation-chain.md), [centralised-token-pattern.md](./references/centralised-token-pattern.md) |
+| "dual-theme contract" / "why both light AND dark" | (rationale) | [dual-theme-contract.md](./references/dual-theme-contract.md) |
+
 ## Resources
 
+### Architecture and vocabulary
+
 - [token-vocabulary.md](./references/token-vocabulary.md) — the 5-layer
-  naming convention, the `@layer` architecture, the 23-variable minimal
-  theme contract, the derived `--vc-state-*` family, scoped theming.
-- [preset-library.md](./references/preset-library.md) — the ~13 named
+  naming convention mapped onto the engine's `--vc-*` set, the 23-variable
+  minimal theme contract, the derived `--vc-state-*` family.
+- [layer-architecture.md](./references/layer-architecture.md) — the
+  `@layer ve-primitive, ve-semantic, ve-component` cascade and why the
+  primitive tier wins via inline-style.
+- [centralised-token-pattern.md](./references/centralised-token-pattern.md)
+  — prior art for the "one source of truth for all primitives" pattern
+  (LaTeX `signalflowdiagram.sty` precedent).
+- [token-delegation-chain.md](./references/token-delegation-chain.md) —
+  `var(--primary, var(--secondary, fallback))` cascade strategy.
+- [dual-theme-contract.md](./references/dual-theme-contract.md) — why
+  every artifact ships BOTH light AND dark, mechanically.
+- [scoped-theming.md](./references/scoped-theming.md) — per-section /
+  per-component DESIGN.md via `applyTokens(map, rootEl)`.
+
+### Scale generators
+
+- [phi-spacing-generator.md](./references/phi-spacing-generator.md) — φ
+  spacing scale generator (DT-01).
+- [oklch-color-ramp.md](./references/oklch-color-ramp.md) — OKLCh
+  perceptual ramp generator with phi / Radix curves (DT-02 + DM-17).
+- [oklch-color-space.md](./references/oklch-color-space.md) — the OKLCh
+  color-space rationale + conversion math.
+- [neutral-scale-generator.md](./references/neutral-scale-generator.md)
+  — single-ink neutral scale via `color-mix(... transparent)` (DT-11).
+- [elevation-scale.md](./references/elevation-scale.md) — MD3 +
+  cinematic shadow scales (DT-04).
+- [motion-token-library.md](./references/motion-token-library.md) —
+  8 durations × 8 easings (DT-05 + DM-24).
+- [z-index-scale.md](./references/z-index-scale.md) — 9-level semantic
+  stacking scale (DT-14).
+- [golden-angle-categorical.md](./references/golden-angle-categorical.md)
+  — N maximally-separated hues via golden-angle hue rotation.
+- [p3-wide-gamut.md](./references/p3-wide-gamut.md) — P3 wide-gamut
+  accent via `@supports` (DT-18).
+- [dark-text-hierarchy.md](./references/dark-text-hierarchy.md) — 3-tier
+  on-surface text family (DT-08).
+- [interaction-state-tokens.md](./references/interaction-state-tokens.md)
+  — MD3 state-layer opacities + `.vc-state` overlay (DT-03 + DT-21).
+- [derived-state-color-split.md](./references/derived-state-color-split.md)
+  — fg/bg/border/icon split derived per semantic role.
+- [wcag-contrast.md](./references/wcag-contrast.md) — `contrastRatio`
+  + the contact-sheet's per-cell annotation.
+
+### Presets and personality
+
+- [preset-library.md](./references/preset-library.md) — the 13 named
   dual-theme presets, `applyPersonalityDelta`, hot-swap restyling.
+- [preset-category-system.md](./references/preset-category-system.md) —
+  the 9-category aesthetic taxonomy (Bold/Warm/Dark/Clean/...) (DT-26).
+- [heritage-warm-palette.md](./references/heritage-warm-palette.md) —
+  the runtime default preset (DT-10 territory).
+- [factory-dark-palette.md](./references/factory-dark-palette.md) —
+  the industrial-orange dark-first preset (DT-07).
+- [wireframe-grayscale-palette.md](./references/wireframe-grayscale-palette.md)
+  — the zero-hue zero-radius preset (DT-24).
+- [cjk-typography-tokens.md](./references/cjk-typography-tokens.md) —
+  Source Han + line-height 1.8 + letter-spacing 0.05em (DT-25).
+- [personality-deltas.md](./references/personality-deltas.md) — playful
+  / corporate / minimal / warmer / cooler deltas.
+- [hot-swap-restyling.md](./references/hot-swap-restyling.md) —
+  `window.__veDesignMd.hotSwap(text)` (DM-25).
+- [live-token-playground.md](./references/live-token-playground.md) —
+  sliders / pickers writing to `--vc-*` for live tuning.
+- [multi-brand-mixer.md](./references/multi-brand-mixer.md) — blend two
+  DESIGN.mds with per-role rules (DM-23).
+
+### Semantic role maps
+
 - [semantic-role-maps.md](./references/semantic-role-maps.md) — the
-  badge / activity / graph-node / icon-tint role maps and the
-  golden-angle categorical generator.
+  generic role-map mechanism + index of shipped maps.
+- [badge-severity-roles.md](./references/badge-severity-roles.md) —
+  MUST/IMO/Q/FYI (DT-19).
+- [activity-color-map.md](./references/activity-color-map.md) —
+  7-state productivity convention (DT-22).
+- [graph-node-color-map.md](./references/graph-node-color-map.md) —
+  6-role pipeline / DAG colors (DT-16).
+- [icon-tint-rotation.md](./references/icon-tint-rotation.md) —
+  6-color `:nth-child` rotation for icon cards (DT-12 + DT-15).
+
+### Anti-slop gate
+
 - [anti-slop-rules.md](./references/anti-slop-rules.md) — the banned
   colors / fonts / patterns reference and how the gate works.
+- [lint-live-document.md](./references/lint-live-document.md) — the
+  in-browser DOM-walking variant.
+
+### Token vocabulary (per-token-group)
+
+- [code-syntax-tokens.md](./references/code-syntax-tokens.md) —
+  12-token syntax-highlight vocabulary (DM-26).
+- [tailwind-utility-classes.md](./references/tailwind-utility-classes.md)
+  — the `.vc-*` utility class layer (DT-20 + DM-15).
+
+### Contact sheet — the headline deliverable
+
 - [contact-sheet-schema.md](./references/contact-sheet-schema.md) — the
-  contact-sheet HTML structure, the per-panel data attributes,
+  contact-sheet HTML structure, the per-panel `data-vc-panel` attributes,
   click-to-copy.
+- [contact-sheet-color-panel.md](./references/contact-sheet-color-panel.md)
+  — both-themes-side-by-side color grid with WCAG annotation.
+- [contact-sheet-typography-panel.md](./references/contact-sheet-typography-panel.md)
+  — type specimens + font-stack rows.
+- [contact-sheet-spacing-panel.md](./references/contact-sheet-spacing-panel.md)
+  — true-pixel-width spacing bars.
+- [contact-sheet-radius-elevation.md](./references/contact-sheet-radius-elevation.md)
+  — radius squares + elevation cards.
+- [contact-sheet-motion-panel.md](./references/contact-sheet-motion-panel.md)
+  — click-to-feel easing chips.
+- [contact-sheet-z-panel.md](./references/contact-sheet-z-panel.md) —
+  overlapping plates stack.
+- [contact-sheet-state-panel.md](./references/contact-sheet-state-panel.md)
+  — frozen state demos + live instance.
+- [contact-sheet-code-panel.md](./references/contact-sheet-code-panel.md)
+  — syntax-highlighted sample + 12-color legend.
+- [click-to-copy.md](./references/click-to-copy.md) — the contact-sheet's
+  ONE deliberate fail-soft path.

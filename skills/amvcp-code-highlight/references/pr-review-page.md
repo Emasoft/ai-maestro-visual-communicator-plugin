@@ -1,0 +1,260 @@
+# Sub-technique E3 — PR review page composition
+
+The reviewer-facing pull-request review page. Mined verbatim from
+`03-code-review-pr.html` (html-effectiveness catalog #3). The
+canonical reviewer-side composition.
+
+## E3.1 The shape
+
+A reviewer-facing PR-review page has six sections, top to bottom:
+
+1. **Header.** Author avatar + branch name + +N / −N stat (compact).
+2. **What this PR does** (prose summary list — 3-5 bullets, ≤ 1 line
+   each).
+3. **Risk-map chips** (color-coded chips, one per file, clicking jumps
+   to the file's card and pulses).
+4. **Per-file diff cards** (a card per touched file: file-path label +
+   diff + margin-anchored comment bubbles).
+5. **Collapsed safe files** (`<details>` containing low-risk files
+   — diff cards inside).
+6. **Suggested next steps** (`<input type="checkbox">` checklist).
+
+## E3.2 The header
+
+```html
+<header class="ve-pr-header">
+  <img class="ve-pr-header__avatar" src="…author avatar…" alt="Author avatar">
+  <div class="ve-pr-header__title">
+    <h1>Migrate auth middleware to JWKS</h1>
+    <div class="ve-pr-header__meta">
+      <code class="inline">feature/jwks-auth</code>
+      <span class="ve-pr-header__stat ve-pr-header__stat--add">+247</span>
+      <span class="ve-pr-header__stat ve-pr-header__stat--del">−89</span>
+    </div>
+  </div>
+</header>
+```
+
+Compact, scannable, mono-font for the branch name. The +/− stats use
+the olive (add) / rust (del) semantic colors.
+
+## E3.3 The risk-map chips
+
+A horizontal row of chips, one per touched file. Each chip is:
+
+```html
+<a href="#file-auth-middleware" class="ve-pr-chip ve-pr-chip--attention"
+   data-ve-link-to-card="file-auth-middleware">
+  <span class="ve-pr-chip__name">middleware.ts</span>
+  <span class="ve-pr-chip__risk">⚠ TRUST</span>
+</a>
+```
+
+Three classes:
+- `.ve-pr-chip--attention` (clay/accent) — high-risk, needs careful
+  review (TRUST boundary, security-sensitive)
+- `.ve-pr-chip--medium` (oat/neutral-amber) — meaningful change,
+  routine review
+- `.ve-pr-chip--safe` (olive/success) — refactor, type-fix, comment-
+  change
+
+Click handler scrolls to the file card AND adds a 1.4s pulse outline:
+
+```js
+document.querySelectorAll('[data-ve-link-to-card]').forEach(function (chip) {
+  chip.addEventListener('click', function (ev) {
+    var id = chip.dataset.veLinkToCard;
+    var target = document.getElementById(id);
+    if (!target) return;
+    ev.preventDefault();
+    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    target.style.boxShadow = '0 0 0 3px color-mix(in srgb, var(--ve-accent) 35%, transparent)';
+    setTimeout(function () { target.style.boxShadow = ''; }, 1400);
+  });
+});
+```
+
+Mined catalog quote: *"`target.style.boxShadow = '0 0 0 3px
+rgba(217,119,87,0.35)'; setTimeout(…remove, 1400)` — draws the eye
+after a smooth-scroll lands."* — adopted verbatim, just with the token
+color.
+
+## E3.4 The per-file diff card
+
+Each file gets a card:
+
+```html
+<article class="ve-pr-file-card" id="file-auth-middleware">
+  <header class="ve-pr-file-card__head">
+    <span class="ve-pr-file-card__icon">[icon]</span>
+    <span class="ve-pr-file-card__path">src/auth/middleware.ts</span>
+    <span class="ve-pr-file-card__stat ve-pr-file-card__stat--add">+47</span>
+    <span class="ve-pr-file-card__stat ve-pr-file-card__stat--del">−12</span>
+    <span class="ve-pr-file-card__badge ve-pr-file-card__badge--modified">modified</span>
+  </header>
+
+  <div class="ve-pr-file-card__diff">
+    <div class="ve-code-block" data-ve-diff-mode="twin">
+      <pre><code class="language-diff">@@ -42,7 +42,8 @@ function authMiddleware …</code></pre>
+    </div>
+  </div>
+
+  <aside class="ve-pr-file-card__comments">
+    <div class="ve-pr-comment" data-ve-anchor-line="42">
+      <div class="ve-pr-comment__head">
+        <strong>@reviewer</strong>
+        <span class="ve-pr-comment__time">2h ago</span>
+      </div>
+      <p>Should we cache the JWKS response? This will hit the network
+         on every request.</p>
+    </div>
+  </aside>
+</article>
+```
+
+The card is a grid with the diff on the left and comments on the
+right (or stacked vertically on narrow viewports).
+
+## E3.5 The comment bubble — `::before` rotated-square trick
+
+```css
+.ve-pr-comment {
+  position: relative;
+  background: var(--vc-color-neutral-50);
+  border: 1px solid color-mix(in srgb, var(--ve-accent) 25%, transparent);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-left: 14px;
+}
+.ve-pr-comment::before {
+  content: "";
+  position: absolute;
+  left: -7px;
+  top: 14px;
+  width: 12px; height: 12px;
+  background: var(--vc-color-neutral-50);
+  border-left: 1px solid color-mix(in srgb, var(--ve-accent) 25%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--ve-accent) 25%, transparent);
+  transform: rotate(45deg);
+}
+```
+
+The 12×12 rotated square renders as a triangular pointer at the
+comment's left edge — pointing at the diff line. Mined directly from
+`03-code-review-pr.html`.
+
+## E3.6 Anchoring comments to line numbers
+
+The comment carries `data-ve-anchor-line="42"`. JS positions the
+comment vertically so its `::before` triangle aligns with line 42's
+visual y-coordinate:
+
+```js
+function positionComments(card) {
+  var diff = card.querySelector('.ve-pr-file-card__diff');
+  var comments = card.querySelectorAll('.ve-pr-comment');
+  comments.forEach(function (c) {
+    var ln = c.dataset.veAnchorLine;
+    var line = diff.querySelector('.ve-code-line[data-ve-line="' + ln + '"]');
+    if (!line) return;
+    var lineRect = line.getBoundingClientRect();
+    var cardRect = card.getBoundingClientRect();
+    c.style.position = 'absolute';
+    c.style.top = (lineRect.top - cardRect.top) + 'px';
+  });
+}
+```
+
+Re-runs on:
+- DOMContentLoaded
+- Window resize (with debounce)
+- Tab change (if PR is in a tabbed shell)
+
+## E3.7 Collapsed safe files
+
+Files with no risk or trivial changes get collapsed by default:
+
+```html
+<details class="ve-pr-collapsed-files">
+  <summary>
+    <span>4 low-risk files</span>
+    <span class="ve-pr-collapsed-files__stat">+12 / −12</span>
+  </summary>
+  <article class="ve-pr-file-card" id="file-types">
+    …diff card for src/types/index.ts…
+  </article>
+  …more cards…
+</details>
+```
+
+Keeps the page short — the reader sees the risky files prominently,
+the safe ones tucked away.
+
+## E3.8 The next-steps checklist
+
+```html
+<section class="ve-pr-checklist">
+  <h2>Suggested next steps</h2>
+  <ul class="ve-pr-checklist__list">
+    <li class="ve-pr-checklist__item">
+      <input type="checkbox" id="step-cache">
+      <label for="step-cache">Add JWKS response cache (24h TTL)</label>
+    </li>
+    <li class="ve-pr-checklist__item">
+      <input type="checkbox" id="step-test">
+      <label for="step-test">Add tests for the 401 path</label>
+    </li>
+    <li class="ve-pr-checklist__item">
+      <input type="checkbox" id="step-docs">
+      <label for="step-docs">Update README.md auth section</label>
+    </li>
+  </ul>
+</section>
+```
+
+The checkbox state can persist via localStorage if the page is meant
+to be revisited — see `amvcp-interactive-controls` for the state
+plumbing.
+
+## E3.9 Cross-references
+
+This composition consumes:
+- [diff-blocks-unified.md](./diff-blocks-unified.md) — per-line diff
+  tints
+- [diff-gutter-old-new.md](./diff-gutter-old-new.md) — twin gutter for
+  the per-file cards
+- [code-block-with-file-path.md](./code-block-with-file-path.md) — the
+  file-path label on each card
+- [collapsed-snippets-walkthrough.md](./collapsed-snippets-walkthrough.md)
+  — if a file card hides additional context behind `<details>`
+
+## E3.10 Light + dark verification
+
+- [ ] Risk-map chips: all 3 risk colors (clay / oat / olive) read on
+      both themes
+- [ ] Per-file diff card: file-path label readable on both themes
+- [ ] Comment bubbles: bg / border / pointer visible on both themes
+- [ ] Pulse outline: readable on both themes (color-mix uses accent)
+- [ ] Collapsed files: `<summary>` chevron + stat read on both themes
+
+## E3.11 Tokens consumed
+
+- `--ve-accent` — pulse / focus / link colour
+- `--vc-color-success` / `--vc-color-danger` — +N / −N stat colours
+- `--vc-color-neutral-50` / `-300` / `-500` / `-700` — neutrals
+- `--vc-font-mono` — file paths, branch names, stat numbers
+- `--vc-radius-md` / `-sm` — card / chip radii
+- All from [diff-blocks-unified.md](./diff-blocks-unified.md) +
+  [diff-gutter-old-new.md](./diff-gutter-old-new.md)
+
+## E3.12 Mined source attribution
+
+Catalog quote from §3.7 code-highlight, source `03-code-review-pr.html`:
+
+> *"PR review (reviewer-side) shape: Header (avatar + branch + +/−
+> stat) + What-this-PR-does + Risk-map chips + per-file diffs with
+> margin-anchored comment bubbles + collapsed safe files + Suggested-
+> next-steps checklist."*
+
+Listed in the §3.13 report-doc ⭐ canonical shapes — adopted as the
+PR-review composition for AMVCP.
