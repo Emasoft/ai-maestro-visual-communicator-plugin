@@ -165,6 +165,54 @@
     </script>
   </div>
 
+  <h2>card picker (rich radio)</h2>
+  <div class="ve-card-picker" data-ve-id="card:database-engine">
+    <script type="application/json">
+      {
+        "label": "Pick a database engine for the new service:",
+        "options": [
+          {
+            "value": "postgres",
+            "label": "PostgreSQL",
+            "subtitle": "OLTP · relational",
+            "body": "Strong consistency, rich SQL, mature ecosystem. Best when your reads need joins and your data has a stable schema.",
+            "icon": "🐘"
+          },
+          {
+            "value": "sqlite",
+            "label": "SQLite",
+            "subtitle": "Embedded · single-writer",
+            "body": "Zero-ops, single file, in-process. Best when one process owns the data and concurrency is low.",
+            "icon": "📦"
+          },
+          {
+            "value": "redis",
+            "label": "Redis",
+            "subtitle": "KV · in-memory",
+            "body": "µs-latency reads, no joins. Best as a cache or queue; not a system of record.",
+            "icon": "⚡"
+          }
+        ],
+        "default": "postgres"
+      }
+    </script>
+  </div>
+
+  <h2>tag input (with suggestions)</h2>
+  <div class="ve-tag-input" data-ve-id="tags:rollout-tags">
+    <script type="application/json">
+      {
+        "label": "Tag this rollout:",
+        "default": ["security"],
+        "placeholder": "type a tag + Enter…",
+        "suggestions": [
+          "security", "performance", "p0", "p1", "breaking-change",
+          "tech-debt", "ux", "infra", "compliance"
+        ]
+      }
+    </script>
+  </div>
+
   <h2>rank list (drag to reorder)</h2>
   <div class="ve-rank-list" data-ve-id="rank:priorities">
     <p class="ve-quiz-label">Drag to rank the priorities:</p>

@@ -592,7 +592,243 @@
     paint(current);
   }
 
-  // ── §9 ve-rank-list ────────────────────────────────────────────────
+  // ── §9 ve-card-picker ──────────────────────────────────────────────
+  //
+  // Single-select picker where each option is a CARD with title +
+  // subtitle + body + optional icon (an emoji glyph or a single SVG
+  // path string). Visually denser than ve-quiz-radio — for picking
+  // between rich proposals, not yes/no flavours of a value.
+  function initCardPicker(el) {
+    if (!el || el.__veInited) { return; }
+    var id = requireId(el);
+    if (!id) { return; }
+    var model = readModel(el);
+    if (!model || !Array.isArray(model.options) || model.options.length < 2) {
+      paintError(el, 'card-picker requires options[] with >= 2 items');
+      return;
+    }
+    el.__veInited = true;
+    el.setAttribute('data-ve-type', 'card-picker');
+    var current = loadValue(id, model['default'] || null);
+    var labelText = model.label || el.getAttribute('data-ve-label') || '';
+    el.textContent = '';
+    if (labelText) {
+      var lab = document.createElement('p');
+      lab.className = 've-card-picker-label';
+      lab.textContent = labelText;
+      el.appendChild(lab);
+    }
+    var grid = document.createElement('div');
+    grid.className = 've-card-picker-grid';
+    grid.setAttribute('role', 'radiogroup');
+    if (labelText) { grid.setAttribute('aria-label', labelText); }
+    var cards = [];
+    function paint() {
+      for (var k = 0; k < cards.length; k++) {
+        var sel = cards[k].__veValue === current;
+        cards[k].setAttribute('aria-checked', sel ? 'true' : 'false');
+        if (sel) { cards[k].classList.add('ve-card-picker-selected'); }
+        else { cards[k].classList.remove('ve-card-picker-selected'); }
+      }
+    }
+    for (var i = 0; i < model.options.length; i++) {
+      (function (opt) {
+        var card = document.createElement('button');
+        card.type = 'button';
+        card.className = 've-card-picker-card';
+        card.setAttribute('role', 'radio');
+        card.__veValue = opt.value;
+        card.setAttribute('data-card-value', opt.value);
+        card.setAttribute('aria-checked', current === opt.value
+          ? 'true' : 'false');
+        if (opt.icon) {
+          var icon = document.createElement('span');
+          icon.className = 've-card-picker-icon';
+          icon.setAttribute('aria-hidden', 'true');
+          icon.textContent = opt.icon;
+          card.appendChild(icon);
+        }
+        var body = document.createElement('span');
+        body.className = 've-card-picker-body';
+        var title = document.createElement('span');
+        title.className = 've-card-picker-title';
+        title.textContent = opt.label || opt.value;
+        body.appendChild(title);
+        if (opt.subtitle) {
+          var sub = document.createElement('span');
+          sub.className = 've-card-picker-subtitle';
+          sub.textContent = opt.subtitle;
+          body.appendChild(sub);
+        }
+        if (opt.body) {
+          var text = document.createElement('span');
+          text.className = 've-card-picker-text';
+          text.textContent = opt.body;
+          body.appendChild(text);
+        }
+        card.appendChild(body);
+        card.addEventListener('click', function () {
+          current = opt.value;
+          paint();
+          saveValue(id, current);
+          emitChange('card-picker', id, current);
+        });
+        card.addEventListener('keydown', function (ev) {
+          if (ev.key === ' ' || ev.key === 'Enter') {
+            ev.preventDefault();
+            card.click();
+          }
+        });
+        grid.appendChild(card);
+        cards.push(card);
+      })(model.options[i]);
+    }
+    el.appendChild(grid);
+    paint();
+  }
+
+  // ── §10 ve-tag-input ───────────────────────────────────────────────
+  //
+  // Typed tags with chip display + optional autocomplete suggestions.
+  // The user types into the text input; pressing Enter or comma
+  // commits the typed text as a chip. Clicking a chip's ✕ removes it.
+  // If model.suggestions is supplied, matching ones are listed below
+  // the input as clickable buttons.
+  function initTagInput(el) {
+    if (!el || el.__veInited) { return; }
+    var id = requireId(el);
+    if (!id) { return; }
+    var model = readModel(el) || {};
+    el.__veInited = true;
+    el.setAttribute('data-ve-type', 'tag-input');
+    var tags = loadValue(id,
+      Array.isArray(model['default']) ? model['default'].slice() : []);
+    var labelText = model.label || el.getAttribute('data-ve-label') || '';
+    var placeholder = model.placeholder || 'add a tag…';
+    var suggestions = Array.isArray(model.suggestions) ? model.suggestions : [];
+    el.textContent = '';
+    if (labelText) {
+      var lab = document.createElement('label');
+      lab.className = 've-tag-input-label';
+      lab.textContent = labelText;
+      el.appendChild(lab);
+    }
+    var box = document.createElement('div');
+    box.className = 've-tag-input-box';
+    var chipWrap = document.createElement('span');
+    chipWrap.className = 've-tag-input-chips';
+    box.appendChild(chipWrap);
+    var input = document.createElement('input');
+    input.type = 'text';
+    input.className = 've-tag-input-field';
+    input.placeholder = placeholder;
+    input.setAttribute('aria-label', labelText || 'tag input');
+    box.appendChild(input);
+    var hints = document.createElement('div');
+    hints.className = 've-tag-input-hints';
+    el.appendChild(box);
+    el.appendChild(hints);
+
+    function flush() {
+      saveValue(id, tags.slice());
+      emitChange('tag-input', id, tags.slice());
+    }
+    function removeTag(t) {
+      var idx = tags.indexOf(t);
+      if (idx === -1) { return; }
+      tags.splice(idx, 1);
+      paintChips();
+      paintHints();
+      flush();
+    }
+    function addTag(t) {
+      var v = (t || '').trim();
+      if (!v) { return; }
+      if (tags.indexOf(v) !== -1) { return; }   // dedupe
+      tags.push(v);
+      paintChips();
+      paintHints();
+      flush();
+    }
+    function paintChips() {
+      chipWrap.textContent = '';
+      for (var ci = 0; ci < tags.length; ci++) {
+        (function (t) {
+          var chip = document.createElement('span');
+          chip.className = 've-tag-input-chip';
+          var label = document.createElement('span');
+          label.className = 've-tag-input-chip-label';
+          label.textContent = t;
+          var x = document.createElement('button');
+          x.type = 'button';
+          x.className = 've-tag-input-chip-x';
+          x.textContent = '×';
+          x.title = 'Remove "' + t + '"';
+          x.setAttribute('aria-label', 'Remove ' + t);
+          x.addEventListener('click', function (ev) {
+            ev.preventDefault();
+            removeTag(t);
+          });
+          chip.appendChild(label);
+          chip.appendChild(x);
+          chipWrap.appendChild(chip);
+        })(tags[ci]);
+      }
+    }
+    function paintHints() {
+      hints.textContent = '';
+      if (!suggestions.length) { return; }
+      var q = input.value.toLowerCase().trim();
+      var matches = [];
+      for (var si = 0; si < suggestions.length; si++) {
+        var s = suggestions[si];
+        if (tags.indexOf(s) !== -1) { continue; }
+        if (!q || s.toLowerCase().indexOf(q) !== -1) { matches.push(s); }
+      }
+      if (!matches.length) { return; }
+      for (var mi = 0; mi < matches.length && mi < 8; mi++) {
+        (function (s) {
+          var b = document.createElement('button');
+          b.type = 'button';
+          b.className = 've-tag-input-hint';
+          b.textContent = s;
+          b.title = 'Add tag "' + s + '"';
+          b.addEventListener('click', function (ev) {
+            ev.preventDefault();
+            addTag(s);
+            input.value = '';
+            input.focus();
+          });
+          hints.appendChild(b);
+        })(matches[mi]);
+      }
+    }
+    input.addEventListener('keydown', function (ev) {
+      if (ev.key === 'Enter' || ev.key === ',') {
+        ev.preventDefault();
+        addTag(input.value);
+        input.value = '';
+        paintHints();
+      } else if (ev.key === 'Backspace' && input.value === ''
+                 && tags.length > 0) {
+        // Quick-remove last tag on Backspace in empty field
+        removeTag(tags[tags.length - 1]);
+      }
+    });
+    input.addEventListener('input', paintHints);
+    input.addEventListener('blur', function () {
+      // Commit a non-empty trailing value on blur (so the user can
+      // click "Done" without first pressing Enter).
+      if (input.value.trim()) {
+        addTag(input.value);
+        input.value = '';
+      }
+    });
+    paintChips();
+    paintHints();
+  }
+
+  // ── §11 ve-rank-list ───────────────────────────────────────────────
   //
   // Drag-to-reorder a <li> stack. Uses HTML5 drag-and-drop. Persists
   // the post-drag order as an array of `data-ve-rank-key` values; on
@@ -709,6 +945,10 @@
     for (var p = 0; p < tog.length; p++) { initToggle(tog[p]); }
     var rat = d.querySelectorAll('.ve-rating');
     for (var q = 0; q < rat.length; q++) { initRating(rat[q]); }
+    var crd = d.querySelectorAll('.ve-card-picker');
+    for (var u = 0; u < crd.length; u++) { initCardPicker(crd[u]); }
+    var tag = d.querySelectorAll('.ve-tag-input');
+    for (var v = 0; v < tag.length; v++) { initTagInput(tag[v]); }
     var rnk = d.querySelectorAll('.ve-rank-list');
     for (var n = 0; n < rnk.length; n++) { initRankList(rnk[n]); }
   }
@@ -719,7 +959,7 @@
 
     '.ve-quiz-radio, .ve-quiz-multi, .ve-numeric-input,',
     '.ve-date-input, .ve-color-input, .ve-slider, .ve-toggle,',
-    '.ve-rating, .ve-rank-list {',
+    '.ve-rating, .ve-card-picker, .ve-tag-input, .ve-rank-list {',
     '  display: block;',
     '  margin-block: 12px;',
     '  padding: 12px 14px;',
@@ -737,6 +977,7 @@
     '.ve-numeric-input[data-ve-id]:hover, .ve-date-input[data-ve-id]:hover,',
     '.ve-color-input[data-ve-id]:hover, .ve-slider[data-ve-id]:hover,',
     '.ve-toggle[data-ve-id]:hover, .ve-rating[data-ve-id]:hover,',
+    '.ve-card-picker[data-ve-id]:hover, .ve-tag-input[data-ve-id]:hover,',
     '.ve-rank-list[data-ve-id]:hover {',
     '  border-color: var(--vc-color-accent, #b8861f);',
     '}',
@@ -748,6 +989,8 @@
     '.ve-slider[data-ve-selected="1"],',
     '.ve-toggle[data-ve-selected="1"],',
     '.ve-rating[data-ve-selected="1"],',
+    '.ve-card-picker[data-ve-selected="1"],',
+    '.ve-tag-input[data-ve-selected="1"],',
     '.ve-rank-list[data-ve-selected="1"] {',
     '  border-color: var(--vc-color-accent, #b8861f);',
     '  box-shadow: 0 0 0 2px color-mix(in srgb,'
@@ -756,7 +999,8 @@
 
     /* Shared labels */
     '.ve-quiz-label, .ve-numeric-label, .ve-date-label, .ve-color-label,',
-    '.ve-slider-label, .ve-rating-label {',
+    '.ve-slider-label, .ve-rating-label, .ve-card-picker-label,',
+    '.ve-tag-input-label {',
     '  display: block;',
     '  font-weight: 600;',
     '  color: var(--vc-color-content, #1f1a14);',
@@ -994,6 +1238,158 @@
     '  font-variant-numeric: tabular-nums;',
     '}',
 
+    /* Card picker */
+    '.ve-card-picker-grid {',
+    '  display: grid;',
+    '  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));',
+    '  gap: 10px;',
+    '}',
+    '.ve-card-picker-card {',
+    '  -webkit-appearance: none;',
+    '  appearance: none;',
+    '  text-align: left;',
+    '  display: flex;',
+    '  align-items: flex-start;',
+    '  gap: 10px;',
+    '  padding: 12px 14px;',
+    '  background: var(--vc-color-surface, #ffffff);',
+    '  border: 1px solid var(--vc-color-border, #e3dcc9);',
+    '  border-radius: var(--vc-radius-md, 8px);',
+    '  font: inherit;',
+    '  color: inherit;',
+    '  cursor: pointer;',
+    '  transition: border-color 120ms ease, box-shadow 120ms ease,'
+      + ' transform 120ms ease;',
+    '}',
+    '.ve-card-picker-card:hover {',
+    '  border-color: var(--vc-color-accent, #b8861f);',
+    '  transform: translateY(-1px);',
+    '}',
+    '.ve-card-picker-card:focus-visible {',
+    '  outline: 2px solid var(--vc-color-accent, #b8861f);',
+    '  outline-offset: 2px;',
+    '}',
+    '.ve-card-picker-selected {',
+    '  border-color: var(--vc-color-accent, #b8861f);',
+    '  background: color-mix(in srgb,'
+      + ' var(--vc-color-accent, #b8861f) 8%, transparent);',
+    '  box-shadow: 0 0 0 2px color-mix(in srgb,'
+      + ' var(--vc-color-accent, #b8861f) 35%, transparent);',
+    '}',
+    '.ve-card-picker-icon {',
+    '  font-size: 22px;',
+    '  line-height: 1;',
+    '  flex: none;',
+    '  color: var(--vc-color-accent, #b8861f);',
+    '}',
+    '.ve-card-picker-body {',
+    '  display: flex;',
+    '  flex-direction: column;',
+    '  gap: 4px;',
+    '  min-width: 0;',
+    '}',
+    '.ve-card-picker-title {',
+    '  font-weight: 700;',
+    '  color: var(--vc-color-content, #1f1a14);',
+    '}',
+    '.ve-card-picker-subtitle {',
+    '  font-size: 12px;',
+    '  color: var(--vc-color-content-muted, #5b5343);',
+    '  letter-spacing: 0.02em;',
+    '  text-transform: uppercase;',
+    '}',
+    '.ve-card-picker-text {',
+    '  font-size: 13px;',
+    '  color: var(--vc-color-content-muted, #5b5343);',
+    '  line-height: 1.4;',
+    '}',
+
+    /* Tag input */
+    '.ve-tag-input-box {',
+    '  display: flex;',
+    '  flex-wrap: wrap;',
+    '  align-items: center;',
+    '  gap: 6px;',
+    '  padding: 6px 8px;',
+    '  border: 1px solid var(--vc-color-border-strong, #c9bfa3);',
+    '  border-radius: var(--vc-radius-sm, 4px);',
+    '  background: var(--vc-color-surface, #ffffff);',
+    '  min-height: 40px;',
+    '}',
+    '.ve-tag-input-box:focus-within {',
+    '  border-color: var(--vc-color-accent, #b8861f);',
+    '  box-shadow: 0 0 0 2px color-mix(in srgb,'
+      + ' var(--vc-color-accent, #b8861f) 25%, transparent);',
+    '}',
+    '.ve-tag-input-chips {',
+    '  display: contents;',
+    '}',
+    '.ve-tag-input-chip {',
+    '  display: inline-flex;',
+    '  align-items: center;',
+    '  gap: 4px;',
+    '  padding: 3px 4px 3px 10px;',
+    '  background: color-mix(in srgb,'
+      + ' var(--vc-color-accent, #b8861f) 16%, transparent);',
+    '  border-radius: 999px;',
+    '  font: 13px/1.2 var(--vc-font-body,'
+      + ' ui-sans-serif, system-ui, sans-serif);',
+    '  color: var(--vc-color-content, #1f1a14);',
+    '}',
+    '.ve-tag-input-chip-x {',
+    '  -webkit-appearance: none;',
+    '  appearance: none;',
+    '  border: 0;',
+    '  background: transparent;',
+    '  color: var(--vc-color-content-muted, #5b5343);',
+    '  cursor: pointer;',
+    '  font-size: 14px;',
+    '  line-height: 1;',
+    '  padding: 2px 6px;',
+    '  border-radius: 50%;',
+    '}',
+    '.ve-tag-input-chip-x:hover {',
+    '  background: color-mix(in srgb,'
+      + ' var(--vc-color-danger, #a84a32) 18%, transparent);',
+    '  color: var(--vc-color-danger, #a84a32);',
+    '}',
+    '.ve-tag-input-field {',
+    '  flex: 1;',
+    '  min-width: 120px;',
+    '  border: 0;',
+    '  outline: none;',
+    '  background: transparent;',
+    '  font: inherit;',
+    '  color: var(--vc-color-content, #1f1a14);',
+    '  padding: 4px 2px;',
+    '}',
+    '.ve-tag-input-field::placeholder {',
+    '  color: var(--vc-color-content-subtle, #8a8170);',
+    '}',
+    '.ve-tag-input-hints {',
+    '  display: flex;',
+    '  flex-wrap: wrap;',
+    '  gap: 4px;',
+    '  margin-top: 8px;',
+    '}',
+    '.ve-tag-input-hint {',
+    '  -webkit-appearance: none;',
+    '  appearance: none;',
+    '  border: 1px dashed var(--vc-color-border-strong, #c9bfa3);',
+    '  background: transparent;',
+    '  color: var(--vc-color-content-muted, #5b5343);',
+    '  border-radius: 999px;',
+    '  padding: 3px 10px;',
+    '  font: 12px/1.2 var(--vc-font-body,'
+      + ' ui-sans-serif, system-ui, sans-serif);',
+    '  cursor: pointer;',
+    '}',
+    '.ve-tag-input-hint:hover {',
+    '  border-style: solid;',
+    '  border-color: var(--vc-color-accent, #b8861f);',
+    '  color: var(--vc-color-content, #1f1a14);',
+    '}',
+
     /* Rank list */
     '.ve-rank-list > ol, .ve-rank-list > ul {',
     '  list-style: decimal inside;',
@@ -1065,6 +1461,8 @@
     initSlider: initSlider,
     initToggle: initToggle,
     initRating: initRating,
+    initCardPicker: initCardPicker,
+    initTagInput: initTagInput,
     initRankList: initRankList,
     readModel: readModel,
     loadValue: loadValue,

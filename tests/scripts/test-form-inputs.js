@@ -67,6 +67,8 @@ async function testAllWidgetsInit(page) {
         '.ve-slider': 'slider',
         '.ve-toggle': 'toggle',
         '.ve-rating': 'rating',
+        '.ve-card-picker': 'card-picker',
+        '.ve-tag-input': 'tag-input',
         '.ve-rank-list': 'rank-list'
       };
       const bad = [];
@@ -479,6 +481,127 @@ async function testRatingClickAndClear(page) {
     JSON.stringify(r));
 }
 
+async function testCardPickerSelection(page) {
+  // ve-card-picker mounts N cards with icon/title/subtitle/body, marks
+  // model.default selected, and clicking a different card swaps the
+  // selection + emits ve-form-change.
+  const s = await setup(page);
+  if (!s.ok) {
+    record('form_inputs_card_picker', 'FAIL', 'card-picker selection', s.error);
+    return;
+  }
+  const r = await page.evaluate(() => {
+    const root = document.querySelector('.ve-card-picker');
+    const cards = root.querySelectorAll('.ve-card-picker-card');
+    const icons = root.querySelectorAll('.ve-card-picker-icon');
+    const subs  = root.querySelectorAll('.ve-card-picker-subtitle');
+    const initialSelected =
+      (root.querySelector('.ve-card-picker-selected') || {})
+        .getAttribute && root.querySelector('.ve-card-picker-selected')
+        .getAttribute('data-card-value');
+    // Click sqlite
+    root.querySelector('[data-card-value="sqlite"]').click();
+    const afterSelected =
+      root.querySelector('.ve-card-picker-selected')
+        .getAttribute('data-card-value');
+    const afterAria = root.querySelector(
+      '[data-card-value="sqlite"]').getAttribute('aria-checked');
+    const ev = window.__vcFormChanges
+      .filter(e => e.kind === 'card-picker').pop();
+    return {
+      typeAttr: root.getAttribute('data-ve-type'),
+      cardCount: cards.length,
+      iconCount: icons.length,
+      subtitleCount: subs.length,
+      initialSelected: initialSelected,
+      afterSelected: afterSelected,
+      afterAria: afterAria,
+      eventValue: ev ? ev.value : null,
+      lsValue: JSON.parse(localStorage.getItem(
+        'amvcp-form-input:card:database-engine') || 'null')
+    };
+  });
+  const ok = r.typeAttr === 'card-picker'
+    && r.cardCount === 3
+    && r.iconCount === 3
+    && r.subtitleCount === 3
+    && r.initialSelected === 'postgres'
+    && r.afterSelected === 'sqlite'
+    && r.afterAria === 'true'
+    && r.eventValue === 'sqlite'
+    && r.lsValue === 'sqlite';
+  record('form_inputs_card_picker', ok ? 'PASS' : 'FAIL',
+    'card-picker renders rich cards; click swaps selection + emits',
+    JSON.stringify(r));
+}
+
+async function testTagInputAddRemoveSuggest(page) {
+  // ve-tag-input: type + Enter adds a chip, suggestions are filtered
+  // by typed text, clicking a suggestion adds it as a chip and hides
+  // it from suggestions, the chip ✕ removes a tag.
+  const s = await setup(page);
+  if (!s.ok) {
+    record('form_inputs_tag_input', 'FAIL', 'tag-input add/remove/suggest', s.error);
+    return;
+  }
+  const r = await page.evaluate(() => {
+    const root = document.querySelector('.ve-tag-input');
+    const input = root.querySelector('.ve-tag-input-field');
+    function chipTexts() {
+      return Array.from(
+        root.querySelectorAll('.ve-tag-input-chip-label')
+      ).map(l => l.textContent);
+    }
+    function hintTexts() {
+      return Array.from(
+        root.querySelectorAll('.ve-tag-input-hint')
+      ).map(l => l.textContent);
+    }
+    const initial = { chips: chipTexts(), hints: hintTexts().length };
+    // Type + Enter
+    input.value = 'critical';
+    input.dispatchEvent(new KeyboardEvent('keydown',
+      { bubbles: true, cancelable: true, key: 'Enter' }));
+    const afterEnter = chipTexts();
+    const evEnter = window.__vcFormChanges
+      .filter(e => e.kind === 'tag-input').pop();
+    // Click a suggestion (the first visible one)
+    const sug = root.querySelector('.ve-tag-input-hint');
+    const sugText = sug ? sug.textContent : null;
+    if (sug) { sug.click(); }
+    const afterSuggest = chipTexts();
+    // Remove the first chip via ✕
+    root.querySelector('.ve-tag-input-chip-x').click();
+    const afterRemove = chipTexts();
+    const evRemove = window.__vcFormChanges
+      .filter(e => e.kind === 'tag-input').pop();
+    return {
+      typeAttr: root.getAttribute('data-ve-type'),
+      initial: initial,
+      afterEnter: afterEnter,
+      evEnterValue: evEnter ? evEnter.value : null,
+      sugText: sugText,
+      afterSuggest: afterSuggest,
+      afterRemove: afterRemove,
+      evRemoveValue: evRemove ? evRemove.value : null,
+      lsValue: JSON.parse(localStorage.getItem(
+        'amvcp-form-input:tags:rollout-tags') || 'null')
+    };
+  });
+  const ok = r.typeAttr === 'tag-input'
+    && r.initial.chips.length === 1
+    && r.initial.chips[0] === 'security'
+    && r.afterEnter.indexOf('critical') >= 0
+    && Array.isArray(r.evEnterValue)
+    && r.evEnterValue.indexOf('critical') >= 0
+    && r.sugText && r.afterSuggest.indexOf(r.sugText) >= 0
+    && r.afterRemove.length === r.afterSuggest.length - 1
+    && Array.isArray(r.evRemoveValue);
+  record('form_inputs_tag_input', ok ? 'PASS' : 'FAIL',
+    'tag-input: type+Enter adds, click suggestion adds, ✕ removes',
+    JSON.stringify(r));
+}
+
 // ── Runner ───────────────────────────────────────────────────────────
 
 const tests = [
@@ -493,7 +616,9 @@ const tests = [
   testFailFastOnMissingId,
   testSliderRendersAndEmits,
   testToggleFlipsState,
-  testRatingClickAndClear
+  testRatingClickAndClear,
+  testCardPickerSelection,
+  testTagInputAddRemoveSuggest
 ];
 
 const page = await browser.getPage("form-inputs-tests");

@@ -19,12 +19,13 @@ description: |
 
 # Form-input widgets
 
-A dependency-free runtime module that ships nine structured-response
+A dependency-free runtime module that ships eleven structured-response
 input widgets for conversational agent reports. The agent renders a
 question; the user answers via a typed widget (radio, checkbox,
-number+unit, date, color, slider, toggle, rating, rank) instead of
-typing prose. The result lands in a `ve-form-change` event with a
-stable payload the runtime threads into the comment-turn record.
+number+unit, date, color, slider, toggle, rating, card-picker,
+tag-input, rank) instead of typing prose. The result lands in a
+`ve-form-change` event with a stable payload the runtime threads into
+the comment-turn record.
 
 ## When to use this skill
 
@@ -41,6 +42,8 @@ Reach for a form-input widget whenever the agent's question has a
 | "Tune a value on a 0–N scale."                    | `ve-slider`       |
 | "On / off?"                                       | `ve-toggle`       |
 | "Rate this 1–5."                                  | `ve-rating`       |
+| "Pick one of these rich proposals."               | `ve-card-picker`  |
+| "Apply these tags."                               | `ve-tag-input`    |
 | "Order these by priority."                        | `ve-rank-list`    |
 
 For anything **open-ended** (write a paragraph, paste a snippet,
@@ -225,6 +228,62 @@ Emits `{ kind: "rating", id, value: <0..max> }`. Hover paints
 preview-fill; click commits. The ✕ button next to the row clears
 the rating (emits 0).
 
+### `ve-card-picker` — rich single-select cards
+
+```html
+<div class="ve-card-picker" data-ve-id="<id>">
+  <script type="application/json">
+    {
+      "label": "<question>",
+      "options": [
+        {
+          "value":    "<v>",
+          "label":    "<title>",
+          "subtitle": "<short tag>",        // optional
+          "body":     "<paragraph>",         // optional
+          "icon":     "🐘"                  // optional emoji or glyph
+        },
+        …
+      ],
+      "default": "<v>"
+    }
+  </script>
+</div>
+```
+
+Emits `{ kind: "card-picker", id, value: "<v>" }`. Cards lay out as
+a responsive grid (`minmax(220px, 1fr)`), each a `role="radio"`
+button with `aria-checked`. Click OR keyboard Space/Enter selects.
+Use this when the choice carries enough nuance that the user needs
+title + subtitle + body to decide (e.g. picking between three
+database engines).
+
+### `ve-tag-input` — typed tags with chip display + suggestions
+
+```html
+<div class="ve-tag-input" data-ve-id="<id>">
+  <script type="application/json">
+    {
+      "label":       "<question>",
+      "placeholder": "type a tag + Enter…",  // optional
+      "default":     ["security"],            // optional initial chips
+      "suggestions": [                        // optional autocomplete
+        "security", "performance", "p0", "p1",
+        "breaking-change", "tech-debt"
+      ]
+    }
+  </script>
+</div>
+```
+
+Emits `{ kind: "tag-input", id, value: [<tag>, …] }`. Type into the
+field; `Enter` or `,` commits the typed text as a chip. Empty-field
+`Backspace` removes the trailing chip (quick fix-typo). Clicking a
+suggestion chip adds it AND hides it from the suggestion row. Chip
+✕ removes the tag. Blurring the field also commits a non-empty
+trailing value (so a "Done" click works without first pressing
+Enter).
+
 ### `ve-rank-list` — drag-to-reorder
 
 ```html
@@ -328,6 +387,10 @@ See `tests/scripts/test-form-inputs.js`:
   caption + LS update.
 - `form_inputs_rating_change` — rating click fills N + emits N;
   clear empties + emits 0.
+- `form_inputs_card_picker` — card-picker renders rich cards; click
+  swaps selection + emits.
+- `form_inputs_tag_input` — type+Enter adds; click suggestion adds;
+  ✕ removes.
 
 The fixture is `tests/fixtures/form-inputs-fixture.html` (one of
 each widget kind).
