@@ -515,6 +515,21 @@
     '.vsd-dot[aria-current="true"] {',
     '  background: var(--vc-color-accent, #b8861f);',
     '}',
+    /* prev/next/exit buttons — sit at the bottom edge next to the dots */
+    '.vsd-prev, .vsd-next, .vsd-exit {',
+    '  position: absolute; bottom: var(--vc-space-3, 24px);',
+    '  padding: var(--vc-space-1, 8px) var(--vc-space-2, 12px);',
+    '  font: 600 var(--vc-text-0, 11px)/1 var(--ve-control-font, inherit);',
+    '  color: var(--vc-color-on-accent, #fff);',
+    '  background: var(--vc-color-accent, #b8861f);',
+    '  border: none; border-radius: var(--vc-radius-full, 9999px);',
+    '  cursor: pointer; z-index: 11;',
+    '  transition: filter var(--vc-duration-fast, 120ms) ease;',
+    '}',
+    '.vsd-prev:hover, .vsd-next:hover, .vsd-exit:hover { filter: brightness(1.1); }',
+    '.vsd-prev { left: var(--vc-space-3, 24px); }',
+    '.vsd-next { right: 110px; }',
+    '.vsd-exit { right: var(--vc-space-3, 24px); background: var(--vc-color-danger, #a84a32); }',
     '.vsd-counter {',
     '  position: absolute; right: var(--vc-space-3, 24px);',
     '  bottom: var(--vc-space-3, 24px);',
@@ -1274,9 +1289,23 @@
     return viewport;
   }
 
-  // Build the dots + counter + progress chrome.
+  // Build the prev / dots / next / counter / progress / exit chrome.
+  // CONTRACT (user 2026-05-16): every deck must ship explicit Prev,
+  // Next, and Exit/Done buttons. Dots are great for jumping but the
+  // user must always have a literal "get me out of this deck" affordance
+  // — otherwise once you enter slide N you have no obvious return to
+  // the surrounding document. Exit returns the deck to slide 0 and
+  // exits fullscreen if currently in it.
   function buildNavChrome(doc, deck) {
     var frag = doc.createDocumentFragment();
+
+    var prevBtn = el(doc, 'button', 'vsd-prev');
+    prevBtn.setAttribute('type', 'button');
+    prevBtn.setAttribute('data-vsd-prev', '1');
+    prevBtn.setAttribute('aria-label', 'Previous slide');
+    prevBtn.appendChild(doc.createTextNode('‹ Prev'));
+    frag.appendChild(prevBtn);
+
     var nav = el(doc, 'nav', 'vsd-nav');
     nav.setAttribute('aria-label', 'Slide navigation');
     for (var i = 0; i < deck.slides.length; i++) {
@@ -1288,6 +1317,20 @@
       nav.appendChild(dot);
     }
     frag.appendChild(nav);
+
+    var nextBtn = el(doc, 'button', 'vsd-next');
+    nextBtn.setAttribute('type', 'button');
+    nextBtn.setAttribute('data-vsd-next', '1');
+    nextBtn.setAttribute('aria-label', 'Next slide');
+    nextBtn.appendChild(doc.createTextNode('Next ›'));
+    frag.appendChild(nextBtn);
+
+    var exitBtn = el(doc, 'button', 'vsd-exit');
+    exitBtn.setAttribute('type', 'button');
+    exitBtn.setAttribute('data-vsd-exit', '1');
+    exitBtn.setAttribute('aria-label', 'Exit slide deck — return to document');
+    exitBtn.appendChild(doc.createTextNode('Exit'));
+    frag.appendChild(exitBtn);
 
     var counter = el(doc, 'div', 'vsd-counter');
     counter.setAttribute('aria-live', 'polite');
@@ -1670,16 +1713,44 @@
     }, { passive: true });
   }
 
-  // Dot clicks → go(thatIndex).
+  // Dot + prev + next + exit clicks. Dot → go(thatIndex). Prev/Next
+  // → step. Exit → return to slide 0 + exit fullscreen if active (the
+  // user contract: there must always be a literal "back to document"
+  // affordance, not just dots).
   function wireDotClicks(deck) {
     var dots = deck.viewport.querySelectorAll('.vsd-dot');
-    for (var i = 0; i < dots.length; i++) {
+    var i;
+    for (i = 0; i < dots.length; i++) {
       (function (dot) {
         dot.addEventListener('click', function () {
           var idx = parseInt(dot.getAttribute('data-vsd-goto'), 10);
           if (isFinite(idx)) { deck.go(idx); }
         });
       })(dots[i]);
+    }
+    var prev = deck.viewport.querySelector('[data-vsd-prev]');
+    if (prev) {
+      prev.addEventListener('click', function () { deck.prev(); });
+    }
+    var next = deck.viewport.querySelector('[data-vsd-next]');
+    if (next) {
+      next.addEventListener('click', function () { deck.next(); });
+    }
+    var exit = deck.viewport.querySelector('[data-vsd-exit]');
+    if (exit) {
+      exit.addEventListener('click', function () {
+        // Exit fullscreen if currently active, then return to slide 0.
+        if (typeof document !== 'undefined' && document.fullscreenElement) {
+          if (document.exitFullscreen) {
+            try { document.exitFullscreen(); } catch (e) { /* ignore */ }
+          }
+        }
+        deck.go(0);
+        // Scroll the deck out of the way so the user lands BELOW it.
+        if (deck.viewport.scrollIntoView) {
+          deck.viewport.scrollIntoView({ block: 'start', behavior: 'smooth' });
+        }
+      });
     }
   }
 
