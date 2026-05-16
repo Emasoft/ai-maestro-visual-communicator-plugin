@@ -19,14 +19,14 @@ description: |
 
 # Form-input widgets
 
-A dependency-free runtime module that ships seventeen structured-response
+A dependency-free runtime module that ships nineteen structured-response
 input widgets for conversational agent reports. The agent renders a
 question; the user answers via a typed widget (radio, checkbox,
 number+unit, date, color, slider, toggle, rating, card-picker,
 tag-input, text, textarea, URL, file/folder tree, password, currency,
-rank) instead of typing prose. The result lands in a `ve-form-change`
-event with a stable payload the runtime threads into the comment-turn
-record.
+gallery, tier-list, rank) instead of typing prose. The result lands
+in a `ve-form-change` event with a stable payload the runtime threads
+into the comment-turn record.
 
 ## When to use this skill
 
@@ -51,6 +51,8 @@ Reach for a form-input widget whenever the agent's question has a
 | "Pick a file from this project tree."             | `ve-tree-picker`  |
 | "Set a password (with strength check)."           | `ve-password-input` |
 | "Enter a monetary amount + currency."             | `ve-currency-input` |
+| "Pick an image / art-style preset from a gallery."| `ve-gallery-picker` |
+| "Rank these into tiers (S/A/B/C/D)."              | `ve-tier-list`    |
 | "Order these by priority."                        | `ve-rank-list`    |
 
 For anything **open-ended** (write a paragraph, paste a snippet,
@@ -450,6 +452,65 @@ locale-aware grouping (`$12,500.00`, `12.500,00 €`, `¥12,500`) but
 the emitted payload is always `{ amount: <raw number>, currency: <code> }` so
 downstream code doesn't have to parse formatted strings.
 
+### `ve-gallery-picker` — single-select from N image cards
+
+```html
+<div class="ve-gallery-picker" data-ve-id="<id>">
+  <script type="application/json">
+    {
+      "label": "<question>",
+      "options": [
+        {
+          "value":    "watercolor",
+          "label":    "Watercolor",
+          "subtitle": "soft · pastel",
+          "src":      "/assets/watercolor-thumb.jpg",   // optional
+          "emoji":    "🎨"                              // placeholder if no src
+        },
+        …
+      ],
+      "default": "<value>"
+    }
+  </script>
+</div>
+```
+
+Emits `{ kind: "gallery-picker", id, value: "<v>" }`. Cards lay out
+in a responsive grid (`minmax(160px, 1fr)`). Each card carries a
+thumbnail (4:3 aspect-ratio), an optional caption + subtitle, and an
+emoji-or-image placeholder when `src` fails to load. Use this for
+art-style pickers, material galleries, image preset libraries.
+
+### `ve-tier-list` — drag items into S/A/B/C/D tier zones
+
+```html
+<div class="ve-tier-list" data-ve-id="<id>">
+  <script type="application/json">
+    {
+      "label": "<question>",
+      "tiers": [
+        { "key": "S", "label": "S", "tone": "best"  },
+        { "key": "A", "label": "A", "tone": "great" },
+        { "key": "B", "label": "B", "tone": "good"  },
+        { "key": "C", "label": "C", "tone": "fair"  },
+        { "key": "D", "label": "D", "tone": "weak"  }
+      ],
+      "items": [
+        { "key": "feature-a", "label": "Feature A" },
+        { "key": "feature-b", "label": "Feature B" }
+      ]
+    }
+  </script>
+</div>
+```
+
+Emits `{ kind: "tier-list", id, value: { S: [...], A: [...], …, unranked: [...] } }`.
+Every item starts in the "unranked" bucket; drag items into the
+appropriate tier zone. Tier `tone` values map to the design-token
+scale: `best` → danger, `great` → warning, `good` → accent, `fair` →
+info, `weak` → success (the classic tier-list red→green spectrum).
+`tiers` is optional (defaults to S/A/B/C/D).
+
 ### `ve-rank-list` — drag-to-reorder
 
 ```html
@@ -571,6 +632,10 @@ See `tests/scripts/test-form-inputs.js`:
   flips type + aria.
 - `form_inputs_currency` — renders symbol + Intl preview; typing +
   currency switch both emit.
+- `form_inputs_gallery` — gallery picker mounts cards; click swaps
+  selection + emits.
+- `form_inputs_tier_list` — tier-list mounts S-D + unranked; drag
+  moves item between buckets + emits assignment map.
 
 The fixture is `tests/fixtures/form-inputs-fixture.html` (one of
 each widget kind).

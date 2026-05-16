@@ -1480,7 +1480,279 @@
     }
   }
 
-  // ── §17 ve-rank-list ───────────────────────────────────────────────
+  // ── §17 ve-gallery-picker ──────────────────────────────────────────
+  //
+  // Single-select picker from N image cards. Each option has a
+  // thumbnail src + a caption. Conceptually richer than card-picker:
+  // for picking between art styles, brand palettes, image presets,
+  // material samples, etc. Images that fail to load fall back to a
+  // muted "(image unavailable)" placeholder so the picker still
+  // works for the visible caption.
+  function initGalleryPicker(el) {
+    if (!el || el.__veInited) { return; }
+    var id = requireId(el);
+    if (!id) { return; }
+    var model = readModel(el);
+    if (!model || !Array.isArray(model.options) || model.options.length < 2) {
+      paintError(el, 'gallery-picker requires options[] with >= 2 items');
+      return;
+    }
+    el.__veInited = true;
+    el.setAttribute('data-ve-type', 'gallery-picker');
+    var current = loadValue(id, model['default'] || null);
+    var labelText = model.label || el.getAttribute('data-ve-label') || '';
+    el.textContent = '';
+    if (labelText) {
+      var lab = document.createElement('p');
+      lab.className = 've-gallery-picker-label';
+      lab.textContent = labelText;
+      el.appendChild(lab);
+    }
+    var grid = document.createElement('div');
+    grid.className = 've-gallery-picker-grid';
+    grid.setAttribute('role', 'radiogroup');
+    if (labelText) { grid.setAttribute('aria-label', labelText); }
+    var cards = [];
+    function paint() {
+      for (var k = 0; k < cards.length; k++) {
+        var sel = cards[k].__veValue === current;
+        cards[k].setAttribute('aria-checked', sel ? 'true' : 'false');
+        cards[k].classList.toggle('ve-gallery-picker-selected', sel);
+      }
+    }
+    for (var i = 0; i < model.options.length; i++) {
+      (function (opt) {
+        var card = document.createElement('button');
+        card.type = 'button';
+        card.className = 've-gallery-picker-card';
+        card.setAttribute('role', 'radio');
+        card.__veValue = opt.value;
+        card.setAttribute('data-gallery-value', opt.value);
+        card.setAttribute('aria-checked', current === opt.value
+          ? 'true' : 'false');
+        var thumb = document.createElement('div');
+        thumb.className = 've-gallery-picker-thumb';
+        if (opt.src) {
+          var img = document.createElement('img');
+          img.className = 've-gallery-picker-img';
+          img.alt = opt.label || opt.value;
+          img.loading = 'lazy';
+          img.src = opt.src;
+          img.addEventListener('error', function () {
+            img.style.display = 'none';
+            var ph = document.createElement('span');
+            ph.className = 've-gallery-picker-placeholder';
+            ph.textContent = '(image unavailable)';
+            thumb.appendChild(ph);
+          });
+          thumb.appendChild(img);
+        } else {
+          var ph = document.createElement('span');
+          ph.className = 've-gallery-picker-placeholder';
+          ph.textContent = opt.emoji || '\u{1F5BC}';   // 🖼
+          thumb.appendChild(ph);
+        }
+        card.appendChild(thumb);
+        var cap = document.createElement('span');
+        cap.className = 've-gallery-picker-caption';
+        cap.textContent = opt.label || opt.value;
+        card.appendChild(cap);
+        if (opt.subtitle) {
+          var sub = document.createElement('span');
+          sub.className = 've-gallery-picker-subtitle';
+          sub.textContent = opt.subtitle;
+          card.appendChild(sub);
+        }
+        card.addEventListener('click', function () {
+          current = opt.value;
+          paint();
+          saveValue(id, current);
+          emitChange('gallery-picker', id, current);
+        });
+        card.addEventListener('keydown', function (ev) {
+          if (ev.key === ' ' || ev.key === 'Enter') {
+            ev.preventDefault();
+            card.click();
+          }
+        });
+        grid.appendChild(card);
+        cards.push(card);
+      })(model.options[i]);
+    }
+    el.appendChild(grid);
+    paint();
+  }
+
+  // ── §18 ve-tier-list ───────────────────────────────────────────────
+  //
+  // Tier-list maker: drag items between tier zones (S / A / B / C / D
+  // by default, customisable via model.tiers). Items start in an
+  // "unranked" bucket and the user drags each into the appropriate
+  // tier. The emitted payload is { tier1: ["item1","item2"],
+  // tier2: ["item3"], unranked: ["item4"] }.
+  //
+  // The drag uses the same HTML5 API the rank-list uses, so the
+  // implementation is mostly bookkeeping around which tier-bucket the
+  // item ended up in.
+  function initTierList(el) {
+    if (!el || el.__veInited) { return; }
+    var id = requireId(el);
+    if (!id) { return; }
+    var model = readModel(el);
+    if (!model || !Array.isArray(model.items) || model.items.length < 1) {
+      paintError(el, 'tier-list requires items[] with >= 1 item');
+      return;
+    }
+    el.__veInited = true;
+    el.setAttribute('data-ve-type', 'tier-list');
+    var tiers = Array.isArray(model.tiers) && model.tiers.length
+      ? model.tiers
+      : [
+          { key: 'S', label: 'S', tone: 'best' },
+          { key: 'A', label: 'A', tone: 'great' },
+          { key: 'B', label: 'B', tone: 'good' },
+          { key: 'C', label: 'C', tone: 'fair' },
+          { key: 'D', label: 'D', tone: 'weak' }
+        ];
+    var labelText = model.label || el.getAttribute('data-ve-label') || '';
+    // Saved assignment: { itemKey: tierKey | 'unranked' }
+    var saved = loadValue(id, {});
+    if (!saved || typeof saved !== 'object') { saved = {}; }
+    el.textContent = '';
+    if (labelText) {
+      var lab = document.createElement('p');
+      lab.className = 've-tier-list-label';
+      lab.textContent = labelText;
+      el.appendChild(lab);
+    }
+    // Map of tier-key -> the <ul> that holds its items
+    var lists = {};
+    function buildRow(tier) {
+      var row = document.createElement('div');
+      row.className = 've-tier-row';
+      row.setAttribute('data-tier-key', tier.key);
+      if (tier.tone) { row.setAttribute('data-tier-tone', tier.tone); }
+      var badge = document.createElement('div');
+      badge.className = 've-tier-badge';
+      if (tier.tone) { badge.setAttribute('data-tier-tone', tier.tone); }
+      badge.textContent = tier.label || tier.key;
+      var ul = document.createElement('ul');
+      ul.className = 've-tier-bucket';
+      ul.setAttribute('data-tier-key', tier.key);
+      ul.setAttribute('role', 'list');
+      lists[tier.key] = ul;
+      row.appendChild(badge);
+      row.appendChild(ul);
+      return row;
+    }
+    for (var i = 0; i < tiers.length; i++) {
+      el.appendChild(buildRow(tiers[i]));
+    }
+    // Unranked bucket at the bottom
+    var unranked = document.createElement('div');
+    unranked.className = 've-tier-row ve-tier-unranked-row';
+    unranked.setAttribute('data-tier-key', 'unranked');
+    var ubadge = document.createElement('div');
+    ubadge.className = 've-tier-badge ve-tier-badge-unranked';
+    ubadge.textContent = 'unranked';
+    var uul = document.createElement('ul');
+    uul.className = 've-tier-bucket';
+    uul.setAttribute('data-tier-key', 'unranked');
+    uul.setAttribute('role', 'list');
+    lists['unranked'] = uul;
+    unranked.appendChild(ubadge);
+    unranked.appendChild(uul);
+    el.appendChild(unranked);
+
+    var dragged = null;
+    function setupItem(li) {
+      li.classList.add('ve-tier-item');
+      li.setAttribute('draggable', 'true');
+      li.addEventListener('dragstart', function (ev) {
+        dragged = li;
+        li.classList.add('ve-tier-dragging');
+        if (ev.dataTransfer) {
+          ev.dataTransfer.effectAllowed = 'move';
+          try { ev.dataTransfer.setData('text/plain',
+            li.getAttribute('data-item-key') || ''); }
+          catch (_) {}
+        }
+      });
+      li.addEventListener('dragend', function () {
+        if (dragged) { dragged.classList.remove('ve-tier-dragging'); }
+        dragged = null;
+        for (var k in lists) {
+          if (lists.hasOwnProperty(k)) {
+            lists[k].classList.remove('ve-tier-drop-target');
+          }
+        }
+      });
+    }
+    function setupBucket(bucket) {
+      bucket.addEventListener('dragover', function (ev) {
+        if (!dragged) { return; }
+        if (ev.preventDefault) { ev.preventDefault(); }
+        if (ev.dataTransfer) { ev.dataTransfer.dropEffect = 'move'; }
+        bucket.classList.add('ve-tier-drop-target');
+      });
+      bucket.addEventListener('dragleave', function () {
+        bucket.classList.remove('ve-tier-drop-target');
+      });
+      bucket.addEventListener('drop', function (ev) {
+        if (ev.preventDefault) { ev.preventDefault(); }
+        if (!dragged) { return; }
+        bucket.appendChild(dragged);
+        bucket.classList.remove('ve-tier-drop-target');
+        flush();
+      });
+    }
+    // Build + place every item in its saved tier (default: unranked)
+    for (var ii = 0; ii < model.items.length; ii++) {
+      (function (it) {
+        var key = it.key || it.value || ('item-' + ii);
+        var li = document.createElement('li');
+        li.setAttribute('data-item-key', key);
+        li.setAttribute('title', it.label || key);
+        if (it.icon) {
+          var ic = document.createElement('span');
+          ic.className = 've-tier-icon';
+          ic.textContent = it.icon;
+          li.appendChild(ic);
+        }
+        var lbl = document.createElement('span');
+        lbl.className = 've-tier-text';
+        lbl.textContent = it.label || key;
+        li.appendChild(lbl);
+        setupItem(li);
+        var target = saved[key] && lists[saved[key]] ? saved[key] : 'unranked';
+        lists[target].appendChild(li);
+      })(model.items[ii]);
+    }
+    for (var bk in lists) {
+      if (lists.hasOwnProperty(bk)) { setupBucket(lists[bk]); }
+    }
+    function flush() {
+      var assignment = {};
+      var payload = {};
+      for (var k in lists) {
+        if (!lists.hasOwnProperty(k)) { continue; }
+        var nodes = lists[k].querySelectorAll(':scope > li');
+        var arr = [];
+        for (var i = 0; i < nodes.length; i++) {
+          var key = nodes[i].getAttribute('data-item-key');
+          if (key) {
+            arr.push(key);
+            assignment[key] = k;
+          }
+        }
+        payload[k] = arr;
+      }
+      saveValue(id, assignment);
+      emitChange('tier-list', id, payload);
+    }
+  }
+
+  // ── §19 ve-rank-list ───────────────────────────────────────────────
   //
   // Drag-to-reorder a <li> stack. Uses HTML5 drag-and-drop. Persists
   // the post-drag order as an array of `data-ve-rank-key` values; on
@@ -1613,6 +1885,10 @@
     for (var aa = 0; aa < pwd.length; aa++) { initPasswordInput(pwd[aa]); }
     var cur = d.querySelectorAll('.ve-currency-input');
     for (var bb = 0; bb < cur.length; bb++) { initCurrencyInput(cur[bb]); }
+    var gal = d.querySelectorAll('.ve-gallery-picker');
+    for (var cc = 0; cc < gal.length; cc++) { initGalleryPicker(gal[cc]); }
+    var tier = d.querySelectorAll('.ve-tier-list');
+    for (var dd = 0; dd < tier.length; dd++) { initTierList(tier[dd]); }
     var rnk = d.querySelectorAll('.ve-rank-list');
     for (var n = 0; n < rnk.length; n++) { initRankList(rnk[n]); }
   }
@@ -1625,7 +1901,8 @@
     '.ve-date-input, .ve-color-input, .ve-slider, .ve-toggle,',
     '.ve-rating, .ve-card-picker, .ve-tag-input, .ve-text-input,',
     '.ve-text-area, .ve-url-input, .ve-tree-picker,',
-    '.ve-password-input, .ve-currency-input, .ve-rank-list {',
+    '.ve-password-input, .ve-currency-input, .ve-gallery-picker,',
+    '.ve-tier-list, .ve-rank-list {',
     '  display: block;',
     '  margin-block: 12px;',
     '  padding: 12px 14px;',
@@ -1648,6 +1925,8 @@
     '.ve-url-input[data-ve-id]:hover, .ve-tree-picker[data-ve-id]:hover,',
     '.ve-password-input[data-ve-id]:hover,',
     '.ve-currency-input[data-ve-id]:hover,',
+    '.ve-gallery-picker[data-ve-id]:hover,',
+    '.ve-tier-list[data-ve-id]:hover,',
     '.ve-rank-list[data-ve-id]:hover {',
     '  border-color: var(--vc-color-accent, #b8861f);',
     '}',
@@ -1667,6 +1946,8 @@
     '.ve-tree-picker[data-ve-selected="1"],',
     '.ve-password-input[data-ve-selected="1"],',
     '.ve-currency-input[data-ve-selected="1"],',
+    '.ve-gallery-picker[data-ve-selected="1"],',
+    '.ve-tier-list[data-ve-selected="1"],',
     '.ve-rank-list[data-ve-selected="1"] {',
     '  border-color: var(--vc-color-accent, #b8861f);',
     '  box-shadow: 0 0 0 2px color-mix(in srgb,'
@@ -1679,7 +1960,8 @@
     '.ve-tag-input-label, .ve-text-input-label,',
     '.ve-text-area-label, .ve-url-input-label,',
     '.ve-tree-picker-label, .ve-password-input-label,',
-    '.ve-currency-input-label {',
+    '.ve-currency-input-label, .ve-gallery-picker-label,',
+    '.ve-tier-list-label {',
     '  display: block;',
     '  font-weight: 600;',
     '  color: var(--vc-color-content, #1f1a14);',
@@ -2348,6 +2630,145 @@
     '  vertical-align: middle;',
     '}',
 
+    /* Gallery picker */
+    '.ve-gallery-picker-grid {',
+    '  display: grid;',
+    '  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));',
+    '  gap: 10px;',
+    '}',
+    '.ve-gallery-picker-card {',
+    '  -webkit-appearance: none;',
+    '  appearance: none;',
+    '  text-align: center;',
+    '  display: flex;',
+    '  flex-direction: column;',
+    '  align-items: stretch;',
+    '  gap: 6px;',
+    '  padding: 6px;',
+    '  background: var(--vc-color-surface, #ffffff);',
+    '  border: 1px solid var(--vc-color-border, #e3dcc9);',
+    '  border-radius: var(--vc-radius-md, 8px);',
+    '  font: inherit;',
+    '  color: inherit;',
+    '  cursor: pointer;',
+    '  transition: transform 120ms ease, border-color 120ms ease,'
+      + ' box-shadow 120ms ease;',
+    '}',
+    '.ve-gallery-picker-card:hover {',
+    '  border-color: var(--vc-color-accent, #b8861f);',
+    '  transform: translateY(-1px);',
+    '}',
+    '.ve-gallery-picker-card:focus-visible {',
+    '  outline: 2px solid var(--vc-color-accent, #b8861f);',
+    '  outline-offset: 2px;',
+    '}',
+    '.ve-gallery-picker-selected {',
+    '  border-color: var(--vc-color-accent, #b8861f);',
+    '  box-shadow: 0 0 0 3px color-mix(in srgb,'
+      + ' var(--vc-color-accent, #b8861f) 35%, transparent);',
+    '}',
+    '.ve-gallery-picker-thumb {',
+    '  width: 100%;',
+    '  aspect-ratio: 4 / 3;',
+    '  background: var(--vc-color-surface-sunken, #f1ece0);',
+    '  border-radius: var(--vc-radius-sm, 4px);',
+    '  display: flex;',
+    '  align-items: center;',
+    '  justify-content: center;',
+    '  overflow: hidden;',
+    '}',
+    '.ve-gallery-picker-img {',
+    '  width: 100%;',
+    '  height: 100%;',
+    '  object-fit: cover;',
+    '  display: block;',
+    '}',
+    '.ve-gallery-picker-placeholder {',
+    '  font-size: 32px;',
+    '  color: var(--vc-color-content-subtle, #8a8170);',
+    '}',
+    '.ve-gallery-picker-caption {',
+    '  font: 600 13px/1.3 var(--vc-font-body,'
+      + ' ui-sans-serif, system-ui, sans-serif);',
+    '  color: var(--vc-color-content, #1f1a14);',
+    '}',
+    '.ve-gallery-picker-subtitle {',
+    '  font: 11px/1.2 var(--vc-font-mono,'
+      + ' ui-monospace, monospace);',
+    '  color: var(--vc-color-content-muted, #5b5343);',
+    '  letter-spacing: 0.02em;',
+    '}',
+
+    /* Tier list */
+    '.ve-tier-row {',
+    '  display: flex;',
+    '  align-items: stretch;',
+    '  gap: 0;',
+    '  margin-bottom: 4px;',
+    '  border-radius: var(--vc-radius-sm, 4px);',
+    '  overflow: hidden;',
+    '}',
+    '.ve-tier-badge {',
+    '  flex: none;',
+    '  width: 60px;',
+    '  display: flex;',
+    '  align-items: center;',
+    '  justify-content: center;',
+    '  font: 800 18px/1 var(--vc-font-mono,'
+      + ' ui-monospace, monospace);',
+    '  color: var(--vc-color-on-accent, #ffffff);',
+    '  background: var(--vc-color-content-muted, #5b5343);',
+    '}',
+    '.ve-tier-badge[data-tier-tone="best"]   { background: var(--vc-color-danger, #a84a32); }',
+    '.ve-tier-badge[data-tier-tone="great"]  { background: var(--vc-color-warning, #a8791f); }',
+    '.ve-tier-badge[data-tier-tone="good"]   { background: var(--vc-color-accent, #b8861f); }',
+    '.ve-tier-badge[data-tier-tone="fair"]   { background: var(--vc-color-info, #3464a8); }',
+    '.ve-tier-badge[data-tier-tone="weak"]   { background: var(--vc-color-success, #3a6b5c); }',
+    '.ve-tier-badge-unranked {',
+    '  background: var(--vc-color-surface-sunken, #f1ece0);',
+    '  color: var(--vc-color-content-muted, #5b5343);',
+    '  font: 600 11px/1 var(--vc-font-mono,'
+      + ' ui-monospace, monospace);',
+    '  text-transform: lowercase;',
+    '  letter-spacing: 0.04em;',
+    '}',
+    '.ve-tier-bucket {',
+    '  list-style: none;',
+    '  margin: 0;',
+    '  padding: 8px;',
+    '  flex: 1;',
+    '  min-height: 56px;',
+    '  display: flex;',
+    '  flex-wrap: wrap;',
+    '  gap: 6px;',
+    '  background: var(--vc-color-surface, #ffffff);',
+    '  border: 1px solid var(--vc-color-border, #e3dcc9);',
+    '  border-left: 0;',
+    '  border-radius: 0 var(--vc-radius-sm, 4px) var(--vc-radius-sm, 4px) 0;',
+    '}',
+    '.ve-tier-drop-target {',
+    '  background: color-mix(in srgb,'
+      + ' var(--vc-color-accent, #b8861f) 16%, transparent);',
+    '  border-color: var(--vc-color-accent, #b8861f);',
+    '}',
+    '.ve-tier-item {',
+    '  display: inline-flex;',
+    '  align-items: center;',
+    '  gap: 4px;',
+    '  padding: 4px 10px;',
+    '  background: var(--vc-color-surface-raised, #fffdf8);',
+    '  border: 1px solid var(--vc-color-border-strong, #c9bfa3);',
+    '  border-radius: 999px;',
+    '  font: 13px/1.3 var(--vc-font-body,'
+      + ' ui-sans-serif, system-ui, sans-serif);',
+    '  color: var(--vc-color-content, #1f1a14);',
+    '  cursor: grab;',
+    '  user-select: none;',
+    '}',
+    '.ve-tier-item:hover { border-color: var(--vc-color-accent, #b8861f); }',
+    '.ve-tier-dragging { opacity: 0.5; cursor: grabbing; }',
+    '.ve-tier-icon { font-size: 14px; line-height: 1; }',
+
     /* Rank list */
     '.ve-rank-list > ol, .ve-rank-list > ul {',
     '  list-style: decimal inside;',
@@ -2427,6 +2848,8 @@
     initTreePicker: initTreePicker,
     initPasswordInput: initPasswordInput,
     initCurrencyInput: initCurrencyInput,
+    initGalleryPicker: initGalleryPicker,
+    initTierList: initTierList,
     initRankList: initRankList,
     readModel: readModel,
     loadValue: loadValue,

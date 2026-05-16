@@ -327,6 +327,47 @@
     </script>
   </div>
 
+  <h2>gallery picker (image cards)</h2>
+  <div class="ve-gallery-picker" data-ve-id="gallery:art-style">
+    <script type="application/json">
+      {
+        "label": "Pick an art style for the cover:",
+        "options": [
+          { "value": "watercolor", "label": "Watercolor",
+            "subtitle": "soft · pastel",
+            "emoji": "🎨" },
+          { "value": "blueprint",  "label": "Blueprint",
+            "subtitle": "technical · grid",
+            "emoji": "📐" },
+          { "value": "noir",       "label": "Noir",
+            "subtitle": "high contrast",
+            "emoji": "🌃" },
+          { "value": "vaporwave",  "label": "Vaporwave",
+            "subtitle": "neon · 80s",
+            "emoji": "🌆" }
+        ],
+        "default": "blueprint"
+      }
+    </script>
+  </div>
+
+  <h2>tier list (drag to rank)</h2>
+  <div class="ve-tier-list" data-ve-id="tier:fixes">
+    <script type="application/json">
+      {
+        "label": "Rank these fixes by impact:",
+        "items": [
+          { "key": "cache",   "label": "Add request cache" },
+          { "key": "logs",    "label": "Structured logs" },
+          { "key": "tests",   "label": "Backfill tests" },
+          { "key": "metrics", "label": "Add latency metrics" },
+          { "key": "docs",    "label": "Update API docs" },
+          { "key": "ratelimit", "label": "Rate limiter" }
+        ]
+      }
+    </script>
+  </div>
+
   <h2>rank list (drag to reorder)</h2>
   <div class="ve-rank-list" data-ve-id="rank:priorities">
     <p class="ve-quiz-label">Drag to rank the priorities:</p>

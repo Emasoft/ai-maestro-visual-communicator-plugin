@@ -75,6 +75,8 @@ async function testAllWidgetsInit(page) {
         '.ve-tree-picker': 'tree-picker',
         '.ve-password-input': 'password-input',
         '.ve-currency-input': 'currency-input',
+        '.ve-gallery-picker': 'gallery-picker',
+        '.ve-tier-list': 'tier-list',
         '.ve-rank-list': 'rank-list'
       };
       const bad = [];
@@ -1002,6 +1004,110 @@ async function testCurrencyAmountAndSwitch(page) {
     JSON.stringify(r));
 }
 
+async function testGalleryPickerSelection(page) {
+  // ve-gallery-picker mounts N image cards, marks model.default
+  // selected, and clicking a different card swaps + emits.
+  const s = await setup(page);
+  if (!s.ok) {
+    record('form_inputs_gallery', 'FAIL',
+      'gallery picker selection', s.error);
+    return;
+  }
+  const r = await page.evaluate(() => {
+    const root = document.querySelector('.ve-gallery-picker');
+    const cards = root.querySelectorAll('.ve-gallery-picker-card');
+    const initialSelected =
+      root.querySelector('.ve-gallery-picker-selected')
+        .getAttribute('data-gallery-value');
+    root.querySelector(
+      '[data-gallery-value="vaporwave"]').click();
+    const afterSelected =
+      root.querySelector('.ve-gallery-picker-selected')
+        .getAttribute('data-gallery-value');
+    const ev = window.__vcFormChanges
+      .filter(e => e.kind === 'gallery-picker').pop();
+    return {
+      typeAttr: root.getAttribute('data-ve-type'),
+      cardCount: cards.length,
+      initialSelected: initialSelected,
+      afterSelected: afterSelected,
+      eventValue: ev ? ev.value : null,
+      lsValue: JSON.parse(localStorage.getItem(
+        'amvcp-form-input:gallery:art-style') || 'null')
+    };
+  });
+  const ok = r.typeAttr === 'gallery-picker'
+    && r.cardCount === 4
+    && r.initialSelected === 'blueprint'
+    && r.afterSelected === 'vaporwave'
+    && r.eventValue === 'vaporwave'
+    && r.lsValue === 'vaporwave';
+  record('form_inputs_gallery', ok ? 'PASS' : 'FAIL',
+    'gallery picker mounts cards; click swaps selection + emits',
+    JSON.stringify(r));
+}
+
+async function testTierListDragAssign(page) {
+  // ve-tier-list mounts N tier rows + an unranked bucket; every item
+  // starts in unranked. Dragging an item into a tier bucket updates
+  // both the DOM and the emitted assignment map.
+  const s = await setup(page);
+  if (!s.ok) {
+    record('form_inputs_tier_list', 'FAIL',
+      'tier-list drag', s.error);
+    return;
+  }
+  const r = await page.evaluate(() => {
+    const root = document.querySelector('.ve-tier-list');
+    const initialCounts = {
+      rows:     root.querySelectorAll('.ve-tier-row').length,
+      buckets:  root.querySelectorAll('.ve-tier-bucket').length,
+      itemsInUnranked: root.querySelectorAll(
+        '.ve-tier-bucket[data-tier-key="unranked"] li').length,
+      tierBadges: root.querySelectorAll(
+        '.ve-tier-badge:not(.ve-tier-badge-unranked)').length
+    };
+    // Drag "logs" → tier A
+    const aBucket = root.querySelector('.ve-tier-bucket[data-tier-key="A"]');
+    const item = root.querySelector('.ve-tier-item[data-item-key="logs"]');
+    const dt = new DataTransfer();
+    item.dispatchEvent(new DragEvent('dragstart',
+      { bubbles: true, cancelable: true, dataTransfer: dt }));
+    aBucket.dispatchEvent(new DragEvent('dragover',
+      { bubbles: true, cancelable: true, dataTransfer: dt }));
+    aBucket.dispatchEvent(new DragEvent('drop',
+      { bubbles: true, cancelable: true, dataTransfer: dt }));
+    item.dispatchEvent(new DragEvent('dragend',
+      { bubbles: true, cancelable: true, dataTransfer: dt }));
+    const ev = window.__vcFormChanges
+      .filter(e => e.kind === 'tier-list').pop();
+    return {
+      typeAttr: root.getAttribute('data-ve-type'),
+      initialCounts: initialCounts,
+      aBucketContains: Array.from(aBucket.querySelectorAll('li'))
+        .map(l => l.getAttribute('data-item-key')),
+      unrankedAfter: root.querySelectorAll(
+        '.ve-tier-bucket[data-tier-key="unranked"] li').length,
+      eventA: ev ? ev.value.A : null,
+      lsLogsTier: (JSON.parse(localStorage.getItem(
+        'amvcp-form-input:tier:fixes') || '{}')).logs
+    };
+  });
+  const ok = r.typeAttr === 'tier-list'
+    && r.initialCounts.rows === 6
+    && r.initialCounts.buckets === 6
+    && r.initialCounts.itemsInUnranked === 6
+    && r.initialCounts.tierBadges === 5
+    && r.aBucketContains.length === 1
+    && r.aBucketContains[0] === 'logs'
+    && r.unrankedAfter === 5
+    && Array.isArray(r.eventA) && r.eventA[0] === 'logs'
+    && r.lsLogsTier === 'A';
+  record('form_inputs_tier_list', ok ? 'PASS' : 'FAIL',
+    'tier-list mounts S-D + unranked; drag moves item + emits assignment',
+    JSON.stringify(r));
+}
+
 // ── Runner ───────────────────────────────────────────────────────────
 
 const tests = [
@@ -1025,7 +1131,9 @@ const tests = [
   testTreePickerMountsAndSelects,
   testTreePickerExpansionPersists,
   testPasswordStrengthAndToggle,
-  testCurrencyAmountAndSwitch
+  testCurrencyAmountAndSwitch,
+  testGalleryPickerSelection,
+  testTierListDragAssign
 ];
 
 const page = await browser.getPage("form-inputs-tests");
