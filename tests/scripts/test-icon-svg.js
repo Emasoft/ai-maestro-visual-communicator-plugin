@@ -679,12 +679,36 @@ async function testDeviceFrameContentScrollOnly(page) {
 async function testHotspotPositioned(page) {
   // 18 — a hotspot with --x:.30 --y:.30 computes left/top at 30%/30%
   // of the figure (the calc-from-fraction placement).
+  //
+  // CRITICAL: wait for the figure's inline data-URI image to fully
+  // decode + lay out before measuring. Without this wait the figure
+  // can still be at an intermediate height (the image hasn't yet
+  // contributed its intrinsic height to the layout), shifting fy
+  // above the test's tolerance. fx is less affected because the
+  // image's intrinsic WIDTH applies immediately via max-inline-size.
   const s = await setup(page);
   if (!s.ok) {
     record('icon_svg_hotspot_positioned', 'FAIL',
       'hotspot positioned by --x/--y fraction', s.error);
     return;
   }
+  await page.evaluate(async () => {
+    var img = document.getElementById('annotated-img');
+    if (!img) return;
+    if (img.complete && img.naturalHeight > 0) return;
+    if (typeof img.decode === 'function') {
+      try { await img.decode(); } catch (e) { /* fall through */ }
+    }
+    if (!img.complete) {
+      await new Promise(function (resolve) {
+        img.addEventListener('load', resolve, { once: true });
+        img.addEventListener('error', resolve, { once: true });
+      });
+    }
+  });
+  // One extra layout cycle so getBoundingClientRect reflects the
+  // image-driven figure size.
+  await page.waitForTimeout(80);
   const res = await page.evaluate(() => {
     const fig = document.getElementById('annotated-fig');
     const hs = fig.querySelector(
@@ -701,7 +725,9 @@ async function testHotspotPositioned(page) {
       found: true,
       fx: Math.round(fx * 100) / 100,
       fy: Math.round(fy * 100) / 100,
-      veType: hs.getAttribute('data-ve-type')
+      veType: hs.getAttribute('data-ve-type'),
+      figW: figR.width,
+      figH: figR.height
     };
   });
   // allow a small rounding tolerance.
