@@ -667,6 +667,403 @@ if (payload && Array.isArray(payload.selections)) {
 }
 ```
 
+### R27 — DESIGN.md style controller pod always MOUNTED (but hidden by default)
+
+The pod (the floating DESIGN.md style controller — `#ve-designmd-handle` for the wake button, `.ve-designmd-pad` for the panel) MUST be present in the DOM on EVERY page the runtime renders, so the activation gesture (R39) can summon it. On pages whose HTML does not explicitly load `amvcp-designmd.js`, the runtime MUST auto-inject it via dynamic `<script>` injection and then call `_ensureDesignMdHandle()` unconditionally.
+
+The pod chrome is INVISIBLE by default — both the panel AND the wake handle are `visibility:hidden` and not reachable by pointer until the user invokes the summoning gesture defined in R39. The handle is just the visible drag-and-collapse affordance of the pod ITSELF once summoned; it is not a permanent always-visible button.
+
+Verify:
+```js
+const r = await page.evaluate(() => {
+  const handle = document.getElementById('ve-designmd-handle');
+  const pad = document.querySelector(
+    '.ve-designmd-pad, [data-ve-designmd-pad]');
+  const handleCs = handle ? getComputedStyle(handle) : null;
+  const padCs = pad ? getComputedStyle(pad) : null;
+  return {
+    handleMounted: !!handle,
+    padMounted: !!pad,
+    hasEngine: typeof window.amvcpDesignMd === 'object',
+    handleHiddenByDefault: handleCs
+      ? handleCs.visibility === 'hidden'
+        || handleCs.display === 'none' : null,
+    padHiddenByDefault: padCs
+      ? padCs.visibility === 'hidden'
+        || padCs.display === 'none' : null
+  };
+});
+// handleMounted AND padMounted AND hasEngine MUST be true.
+// handleHiddenByDefault AND padHiddenByDefault MUST be true.
+```
+
+### R28 — Pod library: save / rename / delete user presets
+
+The pod's library drawer MUST expose three actions on top of the import / export / hot-swap already shipped:
+
+- **Save as…** — a name input + Save button that snapshots the CURRENT tokens (via `serializeDesignMd`) into a localStorage-backed user preset bucket and appends a new row to the library list with a "user" badge.
+- **Rename** (per user-preset row) — built-in presets are read-only; user presets accept a new name without losing their content or position in the list.
+- **Delete** (per user-preset row) — irreversible local-only removal; built-in presets cannot be deleted.
+
+Persistence key: `localStorage["ve-designmd-pad-user-presets"]` = JSON map `{ name: designMdText }`. A future Python helper will mirror this to `$CLAUDE_PLUGIN_DATA/design-md-presets/<name>.md` for cross-page + cross-version persistence (see the [Claude Code persistent-data-directory docs](https://code.claude.com/docs/en/plugins-reference#persistent-data-directory)).
+
+Verify:
+```js
+const r = await page.evaluate(() => {
+  const api = window.amvcpDesignMd;
+  if (!api?.saveUserPreset) return { applicable: false };
+  api.saveUserPreset('test-preset-r28');
+  const after = JSON.parse(
+    localStorage.getItem('ve-designmd-pad-user-presets') || '{}');
+  const hasIt = !!after['test-preset-r28'];
+  api.renameUserPreset('test-preset-r28', 'renamed');
+  const renamed = JSON.parse(
+    localStorage.getItem('ve-designmd-pad-user-presets') || '{}');
+  const wasRenamed = !renamed['test-preset-r28']
+    && !!renamed['renamed'];
+  api.deleteUserPreset('renamed');
+  const final = JSON.parse(
+    localStorage.getItem('ve-designmd-pad-user-presets') || '{}');
+  const wasDeleted = !final['renamed'];
+  return { applicable: true, hasIt, wasRenamed, wasDeleted };
+});
+// when applicable: hasIt AND wasRenamed AND wasDeleted MUST be true.
+```
+
+### R29 — 3-state selection ALWAYS overrides DESIGN.md palette
+
+The user must see a clear visual delta on every selectable atom **regardless** of which DESIGN.md preset is active:
+
+| State                | Light theme                              | Dark theme                                 |
+|----------------------|------------------------------------------|--------------------------------------------|
+| Normal               | base                                     | base                                       |
+| Hover                | slight darker bg + soft warm glow        | slight brighter bg + soft warm glow        |
+| Selected             | clear darker bg + outline                | clear brighter bg + outline                |
+| Hover + Selected     | strongest darker + outline + glow        | strongest brighter + outline + glow        |
+
+The palette can be swapped (R3 / DESIGN.md), but the brightness DIRECTION (darker in light theme, brighter in dark theme) and the glow on hover are non-negotiable. The runtime CSS for `[data-ve-comment-id]:hover` and `[data-ve-comment-id][data-ve-selected="1"]` MUST use a specificity high enough that no DESIGN.md preset can mask the delta. The SVG side already enforces this with `!important` (runtime.js:660); the HTML-atom side MUST do the same.
+
+Verify (per preset):
+```js
+const r = await page.evaluate(() => {
+  const atom = document.querySelector('p[data-ve-comment-id]')
+    || document.querySelector('li[data-ve-comment-id]');
+  if (!atom) return { applicable: false };
+  function lightnessOf(rgb) {
+    const m = /(\d+),\s*(\d+),\s*(\d+)/.exec(rgb);
+    if (!m) return 0;
+    const [r, g, b] = [+m[1], +m[2], +m[3]];
+    return (Math.max(r, g, b) + Math.min(r, g, b)) / 2 / 255;
+  }
+  const base = lightnessOf(getComputedStyle(atom).backgroundColor);
+  atom.setAttribute('data-ve-selected', '1');
+  const sel = lightnessOf(getComputedStyle(atom).backgroundColor);
+  atom.removeAttribute('data-ve-selected');
+  return { applicable: true, base, sel,
+           deltaPct: Math.abs(sel - base) * 100,
+           changes: Math.abs(sel - base) > 0.02 };
+});
+// when applicable: changes MUST be true (≥ 2 percentage points
+// lightness delta) for EVERY built-in preset.
+```
+
+### R30 — Touch parity on mobile
+
+Every interaction that works with mouse MUST also work with touch on a mobile browser. Specifically:
+- Bubble handle hover-bridge: `touchstart` on the atom shows the handle; `touchstart` on the handle opens the modal.
+- Drag-paint (code-line / row range): touch-drag works.
+- Modal close: tap on the backdrop closes.
+- Diagram pan / zoom: drag-pan works on touch; pinch works for zoom.
+- Pod: drag-to-move works with touch.
+
+Verify (under mobile UA emulation):
+```js
+const r = await page.evaluate(() => {
+  // The runtime should have registered touch listeners on the
+  // document or on the relevant atom containers.
+  const hasTouch = 'ontouchstart' in window;
+  // Quick sanity probe: synthetic touchstart on a bubble handle.
+  const handle = document.querySelector('.ve-comment-handle')
+    || document.getElementById('ve-designmd-handle');
+  if (!handle) return { hasTouch, modalOpenedByTouch: 'n/a' };
+  const t = new TouchEvent('touchstart',
+    { bubbles: true, cancelable: true });
+  handle.dispatchEvent(t);
+  // Whether modal opens is checked elsewhere (real touch path
+  // required); this snippet just confirms the listener exists.
+  return { hasTouch };
+});
+```
+
+### R31 — Responsive at all common viewport widths
+
+Pages MUST render correctly at the canonical widths: 320, 375, 414, 768, 1024, 1280, 1920, 2560. "Correctly" =
+- no horizontal scroll on the document (R2 still holds for chrome; intentional wide-content scroll is fine).
+- no text clipped at the right edge (R35).
+- no selectable atom unreachable (clipped past the viewport edge).
+- no overlap between page-level surfaces (R34).
+- corner buttons (R33) remain visible.
+
+Verify by sweeping viewport widths and re-running the audit at each.
+
+### R32 — Retina (2× / 3×) bitmap density
+
+Bitmap images (PNG / JPEG via `<img>` or `background-image`) MUST be authored at 2× the display size (3× where possible) so they stay crisp on Retina / high-DPI screens. The renderer MUST emit `srcset="… 2x, … 3x"` when the higher-density assets exist; for inline embedded images set `width` / `height` equal to half the natural pixel size.
+
+Verify:
+```js
+const r = await page.evaluate(() => {
+  const imgs = Array.from(document.querySelectorAll('img'));
+  const offenders = imgs.filter(img => {
+    if (img.hasAttribute('srcset')) return false;
+    return img.naturalWidth < img.width * 2;
+  });
+  return { total: imgs.length, offenders: offenders.length };
+});
+// offenders MUST be 0. Pure-vector (SVG, canvas) is exempt.
+```
+
+### R33 — Corner action buttons always present (even in slides / animations / video)
+
+The runtime's corner ACTION buttons (`.ve-action-btn--top`, `.ve-action-btn--bottom`, e.g. Submit / Done) MUST be visible regardless of what surface fills the page. Slide decks, fullscreen animations, embedded video, scene-graphs in full-viewport mode MUST NOT mask them. They live on a fixed-position layer with the highest z-index (`2147483646` — one below INT32_MAX).
+
+NOTE — the DESIGN.md pod wake handle (`#ve-designmd-handle`) is explicitly NOT covered by this rule; per R27 + R39 the pod is hidden by default and only revealed via the summon gesture. R33 applies only to action buttons that the user must always be able to reach (commit a decision, close, etc.).
+
+Verify:
+```js
+const r = await page.evaluate(() => {
+  const probes = ['.ve-action-btn--top', '.ve-action-btn--bottom'];
+  return probes.map(sel => {
+    const el = document.querySelector(sel);
+    if (!el) return { sel, applicable: false };
+    const r = el.getBoundingClientRect();
+    const cs = getComputedStyle(el);
+    const elAtPoint = document.elementFromPoint(
+      r.x + r.width / 2, r.y + r.height / 2);
+    return { sel, applicable: true,
+             visible: r.width > 0 && r.height > 0
+                      && cs.visibility !== 'hidden'
+                      && cs.display !== 'none',
+             zIndex: cs.zIndex,
+             topMost: el === elAtPoint || el.contains(elAtPoint) };
+  });
+});
+// every applicable probe MUST have visible: true AND topMost: true.
+// (Probes are applicable only when the rendered page intentionally
+// mounted the corner action button — e.g. interactive reports,
+// choice-tables, form-input pages. A pure read-only typography
+// specimen has no action button and that's fine.)
+```
+
+### R34 — No overlap between scaffolded elements
+
+Scaffolded surfaces (multiple skills composed on one page) MUST NOT overlap. The page is a single-document scroll (R2). Each surface is a block-level container laid out below the previous one. The only exception is the floating-overlay z-layer (pod, corner buttons, modal, snippet popup, decision modal) — these have known small footprints and live on z > 100.
+
+Verify:
+```js
+const r = await page.evaluate(() => {
+  const surfaces = Array.from(document.querySelectorAll(
+    '.ve-scene-graph, .ve-chart, .ve-table-wrap, .ve-code-block, '
+    + '.ve-finding, .ve-wf-screen, .ve-icon-svg, '
+    + '.ve-layout-grid, .ve-slide-block, .ve-form-input, '
+    + '.ve-gallery, .ve-dirtree'));
+  const overlaps = [];
+  for (let i = 0; i < surfaces.length; i++) {
+    for (let j = i + 1; j < surfaces.length; j++) {
+      const a = surfaces[i].getBoundingClientRect();
+      const b = surfaces[j].getBoundingClientRect();
+      // Skip ancestor / descendant pairs (intentional containment).
+      if (surfaces[i].contains(surfaces[j])
+          || surfaces[j].contains(surfaces[i])) continue;
+      const overlap = !(a.right <= b.left || b.right <= a.left
+        || a.bottom <= b.top || b.bottom <= a.top);
+      if (overlap) overlaps.push({
+        i, j, a: surfaces[i].className.toString().slice(0, 30),
+        b: surfaces[j].className.toString().slice(0, 30) });
+    }
+  }
+  return overlaps;
+});
+// overlaps MUST be empty.
+```
+
+### R35 — No text hidden or truncated at the viewport edge
+
+Every paragraph / list-item / code-line / heading MUST be fully readable. Specifically:
+- No `text-overflow: ellipsis` on prose (only on intentionally narrow chips / badges).
+- No prose `<p>` is masked by a floating overlay (the overlays have small footprints in known corners).
+- No prose extends past the body's `padding-right` (i.e. the viewport's right edge minus the body's right padding).
+- No prose is positioned at `position: fixed` with off-screen coordinates.
+
+Verify:
+```js
+const r = await page.evaluate(() => {
+  const viewportW = window.innerWidth;
+  const bodyPadR = parseFloat(
+    getComputedStyle(document.body).paddingRight);
+  const proseTags = ['p', 'li', 'h1', 'h2', 'h3', 'h4'];
+  const offenders = [];
+  document.querySelectorAll(proseTags.join(','))
+    .forEach(el => {
+      const r = el.getBoundingClientRect();
+      // Skip elements inside floating overlays (intentional).
+      if (el.closest('[data-ve-overlay]')) return;
+      if (r.right > viewportW - bodyPadR + 1) {
+        offenders.push({
+          tag: el.tagName,
+          right: r.right,
+          textPreview: el.textContent.trim().slice(0, 30)
+        });
+      }
+      // Ellipsis-on-prose check.
+      const cs = getComputedStyle(el);
+      if (cs.textOverflow === 'ellipsis'
+          && (cs.overflow === 'hidden')
+          && /^(P|LI|H[1-6])$/.test(el.tagName)) {
+        offenders.push({
+          tag: el.tagName, reason: 'ellipsis on prose',
+          textPreview: el.textContent.trim().slice(0, 30)
+        });
+      }
+    });
+  return offenders;
+});
+// offenders MUST be empty.
+```
+
+### R36 — Diagrams: zoom / pan + draggable mini-map
+
+Every `.ve-scene-graph` whose intrinsic size exceeds the viewport MUST mount:
+- a zoom toolbar (zoom-in / zoom-out / fit-all / 1:1) — already shipped via `diagram.js:_buildToolbar`.
+- a mini-map at bottom-right showing the full diagram with a draggable rectangle representing the current viewport — already shipped via `diagram.js:_buildMinimap`.
+- drag-to-pan on the stage; wheel-to-zoom; pinch-to-zoom on touch (R30).
+
+Verify:
+```js
+const r = await page.evaluate(() => {
+  const hosts = document.querySelectorAll('.ve-scene-graph');
+  return Array.from(hosts).map(h => ({
+    hasToolbar: !!h.querySelector('.ve-scene-toolbar'),
+    hasMinimap: !!h.querySelector('.ve-scene-minimap'),
+    hasFrame: !!h.querySelector(
+      '.ve-scene-minimap .ve-scene-minimap-frame'),
+    hasStage: !!h.querySelector('.ve-scene-stage')
+  }));
+});
+// each host MUST report all four true (when the diagram is in
+// viewport mode; small inline diagrams are exempt).
+```
+
+### R37 — Font size readable (≥ 14 px body, ≥ 12 px chips)
+
+Body prose MUST resolve to a computed `font-size` ≥ 14 px on the default viewport (1280 px width). Mini chips (decision-mini segments, badges, tag pills) MUST be ≥ 12 px. Fluid scales (`clamp(...)`) MUST clamp ≥ 14 px at the smallest defined viewport (320 px).
+
+Verify:
+```js
+const r = await page.evaluate(() => {
+  const proseSizes = [];
+  document.querySelectorAll('p, li').forEach(el => {
+    proseSizes.push(parseFloat(getComputedStyle(el).fontSize));
+  });
+  const minProse = proseSizes.length ? Math.min(...proseSizes) : 14;
+  const chipSizes = [];
+  document.querySelectorAll(
+    '.ve-decision-mini-seg, .ve-badge, .ve-chip').forEach(el => {
+    chipSizes.push(parseFloat(getComputedStyle(el).fontSize));
+  });
+  const minChip = chipSizes.length ? Math.min(...chipSizes) : 12;
+  return { minProse, minChip,
+           proseOk: minProse >= 14, chipOk: minChip >= 12 };
+});
+// proseOk AND chipOk MUST both be true.
+```
+
+### R38 — Live-page overlay: select TRUE HTML elements
+
+When the runtime is loaded in overlay mode on a user's deployed website (per R24), the selection target MUST be the **actual HTML elements** of the page — every `<div>`, `<button>`, `<input>`, `<a>`, `<img>`, React/Vue component root, form control — NOT the plugin's `[data-ve-comment-id]` atoms (which don't exist on a third-party page). The overlay treats the whole DOM tree as a giant selectable surface and lets the user click any visible element to comment on it.
+
+Specifically the overlay layer MUST:
+- Highlight the element under the cursor with a dashed outline overlay (separate DOM, not mutating the host element).
+- On click: add the element to the selection set (multi-click = multiple selections).
+- The same comment-modal opens; same Done / Submit contract as report mode.
+- The submission payload identifies each selected element by a stable best-effort selector that `document.querySelector(selector)` can round-trip back to the SAME element: tag + id + classes + nth-of-type + textContent prefix.
+
+Verify (gated on `armOverlay` being shipped):
+```js
+const r = await page.evaluate(async () => {
+  if (typeof window.amvcpOverlay?.armOverlay !== 'function') {
+    return { applicable: false };
+  }
+  await window.amvcpOverlay.armOverlay();
+  // Pick an arbitrary <div> on the host page.
+  const target = document.querySelector('main div')
+    || document.querySelector('body > div')
+    || document.body.firstElementChild;
+  if (!target) return { applicable: true, error: 'no target' };
+  // Simulate hover → click via the overlay's API.
+  window.amvcpOverlay._addSelectionForTest(target);
+  const payload = window.amvcpOverlay.collectSubmission();
+  await window.amvcpOverlay.disarmOverlay();
+  // Round-trip the selector back to the same element.
+  const roundTrip = payload.selections[0]
+    && document.querySelector(payload.selections[0].selector);
+  return {
+    applicable: true,
+    payloadCount: payload.selections.length,
+    roundTripsToSameNode: roundTrip === target
+  };
+});
+// when applicable: payloadCount >= 1 AND roundTripsToSameNode true.
+```
+
+### R39 — Pod summon gesture (desktop key combo + mobile 3-finger tap)
+
+The pod (R27) is HIDDEN by default and MUST only become visible when the user invokes the summoning gesture. Invoking the gesture again hides it. The gesture MUST satisfy two constraints:
+
+1. **Universal** — works on every supported platform: desktop (macOS + Windows + Linux), iOS mobile browsers (Safari, Chrome), Android mobile browsers (Chrome, Firefox).
+2. **Non-conflicting** — never fires while the user is typing prose or code in any focusable input (`<input>`, `<textarea>`, `contenteditable`), and is not bound to any common browser shortcut.
+
+**The chosen gesture** (cross-platform, non-conflicting):
+
+- **Desktop keyboard**: `Ctrl+Shift+\` (or `Cmd+Shift+\` on macOS).
+  - All three modifiers required → impossible to trigger by accident while typing.
+  - Backslash is unbound in standard browser shortcut tables (Chrome / Firefox / Safari) and is rarely typed mid-prose.
+  - Gated on `event.target` NOT being inside an `<input>` / `<textarea>` / `contenteditable` element, so the combo never preempts a code editor's own binding.
+- **Mobile / tablet (no physical keyboard)**: **3-finger tap** on any non-input area of the viewport.
+  - `touchstart` with `touches.length === 3` and `touchend` within 250 ms → toggle.
+  - 1-finger = normal interaction, 2-finger = scroll / pinch, 3-finger = pod summon. No platform reserves 3-finger tap for typing or system gestures inside the viewport.
+  - Gated on `event.target` NOT being inside any input / textarea / contenteditable.
+
+The runtime exposes this gesture via a single handler `bindPodSummonGesture()` registered once on `window`. The handler is the SOLE way the pod becomes visible — there is no permanent always-visible UI affordance for it.
+
+Verify:
+```js
+const r = await page.evaluate(() => {
+  const handle = document.getElementById('ve-designmd-handle');
+  if (!handle) return { error: 'pod not mounted' };
+  // Pod starts hidden.
+  const before = getComputedStyle(handle).visibility;
+  // Synthesize the desktop combo (Ctrl+Shift+Backslash).
+  const ev = new KeyboardEvent('keydown', { key: '\\',
+    code: 'Backslash', ctrlKey: true, shiftKey: true,
+    bubbles: true, cancelable: true });
+  document.dispatchEvent(ev);
+  // Re-check visibility.
+  const after = getComputedStyle(handle).visibility;
+  // Re-dispatch to hide.
+  document.dispatchEvent(new KeyboardEvent('keydown', { key: '\\',
+    code: 'Backslash', ctrlKey: true, shiftKey: true,
+    bubbles: true, cancelable: true }));
+  const final = getComputedStyle(handle).visibility;
+  return { before, after, final,
+           summonedShown: before === 'hidden' && after === 'visible',
+           toggledHidden: after === 'visible' && final === 'hidden' };
+});
+// summonedShown AND toggledHidden MUST be true.
+```
+
+For mobile: the same `bindPodSummonGesture` handler registers `touchstart`/`touchend` listeners. Verification under mobile UA emulation dispatches a synthetic `TouchEvent` with 3 touches.
+
 ### R26 — Skill discoverability — SKILL.md declares modes + composability
 
 Every `skills/<skill>/SKILL.md` MUST declare in its body:
@@ -700,15 +1097,16 @@ done
 
 For ANY change that touches the runtime, the renderer, or a visualization skill, run this sequence:
 
-1. **Tests**: `cd tests && python3 run-tests.py` — full suite must pass (current baseline 356/358; 2 known unrelated flakes: animation IO + icon-svg hotspot).
+1. **Tests**: `cd tests && python3 run-tests.py` — full suite must pass (current baseline 358/358; periodic flakes: animation IO timing + icon-svg hotspot positioning are known unrelated).
 2. **CSS sanity**: walk R1-R17 above; run the embedded snippets; record results.
 3. **Function / logic sanity**: walk R19-R26; run the embedded snippets. Pay special attention to R20 + R23 (decision pills appear ONLY on `data-ve-mode=choice*` hosts).
-4. **Screenshot per area**: take a screenshot of the changed surface AND read it back. Don't trust "the diff looks right" — visual layout regressions hide in correct-looking diffs.
-5. **Narrow viewport**: force `.ve-code-block { max-width: 400px }` (or similar narrowing for the relevant element) and verify wrap/responsive behavior.
-6. **Both themes**: flip `data-ve-theme` between `light` and `dark`, screenshot both.
-7. **Interaction sequences**: for hover/click/drag features, use real mouse paths (`page.mouse.move(x, y, {steps: 8})`) — `el.click()` hides hover-state bugs.
-8. **Composability**: when a runtime change touches a skill that ships alongside others, re-run R22's composite-fixture check (`all-techniques-sample.html`) to confirm zero interference with other skills.
-9. **iTerm pane**: if you opened a preview pane during testing, run `open_preview` again with `${ITERM_SESSION_ID##*:}` (the safeguard auto-closes the previous pane).
+4. **Pod + UX sanity**: walk R27-R39; run the embedded snippets. Pay special attention to R27/R39 (pod mounted but hidden until the `Ctrl+Shift+\` / 3-finger-tap gesture summons it), R29 (3-state selection always overrides palette), R33 (corner action buttons remain on top of every surface), R34/R35 (no overlap / no truncation).
+5. **Screenshot per area**: take a screenshot of the changed surface AND read it back. Don't trust "the diff looks right" — visual layout regressions hide in correct-looking diffs.
+6. **Narrow viewport**: force `.ve-code-block { max-width: 400px }` (or similar narrowing for the relevant element) and verify wrap/responsive behavior. Also test the canonical R31 width matrix (320 / 375 / 414 / 768 / 1024 / 1280 / 1920 / 2560) for any page-level change.
+7. **Both themes**: flip `data-ve-theme` between `light` and `dark`, screenshot both. For per-preset coverage (R29), iterate `amvcpTokens.PRESETS` and screenshot each.
+8. **Interaction sequences**: for hover/click/drag features, use real mouse paths (`page.mouse.move(x, y, {steps: 8})`) — `el.click()` hides hover-state bugs. For touch (R30), use `page.emulate({mobile: true, hasTouch: true})`.
+9. **Composability**: when a runtime change touches a skill that ships alongside others, re-run R22's composite-fixture check (`all-techniques-sample.html`) to confirm zero interference with other skills.
+10. **iTerm pane**: if you opened a preview pane during testing, run `open_preview` again with `${ITERM_SESSION_ID##*:}` (the safeguard auto-closes the previous pane).
 
 ## Anti-patterns (NEVER do)
 
@@ -721,6 +1119,16 @@ For ANY change that touches the runtime, the renderer, or a visualization skill,
 - Ship a snippet popup chip that uses `display:none` and pass it to `openCommentModal` as the anchor — connector line draws to (0,0). Use a transient anchor div instead (see R15).
 - Add a hover-pill duplicate of the bubble handle. The bubble handle is the SOLE comment-entry affordance for atoms; tests use `window.__veOpenCommentModal(anchor)` directly.
 - Open multiple iTerm preview panes from the same shell. The safeguard in `open_preview.applescript` closes any existing preview pane in the caller's tab before splitting again — bypassing it stacks panes.
+- **Ship a page that loads `amvcp-runtime.js` but lacks the DESIGN.md pod** (see R27). The runtime MUST auto-mount the pod if `amvcp-designmd.js` is absent — never let a page render without it.
+- **Show the pod by default** (see R27/R39). The pod is hidden until the user summons it with `Ctrl+Shift+\` (or `Cmd+Shift+\` on macOS) on desktop or a 3-finger tap on mobile. No permanent always-visible pod affordance is allowed.
+- **Bind the pod summon gesture to a single modifier or to a letter that conflicts with text writing** (see R39). The combo must require all of Ctrl + Shift + non-letter (or Cmd + Shift + non-letter on macOS) so it can never fire while the user is typing prose / code. On mobile, the gesture must require exactly 3 simultaneous touches so it does not collide with text selection (1-2 touches).
+- **Build a DESIGN.md preset that overrides the 3-state hover / selected delta** (see R29). The palette is yours to change; the brightness DIRECTION (darker in light, brighter in dark) and the hover glow are non-negotiable. Use `:where()` for DESIGN.md selectors to keep specificity 0,0,0 — the runtime's selection CSS must always win.
+- **Mask the corner action buttons with a fullscreen slide / animation / video** (see R33). Pin those buttons at the top z-layer (`z-index: 2147483646`). The pod handle is exempt because it lives behind the summon gesture (R39).
+- **Render a bitmap `<img>` without a 2× `srcset` descriptor** on a page that may be viewed on a Retina screen (see R32). For pure-vector content (SVG / canvas) this doesn't apply.
+- **Lay out two skill surfaces so their bounding rects overlap** (see R34). The page is a single document scroll; each surface stacks below the previous. Only floating overlays (pod, modal, snippet popup, corner buttons) live on a separate z-layer with known small footprints.
+- **Truncate prose with `text-overflow: ellipsis` or let a paragraph extend past the body's right padding** (see R35). Chips and badges can ellipsis; prose cannot.
+- **Skip touch-event listeners on interactive surfaces** (see R30). Every `mousedown` / `mousemove` / `mouseup` handler that drives selection / panning / drag-paint must also register `touchstart` / `touchmove` / `touchend` counterparts.
+- **Use `font-size` smaller than 14 px for body prose, or smaller than 12 px for chips** (see R37). Fluid scales must clamp ≥ 14 px at 320 px viewport.
 - **Attach `.ve-decision-mini` on a host whose `data-ve-mode` is not a choice variant** (see R20/R23). The default is `readonly` — decision pills are an OPT-IN by the agent, not the runtime's default.
 - **Render a skill's output as plain `<p>` text** when the skill's content type warrants structural DOM (see R19). A "colors" skill emits swatches, a "graph" skill emits `<svg>` nodes, etc.
 - **Declare a choice host without a cardinality** (see R21). `data-ve-mode="choice"` alone is acceptable as a back-compat alias for `multi`, but new code SHOULD say `single`, `multi`, or `max-N` explicitly.
