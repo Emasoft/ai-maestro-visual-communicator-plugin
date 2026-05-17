@@ -9565,22 +9565,103 @@
     }
   }
 
-  // Inject @media print CSS that hides the corner controls + pod
-  // handle so they don't pollute PDF exports. Idempotent.
+  // Inject the R40 accessibility + print primitives. Combines:
+  //   - @media print (hide corner row/pod, force-reveal data-reveal,
+  //     light background for clean PDF export, page-counter footer)
+  //   - @media (prefers-reduced-motion: reduce) (kill animations
+  //     for vestibular-disorder users)
+  //   - skip-to-content link styling (visually hidden until focus)
+  //   - corner-control hover offset (already there)
+  // Idempotent.
   function injectCornerControlsCss() {
     if (document.getElementById('ve-corner-controls-style')) return;
     var style = document.createElement('style');
     style.id = 've-corner-controls-style';
     style.textContent = [
+      // R40 — skip-to-content link.
+      '.ve-skip-to-content {',
+      '  position: absolute; top: -40px; left: 8px;',
+      '  background: var(--vc-color-accent, #4f46e5);',
+      '  color: var(--vc-color-on-accent, #ffffff);',
+      '  padding: 8px 14px; border-radius: 6px;',
+      '  text-decoration: none; font-weight: 600; font-size: 14px;',
+      '  z-index: 2147483646; opacity: 0; pointer-events: none;',
+      '  transition: top 160ms ease, opacity 160ms ease;',
+      '}',
+      '.ve-skip-to-content:focus {',
+      '  top: 8px; opacity: 1; pointer-events: auto;',
+      '  outline: 2px solid var(--vc-color-accent, #4f46e5);',
+      '  outline-offset: 2px;',
+      '}',
+      // R40 — reduced motion: kill animations + transitions site-wide
+      // for users who opt out. The `.reveal` / `[data-reveal]` fallback
+      // forces visibility so content isn't stuck behind a never-running
+      // animation.
+      '@media (prefers-reduced-motion: reduce) {',
+      '  *, *::before, *::after {',
+      '    animation-duration: 0.01ms !important;',
+      '    animation-iteration-count: 1 !important;',
+      '    transition-duration: 0.01ms !important;',
+      '  }',
+      '  .reveal, [data-reveal], [data-va-reveal] {',
+      '    opacity: 1 !important; transform: none !important;',
+      '  }',
+      '}',
+      // R40 — print primitives: hide all floating chrome, force
+      // every revealed atom visible, light background, page-counter
+      // footer. Honours print-color-adjust so DESIGN.md accents
+      // still print where they're meaningful.
       '@media print {',
+      '  html, body {',
+      '    background: white !important; color: black !important;',
+      '  }',
       '  .ve-corner-control,',
       '  #' + VE_DESIGNMD_HANDLE_ID + ',',
       '  #ve-designmd-pad,',
+      '  .ve-skip-to-content,',
       '  .ve-action-btn { display: none !important; }',
+      '  .reveal, [data-reveal], [data-va-reveal] {',
+      '    opacity: 1 !important; transform: none !important;',
+      '  }',
+      '  * { print-color-adjust: exact;',
+      '      -webkit-print-color-adjust: exact; }',
+      '  .ve-corner-control:focus,',
+      '  a:focus { outline: none; }',
+      '  /* Avoid orphaned headings + figures across page breaks. */',
+      '  h1, h2, h3, h4, h5, h6 { break-after: avoid; }',
+      '  figure, table, pre, blockquote { break-inside: avoid; }',
+      '}',
+      '@page {',
+      '  margin: 1in;',
+      '  @bottom-center {',
+      '    content: "Page " counter(page);',
+      '    font-size: 9pt; color: #666;',
+      '  }',
       '}',
       ''
     ].join('\n');
     document.head.appendChild(style);
+  }
+
+  // R40 — auto-inject the skip-to-content link if no <main> + skip-link
+  // pair is already present. Targets the first <main> or [role="main"]
+  // in the DOM; if neither exists, stamps role="main" on the first
+  // <article> as a fallback so the skip target resolves.
+  function _ensureSkipToContent() {
+    if (document.querySelector('.ve-skip-to-content')) return;
+    var main = document.querySelector('main, [role="main"]');
+    if (!main) {
+      // Fall back to first <article> — at minimum stamp role="main".
+      main = document.querySelector('article');
+      if (main) { main.setAttribute('role', 'main'); }
+    }
+    if (!main) return;   // no obvious primary region; skip
+    if (!main.id) { main.id = 've-main'; }
+    var skip = document.createElement('a');
+    skip.href = '#' + main.id;
+    skip.className = 've-skip-to-content';
+    skip.textContent = 'Skip to content';
+    document.body.insertBefore(skip, document.body.firstChild);
   }
 
   // Build (or return cached) the three corner controls. Each button is
@@ -11198,6 +11279,11 @@
     // pod handle. Each button is an inline Lucide-style SVG with
     // stroke="currentColor" so icons adopt the DESIGN.md text color.
     _ensureCornerControlsRow();
+    // TRDD-6fdf6ad2 Tier 2 (R40): inject the skip-to-content link
+    // so keyboard users can jump past the corner controls + page
+    // chrome in one Tab. The injectCornerControlsCss() bundle also
+    // ships @media print + @media prefers-reduced-motion now.
+    _ensureSkipToContent();
     // Test hook — expose openCommentModal so headless tests can open
     // the modal directly without going through the (now-removed)
     // .ve-comment-pill hover UI. The bubble handle (.ve-comment-handle)

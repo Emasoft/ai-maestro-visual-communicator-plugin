@@ -1114,6 +1114,92 @@ for f in skills/amvcp-*/SKILL.md; do
 done
 ```
 
+### R40 — Accessibility primitives + clean print export
+
+Every page the runtime renders MUST ship the universal accessibility
+primitives needed for keyboard navigation, screen readers, and the
+"prefers-reduced-motion" / "@media print" branches that mainstream
+browser users (and tooling such as Reader Mode / PDF export) rely
+on. Distilled from the visualize competitor's checklist
+(TRDD-6fdf6ad2 Tier 2):
+
+1. **Skip-to-content link.** A visually-hidden-until-focused
+   `<a href="#main">Skip to content</a>` so a keyboard user can
+   skip past every floating control + the pod row + nav region
+   in one Tab. Becomes visible on focus.
+2. **Landmark roles / semantic regions.** The page's primary
+   container MUST be `<main id="main">` (or carry `role="main"`)
+   and the top-level chrome MUST be `<header role="banner">`.
+   Without these, AT users have no way to jump between regions.
+3. **`@media (prefers-reduced-motion: reduce)` branch.** Disable
+   all animations + transitions for users who opt out of motion:
+   ```css
+   @media (prefers-reduced-motion: reduce) {
+     *, *::before, *::after {
+       animation-duration: 0.01ms !important;
+       animation-iteration-count: 1 !important;
+       transition-duration: 0.01ms !important;
+     }
+     .reveal, [data-reveal] {
+       opacity: 1 !important;
+       transform: none !important;
+     }
+   }
+   ```
+4. **`role="img"` + descriptive `aria-label` on every non-decorative
+   `<canvas>` and every standalone `<svg>` that conveys information
+   (charts, diagrams, icons WITH semantic meaning). Decorative SVG
+   (icon backdrops, ornaments) gets `aria-hidden="true"`.
+5. **`@media print` clean export.** Hide the floating chrome row
+   so PDF exports don't show buttons:
+   ```css
+   @media print {
+     body { background: white !important; color: black !important; }
+     .ve-corner-control,
+     #ve-designmd-handle,
+     #ve-designmd-pad,
+     .ve-action-btn { display: none !important; }
+     .reveal { opacity: 1 !important; transform: none !important; }
+     * { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+   }
+   @page {
+     margin: 1in;
+     @bottom-center { content: "Page " counter(page); font-size: 9pt; color: #666; }
+   }
+   ```
+
+Verify (run in the dev-browser against every fixture):
+```js
+const a11y = await page.evaluate(() => {
+  return {
+    skipLink: !!document.querySelector('a[href="#main"], a.ve-skip, a.skip-to-content'),
+    hasMain: !!document.querySelector('main, [role="main"]'),
+    hasReducedMotion: Array.from(document.styleSheets).some(ss => {
+      try {
+        return Array.from(ss.cssRules || []).some(r =>
+          r.cssText && r.cssText.indexOf('prefers-reduced-motion') !== -1);
+      } catch (e) { return false; }
+    }),
+    hasPrintMedia: Array.from(document.styleSheets).some(ss => {
+      try {
+        return Array.from(ss.cssRules || []).some(r =>
+          r.media && Array.from(r.media).indexOf('print') !== -1);
+      } catch (e) { return false; }
+    }),
+    chartsLabeled: Array.from(document.querySelectorAll('canvas')).every(c =>
+      c.getAttribute('aria-label') || c.getAttribute('role') === 'img'
+        || c.hasAttribute('aria-hidden'))
+  };
+});
+// All four must be true.
+```
+
+R40 violations are CRITICAL because they affect users who can't
+work around them: keyboard-only users, screen-reader users,
+vestibular-disorder users, and anyone trying to print or PDF the
+page. Unlike R37 (font size) which has a workaround (zoom), R40's
+absence has no workaround.
+
 ## Verification protocol — run before claiming "fixed"
 
 For ANY change that touches the runtime, the renderer, or a visualization skill, run this sequence:
