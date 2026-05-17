@@ -9815,6 +9815,189 @@
     document.head.appendChild(style);
   }
 
+  // ─── Tier 5 — Chart.js opt-in atom ────────────────────────────────
+  //
+  // Authors drop a `<div data-ve-chart-type="bar|line|pie|...">` with
+  // inline JSON data + (optional) options:
+  //
+  //   <div data-ve-chart-type="bar"
+  //        data-ve-chart-data='{"labels":["A","B"],"datasets":[{"data":[1,2]}]}'
+  //        data-ve-chart-aria-label="2024 Q4 sales by region"
+  //        style="height: 360px;">
+  //   </div>
+  //
+  // The runtime scans for these atoms on boot and ONLY THEN lazy-loads
+  // Chart.js from cdn.jsdelivr.net (chart.js@4.4.7) — pages without
+  // any chart atoms pay zero CDN cost. Defaults are theme-aware
+  // (read from --vc-* tokens) and re-render automatically on
+  // `vc:themechange` fired by the DESIGN.md hot-swap pipeline.
+  //
+  // Supported types: 'bar', 'line', 'pie', 'doughnut', 'radar',
+  // 'polarArea', 'scatter', 'bubble' (any Chart.js v4 type).
+  var VE_CHART_CDN = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js';
+  var _veChartInstances = [];   // for theme-rebuild
+
+  function _loadChartJs() {
+    if (typeof window !== 'undefined' && window.Chart) {
+      return Promise.resolve(window.Chart);
+    }
+    return new Promise(function (resolve, reject) {
+      var script = document.createElement('script');
+      script.src = VE_CHART_CDN;
+      script.onload = function () {
+        if (window.Chart) {
+          // Disable animation by default — flicker-free re-renders.
+          try { window.Chart.defaults.animation = false; } catch (e) {}
+          resolve(window.Chart);
+        } else {
+          reject(new Error('Chart.js loaded but window.Chart missing'));
+        }
+      };
+      script.onerror = function () {
+        reject(new Error('Chart.js CDN load failed'));
+      };
+      document.head.appendChild(script);
+    });
+  }
+
+  function _veChartColors() {
+    var s = getComputedStyle(document.documentElement);
+    return {
+      text: s.getPropertyValue('--vc-color-content').trim() || '#0f172a',
+      textSecondary: s.getPropertyValue('--vc-color-content-muted').trim() || '#475569',
+      border: s.getPropertyValue('--vc-color-border').trim() || 'rgba(0,0,0,0.08)',
+      accent: s.getPropertyValue('--vc-color-accent').trim() || '#4f46e5',
+      info: s.getPropertyValue('--vc-color-info').trim() || '#0284c7',
+      success: s.getPropertyValue('--vc-color-success').trim() || '#059669',
+      warning: s.getPropertyValue('--vc-color-warning').trim() || '#d97706',
+      danger: s.getPropertyValue('--vc-color-danger').trim() || '#e11d48'
+    };
+  }
+
+  function _veChartApplyThemeDefaults(config, colors) {
+    config.options = config.options || {};
+    config.options.responsive = true;
+    if (config.options.maintainAspectRatio !== false) {
+      config.options.maintainAspectRatio = false;
+    }
+    // Tooltip — always enabled (R40 a11y), DESIGN.md-themed.
+    config.options.plugins = config.options.plugins || {};
+    config.options.plugins.tooltip = Object.assign(
+      { enabled: true, padding: 12, cornerRadius: 8 },
+      config.options.plugins.tooltip || {});
+    // Legend — theme-aware text colour.
+    config.options.plugins.legend = Object.assign(
+      { labels: { color: colors.text } },
+      config.options.plugins.legend || {});
+    // Scales — theme-aware tick + grid colours when present.
+    if (config.options.scales) {
+      Object.keys(config.options.scales).forEach(function (k) {
+        var sc = config.options.scales[k] = config.options.scales[k] || {};
+        sc.ticks = Object.assign({ color: colors.textSecondary }, sc.ticks || {});
+        sc.grid = Object.assign({ color: colors.border }, sc.grid || {});
+      });
+    } else if (config.type === 'bar' || config.type === 'line'
+      || config.type === 'scatter' || config.type === 'bubble') {
+      config.options.scales = {
+        x: { ticks: { color: colors.textSecondary }, grid: { color: colors.border } },
+        y: { ticks: { color: colors.textSecondary }, grid: { color: colors.border } }
+      };
+    }
+    // Default dataset colours when none specified — use a rotation
+    // through accent/info/success/warning/danger.
+    if (config.data && Array.isArray(config.data.datasets)) {
+      var palette = [colors.accent, colors.info, colors.success,
+        colors.warning, colors.danger];
+      config.data.datasets.forEach(function (ds, idx) {
+        if (!ds.backgroundColor) {
+          ds.backgroundColor = palette[idx % palette.length] + '88';
+        }
+        if (!ds.borderColor) {
+          ds.borderColor = palette[idx % palette.length];
+        }
+        if (ds.borderWidth == null) { ds.borderWidth = 2; }
+      });
+    }
+    return config;
+  }
+
+  function _veChartMountOne(host, Chart) {
+    if (host.__veChartMounted) {
+      // Already mounted — destroy + rebuild for theme refresh.
+      try { host.__veChartInstance && host.__veChartInstance.destroy(); }
+      catch (e) { /* ignore */ }
+      host.__veChartInstance = null;
+      var oldCanvas = host.querySelector('canvas');
+      if (oldCanvas) { host.removeChild(oldCanvas); }
+    }
+    var type = host.getAttribute('data-ve-chart-type') || 'bar';
+    var raw = host.getAttribute('data-ve-chart-data');
+    var optsRaw = host.getAttribute('data-ve-chart-options');
+    var label = host.getAttribute('data-ve-chart-aria-label')
+      || (type + ' chart');
+    var data, opts;
+    try { data = raw ? JSON.parse(raw) : { labels: [], datasets: [] }; }
+    catch (e) {
+      console.error('[ve-chart] invalid data-ve-chart-data:', e);
+      return;
+    }
+    try { opts = optsRaw ? JSON.parse(optsRaw) : {}; }
+    catch (e) {
+      console.error('[ve-chart] invalid data-ve-chart-options:', e);
+      opts = {};
+    }
+    // Build the canvas + R40 a11y attributes.
+    var canvas = document.createElement('canvas');
+    canvas.setAttribute('role', 'img');
+    canvas.setAttribute('aria-label', label);
+    canvas.style.cssText = 'display:block;width:100%;height:100%;';
+    // Host needs a defined height or Chart.js can't size.
+    if (!host.style.height && !host.style.minHeight) {
+      host.style.minHeight = '300px';
+    }
+    host.appendChild(canvas);
+    var colors = _veChartColors();
+    var config = _veChartApplyThemeDefaults({
+      type: type,
+      data: data,
+      options: opts
+    }, colors);
+    try {
+      host.__veChartInstance = new Chart(canvas, config);
+      host.__veChartMounted = true;
+      _veChartInstances.push(host);
+    } catch (e) {
+      console.error('[ve-chart] Chart() construction failed:', e);
+    }
+  }
+
+  function initAllCharts() {
+    var hosts = document.querySelectorAll('[data-ve-chart-type]');
+    if (!hosts.length) return;
+    _loadChartJs().then(function (Chart) {
+      for (var i = 0; i < hosts.length; i++) {
+        _veChartMountOne(hosts[i], Chart);
+      }
+    }).catch(function (err) {
+      console.error('[ve-chart] init failed:', err);
+    });
+  }
+
+  // Re-render every mounted chart on themechange so DESIGN.md hot-
+  // swaps re-derive the chart colours.
+  function _bindChartThemeRescan() {
+    if (window.__veChartThemeRescanBound) return;
+    window.__veChartThemeRescanBound = true;
+    var rebuild = function () {
+      if (!window.Chart) return;
+      for (var i = 0; i < _veChartInstances.length; i++) {
+        _veChartMountOne(_veChartInstances[i], window.Chart);
+      }
+    };
+    document.addEventListener('vc:themechange', rebuild);
+    document.addEventListener('themechange', rebuild);
+  }
+
   // R40 — auto-inject the skip-to-content link if no <main> + skip-link
   // pair is already present. Targets the first <main> or [role="main"]
   // in the DOM; if neither exists, stamps role="main" on the first
@@ -11602,6 +11785,11 @@
     // meta row + dot-grid backdrop). The classes use --vc-* tokens
     // throughout so they re-theme automatically.
     injectResponsiveAndHeroCss();
+    // TRDD-6fdf6ad2 Tier 5 (item #2): scan for [data-ve-chart-type]
+    // atoms and lazy-load Chart.js if any are present. Pages without
+    // chart atoms pay zero CDN cost. Re-renders on themechange.
+    _bindChartThemeRescan();
+    initAllCharts();
     // Test hook — expose openCommentModal so headless tests can open
     // the modal directly without going through the (now-removed)
     // .ve-comment-pill hover UI. The bubble handle (.ve-comment-handle)
