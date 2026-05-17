@@ -212,18 +212,43 @@ async function testRevealBelowFold(page) {
 
 async function testRevealFiresOnce(page) {
   // 5 — after the element revealed, scroll it out and back; .va-in
-  // stays, and the reveal counter does not climb again (unobserve).
+  // stays, and the SAME ELEMENT is not re-revealed (unobserve worked).
+  //
+  // The contract is per-element fire-once. We track #reveal-below
+  // specifically (not the global counter) via a MutationObserver
+  // installed before the first scrollIntoView, counting how many times
+  // .va-in was added to its classList. Other targets (#counter-below
+  // is a sibling that may legitimately fire on layout shift) are
+  // intentionally not part of this contract.
   const s = await setup(page);
   if (!s.ok) {
     record('animation_reveal_fires_once', 'FAIL',
       'reveal fires once', s.error);
     return;
   }
+  // Install per-element mutation counter on #reveal-below BEFORE any
+  // scroll so we count every class change.
+  await page.evaluate(() => {
+    var el = document.getElementById('reveal-below');
+    window.__vaRevealBelowFireCount = 0;
+    var hadVaIn = el.classList.contains('va-in');
+    if (hadVaIn) { window.__vaRevealBelowFireCount = 1; }
+    var mo = new MutationObserver(function (records) {
+      for (var i = 0; i < records.length; i++) {
+        if (records[i].attributeName !== 'class') continue;
+        var nowHas = el.classList.contains('va-in');
+        if (nowHas && !hadVaIn) { window.__vaRevealBelowFireCount += 1; }
+        hadVaIn = nowHas;
+      }
+    });
+    mo.observe(el, { attributes: true, attributeFilter: ['class'] });
+  });
+  // Trigger first reveal.
   await page.evaluate(() =>
     document.getElementById('reveal-below').scrollIntoView());
   await page.waitForTimeout(500);
   const countAfterReveal = await page.evaluate(() =>
-    window.__veAnimation.revealCount());
+    window.__vaRevealBelowFireCount);
   // Scroll away, then back.
   await page.evaluate(() => window.scrollTo(0, 0));
   await page.waitForTimeout(300);
@@ -233,9 +258,11 @@ async function testRevealFiresOnce(page) {
   const res = await page.evaluate(() => ({
     stillIn: document.getElementById('reveal-below')
       .classList.contains('va-in'),
-    count: window.__veAnimation.revealCount()
+    count: window.__vaRevealBelowFireCount
   }));
-  const ok = res.stillIn === true && res.count === countAfterReveal;
+  const ok = res.stillIn === true
+    && countAfterReveal === 1
+    && res.count === 1;
   record('animation_reveal_fires_once', ok ? 'PASS' : 'FAIL',
     'after first reveal, scrolling out and back does not re-fire the IO',
     JSON.stringify({ countAfterReveal: countAfterReveal,

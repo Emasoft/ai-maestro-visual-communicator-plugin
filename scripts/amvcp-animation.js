@@ -525,11 +525,25 @@
 
   function _doReveal(el) {
     if (!el) { return; }
-    if (el.classList && el.classList.contains('va-counter')) {
-      animateStat(el);
-    } else if (el.hasAttribute && el.hasAttribute('data-va-stat')) {
+    // Idempotency guard. The IO callback path also calls
+    // obs.unobserve(target) right after _doReveal, so re-fires SHOULD
+    // never happen — BUT scroll dynamics (a layout shift after a
+    // sibling element reveals + animates) can re-queue a stale entry
+    // before unobserve takes effect, producing a phantom re-fire.
+    // Skip when the canonical "already revealed" marker is present:
+    //   - non-counter targets: `.va-in` class (the visible state).
+    //     A test that resets via `classList.remove('va-in')` re-enables
+    //     the fail-safe re-reveal path (test 7).
+    //   - counter targets: `data-va-fired` attribute (counters have no
+    //     `.va-in` state — animateStat just sets text content).
+    var isCounter = (el.classList && el.classList.contains('va-counter'))
+      || (el.hasAttribute && el.hasAttribute('data-va-stat'));
+    if (isCounter) {
+      if (el.hasAttribute && el.hasAttribute('data-va-fired')) { return; }
+      if (el.setAttribute) { el.setAttribute('data-va-fired', '1'); }
       animateStat(el);
     } else {
+      if (el.classList && el.classList.contains('va-in')) { return; }
       if (el.classList) { el.classList.add('va-in'); }
     }
     _revealCount++;
