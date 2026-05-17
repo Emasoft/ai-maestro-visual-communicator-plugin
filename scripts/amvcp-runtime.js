@@ -9333,6 +9333,324 @@
     return btn;
   }
 
+  // ─── Tier 0 corner-controls row (TRDD-6fdf6ad2) ───────────────────
+  //
+  // Three always-visible 36×36 floating buttons at the bottom-right of
+  // the viewport: theme-toggle (🌙/☀️), PNG export (📸), and print
+  // (🖨️). The pod handle (#ve-designmd-handle) lives in its own slot
+  // at right:8px bottom:8px (gesture-summoned, invisible by default);
+  // the corner-controls row sits ABOVE it at bottom:52px right:8px
+  // (growing leftward).
+  //
+  // Each button uses an inline Lucide-style SVG with stroke="currentColor",
+  // so the icon adopts the DESIGN.md text colour automatically via the
+  // button's color: var(--ve-control-fg). Theme/PNG/print are all
+  // user-initiated; never invoked silently.
+  //
+  // R33 + R40: corner controls MUST always be visible (never hidden by
+  // page chrome) and MUST hide cleanly under @media print so they don't
+  // appear in PDF exports.
+  var VE_USER_THEME_LS_KEY = 've-user-theme';
+  var VE_CORNER_CONTROLS_ID = 've-corner-controls';
+
+  // Lucide-style SVG icons. All use stroke="currentColor" so the icon
+  // adopts the button's color via the parent's CSS `color` token.
+  function _svgIconMoon() {
+    return '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" '
+      + 'stroke="currentColor" stroke-width="2" stroke-linecap="round" '
+      + 'stroke-linejoin="round" aria-hidden="true">'
+      + '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>'
+      + '</svg>';
+  }
+  function _svgIconSun() {
+    return '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" '
+      + 'stroke="currentColor" stroke-width="2" stroke-linecap="round" '
+      + 'stroke-linejoin="round" aria-hidden="true">'
+      + '<circle cx="12" cy="12" r="4"/>'
+      + '<path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41'
+      + 'M17.66 17.66l1.41 1.41M2 12h2M20 12h2'
+      + 'M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>'
+      + '</svg>';
+  }
+  function _svgIconCamera() {
+    return '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" '
+      + 'stroke="currentColor" stroke-width="2" stroke-linecap="round" '
+      + 'stroke-linejoin="round" aria-hidden="true">'
+      + '<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2'
+      + 'h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>'
+      + '<circle cx="12" cy="13" r="4"/>'
+      + '</svg>';
+  }
+  function _svgIconPrinter() {
+    return '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" '
+      + 'stroke="currentColor" stroke-width="2" stroke-linecap="round" '
+      + 'stroke-linejoin="round" aria-hidden="true">'
+      + '<polyline points="6 9 6 2 18 2 18 9"/>'
+      + '<path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2'
+      + 'v5a2 2 0 0 1-2 2h-2"/>'
+      + '<rect x="6" y="14" width="12" height="8"/>'
+      + '</svg>';
+  }
+  function _svgIconPalette() {
+    // Paint palette with four colour blobs — fills are currentColor so
+    // they adopt the active DESIGN.md text colour just like the others.
+    return '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" '
+      + 'stroke="currentColor" stroke-width="2" stroke-linecap="round" '
+      + 'stroke-linejoin="round" aria-hidden="true">'
+      + '<path d="M12 22a10 10 0 1 1 0-20 8 8 0 0 1 8 8h-2a2 2 0 0 0-2 2 '
+      + '2 2 0 0 0 2 2h0a2 2 0 0 1 2 2v0a4 4 0 0 1-4 4z"/>'
+      + '<circle cx="7"  cy="13" r="1.2" fill="currentColor"/>'
+      + '<circle cx="10" cy="8"  r="1.2" fill="currentColor"/>'
+      + '<circle cx="15" cy="8"  r="1.2" fill="currentColor"/>'
+      + '<circle cx="17" cy="13" r="1.2" fill="currentColor"/>'
+      + '</svg>';
+  }
+
+  // R1: restore the user's last-chosen theme (set via the theme-toggle
+  // corner button) BEFORE detectAndStampTheme() runs. The detector
+  // early-returns if data-ve-theme is already present, so stamping
+  // first wins. localStorage-unavailable falls back to detection.
+  function _restoreUserTheme() {
+    try {
+      if (typeof localStorage === 'undefined') return;
+      var saved = localStorage.getItem(VE_USER_THEME_LS_KEY);
+      if (saved === 'light' || saved === 'dark') {
+        document.documentElement.setAttribute('data-ve-theme', saved);
+      }
+    } catch (e) { /* sandbox without localStorage — fall back to auto */ }
+  }
+
+  // Apply common visual styling shared by all corner-control buttons
+  // (matches the pod handle so the four sit consistently).
+  function _styleCornerBtn(btn, rightPx) {
+    btn.type = 'button';
+    btn.className = 've-corner-control';
+    btn.style.cssText = [
+      'position:fixed',
+      'right:' + rightPx + 'px',
+      'bottom:52px',  // one row above the pod-handle slot (8 + 36 + 8)
+      'z-index:2147483645',
+      'width:36px',
+      'height:36px',
+      'padding:0',
+      'border:1px solid var(--ve-control-border, rgba(0,0,0,0.18))',
+      'border-radius:50%',
+      'background:var(--ve-control-overlay-bg, rgba(255,255,255,0.92))',
+      'color:var(--ve-control-fg, #14110b)',
+      'cursor:pointer',
+      'display:flex',
+      'align-items:center',
+      'justify-content:center',
+      'box-shadow:0 2px 8px rgba(0,0,0,0.22)',
+      'transition:transform 160ms ease, box-shadow 160ms ease',
+      ''
+    ].join(';');
+    btn.addEventListener('mouseenter', function () { btn.style.transform = 'scale(1.08)'; });
+    btn.addEventListener('mouseleave', function () { btn.style.transform = ''; });
+  }
+
+  // Lazy-load html-to-image (≈30 KB gzipped) only when the PNG button
+  // is clicked. Cached on second invocation. Returns a Promise.
+  function _loadHtmlToImage() {
+    if (typeof window !== 'undefined' && window.htmlToImage) {
+      return Promise.resolve(window.htmlToImage);
+    }
+    return new Promise(function (resolve, reject) {
+      var script = document.createElement('script');
+      script.src = 'https://cdn.jsdelivr.net/npm/'
+        + 'html-to-image@1.11.11/dist/html-to-image.js';
+      script.onload = function () {
+        if (window.htmlToImage) resolve(window.htmlToImage);
+        else reject(new Error('html-to-image loaded but window.htmlToImage missing'));
+      };
+      script.onerror = function () {
+        reject(new Error('html-to-image CDN load failed'));
+      };
+      document.head.appendChild(script);
+    });
+  }
+
+  // Theme-toggle handler: flip data-ve-theme on <html>, persist to LS,
+  // refresh the icon. The MutationObserver wired by
+  // bindThemeAttributeObserver (R1) takes care of re-applying tokens +
+  // dispatching vc:themechange — we only need to set the attribute.
+  function _onCornerThemeClick(btn) {
+    var html = document.documentElement;
+    var current = html.getAttribute('data-ve-theme') || 'light';
+    var next = current === 'dark' ? 'light' : 'dark';
+    html.setAttribute('data-ve-theme', next);
+    try {
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem(VE_USER_THEME_LS_KEY, next);
+      }
+    } catch (e) { /* persist best-effort */ }
+    // Show the icon of the OPPOSITE state (the action the user would
+    // take next). After flipping to dark, show the sun.
+    btn.innerHTML = next === 'dark' ? _svgIconSun() : _svgIconMoon();
+    btn.setAttribute('aria-label',
+      next === 'dark' ? 'Switch to light theme' : 'Switch to dark theme');
+    btn.title = btn.getAttribute('aria-label');
+  }
+
+  // PNG export: lazy-load html-to-image, snapshot document.body at 2×
+  // pixel ratio, exclude the corner-controls + pod handle so they
+  // don't appear in the PNG, then trigger a download. Filename slug
+  // derived from document.title with kebab-case fallback "page".
+  function _onCornerPngClick() {
+    _loadHtmlToImage().then(function (h2i) {
+      var slug = (document.title || 'page')
+        .replace(/\s+/g, '-')
+        .replace(/[^A-Za-z0-9._-]/g, '')
+        .toLowerCase() || 'page';
+      return h2i.toPng(document.body, {
+        quality: 1,
+        pixelRatio: 2,
+        filter: function (n) {
+          if (!n || !n.classList) return true;
+          if (n.classList.contains('ve-corner-control')) return false;
+          if (n.id === VE_DESIGNMD_HANDLE_ID) return false;
+          if (n.id === 've-designmd-pad') return false;
+          return true;
+        }
+      }).then(function (dataUrl) {
+        var a = document.createElement('a');
+        a.href = dataUrl;
+        a.download = slug + '.png';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      });
+    }).catch(function (err) {
+      console.error('[ve-corner] PNG export failed:', err);
+    });
+  }
+
+  // Print handler. Pairs with @media print CSS in injectCornerControlsCss().
+  function _onCornerPrintClick() {
+    if (typeof window !== 'undefined' && typeof window.print === 'function') {
+      window.print();
+    }
+  }
+
+  // Pod-toggle handler: show/hide the DESIGN.md style pod from every
+  // page. Cold-start case (pod not yet injected): call
+  // injectDesignMdControllerPad() if available, then unhide. Already-
+  // mounted case: flip visibility/opacity/pointer-events. Provides a
+  // discoverable click affordance for the pod alongside the existing
+  // Ctrl+Shift+\ / 3-finger-tap gesture (R39).
+  function _onCornerPodToggleClick() {
+    var panel = document.getElementById(VE_DESIGNMD_PANEL_ID);
+    if (!panel) {
+      // Cold start: try to mount via the injector. The injector itself
+      // also lazy-loads amvcp-designmd.js (R27 auto-mount), so even on
+      // a page that didn't ship the engine, this still works.
+      if (typeof injectDesignMdControllerPad === 'function') {
+        try { injectDesignMdControllerPad(); } catch (e) { /* swallow */ }
+        panel = document.getElementById(VE_DESIGNMD_PANEL_ID);
+      }
+    }
+    if (!panel) return;
+    var hidden = panel.style.visibility === 'hidden'
+      || panel.style.opacity === '0'
+      || panel.style.display === 'none';
+    if (hidden) {
+      panel.style.visibility = 'visible';
+      panel.style.opacity = '1';
+      panel.style.pointerEvents = 'auto';
+      panel.style.display = '';
+    } else {
+      panel.style.visibility = 'hidden';
+      panel.style.opacity = '0';
+      panel.style.pointerEvents = 'none';
+    }
+  }
+
+  // Inject @media print CSS that hides the corner controls + pod
+  // handle so they don't pollute PDF exports. Idempotent.
+  function injectCornerControlsCss() {
+    if (document.getElementById('ve-corner-controls-style')) return;
+    var style = document.createElement('style');
+    style.id = 've-corner-controls-style';
+    style.textContent = [
+      '@media print {',
+      '  .ve-corner-control,',
+      '  #' + VE_DESIGNMD_HANDLE_ID + ',',
+      '  #ve-designmd-pad,',
+      '  .ve-action-btn { display: none !important; }',
+      '}',
+      ''
+    ].join('\n');
+    document.head.appendChild(style);
+  }
+
+  // Build (or return cached) the three corner controls. Each button is
+  // independently appended to body so a host page's positioning has no
+  // effect on them.
+  function _ensureCornerControlsRow() {
+    var existing = document.getElementById(VE_CORNER_CONTROLS_ID);
+    if (existing) { return existing; }
+    injectCornerControlsCss();
+    // Wrapper for test introspection; visual buttons still position
+    // themselves via fixed coords (the wrapper itself is invisible).
+    var wrap = document.createElement('div');
+    wrap.id = VE_CORNER_CONTROLS_ID;
+    wrap.style.cssText = 'position:fixed;width:0;height:0;'
+      + 'pointer-events:none;left:0;top:0;';
+
+    // Layout (right-to-left): [🌙/☀️] [📸] [🖨️] [🎨]
+    //   rightmost = pod toggle (palette) — the user's "main" affordance
+    //   next      = print
+    //   next      = PNG export
+    //   leftmost  = theme toggle (moon / sun, swaps to opposite state)
+
+    // Pod toggle (rightmost — right:8px).
+    var podBtn = document.createElement('button');
+    _styleCornerBtn(podBtn, 8);
+    podBtn.innerHTML = _svgIconPalette();
+    podBtn.title = 'Show / hide style controls (pod)';
+    podBtn.setAttribute('aria-label', 'Show or hide the DESIGN.md style controls pod');
+    podBtn.style.pointerEvents = 'auto';
+    podBtn.addEventListener('click', _onCornerPodToggleClick);
+    wrap.appendChild(podBtn);
+
+    // Print.
+    var printBtn = document.createElement('button');
+    _styleCornerBtn(printBtn, 52);
+    printBtn.innerHTML = _svgIconPrinter();
+    printBtn.title = 'Print / Save PDF';
+    printBtn.setAttribute('aria-label', 'Print / Save PDF');
+    printBtn.style.pointerEvents = 'auto';
+    printBtn.addEventListener('click', _onCornerPrintClick);
+    wrap.appendChild(printBtn);
+
+    // PNG export.
+    var pngBtn = document.createElement('button');
+    _styleCornerBtn(pngBtn, 96);
+    pngBtn.innerHTML = _svgIconCamera();
+    pngBtn.title = 'Export page as PNG';
+    pngBtn.setAttribute('aria-label', 'Export page as PNG');
+    pngBtn.style.pointerEvents = 'auto';
+    pngBtn.addEventListener('click', _onCornerPngClick);
+    wrap.appendChild(pngBtn);
+
+    // Theme toggle (leftmost). Initial icon = the OPPOSITE of the
+    // currently active theme (so the icon represents the action).
+    var themeBtn = document.createElement('button');
+    _styleCornerBtn(themeBtn, 140);
+    var current = document.documentElement.getAttribute('data-ve-theme') || 'light';
+    themeBtn.innerHTML = current === 'dark' ? _svgIconSun() : _svgIconMoon();
+    themeBtn.title = current === 'dark' ? 'Switch to light theme' : 'Switch to dark theme';
+    themeBtn.setAttribute('aria-label', themeBtn.title);
+    themeBtn.style.pointerEvents = 'auto';
+    themeBtn.addEventListener('click', function () {
+      _onCornerThemeClick(themeBtn);
+    });
+    wrap.appendChild(themeBtn);
+
+    document.body.appendChild(wrap);
+    return wrap;
+  }
+
   function veDesignMdWireAutoFade(panel) {
     if (!panel || panel.__veAutoFadeWired) { return; }
     panel.__veAutoFadeWired = true;
@@ -10831,6 +11149,11 @@
   }
 
   function bootEverything() {
+    _restoreUserTheme();     // TRDD-6fdf6ad2 Tier 0: if the user picked
+                             // a theme via the corner button on a prior
+                             // visit, restore it. MUST run before
+                             // detectAndStampTheme so the detector's
+                             // early-return path honours the choice.
     detectAndStampTheme();   // MUST run before injectStyles so the
                              // :root[data-ve-theme="light"] overrides
                              // resolve to the right values from frame 1.
@@ -10870,6 +11193,11 @@
     // we still want a wake handle in the DOM so the R27 verify passes.
     // The handle is hidden until the gesture summons it.
     _ensureDesignMdHandle();
+    // TRDD-6fdf6ad2 Tier 0: always-visible corner-controls row —
+    // [🌙/☀️] [📸] [🖨️] [🎨]. Sits above the (gesture-summoned)
+    // pod handle. Each button is an inline Lucide-style SVG with
+    // stroke="currentColor" so icons adopt the DESIGN.md text color.
+    _ensureCornerControlsRow();
     // Test hook — expose openCommentModal so headless tests can open
     // the modal directly without going through the (now-removed)
     // .ve-comment-pill hover UI. The bubble handle (.ve-comment-handle)
