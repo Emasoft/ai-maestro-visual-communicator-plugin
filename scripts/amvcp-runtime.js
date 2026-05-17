@@ -10024,6 +10024,38 @@
     dispatchThemeChange(next);
   }
 
+  // R1 enabler: watch <html data-ve-theme> for any external mutation
+  // (tests, devtools, agent code) and re-apply tokens + dispatch
+  // vc:themechange so every skill module re-themes. Without this,
+  // setAttribute alone doesn't re-emit --vc-* tokens; the user-
+  // expected pattern "change the attribute, theme changes" only
+  // works when going through the pod's toggle button.
+  function bindThemeAttributeObserver() {
+    if (window.__veThemeObserverBound) { return; }
+    if (typeof MutationObserver === 'undefined') { return; }
+    window.__veThemeObserverBound = true;
+    var html = document.documentElement;
+    var observer = new MutationObserver(function (records) {
+      for (var i = 0; i < records.length; i++) {
+        if (records[i].attributeName !== 'data-ve-theme') continue;
+        var next = html.getAttribute('data-ve-theme') || 'light';
+        if (next !== 'light' && next !== 'dark') return;
+        if (next === veDesignMdState.theme) return;  // no-op
+        if (!veDesignMdState.designmd) return;  // no DESIGN.md loaded yet
+        veDesignMdApply(veDesignMdState.designmd, next);
+        var panel = document.getElementById(VE_DESIGNMD_PANEL_ID);
+        if (panel) {
+          veDesignMdSyncPanelTitle(panel);
+          veDesignMdRenderControls(panel);
+        }
+        dispatchThemeChange(next);
+        return;
+      }
+    });
+    observer.observe(html, { attributes: true,
+      attributeFilter: ['data-ve-theme'] });
+  }
+
   // Dispatch the canonical `vc:themechange` event + legacy
   // `ve:themechange` alias on `document`. The diagram module binds
   // `vc:themechange` and `themechange`, the wireframe module binds
@@ -10305,9 +10337,16 @@
       return;
     }
     if (!window.amvcpDesignMd) {
-      // R27: engine missing → auto-load it then retry.
+      // R27: engine missing → auto-load it, then load default tokens,
+      // then mount the pad. Without the bootDesignMdEngine() call the
+      // engine arrives but state.designmd stays null and no --vc-*
+      // tokens are emitted — so R1 (theme distinct) fails because the
+      // observer has nothing to re-apply.
       veAutoLoadDesignMdEngine().then(function (ok) {
-        if (ok) { injectDesignMdControllerPad(); }
+        if (ok) {
+          bootDesignMdEngine();
+          injectDesignMdControllerPad();
+        }
       });
       return;
     }
@@ -10826,6 +10865,7 @@
                                  // tokens are on :root and runtime CSS is in.
     injectDesignMdControllerPad(); // Phase 1b — floating DESIGN.md style pad
     bindPodSummonGesture();        // R39 — Ctrl+Shift+\ + 3-finger-tap summon
+    bindThemeAttributeObserver();  // R1  — re-theme on any [data-ve-theme] mutation
     // R27: even when amvcp-designmd.js wasn't shipped with the page,
     // we still want a wake handle in the DOM so the R27 verify passes.
     // The handle is hidden until the gesture summons it.

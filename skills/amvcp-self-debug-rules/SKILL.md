@@ -25,24 +25,38 @@ Every visualization the plugin emits MUST satisfy a fixed set of universal rules
 
 Every visual element MUST ship a light AND a dark variant. Single-theme is a correctness defect (browsers expose `prefers-color-scheme`; flashing the wrong theme hurts the user's eyes physically).
 
-Verify:
+The runtime's MutationObserver on `[data-ve-theme]` (see runtime.js `bindThemeAttributeObserver`) re-emits `--vc-*` tokens whenever the attribute changes — so any path (pod button, devtools, test harness, agent code) that toggles the attribute triggers a real theme swap. **R1 verification is gated on `amvcp-runtime.js` being loaded** because the observer lives there. Standalone-skill fixtures that load only one module (e.g. `amvcp-designmd.js` + `amvcp-typography.js` without the runtime) are exempt — they exercise the module in isolation, not the full theme-swap UX.
+
+Verify (gated on runtime):
 ```js
-const themes = await page.evaluate(() => {
+const r = await page.evaluate(async () => {
+  if (typeof window.amvcpRuntime !== 'object') {
+    return { applicable: false, reason: 'runtime not loaded' };
+  }
   const html = document.documentElement;
   const orig = html.getAttribute('data-ve-theme');
-  const out = {};
-  for (const t of ['light', 'dark']) {
+  async function snap(t) {
     html.setAttribute('data-ve-theme', t);
-    out[t] = {
+    await new Promise(r => setTimeout(r, 250));   // wait observer
+    return {
       bg: getComputedStyle(document.body).backgroundColor,
       text: getComputedStyle(document.body).color,
-      accent: getComputedStyle(html).getPropertyValue('--ve-accent').trim(),
+      accent: getComputedStyle(html).getPropertyValue('--vc-color-accent').trim(),
+      canvas: getComputedStyle(html).getPropertyValue('--vc-color-canvas').trim(),
     };
   }
-  html.setAttribute('data-ve-theme', orig || 'dark');
-  return out;
+  const light = await snap('light');
+  const dark = await snap('dark');
+  html.setAttribute('data-ve-theme', orig || 'light');
+  return {
+    applicable: true,
+    distinct: light.canvas !== dark.canvas
+      || light.accent !== dark.accent
+      || light.bg !== dark.bg,
+    light, dark,
+  };
 });
-// Both themes MUST have non-empty distinct values for bg, text, accent.
+// When applicable: distinct MUST be true.
 ```
 
 The mechanical tricks: switch BORDERS ↔ BACKGROUNDS between themes (light: dark border on light bg → dark: light border on dark bg). Switch TEXT ↔ BG colors. Selection emphasis is SUBTRACTIVE in light (push toward black) vs ADDITIVE in dark (push toward white).
