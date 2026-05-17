@@ -9643,6 +9643,143 @@
     document.head.appendChild(style);
   }
 
+  // ─── Tier 3 — responsive utilities + .ve-hero component ──────────
+  //
+  // CSS-only opt-in library. Authors / renderers can drop these
+  // classes on any rendered surface to get:
+  //   .ve-grid               — auto-fit grid (minmax 320px), gap 24px
+  //   .ve-cols-2 / -3 / -4   — forced N-column grid on desktop,
+  //                            collapses to single column < 768px
+  //   .ve-hero               — relative banner container with
+  //                            dot-grid backdrop + optional gradient
+  //   .ve-hero-eyebrow       — chip above title
+  //   .ve-hero-title         — bigger H1 (≤ 4rem)
+  //   .ve-hero-title-gradient— gradient text effect on title
+  //   .ve-hero-lede          — secondary paragraph
+  //   .ve-hero-meta          — flex row of label/value pairs
+  //
+  // Mobile-first; respects --vc-* tokens; --vc-hero-gradient is the
+  // backdrop colour stop set (defaults to soft indigo radial). All
+  // breakpoints follow the same scale as the competitor visualize
+  // skeleton: 1024 / 768 / 375.
+  function injectResponsiveAndHeroCss() {
+    if (document.getElementById('ve-responsive-hero-style')) return;
+    var style = document.createElement('style');
+    style.id = 've-responsive-hero-style';
+    style.textContent = [
+      // --vc-hero-gradient token default — overridable via DESIGN.md.
+      ':root {',
+      '  --vc-hero-gradient: radial-gradient(ellipse at top,',
+      '    color-mix(in srgb, var(--vc-color-accent, #4f46e5) 18%, transparent) 0%,',
+      '    color-mix(in srgb, var(--vc-color-accent, #4f46e5) 6%, transparent) 30%,',
+      '    transparent 60%);',
+      '}',
+      // ── responsive grid utility ────────────────────────────────────
+      '.ve-grid {',
+      '  display: grid; gap: 24px;',
+      '  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));',
+      '}',
+      '.ve-cols-2 {',
+      '  display: grid; gap: 24px;',
+      '  grid-template-columns: repeat(2, minmax(0, 1fr));',
+      '}',
+      '.ve-cols-3 {',
+      '  display: grid; gap: 24px;',
+      '  grid-template-columns: repeat(3, minmax(0, 1fr));',
+      '}',
+      '.ve-cols-4 {',
+      '  display: grid; gap: 20px;',
+      '  grid-template-columns: repeat(4, minmax(0, 1fr));',
+      '}',
+      // ── hero component ─────────────────────────────────────────────
+      '.ve-hero {',
+      '  position: relative; overflow: hidden;',
+      '  padding: 96px 32px 64px;',
+      '  background: var(--vc-hero-gradient);',
+      '}',
+      '.ve-hero::before {',
+      '  content: ""; position: absolute; inset: 0;',
+      '  background-image: radial-gradient(',
+      '    circle at 1px 1px,',
+      '    var(--vc-color-border, rgba(0,0,0,0.08)) 1px,',
+      '    transparent 0);',
+      '  background-size: 32px 32px; opacity: 0.4;',
+      '  pointer-events: none; z-index: 0;',
+      '}',
+      '.ve-hero > * { position: relative; z-index: 1; }',
+      '.ve-hero-eyebrow {',
+      '  display: inline-flex; align-items: center; gap: 8px;',
+      '  padding: 6px 14px;',
+      '  background: var(--vc-color-surface, #fff);',
+      '  border: 1px solid var(--vc-color-border, rgba(0,0,0,0.08));',
+      '  border-radius: 999px;',
+      '  font-size: 12px; font-weight: 500;',
+      '  letter-spacing: 0.06em; text-transform: uppercase;',
+      '  color: var(--vc-color-content-muted, #475569);',
+      '  margin-bottom: 24px;',
+      '}',
+      '.ve-hero-eyebrow .ve-dot {',
+      '  width: 6px; height: 6px; border-radius: 50%;',
+      '  background: var(--vc-color-accent, #4f46e5);',
+      '}',
+      '.ve-hero-title {',
+      '  font-size: clamp(2.5rem, 6vw, 4rem);',
+      '  font-weight: 800; line-height: 1.08;',
+      '  letter-spacing: -0.03em; margin: 0 0 24px;',
+      '  max-width: 14ch; text-wrap: balance;',
+      '}',
+      '.ve-hero-title-gradient {',
+      '  background: linear-gradient(135deg,',
+      '    var(--vc-color-accent, #4f46e5),',
+      '    color-mix(in srgb, var(--vc-color-accent, #4f46e5) 50%,',
+      '      var(--vc-color-info, #0284c7)));',
+      '  -webkit-background-clip: text;',
+      '  background-clip: text;',
+      '  -webkit-text-fill-color: transparent;',
+      '  color: transparent;',
+      '}',
+      '.ve-hero-lede {',
+      '  font-size: 1.25rem; line-height: 1.5;',
+      '  color: var(--vc-color-content-muted, #475569);',
+      '  max-width: 70ch; margin-bottom: 40px;',
+      '}',
+      '.ve-hero-meta {',
+      '  display: flex; flex-wrap: wrap; gap: 24px 40px;',
+      '  font-size: 13px;',
+      '  color: var(--vc-color-content-muted, #475569);',
+      '}',
+      '.ve-hero-meta span {',
+      '  display: inline-flex; align-items: center; gap: 8px;',
+      '}',
+      '.ve-hero-meta strong {',
+      '  color: var(--vc-color-content, #0f172a);',
+      '  font-weight: 500;',
+      '}',
+      // ── breakpoints — R31 universal viewport coverage ──────────────
+      '@media (max-width: 1024px) {',
+      '  .ve-cols-3, .ve-cols-4 {',
+      '    grid-template-columns: repeat(2, minmax(0, 1fr));',
+      '  }',
+      '  .ve-hero { padding: 72px 24px 48px; }',
+      '}',
+      '@media (max-width: 768px) {',
+      '  .ve-grid, .ve-cols-2, .ve-cols-3, .ve-cols-4 {',
+      '    grid-template-columns: minmax(0, 1fr); gap: 16px;',
+      '  }',
+      '  .ve-hero { padding: 56px 20px 40px; }',
+      '  .ve-hero-title { font-size: clamp(2rem, 8vw, 3rem); }',
+      '  .ve-hero-lede { font-size: 1.125rem; }',
+      '}',
+      '@media (max-width: 375px) {',
+      '  .ve-hero { padding: 48px 16px 32px; }',
+      '  .ve-hero-eyebrow { font-size: 11px; padding: 4px 10px; }',
+      '  .ve-hero-meta { gap: 16px 24px; font-size: 12px; }',
+      '}',
+      ''
+    ].join('\n');
+    document.head.appendChild(style);
+  }
+
   // R40 — auto-inject the skip-to-content link if no <main> + skip-link
   // pair is already present. Targets the first <main> or [role="main"]
   // in the DOM; if neither exists, stamps role="main" on the first
@@ -11284,6 +11421,12 @@
     // chrome in one Tab. The injectCornerControlsCss() bundle also
     // ships @media print + @media prefers-reduced-motion now.
     _ensureSkipToContent();
+    // TRDD-6fdf6ad2 Tier 3 (R31 + items #4 + #9): opt-in CSS class
+    // library for responsive grids (.ve-grid / .ve-cols-N) and the
+    // .ve-hero banner component (gradient title + eyebrow + lede +
+    // meta row + dot-grid backdrop). The classes use --vc-* tokens
+    // throughout so they re-theme automatically.
+    injectResponsiveAndHeroCss();
     // Test hook — expose openCommentModal so headless tests can open
     // the modal directly without going through the (now-removed)
     // .ve-comment-pill hover UI. The bubble handle (.ve-comment-handle)
