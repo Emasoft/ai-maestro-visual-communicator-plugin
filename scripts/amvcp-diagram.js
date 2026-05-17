@@ -95,8 +95,34 @@
     'end', 'external', 'card'];
 
   // The scene-graph preset vocabulary (spec §4.4).
+  //
+  // sequence + state-machine were added in this session (idea credit:
+  // tt-a1i/archify, MIT). They share the free-form node-layout path —
+  // the preset name is a hint, not a layout switch. Author conventions:
+  //
+  //   sequence       — vertical lifelines (place each actor as a node
+  //                    column-aligned at the same x), horizontal message
+  //                    edges (use route="straight"), edge label = method
+  //                    name. The chain-highlight (arch-flows-visualizer,
+  //                    MIT) lights up the downstream call chain when
+  //                    any actor is clicked.
+  //   state-machine  — circular state nodes (shape="circle"), transitions
+  //                    as labelled edges (label = trigger event). The
+  //                    chain-highlight lights up all reachable states
+  //                    from the clicked one.
   var PRESETS = ['process-flow', 'architecture-canvas', 'phase-graph',
-    'free'];
+    'sequence', 'state-machine', 'free'];
+
+  // Presets whose semantics are directional-flow (clicking a node
+  // highlights its transitive downstream chain). The chain-highlight
+  // wiring was originally phase-graph-only; arch-flows-visualizer (MIT)
+  // inspired generalizing it to every flow-style preset.
+  var CHAIN_HIGHLIGHT_PRESETS = {
+    'phase-graph': true,
+    'process-flow': true,
+    'sequence': true,
+    'state-machine': true
+  };
 
   // Edge enum vocabularies (spec §4.2).
   var EDGE_STYLES = ['solid', 'dashed', 'dotted'];
@@ -1476,8 +1502,12 @@
     // top-right corner regardless of mode.
     _attachExportMenu(hostEl);
 
-    // phase-graph chain highlight.
-    if (preset === 'phase-graph') {
+    // Chain highlight — was phase-graph-only, now any flow-style
+    // preset (process-flow / sequence / state-machine / phase-graph).
+    // Clicking any node lights up its transitive downstream chain via
+    // BFS over edges; second click clears. Idea credit:
+    // matheuscfrade/arch-flows-visualizer (MIT).
+    if (CHAIN_HIGHLIGHT_PRESETS[preset]) {
       wireChainHighlight(svg, scene, sceneId);
     }
 
@@ -1930,7 +1960,16 @@
     _wireWheelZoom(s);
     _wireMinimap(s);
 
-    // Defer fit-all to next frame so the stage has a measured size.
+    // Initial synchronous paint so the minimap frame and canvas transform
+    // have non-zero dimensions immediately on first render — without this
+    // the rAF-deferred _fitAll() leaves frame.style.{left,width,height}
+    // empty until the next frame, which races any consumer that reads
+    // those values right after mount (test harness or first user click).
+    _setTransform(s);
+
+    // Defer fit-all to next frame so the stage has a measured size; the
+    // synchronous _setTransform above guarantees the minimap frame is
+    // already painted by the time the test harness inspects it.
     if (typeof requestAnimationFrame === 'function') {
       requestAnimationFrame(function () { _fitAll(s); });
     } else {
