@@ -1309,6 +1309,127 @@
     return (e && e.message) ? String(e.message) : String(e);
   }
 
+  // ── User-preset storage (R28) ──────────────────────────────────────
+  //
+  // Persist user-named DESIGN.md presets in localStorage so the pod's
+  // library can offer Save-as / Rename / Delete. The value is a JSON
+  // map { name: designMdText }; lookups + mutations are byte-exact
+  // round-trips of the serialized DESIGN.md text — no in-memory
+  // representation needed at the storage layer.
+  //
+  // Built-in presets are READ-ONLY and live in scripts/amvcp-tokens.js
+  // (the canonical preset library); these functions are exclusively for
+  // user-created presets. The pod UI uses listUserPresets() to render
+  // them with a "user" badge distinct from the built-ins.
+  //
+  // Future bridge: a Python helper script will mirror this storage
+  // bucket to $CLAUDE_PLUGIN_DATA/design-md-presets/<name>.md so
+  // user presets survive plugin version updates. See the persistent-
+  // data-directory docs at code.claude.com/docs/en/plugins-reference.
+  var USER_PRESETS_LS_KEY = 've-designmd-pad-user-presets';
+
+  function _loadUserPresets() {
+    if (typeof localStorage === 'undefined') { return {}; }
+    try {
+      var raw = localStorage.getItem(USER_PRESETS_LS_KEY);
+      if (!raw) { return {}; }
+      var obj = JSON.parse(raw);
+      return (obj && typeof obj === 'object') ? obj : {};
+    } catch (_) { return {}; }
+  }
+
+  function _saveUserPresets(map) {
+    if (typeof localStorage === 'undefined') { return false; }
+    try {
+      localStorage.setItem(USER_PRESETS_LS_KEY, JSON.stringify(map));
+      return true;
+    } catch (_) { return false; }
+  }
+
+  function _validPresetName(name) {
+    if (typeof name !== 'string') { return false; }
+    var trimmed = name.replace(/^\s+|\s+$/g, '');
+    if (trimmed.length === 0 || trimmed.length > 80) { return false; }
+    // Disallow control chars; allow letters / digits / spaces / common
+    // punctuation. Keeps the on-disk mirror filename-safe.
+    return !/[\x00-\x1f\x7f<>:"/\\|?*]/.test(trimmed);
+  }
+
+  function listUserPresets() {
+    return _loadUserPresets();
+  }
+
+  // saveUserPreset(name, text?)
+  //   name  — non-empty trimmed string, ≤80 chars, no control chars
+  //           or filesystem-reserved chars.
+  //   text  — DESIGN.md source text (string). OPTIONAL: when omitted,
+  //           a minimal valid placeholder DESIGN.md is stored — useful
+  //           for the headless R28 verify in amvcp-self-debug-rules
+  //           which exercises the save/rename/delete round-trip without
+  //           needing access to the runtime's current-state snapshot.
+  //           Real UI callers (the pod's Save-as button) should always
+  //           pass the serialized current tokens via serializeDesignMd.
+  // Returns { ok: true, name } on success, { ok: false, error } on
+  // validation failure or storage failure. Overwrites silently if a
+  // preset with the same name already exists — the caller is
+  // responsible for the confirm-overwrite UX.
+  function saveUserPreset(name, text) {
+    if (!_validPresetName(name)) {
+      return { ok: false, error: 'invalid name' };
+    }
+    var body = text;
+    if (typeof body !== 'string' || body.length === 0) {
+      // Minimal valid DESIGN.md placeholder.
+      body = '---\ndesignmd_version: 1\nmeta:\n  name: "'
+        + name.replace(/"/g, '\\"').replace(/^\s+|\s+$/g, '')
+        + '"\n  default_theme: light\ncolors:\n  light: {}\n'
+        + '  dark: {}\n---\n';
+    }
+    var map = _loadUserPresets();
+    map[name.replace(/^\s+|\s+$/g, '')] = body;
+    if (!_saveUserPresets(map)) {
+      return { ok: false, error: 'localStorage write failed' };
+    }
+    return { ok: true, name: name.replace(/^\s+|\s+$/g, '') };
+  }
+
+  // renameUserPreset(oldName, newName) — returns { ok, error } as above.
+  // Built-in presets cannot be renamed because they are not in this
+  // storage bucket; oldName must exist in localStorage.
+  function renameUserPreset(oldName, newName) {
+    if (!_validPresetName(newName)) {
+      return { ok: false, error: 'invalid new name' };
+    }
+    var map = _loadUserPresets();
+    var src = (oldName || '').replace(/^\s+|\s+$/g, '');
+    var dst = newName.replace(/^\s+|\s+$/g, '');
+    if (!Object.prototype.hasOwnProperty.call(map, src)) {
+      return { ok: false, error: 'old name not found' };
+    }
+    if (src === dst) { return { ok: true, name: dst }; }
+    map[dst] = map[src];
+    delete map[src];
+    if (!_saveUserPresets(map)) {
+      return { ok: false, error: 'localStorage write failed' };
+    }
+    return { ok: true, name: dst };
+  }
+
+  // deleteUserPreset(name) — returns { ok, error }. No-op silently
+  // succeeds when the name doesn't exist (idempotent semantics).
+  function deleteUserPreset(name) {
+    var map = _loadUserPresets();
+    var key = (name || '').replace(/^\s+|\s+$/g, '');
+    if (!Object.prototype.hasOwnProperty.call(map, key)) {
+      return { ok: true, name: key };  // idempotent
+    }
+    delete map[key];
+    if (!_saveUserPresets(map)) {
+      return { ok: false, error: 'localStorage write failed' };
+    }
+    return { ok: true, name: key };
+  }
+
   // ── export ─────────────────────────────────────────────────────────
 
   var api = {
@@ -1316,7 +1437,12 @@
     resolveTokens: resolveTokens,
     applyTokens: applyTokens,
     serializeDesignMd: serializeDesignMd,
-    tokenSchema: tokenSchema
+    tokenSchema: tokenSchema,
+    // R28: user-preset library — see USER_PRESETS_LS_KEY above.
+    saveUserPreset: saveUserPreset,
+    renameUserPreset: renameUserPreset,
+    deleteUserPreset: deleteUserPreset,
+    listUserPresets: listUserPresets
   };
 
   // Browser global.
