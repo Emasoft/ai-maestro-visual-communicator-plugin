@@ -1206,6 +1206,112 @@ async function testViewportNonViewportSceneUnaffected(page) {
     JSON.stringify(r));
 }
 
+// ── Export menu — archify-inspired (MIT) PNG/JPEG/WebP/SVG download +
+//    Copy-PNG-to-clipboard. Three tests cover (a) the wrap mounts on
+//    every host, (b) the button toggles open/closed with correct ARIA
+//    state, (c) the wrap survives a re-render (theme hot-swap path).
+
+async function testExportMenuMounts(page) {
+  const s = await setup(page);
+  if (!s.ok) {
+    record('diagram_export_menu_mounts', 'FAIL',
+      'every scene-graph host gets a .ve-scene-export wrap', s.error);
+    return;
+  }
+  const r = await page.evaluate(() => {
+    // Only renderable scenes get an export menu. Hosts whose JSON failed
+    // validation render a red error box and exit before _attachExportMenu
+    // — there is no SVG to export, so excluding them is correct behavior.
+    const all = document.querySelectorAll('.ve-scene-graph');
+    const renderable = [];
+    for (let i = 0; i < all.length; i++) {
+      if (all[i].querySelector(':scope > svg, :scope > .ve-scene-stage')) {
+        renderable.push(all[i]);
+      }
+    }
+    const out = { hostCount: all.length, renderableCount: renderable.length,
+                  wrapped: 0, hasButton: 0, hasMenu: 0, menuHidden: 0 };
+    for (let i = 0; i < renderable.length; i++) {
+      const wrap = renderable[i].querySelector(
+        ':scope > .ve-scene-export');
+      if (wrap) { out.wrapped++; }
+      if (wrap && wrap.querySelector('.ve-scene-export-button')) {
+        out.hasButton++;
+      }
+      const m = wrap && wrap.querySelector('.ve-scene-export-menu');
+      if (m) { out.hasMenu++; if (m.hidden) { out.menuHidden++; } }
+    }
+    return out;
+  });
+  const ok = r.renderableCount > 0
+    && r.wrapped === r.renderableCount
+    && r.hasButton === r.renderableCount
+    && r.hasMenu === r.renderableCount
+    && r.menuHidden === r.renderableCount;
+  record('diagram_export_menu_mounts', ok ? 'PASS' : 'FAIL',
+    'every .ve-scene-graph host carries a closed export menu',
+    JSON.stringify(r));
+}
+
+async function testExportMenuToggle(page) {
+  const s = await setup(page);
+  if (!s.ok) {
+    record('diagram_export_menu_toggle', 'FAIL',
+      'clicking the button toggles the menu', s.error);
+    return;
+  }
+  const r = await page.evaluate(() => {
+    const host = document.getElementById('scene-flow');
+    const btn = host.querySelector('.ve-scene-export-button');
+    const menu = host.querySelector('.ve-scene-export-menu');
+    const before = { hidden: menu.hidden,
+                     aria: btn.getAttribute('aria-expanded') };
+    btn.click();
+    const opened = { hidden: menu.hidden,
+                     aria: btn.getAttribute('aria-expanded'),
+                     itemCount: menu.querySelectorAll(
+                       '.ve-scene-export-item').length };
+    btn.click();
+    const closed = { hidden: menu.hidden,
+                     aria: btn.getAttribute('aria-expanded') };
+    return { before, opened, closed };
+  });
+  const ok = r.before.hidden === true
+    && r.before.aria === 'false'
+    && r.opened.hidden === false
+    && r.opened.aria === 'true'
+    && r.opened.itemCount >= 4
+    && r.closed.hidden === true
+    && r.closed.aria === 'false';
+  record('diagram_export_menu_toggle', ok ? 'PASS' : 'FAIL',
+    'clicking the export button opens/closes the menu with ARIA state',
+    JSON.stringify(r));
+}
+
+async function testExportMenuSurvivesRerender(page) {
+  const s = await setup(page);
+  if (!s.ok) {
+    record('diagram_export_menu_survives_rerender', 'FAIL',
+      'export menu re-attaches after re-render', s.error);
+    return;
+  }
+  const r = await page.evaluate(() => {
+    const host = document.getElementById('scene-flow');
+    const before = !!host.querySelector(':scope > .ve-scene-export');
+    // A theme hot-swap wipes hostEl.textContent and re-renders.
+    window.amvcpDiagram.reThemeAll(document);
+    const after = !!host.querySelector(':scope > .ve-scene-export');
+    // No duplicate wraps after re-render.
+    const wrapCount = host.querySelectorAll(
+      ':scope > .ve-scene-export').length;
+    return { before, after, wrapCount };
+  });
+  const ok = r.before === true && r.after === true && r.wrapCount === 1;
+  record('diagram_export_menu_survives_rerender', ok ? 'PASS' : 'FAIL',
+    'export menu re-attaches once after reThemeAll',
+    JSON.stringify(r));
+}
+
 // ── Runner ───────────────────────────────────────────────────────────
 
 const tests = [
@@ -1238,7 +1344,10 @@ const tests = [
   testViewportZoomButtonsAndSlider,
   testViewportPanDrag,
   testViewportMinimapFrame,
-  testViewportNonViewportSceneUnaffected
+  testViewportNonViewportSceneUnaffected,
+  testExportMenuMounts,
+  testExportMenuToggle,
+  testExportMenuSurvivesRerender
 ];
 
 const page = await browser.getPage("diagram-tests");

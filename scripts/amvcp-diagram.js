@@ -1464,6 +1464,14 @@
     // armScrollReveal need to see the final structure).
     _wrapInViewport(hostEl, svg, scene);
 
+    // Export menu (PNG/JPEG/WebP/SVG download + Copy-PNG-to-clipboard).
+    // Must run AFTER _wrapInViewport so it sits on top of the stage and
+    // toolbar in z-order (CSS gives it z-index:5). The wrap is positioned
+    // absolutely against the host; .ve-scene-graph is position:relative
+    // (set in CSS_LINES) so the wrap stays anchored to the host's
+    // top-right corner regardless of mode.
+    _attachExportMenu(hostEl);
+
     // phase-graph chain highlight.
     if (preset === 'phase-graph') {
       wireChainHighlight(svg, scene, sceneId);
@@ -1926,6 +1934,317 @@
     }
   }
 
+  // ── Export menu — Copy PNG / Download PNG / SVG / WebP ────────────
+  //
+  // Idea credit: tt-a1i/archify (MIT) + matheuscfrade/arch-flows-visualizer
+  // (MIT). Adapted into a dependency-free in-browser export that runs
+  // entirely client-side (no server, no library).
+  //
+  // PNG / JPEG / WebP: rasterize the SVG to a 4× off-screen canvas via
+  //   new Image() with the SVG serialized as a data: URL. canvas.toBlob
+  //   triggers the download (or navigator.clipboard.write for "Copy
+  //   PNG"). 4× scale gives sharp images for slides + PDFs.
+  // SVG: serialize the SVG, embed the CURRENT --vc-* values as a
+  //   <style> block with BOTH light and dark variable sets plus a
+  //   prefers-color-scheme @media rule, so a downloaded .svg follows
+  //   the reader's dark/light preference when embedded in a README.
+
+  var EXPORT_SCALE = 4;
+
+  function _collectVcVars(themeAttr) {
+    // Walk :root + [data-ve-theme="<themeAttr>"] to capture both
+    // theme variable sets for the exported SVG.
+    var out = {};
+    if (typeof document === 'undefined' || !document.documentElement) {
+      return out;
+    }
+    var sheets = document.styleSheets;
+    for (var si = 0; si < sheets.length; si++) {
+      var rules;
+      try { rules = sheets[si].cssRules; }
+      catch (e) { continue; }   // cross-origin sheet — skip
+      if (!rules) { continue; }
+      for (var ri = 0; ri < rules.length; ri++) {
+        var rule = rules[ri];
+        if (!rule || !rule.selectorText || !rule.style) { continue; }
+        var matches = false;
+        if (themeAttr === 'light') {
+          matches = rule.selectorText === ':root'
+            || rule.selectorText.indexOf(':root,') === 0
+            || rule.selectorText.indexOf(',:root') >= 0
+            || rule.selectorText.indexOf('html[data-ve-theme="light"]') >= 0;
+        } else {
+          matches = rule.selectorText.indexOf(
+            'html[data-ve-theme="dark"]') >= 0;
+        }
+        if (!matches) { continue; }
+        for (var pi = 0; pi < rule.style.length; pi++) {
+          var prop = rule.style[pi];
+          if (prop && prop.indexOf('--vc-') === 0) {
+            out[prop] = rule.style.getPropertyValue(prop).trim();
+          }
+        }
+      }
+    }
+    return out;
+  }
+
+  function _buildExportStyleBlock() {
+    // Light + dark variable blocks + a prefers-color-scheme media
+    // query so an exported .svg follows the viewer's preference.
+    var light = _collectVcVars('light');
+    var dark = _collectVcVars('dark');
+    function block(selector, vars) {
+      var lines = [selector + ' {'];
+      for (var k in vars) {
+        if (vars.hasOwnProperty(k)) {
+          lines.push('  ' + k + ': ' + vars[k] + ';');
+        }
+      }
+      lines.push('}');
+      return lines.join('\n');
+    }
+    return [
+      block(':root', light),
+      '@media (prefers-color-scheme: dark) {',
+      block(':root', dark),
+      '}',
+      // honor data-ve-theme override when embedded in a host that uses it
+      block('[data-ve-theme="light"]', light),
+      block('[data-ve-theme="dark"]', dark)
+    ].join('\n');
+  }
+
+  function _serializeSvgForExport(svgEl, withThemeStyles) {
+    // Clone so we can mutate (add xmlns, inline a <style> block)
+    var clone = svgEl.cloneNode(true);
+    if (!clone.getAttribute('xmlns')) {
+      clone.setAttribute('xmlns', SVG_NS);
+    }
+    if (!clone.getAttribute('xmlns:xlink')) {
+      clone.setAttribute('xmlns:xlink', XLINK_NS);
+    }
+    if (withThemeStyles) {
+      var styleEl = document.createElementNS(SVG_NS, 'style');
+      styleEl.textContent = _buildExportStyleBlock();
+      clone.insertBefore(styleEl, clone.firstChild);
+    }
+    var s = new XMLSerializer().serializeToString(clone);
+    return s;
+  }
+
+  function _svgToImage(svgEl) {
+    // Returns Promise<Image>
+    return new Promise(function (resolve, reject) {
+      var svgText = _serializeSvgForExport(svgEl, true);
+      var blob = new Blob([svgText], { type: 'image/svg+xml;charset=utf-8' });
+      var url = URL.createObjectURL(blob);
+      var img = new Image();
+      img.onload = function () {
+        URL.revokeObjectURL(url);
+        resolve(img);
+      };
+      img.onerror = function (e) {
+        URL.revokeObjectURL(url);
+        reject(e);
+      };
+      img.src = url;
+    });
+  }
+
+  function _rasterizeSvgToCanvas(svgEl, scale) {
+    // Returns Promise<HTMLCanvasElement>
+    return _svgToImage(svgEl).then(function (img) {
+      var vb = svgEl.viewBox && svgEl.viewBox.baseVal
+        ? svgEl.viewBox.baseVal
+        : null;
+      var w = vb && vb.width
+        ? vb.width
+        : (parseInt(svgEl.getAttribute('width'), 10) || img.width || 800);
+      var h = vb && vb.height
+        ? vb.height
+        : (parseInt(svgEl.getAttribute('height'), 10) || img.height || 600);
+      var canvas = document.createElement('canvas');
+      canvas.width = Math.ceil(w * scale);
+      canvas.height = Math.ceil(h * scale);
+      var ctx = canvas.getContext('2d');
+      ctx.scale(scale, scale);
+      ctx.drawImage(img, 0, 0, w, h);
+      return canvas;
+    });
+  }
+
+  function _exportFilename(hostEl, ext) {
+    var id = hostEl.id || hostEl.getAttribute('data-ve-id') || 'diagram';
+    // Strip leading hash + chrome-unsafe chars
+    var safe = String(id).replace(/^#/, '').replace(/[^a-zA-Z0-9._-]/g, '-');
+    return safe + '.' + ext;
+  }
+
+  function _downloadBlob(blob, filename) {
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+  }
+
+  function exportSceneAsPng(hostEl, opts) {
+    var svgEl = hostEl.querySelector('svg');
+    if (!svgEl) { return Promise.reject(new Error('no <svg> to export')); }
+    var scale = (opts && opts.scale) || EXPORT_SCALE;
+    return _rasterizeSvgToCanvas(svgEl, scale).then(function (canvas) {
+      return new Promise(function (resolve) {
+        canvas.toBlob(function (blob) {
+          _downloadBlob(blob, _exportFilename(hostEl, 'png'));
+          resolve();
+        }, 'image/png');
+      });
+    });
+  }
+
+  function exportSceneAsWebp(hostEl) {
+    var svgEl = hostEl.querySelector('svg');
+    if (!svgEl) { return Promise.reject(new Error('no <svg> to export')); }
+    return _rasterizeSvgToCanvas(svgEl, EXPORT_SCALE).then(function (canvas) {
+      return new Promise(function (resolve) {
+        canvas.toBlob(function (blob) {
+          _downloadBlob(blob, _exportFilename(hostEl, 'webp'));
+          resolve();
+        }, 'image/webp', 0.92);
+      });
+    });
+  }
+
+  function exportSceneAsJpeg(hostEl) {
+    var svgEl = hostEl.querySelector('svg');
+    if (!svgEl) { return Promise.reject(new Error('no <svg> to export')); }
+    return _rasterizeSvgToCanvas(svgEl, EXPORT_SCALE).then(function (canvas) {
+      // Paint a white background first (JPEG can't be transparent).
+      var bgCanvas = document.createElement('canvas');
+      bgCanvas.width = canvas.width;
+      bgCanvas.height = canvas.height;
+      var ctx = bgCanvas.getContext('2d');
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(canvas, 0, 0);
+      return new Promise(function (resolve) {
+        bgCanvas.toBlob(function (blob) {
+          _downloadBlob(blob, _exportFilename(hostEl, 'jpg'));
+          resolve();
+        }, 'image/jpeg', 0.92);
+      });
+    });
+  }
+
+  function exportSceneAsSvg(hostEl) {
+    var svgEl = hostEl.querySelector('svg');
+    if (!svgEl) { return; }
+    var text = _serializeSvgForExport(svgEl, true);
+    var blob = new Blob([text], { type: 'image/svg+xml;charset=utf-8' });
+    _downloadBlob(blob, _exportFilename(hostEl, 'svg'));
+  }
+
+  function copySceneAsPng(hostEl) {
+    var svgEl = hostEl.querySelector('svg');
+    if (!svgEl) { return Promise.reject(new Error('no <svg> to copy')); }
+    if (typeof ClipboardItem === 'undefined'
+        || !navigator.clipboard || !navigator.clipboard.write) {
+      return Promise.reject(new Error(
+        'ClipboardItem / navigator.clipboard.write not supported'));
+    }
+    return _rasterizeSvgToCanvas(svgEl, EXPORT_SCALE).then(function (canvas) {
+      return new Promise(function (resolve, reject) {
+        canvas.toBlob(function (blob) {
+          try {
+            var ci = new ClipboardItem({ 'image/png': blob });
+            navigator.clipboard.write([ci]).then(resolve, reject);
+          } catch (e) { reject(e); }
+        }, 'image/png');
+      });
+    });
+  }
+
+  function _buildExportMenu(hostEl) {
+    var doc = hostEl.ownerDocument;
+    var wrap = doc.createElement('div');
+    wrap.className = 've-scene-export';
+    var btn = doc.createElement('button');
+    btn.type = 'button';
+    btn.className = 've-scene-export-button';
+    btn.title = 'Export this diagram';
+    btn.setAttribute('aria-label', 'Export diagram');
+    btn.setAttribute('aria-expanded', 'false');
+    btn.setAttribute('aria-haspopup', 'menu');
+    btn.textContent = '\u{21E9}';  // ⇩
+    var menu = doc.createElement('div');
+    menu.className = 've-scene-export-menu';
+    menu.setAttribute('role', 'menu');
+    menu.hidden = true;
+    function item(label, action) {
+      var b = doc.createElement('button');
+      b.type = 'button';
+      b.className = 've-scene-export-item';
+      b.setAttribute('role', 'menuitem');
+      b.textContent = label;
+      b.addEventListener('click', function (ev) {
+        ev.stopPropagation();
+        Promise.resolve(action(hostEl)).then(close, function (e) {
+          // Surface failures inline next to the button
+          b.textContent = label + ' — failed';
+          setTimeout(function () { b.textContent = label; }, 1800);
+          // re-throw for the dev console
+          console.error('[amvcp-diagram] export failed:', e);
+        });
+      });
+      menu.appendChild(b);
+    }
+    if (typeof ClipboardItem !== 'undefined'
+        && navigator.clipboard && navigator.clipboard.write) {
+      item('Copy PNG to clipboard', copySceneAsPng);
+    }
+    item('Download PNG (4×)', exportSceneAsPng);
+    item('Download JPEG (4×)', exportSceneAsJpeg);
+    item('Download WebP (4×)', exportSceneAsWebp);
+    item('Download SVG (vector, dual-theme)', exportSceneAsSvg);
+    function open() {
+      menu.hidden = false;
+      btn.setAttribute('aria-expanded', 'true');
+      doc.addEventListener('click', onDocClick, true);
+    }
+    function close() {
+      menu.hidden = true;
+      btn.setAttribute('aria-expanded', 'false');
+      doc.removeEventListener('click', onDocClick, true);
+    }
+    function onDocClick(ev) {
+      if (wrap.contains(ev.target)) { return; }
+      close();
+    }
+    btn.addEventListener('click', function (ev) {
+      ev.stopPropagation();
+      if (menu.hidden) { open(); } else { close(); }
+    });
+    wrap.appendChild(btn);
+    wrap.appendChild(menu);
+    return wrap;
+  }
+
+  // _attachExportMenu — append ONE .ve-scene-export wrap to a host. Idempotent
+  // by DOM existence check (NOT by an expando flag), because renderSceneGraph
+  // wipes hostEl.textContent on every render — an expando flag would survive
+  // the wipe and short-circuit re-attach, leaving the host menu-less. Checking
+  // for the actual child element matches reality after a re-render.
+  function _attachExportMenu(hostEl) {
+    if (!hostEl) { return; }
+    if (hostEl.querySelector(':scope > .ve-scene-export')) { return; }
+    var menu = _buildExportMenu(hostEl);
+    hostEl.appendChild(menu);
+  }
+
   // jsonText — re-read the host's embedded JSON text (the pristine
   // source, before any in-place mutation).
   function jsonText(hostEl) {
@@ -1982,6 +2301,14 @@
   // when amvcp-runtime.js is not loaded (fully defensive — spec §1).
   var CSS_LINES = [
     '/* ai-maestro-visual-communicator — diagram skill (injected) */',
+
+    /* every scene-graph host is a positioning context so the absolutely-
+       positioned export-menu wrap anchors to the host instead of escaping
+       to the document. Applies to both basic and viewport modes. */
+    '.ve-scene-graph,',
+    '[data-ve-scene-graph] {',
+    '  position: relative;',
+    '}',
 
     /* scene-graph host — default mode: wide diagrams extend the
        document; the SVG is width:100% so there is NEVER an inner
@@ -2268,6 +2595,79 @@
     '    transition: none;',
     '  }',
     '}',
+
+    /* export menu — PNG/JPEG/WebP/SVG download + Copy-PNG.
+       Anchored top-right of the .ve-scene-graph host (which is
+       position:relative — see top of this stylesheet). The button is
+       semi-transparent until hovered so it never competes visually with
+       the diagram content. Tokens are --vc-* with hardcoded fallbacks
+       so the menu is correct standalone AND re-themes on a DESIGN.md
+       swap. The menu uses [hidden] for show/hide (browser default
+       display:none); we still re-state it so a stylesheet override that
+       resets display:block on [hidden] won't reveal the menu. */
+    '.ve-scene-export {',
+    '  position: absolute;',
+    '  top: 8px;',
+    '  right: 8px;',
+    '  z-index: 5;',
+    '  font: 13px/1 var(--vc-font-body, system-ui, sans-serif);',
+    '}',
+    '.ve-scene-export-button {',
+    '  display: inline-flex;',
+    '  align-items: center;',
+    '  justify-content: center;',
+    '  width: 28px;',
+    '  height: 28px;',
+    '  border-radius: var(--vc-radius-sm, 4px);',
+    '  border: 1px solid var(--vc-color-border, #e3dcc9);',
+    '  background: var(--vc-color-surface, #ffffff);',
+    '  color: var(--vc-color-content, #1f1a14);',
+    '  cursor: pointer;',
+    '  font: 14px/1 var(--vc-font-body, system-ui, sans-serif);',
+    '  padding: 0;',
+    '  opacity: 0.75;',
+    '  transition: opacity 120ms ease, border-color 120ms ease,',
+    '              background 120ms ease;',
+    '}',
+    '.ve-scene-export-button:hover,',
+    '.ve-scene-export-button:focus-visible,',
+    '.ve-scene-export-button[aria-expanded="true"] {',
+    '  opacity: 1;',
+    '  border-color: var(--vc-color-accent, #b8861f);',
+    '  outline: none;',
+    '}',
+    '.ve-scene-export-menu {',
+    '  position: absolute;',
+    '  top: 34px;',
+    '  right: 0;',
+    '  min-width: 220px;',
+    '  background: var(--vc-color-surface-raised,',
+    '    var(--vc-color-surface, #fffdf8));',
+    '  border: 1px solid var(--vc-color-border, #e3dcc9);',
+    '  border-radius: var(--vc-radius-sm, 4px);',
+    '  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.10);',
+    '  padding: 4px;',
+    '  display: flex;',
+    '  flex-direction: column;',
+    '  gap: 2px;',
+    '}',
+    '.ve-scene-export-menu[hidden] { display: none; }',
+    '.ve-scene-export-item {',
+    '  background: transparent;',
+    '  border: 0;',
+    '  text-align: left;',
+    '  padding: 6px 10px;',
+    '  border-radius: 3px;',
+    '  font: 13px/1.2 var(--vc-font-body, system-ui, sans-serif);',
+    '  color: var(--vc-color-content, #1f1a14);',
+    '  cursor: pointer;',
+    '}',
+    '.ve-scene-export-item:hover,',
+    '.ve-scene-export-item:focus-visible {',
+    '  background: color-mix(in srgb,',
+    '    var(--vc-color-accent, #b8861f) 14%, transparent);',
+    '  outline: none;',
+    '}',
     ''
   ];
   var CSS_TEXT = CSS_LINES.join('\n');
@@ -2368,6 +2768,14 @@
     getThemePreset: getThemePreset,
     reThemeAll: reThemeAll,
     refresh: refresh,
+    // Export menu — programmatic access for callers that want to wire
+    // their own UI instead of the built-in dropdown.
+    exportSceneAsPng: exportSceneAsPng,
+    exportSceneAsJpeg: exportSceneAsJpeg,
+    exportSceneAsWebp: exportSceneAsWebp,
+    exportSceneAsSvg: exportSceneAsSvg,
+    copySceneAsPng: copySceneAsPng,
+    attachExportMenu: _attachExportMenu,
     // Exposed for the dev-browser test (mirrors the animation module).
     _cssText: CSS_TEXT
   };
@@ -2397,7 +2805,14 @@
       injectDiagramCSS: injectDiagramCSS,
       renderSceneGraph: renderSceneGraph,
       validateScene: validateScene,
-      buildMermaidThemeVariables: buildMermaidThemeVariables
+      buildMermaidThemeVariables: buildMermaidThemeVariables,
+      // Export-menu hooks for the dev-browser screenshot/clipboard tests.
+      attachExportMenu: _attachExportMenu,
+      exportSceneAsPng: exportSceneAsPng,
+      exportSceneAsJpeg: exportSceneAsJpeg,
+      exportSceneAsWebp: exportSceneAsWebp,
+      exportSceneAsSvg: exportSceneAsSvg,
+      copySceneAsPng: copySceneAsPng
     };
 
     _bindThemeChange();
