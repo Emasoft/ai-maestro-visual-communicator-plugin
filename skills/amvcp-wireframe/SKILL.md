@@ -151,3 +151,11 @@ The `references/` folder contains 32 deep-dive files. Browse by category:
 - [`troubleshooting-and-debugging.md`](references/troubleshooting-and-debugging.md) — common bugs by symptom + fixes + sanity checklist.
 - [`visual-verification.md`](references/visual-verification.md) — 8-image matrix, screenshot test workflow, visual diff tooling.
 - [`integration-with-other-skills.md`](references/integration-with-other-skills.md) — DESIGN.md engine, runtime, layout, charts, diagrams, slides.
+
+## Modes
+
+This skill supports `data-ve-mode="readonly"` (design walkthrough — just for visual review) and `data-ve-mode="choice"` / `single` / `multi` / `max-N` (each wireframe atom carries a 3-state pill so the user can approve/deny each block of the design). The default (missing mode) is `readonly` (R20/R23 of `amvcp-self-debug-rules`).
+
+## Composability
+
+Composes with every other amvcp-* skill on the same page (R22). Common composition: wireframe + form-inputs + tables, where the wireframe shows the layout, the form-inputs configure design choices, and the tables enumerate the design decisions. The only exclusive skill is the overlay-runtime (R24).

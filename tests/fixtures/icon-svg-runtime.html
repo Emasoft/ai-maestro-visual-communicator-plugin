@@ -12,7 +12,9 @@
   html, body { overflow-x: auto; }
   body {
     margin: 0;
-    padding: 32px;
+    /* R16: padding-left ≥ 48px so the 28px floating bubble handle
+       (left:-40px from atom) isn't clipped against the viewport edge. */
+    padding: 32px 32px 32px 48px;
     background: var(--vc-color-canvas, #faf6ee);
     color: var(--vc-color-content, #1f1a14);
     font: 16px/1.55 var(--vc-font-body, system-ui, sans-serif);

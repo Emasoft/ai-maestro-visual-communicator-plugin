@@ -212,6 +212,14 @@ Kanban also exports its state as Markdown (`##` columns, `- [ ]` cards).
 - *"Add `?` keyboard help overlay."* → `keyboard-shortcuts.md` +
   `popover-and-dialog.md`.
 
+## Modes
+
+This skill supports `data-ve-mode="readonly"` only. The widgets (tabs, accordion, modal, lightbox, copy button, theme toggle, TOC, etc.) are UI controls — they have their own state (open/closed, selected tab, etc.) but they are NOT 3-state-decision atoms. For "ask the user to pick an option" use `amvcp-form-inputs` or `amvcp-choice-tables` instead.
+
+## Composability
+
+Composes with every other amvcp-* skill on the same page (R22). Multiple control widgets coexist independently. The only exclusive skill is the overlay-runtime (R24).
+
 ## Resources
 
 All 31 reference files live under `./references/`. Read the **inner ring**

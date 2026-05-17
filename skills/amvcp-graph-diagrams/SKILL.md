@@ -42,6 +42,14 @@ flowchart TD
   click validate call veSelectMermaid("validate","Validate")
 ```
 
+## Modes
+
+This skill supports `data-ve-mode="readonly"` only. Mermaid/Graphviz graphs are explanatory — the per-element 3-state decision pill (R20-R23 of `amvcp-self-debug-rules`) does NOT apply to nodes/edges.
+
+## Composability
+
+Composes with every other amvcp-* skill on the same page (R22). Multiple graphs coexist independently. The only exclusive skill is the overlay-runtime (R24).
+
 ## Resources
 
 - [interactive-selection-base.md](../../references/interactive-selection-base.md) — READ FIRST. runtime contract

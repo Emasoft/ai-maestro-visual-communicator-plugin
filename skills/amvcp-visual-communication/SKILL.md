@@ -176,3 +176,11 @@ A self-contained interactive HTML file at `$CLAUDE_PROJECT_ROOT/reports/visual-c
 - Page opened directly via file:// → the selection POST is lost; always run via `amvcp-select.py`.
 - Timeout without a click → raise `--timeout`; default is short on purpose for question-shaped pages.
 - Visual broken in light or dark theme → that's a correctness defect; fix DESIGN.md or the scaffold's token usage, never hardcode a color.
+
+## Modes
+
+Not applicable directly — this is the umbrella/discovery skill that selects which OTHER skill to delegate to based on content type. It does NOT emit DOM of its own; `data-ve-mode` declarations propagate from whichever sub-skill it selected (R20-R23 of `amvcp-self-debug-rules`).
+
+## Composability
+
+This skill IS the orchestrator — by definition it composes the other amvcp-* skills (R22). The only exclusive sub-skill is the overlay-runtime (R24).

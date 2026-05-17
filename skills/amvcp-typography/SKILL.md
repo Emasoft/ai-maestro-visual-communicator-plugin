@@ -184,6 +184,14 @@ typography contract is theme-orthogonal by construction (no
 hardcoded `color`), so verification confirms the theme-swap renders
 correctly.
 
+## Modes
+
+This skill supports `data-ve-mode="readonly"` only. It is the foundational typography layer — every other skill themes its text off the `--vc-text-*` and font tokens this skill defines. The type specimen view itself is readonly. The per-element 3-state decision pill (R20-R23) does NOT apply to type samples.
+
+## Composability
+
+This skill is composed by every other amvcp-* skill on the page (R22) — it is the substrate for text rendering. The only exclusive skill is the overlay-runtime (R24).
+
 ## Resources
 
 The 33 references cover every typography surface a page emits.

@@ -116,6 +116,13 @@
 
 <script src="amvcp-designmd.js"></script>
 <script src="amvcp-code-highlight.js"></script>
+<!-- This fixture intentionally exercises amvcp-code-highlight.js in
+     standalone mode (without amvcp-runtime.js) to verify the
+     tokenizer + gutter + theme-mirror contract in isolation. The
+     floating copy button (R10) is attached by amvcp-runtime.js; it
+     is intentionally absent here. The production code-highlight surface
+     in reports (sample-report.html, symphony-vs-amoa.html, etc.)
+     loads the runtime and gets the button. -->
 <link rel="stylesheet" href="amvcp-code-highlight.css">
 <script>
 (function () {

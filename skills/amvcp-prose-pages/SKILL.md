@@ -304,6 +304,14 @@ Full composition contract + interaction patterns:
 For visual verification (does the page actually look right in light
 + dark + print?), see `skills/amvcp-self-debug-rules/SKILL.md`.
 
+## Modes
+
+This skill supports `data-ve-mode="readonly"` (the default for prose/report pages — every paragraph is selectable for comment but no decision pill) and `data-ve-mode="choice"` / `single` / `multi` / `max-N` (when the report IS a list of decisions, e.g. a bug-triage list where each finding gets approve/skip/deny). Set the mode on the `<section data-ve-finding-id>` wrapper per finding, or on `<body>` for the whole report.
+
+## Composability
+
+Composes with every other amvcp-* skill on the same page (R22). Prose pages typically embed diagrams, tables, code blocks, math, etc. via their respective skills. The only exclusive skill is the overlay-runtime (R24).
+
 ## Resources — 37 progressive-discovery references
 
 ### Document shapes (pick one per deliverable)

@@ -117,6 +117,14 @@ Bad: `Q3 Results` (label, no verb, 2 words). Good: `Latency dropped 38% after th
 See `references/41-decision-matrix-when-to-choose-slides.md` for the full
 boundary-case discussion.
 
+## Modes
+
+This skill supports `data-ve-mode="readonly"` only. Slides are presentation content — every slide block is selectable for comment, but the per-element 3-state decision pill (R20-R23 of `amvcp-self-debug-rules`) does NOT apply. For a "rate each slide" or "approve/deny each slide" flow, use `amvcp-tables` with each row referencing a slide.
+
+## Composability
+
+Composes with every other amvcp-* skill on the same page (R22). Slides typically embed diagrams, charts, code blocks, math via their respective skills. The only exclusive skill is the overlay-runtime (R24).
+
 ## Resources
 
 The references catalog progressive disclosure of every slide-deck technique

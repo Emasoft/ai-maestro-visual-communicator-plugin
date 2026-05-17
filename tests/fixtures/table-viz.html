@@ -11,7 +11,8 @@
   html, body { overflow-x: auto; }
   body {
     margin: 0;
-    padding: 32px;
+    /* R16: padding-left ≥ 48px so the floating bubble handle isn't clipped. */
+    padding: 32px 32px 32px 48px;
     background: var(--vc-color-canvas, #faf6ee);
     color: var(--vc-color-content, #1f1a14);
     font: var(--vc-text-2, 16px)/1.5 var(--vc-font-body, system-ui, sans-serif);

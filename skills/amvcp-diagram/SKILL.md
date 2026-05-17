@@ -241,6 +241,14 @@ third screenshot if the change involves interaction (click,
 slider, hover). A diagram that works light + dark + interactive
 is a correct diagram.
 
+## Modes
+
+This skill supports `data-ve-mode="readonly"` only. Diagrams are explanatory visualizations (process flow, architecture, sequence, state machine, etc.) — the per-element 3-state decision pill (R20-R23 of `amvcp-self-debug-rules`) does NOT apply to nodes and edges. When asking the user to choose between alternatives, render them as `amvcp-tables` or `amvcp-choice-tables` with the diagram alongside for context.
+
+## Composability
+
+Composes with every other amvcp-* skill on the same page (R22). Multiple diagrams (different presets) coexist independently. The only exclusive skill is the overlay-runtime (R24).
+
 ## Resources
 
 ### Renderer routing

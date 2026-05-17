@@ -140,6 +140,14 @@ side-by-side diff). Verify that (a) tokens are visibly differentiated,
 source, (c) the gutter, copy button, wrap-marker and selection rings
 read on both themes.
 
+## Modes
+
+This skill supports `data-ve-mode="readonly"` only. Code lines are selectable for comment (every `.ve-code-line` carries `data-ve-comment-id`), but the per-line 3-state decision pill (R20-R23 of `amvcp-self-debug-rules`) does NOT apply — code is shown for explanation/review, not multiple-choice.
+
+## Composability
+
+Composes with every other amvcp-* skill on the same page (R22). Multiple code blocks, diffs, tabbed panels coexist independently. The only exclusive skill is the overlay-runtime (R24).
+
 ## Resources
 
 The 30+ reference files below cover every code-display technique this

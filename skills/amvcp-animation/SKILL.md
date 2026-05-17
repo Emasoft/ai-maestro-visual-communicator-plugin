@@ -136,6 +136,14 @@ For every change to the animation skill's CSS or JS, run the dev-browser workflo
 - Verify in BOTH `prefers-reduced-motion: no-preference` AND `prefers-reduced-motion: reduce`.
 - Verify the no-nested-scrollbars invariant (the parallax + snap + progress-bar all drive the document's own scroll axis).
 
+## Modes
+
+This skill supports `data-ve-mode="readonly"` only. Output is view-only/illustrative animation — the per-element 3-state decision pill (R20-R23 of `amvcp-self-debug-rules`) does NOT apply.
+
+## Composability
+
+Composes with every other amvcp-* skill on the same page (R22). Multiple instances on one page are allowed; each gets an independent `data-ve-id` namespace. The only exclusive skill is the overlay-runtime (R24).
+
 ## Resources
 
 ### Layer 0 — Motion tokens

@@ -81,6 +81,14 @@ Self-contained HTML: one `<style>` (or `<link href="amvcp-layout.css">`) carryin
 - A device mockup gallery: `.la-cardrow` of `.la-device` frames, each with different `--dev-*` props for iPhone / iPad / Pixel.
 - A hero-led landing page: `.la-hero` with `data-ghost` watermark + fluid `clamp()` H1 + KPI row below.
 
+## Modes
+
+This skill supports `data-ve-mode="readonly"` only. Layout primitives (grids, sidebars, dashboards, TOCs, headers, hero backgrounds, print layouts, device frames) are page scaffolding — the per-element 3-state decision pill (R20-R23 of `amvcp-self-debug-rules`) does NOT apply.
+
+## Composability
+
+This skill is foundational — every other amvcp-* skill is composed inside one of its layouts (R22). Multiple layout primitives on one page are allowed (e.g. sidebar shell wrapping a dashboard grid). The only exclusive skill is the overlay-runtime (R24).
+
 ## Resources
 
 - `references/layout-patterns.md` — full HTML+CSS catalog (one section per group); the RTL authoring gate; the no-nested-scrollbars note.

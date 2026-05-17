@@ -43,6 +43,14 @@ v2/v3 agent-report flow: render markdown as interactive HTML where every paragra
 **Input:** `/amvcp-interactive-report audit.md`; user hovers Finding 3, clicks pill, types a clarifying question, clicks ANSWER.
 **Output:** Responder (`--watch` on same queue dir) dereferences `commentId` via `audit.idmap.json`, atomically writes `reply.2.json`; page polls and renders within ~2s.
 
+## Modes
+
+Not applicable — this skill is infrastructure for the comment/modal flow (the universal "click handle → open modal → chat with claude" path). It is loaded by the runtime on EVERY page that renders any visual element, so it carries no `data-ve-mode` of its own. The mode of each atom-host page is set by the rendering skill (R23 of `amvcp-self-debug-rules`).
+
+## Composability
+
+Composes with EVERY other amvcp-* skill — that is its job. Every visual element gets the comment-handle from this skill at selection time. The skill is required, not optional.
+
 ## Resources
 
 - [comment-chat-box](../../references/comment-chat-box.md) — modal UI, wire format.

@@ -151,6 +151,14 @@ gridlines only.
 Renders the OKLCH sequential ramp; `logScale:true` keeps the
 Thursday-evening spike from washing out the rest.
 
+## Modes
+
+This skill supports `data-ve-mode="readonly"` only. Charts and KPI cards are view-only visualizations — the per-element 3-state decision pill (R20-R23 of `amvcp-self-debug-rules`) does NOT apply to data points. Use `amvcp-choice-tables` or `amvcp-form-inputs` when the user is being asked to choose a data point.
+
+## Composability
+
+Composes with every other amvcp-* skill on the same page (R22). Multiple charts/dashboards on one page are allowed; each gets an independent `data-ve-id` namespace. The only exclusive skill is the overlay-runtime (R24).
+
 ## Resources
 
 The references below are organised in three groups: per-type, cross-cutting, and meta.

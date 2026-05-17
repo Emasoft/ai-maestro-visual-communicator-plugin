@@ -46,6 +46,14 @@ Loads when the agent needs an enumerable answer as a table-form Q&A. Author a `<
 - *"Compare 3 caching strategies, let me pick one."* → Mode B `<table>` with `data-ve-mode="single"`, rows LRU / LFU / TTL plus free-text "Other"; Submit returns one `selected[]` entry.
 - *"Which features should ship in v1?"* → Mode C with `data-ve-mode="multi"`, one row per feature plus free-text row; Submit returns every checked row in `selected[]`.
 
+## Modes
+
+This skill supports `data-ve-mode="single"` (radio semantics — exactly one row may be approved at any time; approving another auto-demotes the prior pick) and `data-ve-mode="multi"` (checkbox semantics — unbounded approvals). The default for an undeclared `<table>` is `readonly` — no decision pills (R20/R23 of `amvcp-self-debug-rules`). For "approve up to N" cardinality use `data-ve-mode="max-N"` (R21).
+
+## Composability
+
+Composes with every other amvcp-* skill on the same page (R22). Common composition: choice-table + math + diagram on one report page, where the table rows carry decision pills and the illustrative diagram is readonly. The only exclusive skill is the overlay-runtime (R24).
+
 ## Resources
 
 - [interactive-selection-base.md](../../references/interactive-selection-base.md) — payload contract, runtime boilerplate, marking elements

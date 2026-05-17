@@ -1334,6 +1334,10 @@
   function paintError(hostEl, message) {
     hostEl.textContent = '';
     var box = document.createElement('div');
+    // .ve-scene-error + role=alert make the box a structural payload
+    // (R19) — even a failed scene satisfies the "skill output must be
+    // structural" rule because the alert IS the structured content.
+    box.className = 've-scene-error';
     box.setAttribute('role', 'alert');
     box.style.cssText = 'padding:12px 14px;'
       + 'font-family:var(--vc-font-mono, ui-monospace, monospace);'

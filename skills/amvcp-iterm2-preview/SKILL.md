@@ -64,6 +64,14 @@ $ osascript ".../open_preview.applescript" "file://$(realpath ./index.html)"
 
 **Negative example:** Codespaces. Step 0 returns `NOT-iTerm2: web/cloud terminal detected: GitHub Codespaces ($CODESPACES is set)`. Abort; suggest `/amvcp-share-page` instead.
 
+## Modes
+
+Not applicable — this skill is a terminal/iTerm pane lifecycle helper, not a render skill. It does NOT emit DOM or carry a `data-ve-mode` attribute (R20-R23 of `amvcp-self-debug-rules` don't apply).
+
+## Composability
+
+Not applicable in the visual sense — iTerm pane management is orthogonal to the visual rendering skills. Multiple `amvcp-iterm2-preview` invocations from the same shell are guarded by the safeguard in `open_preview.applescript` (R7).
+
 ## Resources
 
 - [iterm2-preview-cookbook.md](./references/iterm2-preview-cookbook.md) — detector internals, Mermaid workflow, abort cases.

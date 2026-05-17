@@ -84,6 +84,14 @@ Self-contained HTML: the `<table>` markup plus the three `<script>` tags. Every 
 
 **Input:** "Compare 3 plans side by side, B is recommended." → `<table data-ve-table="compare">`, three option `<th>`s with `data-ve-col-icon`, the B column carries `data-ve-col-emphasis="1"` for an accent-tinted lane.
 
+## Modes
+
+This skill supports `data-ve-mode="readonly"` (data viz / comparison view — default), `data-ve-mode="single"` (radio: pick one row), `data-ve-mode="multi"` (checkboxes: pick many rows), and `data-ve-mode="max-N"` (cap approved rows at N). Set the mode on the `<table data-ve-type="table-form">` host. See also `amvcp-choice-tables` for the dedicated form-table variant.
+
+## Composability
+
+Composes with every other amvcp-* skill on the same page (R22). Multiple tables (mix of readonly comparison and choice tables) coexist independently. The only exclusive skill is the overlay-runtime (R24).
+
 ## Resources
 
 The skill ships with 35 reference files. Start with `table-modes.md` for the complete attribute reference, then drill into the per-feature references for the mode you're using.

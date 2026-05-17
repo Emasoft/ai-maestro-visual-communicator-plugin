@@ -639,3 +639,11 @@ See `tests/scripts/test-form-inputs.js`:
 
 The fixture is `tests/fixtures/form-inputs-fixture.html` (one of
 each widget kind).
+
+## Modes
+
+Each widget supports the modes appropriate to its content type. **Radio-style** (`ve-quiz-radio`, `ve-card-picker`, `ve-gallery-picker`) → `data-ve-mode="single"` (default for these widgets). **Checkbox-style** (`ve-quiz-multi`, `ve-tag-input`, `ve-tier-list`, `ve-rank-list`) → `data-ve-mode="multi"` (default for these widgets). **Free-form input** (`ve-numeric-input`, `ve-date-input`, `ve-color-input`, `ve-slider`, `ve-toggle`, `ve-rating`, `ve-text-input`, `ve-text-area`, `ve-url-input`, `ve-password-input`, `ve-currency-input`, `ve-tree-picker`) → not a decision-pill atom (R20-R23 don't apply; the widget's own value IS the answer). Optional cap on a multi-select widget: set `data-ve-mode="max-N"` on the widget host (R21).
+
+## Composability
+
+Composes with every other amvcp-* skill on the same page (R22). Each widget has its own root class (`.ve-quiz-radio`, `.ve-card-picker`, etc.) and `data-ve-id` namespace, so multiple widgets and multiple skills coexist without interference. The only exclusive skill is the overlay-runtime (R24).

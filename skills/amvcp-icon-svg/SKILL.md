@@ -119,6 +119,14 @@ themes, no-nested-scrollbars audit, selection hover state, every
 C1..C7 lint pass. Measure with dev-browser; never claim "fixed"
 without a screenshot in both themes.
 
+## Modes
+
+This skill supports `data-ve-mode="readonly"` only. Icons / logos / device frames / hotspot annotations are explanatory — the per-element 3-state decision pill (R20-R23 of `amvcp-self-debug-rules`) does NOT apply. For "pick an icon from a gallery" use `amvcp-form-inputs`'s `ve-gallery-picker` instead.
+
+## Composability
+
+Composes with every other amvcp-* skill on the same page (R22). Multiple icon SVGs coexist independently. The only exclusive skill is the overlay-runtime (R24).
+
 ## Resources
 
 The `references/` folder contains 42 self-sufficient technique

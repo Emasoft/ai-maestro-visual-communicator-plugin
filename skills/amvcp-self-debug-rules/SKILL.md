@@ -198,7 +198,15 @@ Every `.ve-code-block` MUST have a floating copy button (top-right corner). Clic
 Verify:
 ```js
 const r = await page.evaluate(() => {
+  // R10 applies ONLY when amvcp-runtime.js is loaded — the runtime
+  // is the copy-button attacher. Standalone code-highlight fixtures
+  // (loaded WITHOUT the runtime, to test the tokenizer in isolation)
+  // legitimately have no copy button and are exempt.
+  if (typeof window.amvcpRuntime === 'undefined') {
+    return { applicable: false };
+  }
   const block = document.querySelector('.ve-code-block');
+  if (!block) return { applicable: false };
   const stash = block.__veSourceText;  // the original raw text
   const range = document.createRange();
   range.selectNodeContents(block.querySelector('pre'));
@@ -206,14 +214,15 @@ const r = await page.evaluate(() => {
   window.getSelection().addRange(range);
   const btn = block.querySelector('.ve-code-copy-btn');
   return {
+    applicable: true,
     stash,
     selectedText: window.getSelection().toString(),
     hasCopyBtn: !!btn,
     iconIsSvg: btn ? !!btn.querySelector('svg') : false,  // MUST be true — see "icon glyph rendering" warning
   };
 });
-// stash and selectedText must match (modulo trailing newline).
-// hasCopyBtn AND iconIsSvg must be true.
+// when applicable: stash and selectedText must match (modulo trailing
+// newline); hasCopyBtn AND iconIsSvg must be true.
 ```
 
 ### R11 — Line numbers are NOT selectable
@@ -361,17 +370,345 @@ const seg = await page.evaluate(() => {
 });
 ```
 
+## Function / logic rules — plugin design contract
+
+R19-R26 encode the plugin's *function* contract — the design intent
+of what the plugin DOES, not how it looks. Skills are display
+*techniques* that render specific content types (graph → mermaid
+SVG, colors → swatch gallery, latex → KaTeX, bug list →
+3-state-radio report). The agent picks the right skill, or composes
+several on one page. The user comments visually instead of
+describing verbally. These rules make that contract enforceable.
+
+### R19 — Skill output is structural, not text-only
+
+Every skill that renders a specific content type MUST produce
+structural DOM that matches that type. A "list of colors" skill
+emits `<div class="ve-gallery">` with swatches — NOT a `<p>` of
+hex codes. A "directed graph" skill emits `<svg>` with
+`<g data-ve-id>` nodes — NOT a `<ul>` of edge descriptions. The
+visual rendering IS the value proposition; falling back to plain
+text defeats the purpose.
+
+Verify:
+```js
+const r = await page.evaluate(() => {
+  const skillHosts = document.querySelectorAll(
+    '[data-ve-skill], .ve-scene-graph, .ve-chart, .ve-gallery, '
+    + '.ve-icon-svg, .ve-wf-screen, .ve-math, .ve-tikz, '
+    + '.ve-regex, .ve-slide-block, .ve-table-wrap, .ve-dirtree');
+  return Array.from(skillHosts).map(h => {
+    const hasStructure = !!h.querySelector(
+      'svg, canvas, table, [data-ve-id], '
+      + '.ve-gallery-item, .ve-card, .ve-swatch, '
+      + '[role="alert"], .ve-scene-error, .ve-error');
+    return { cls: (h.className || '').toString().slice(0, 40),
+             hasStructure };
+  }).filter(x => !x.hasStructure);
+});
+// r MUST be empty. A failed scene-graph rendering counts as
+// structural because the alert box IS the structured content.
+```
+
+### R20 — Selection ≠ choice (universal commentability vs explicit decision)
+
+Every atom (`<p>`, `<li>`, `<tr>`, `<blockquote>`, `.ve-code-line`,
+diagram-node, gallery-item, etc.) MUST be selectable via the
+comment-handle system (see R5). The 3-state choice pill
+(`.ve-decision-mini`) MUST ONLY appear on atoms inside a host
+whose `data-ve-mode` is a choice variant (`choice` / `single` /
+`multi` / `max-N`). Free-form prose, view-only diagrams,
+explanatory mermaid, illustration charts — none of these may show
+decision pills.
+
+The distinction matters because **comment = "I want to ask claude
+about this"** while **decision = "claude is asking me to choose"**.
+Conflating them sprinkles meaningless approve/deny buttons on
+every paragraph of every report.
+
+Verify:
+```js
+const violators = await page.evaluate(() => {
+  const minis = Array.from(document.querySelectorAll(
+    '.ve-decision-mini, .ve-decision-mini-cell'));
+  return minis
+    .map(m => {
+      const host = m.closest('[data-ve-mode]');
+      const mode = host && host.getAttribute('data-ve-mode');
+      const ok = mode === 'choice' || mode === 'single'
+        || mode === 'multi' || (mode || '').startsWith('max-');
+      return ok ? null : {
+        tag: m.tagName,
+        parent: m.parentElement
+          ? m.parentElement.tagName + '.'
+            + (m.parentElement.className || '').toString().slice(0, 30)
+          : '?',
+        hostMode: mode || '(none)'
+      };
+    })
+    .filter(Boolean);
+});
+// violators MUST be empty.
+```
+
+Today's `injectDecisionMinis` (`scripts/amvcp-runtime.js:10928`)
+attaches a `.ve-decision-mini` to every `<p>`/`<li>`/`<tr>`/
+`<blockquote>` that carries `data-ve-comment-id` — there is no
+gate on host mode. That is a direct R20 violation and needs
+fixing: the function must walk up via `closest('[data-ve-mode]')`
+and only inject when the closest mode is a choice variant.
+
+### R21 — Choice cardinality enforced
+
+Any host whose `data-ve-mode` is a choice variant MUST declare
+its cardinality:
+
+| `data-ve-mode`  | Approved atoms allowed         |
+|-----------------|--------------------------------|
+| `single`        | exactly 1 — radio semantics    |
+| `multi`         | unbounded                      |
+| `max-N` (N ≥ 1) | up to N                        |
+| `choice`        | alias for `multi` (back-compat)|
+
+When the limit would be exceeded, the runtime MUST either:
+(a) reject the offending toggle, OR
+(b) demote the oldest-approved sibling to `skip` (or `deny`,
+    configurable via `data-ve-overflow="demote-skip|demote-deny|
+    reject"`, default `demote-skip`).
+
+`skip` = "undecided / procrastinate" and is always allowed.
+
+Verify:
+```js
+const r = await page.evaluate(() => {
+  const hosts = document.querySelectorAll(
+    '[data-ve-mode="single"], [data-ve-mode="multi"], '
+    + '[data-ve-mode^="max-"]');
+  return Array.from(hosts).map(h => {
+    const mode = h.getAttribute('data-ve-mode');
+    const max = mode === 'single' ? 1
+      : mode === 'multi' ? Infinity
+      : parseInt(mode.replace('max-', ''), 10);
+    const approved = h.querySelectorAll(
+      '.ve-decision-mini-approve[aria-checked="true"]').length;
+    return { mode, max, approved, withinLimit: approved <= max };
+  });
+});
+// every entry.withinLimit MUST be true.
+```
+
+Today's runtime supports `single`/`multi` only on
+`data-ve-type="table-form"`; generalising to any host (and adding
+`max-N` + `data-ve-overflow`) is a separate follow-up.
+
+### R22 — Skill composability — same page, zero interference
+
+Multiple skills' outputs MUST coexist on one page without
+mutating each other's surfaces. Each skill MUST:
+
+- Scope its CSS to its own root class prefix (`.ve-<skill>-*` for
+  runtime atoms; `.vc-<skill>-*` for DESIGN.md tokenised styles).
+- Namespace its `data-ve-*` attributes — two skills must not race
+  on the same attribute on the same element.
+- Define an idempotent `init(root)` that ignores hosts not
+  carrying its own root class / `data-ve-type` value.
+
+Verify on a composite fixture (e.g. `all-techniques-sample.html`):
+```js
+const r = await page.evaluate(() => {
+  function snapshot() {
+    return {
+      scenes: document.querySelectorAll(
+        '.ve-scene-graph svg g[data-ve-id]').length,
+      chartBars: document.querySelectorAll(
+        '.ve-chart [data-ve-id]').length,
+      formInputs: document.querySelectorAll(
+        '.ve-form-input').length,
+      codeLines: document.querySelectorAll('.ve-code-line').length,
+      galleryItems: document.querySelectorAll(
+        '.ve-gallery-item, .ve-card-picker [data-ve-card]').length
+    };
+  }
+  const before = snapshot();
+  ['amvcpRuntime','amvcpDiagram','amvcpChart','amvcpFormInputs',
+   'amvcpCodeHighlight','amvcpTables','amvcpWireframe',
+   'amvcpAnimation','amvcpIconSvg','amvcpLayout','amvcpSlide',
+   'amvcpTokenSheet','amvcpDesignMd'].forEach(name => {
+    const m = window[name];
+    if (m && typeof m.init === 'function') {
+      try { m.init(document); } catch (e) {}
+    }
+  });
+  const after = snapshot();
+  return { before, after,
+    stable: JSON.stringify(before) === JSON.stringify(after) };
+});
+// r.stable MUST be true.
+```
+
+### R23 — Mode declared explicitly; default is read-only
+
+Every host element rendered by a skill MUST declare its mode via
+`data-ve-mode`:
+
+- `readonly` — explanatory / view-only. Comment-handle on
+  selection, NO decision pill. (Safe default.)
+- `choice` / `single` / `multi` / `max-N` — the agent is asking
+  the user to decide. Decision pills attach per atom.
+- `overlay` — overlay-mode runtime on an arbitrary deployed page
+  (see R24).
+
+A missing `data-ve-mode` is treated as `readonly`. The runtime
+MUST refuse to attach a decision pill on a host whose mode is not
+a choice variant. This is the structural enforcement of R20.
+
+Verify:
+```js
+const offenders = await page.evaluate(() => {
+  const hosts = document.querySelectorAll(
+    '.ve-scene-graph, .ve-chart, .ve-form-input, '
+    + '.ve-code-block, .ve-wf-screen, .ve-icon-svg, '
+    + '.ve-layout-grid, .ve-slide-block, .ve-finding, '
+    + '.ve-table-wrap, .ve-gallery, .ve-dirtree');
+  const bad = [];
+  hosts.forEach(h => {
+    const mode = h.getAttribute('data-ve-mode');
+    const minisInside = h.querySelectorAll(
+      '.ve-decision-mini').length;
+    if (!mode && minisInside > 0) {
+      bad.push({
+        tag: h.tagName,
+        cls: (h.className || '').toString().slice(0, 60),
+        minis: minisInside
+      });
+    }
+  });
+  return bad;
+});
+// offenders MUST be empty.
+```
+
+### R24 — Overlay-mode runtime — non-destructive contract
+
+When the runtime is loaded on a non-plugin page (a deployed
+website) in overlay mode, it MUST:
+
+- Inject ONE root overlay element (e.g.,
+  `<div data-ve-mode="overlay" data-ve-overlay-root="1">`) and
+  nothing else into the original DOM.
+- Capture clicks via a transparent fixed-position layer that the
+  user toggles on / off via a toolbar inside the overlay root.
+- Expose the same Done / Submit contract as report mode
+  (collected selections → submission payload).
+- Remove itself cleanly on disarm: zero residual classes / inline
+  styles / extra DOM nodes on the host page's original elements.
+
+Verify (round-trip; gated on overlay-mode entry being shipped —
+today this rule is `applicable: false` until the entry exists):
+```js
+const r = await page.evaluate(async () => {
+  if (typeof window.amvcpRuntime?.armOverlay !== 'function') {
+    return { applicable: false };
+  }
+  const before = document.body.outerHTML;
+  await window.amvcpRuntime.armOverlay();
+  const armed = document.body.outerHTML;
+  await window.amvcpRuntime.disarmOverlay();
+  const after = document.body.outerHTML;
+  return {
+    applicable: true,
+    armedHasOverlayRoot: armed.includes(
+      'data-ve-overlay-root="1"'),
+    afterMatchesBefore: before === after
+  };
+});
+// when applicable: armedHasOverlayRoot AND afterMatchesBefore
+// MUST both be true.
+```
+
+### R25 — Submission payload identifies atoms unambiguously
+
+The selection-submit payload (POSTed when the user clicks Done /
+Submit) MUST include, for every selected atom:
+
+- `data-ve-id` — stable across re-renders.
+- `text` or `label` — a short human-readable snippet so the agent
+  can map the selection back to its source MD / HTML.
+- `kind` — atom kind (`paragraph` / `row` / `li` /
+  `diagram-node` / `gallery-item` / `code-line` /
+  `finding-reply` / etc.).
+- Skill-specific metadata where applicable (e.g., `data-ve-pnum`
+  for paragraphs; `lineNumber` for code lines; `decision:
+  skip|approve|deny` for choice atoms; `value` for form inputs).
+
+The point: claude reads the payload back and must unambiguously
+identify what the user touched. Selecting "the third paragraph"
+is meaningless without an id; a numeric id without text is
+meaningless if the source markdown has been edited; both together
+make visual disambiguation work.
+
+Verify:
+```js
+const payload = await page.evaluate(() => {
+  if (typeof window.__vcCollectSubmission === 'function')
+    return window.__vcCollectSubmission();
+  return null;
+});
+if (payload && Array.isArray(payload.selections)) {
+  for (const sel of payload.selections) {
+    if (!sel.id) throw new Error('R25: selection missing id: '
+      + JSON.stringify(sel));
+    if (!(sel.text || sel.label))
+      throw new Error('R25: selection missing text/label: '
+        + JSON.stringify(sel));
+    if (!sel.kind) throw new Error('R25: selection missing kind: '
+      + JSON.stringify(sel));
+  }
+}
+```
+
+### R26 — Skill discoverability — SKILL.md declares modes + composability
+
+Every `skills/<skill>/SKILL.md` MUST declare in its body:
+
+- `description` (frontmatter) — the agent-facing trigger string
+  (already required by the Anthropic plugin spec).
+- A `## Modes` section listing which `data-ve-mode` values the
+  skill supports. Example: the table skill supports `readonly` /
+  `single` / `multi`; the gallery skill supports `readonly` /
+  `single` / `multi` / `max-N`; an explanatory-diagram skill
+  supports `readonly` only.
+- A `## Composability` section noting whether the skill can
+  coexist on a page with other skills (almost always YES; the
+  one exception is the `overlay` runtime, which is exclusive
+  because it owns the click layer).
+
+These two sections let the agent (and a future planner skill)
+discover what each skill is capable of WITHOUT reading every
+runtime file. Missing either section = R26 violation.
+
+Verify:
+```bash
+for f in skills/amvcp-*/SKILL.md; do
+  grep -q '^## Modes' "$f" || echo "R26 missing Modes in $f"
+  grep -q '^## Composability' "$f" \
+    || echo "R26 missing Composability in $f"
+done
+```
+
 ## Verification protocol — run before claiming "fixed"
 
 For ANY change that touches the runtime, the renderer, or a visualization skill, run this sequence:
 
-1. **Tests**: `cd tests && python3 run-tests.py` — 46/46 must pass.
+1. **Tests**: `cd tests && python3 run-tests.py` — full suite must pass (current baseline 356/358; 2 known unrelated flakes: animation IO + icon-svg hotspot).
 2. **CSS sanity**: walk R1-R17 above; run the embedded snippets; record results.
-3. **Screenshot per area**: take a screenshot of the changed surface AND read it back. Don't trust "the diff looks right" — visual layout regressions hide in correct-looking diffs.
-4. **Narrow viewport**: force `.ve-code-block { max-width: 400px }` (or similar narrowing for the relevant element) and verify wrap/responsive behavior.
-5. **Both themes**: flip `data-ve-theme` between `light` and `dark`, screenshot both.
-6. **Interaction sequences**: for hover/click/drag features, use real mouse paths (`page.mouse.move(x, y, {steps: 8})`) — `el.click()` hides hover-state bugs.
-7. **iTerm pane**: if you opened a preview pane during testing, run `open_preview` again with `${ITERM_SESSION_ID##*:}` (the safeguard auto-closes the previous pane).
+3. **Function / logic sanity**: walk R19-R26; run the embedded snippets. Pay special attention to R20 + R23 (decision pills appear ONLY on `data-ve-mode=choice*` hosts).
+4. **Screenshot per area**: take a screenshot of the changed surface AND read it back. Don't trust "the diff looks right" — visual layout regressions hide in correct-looking diffs.
+5. **Narrow viewport**: force `.ve-code-block { max-width: 400px }` (or similar narrowing for the relevant element) and verify wrap/responsive behavior.
+6. **Both themes**: flip `data-ve-theme` between `light` and `dark`, screenshot both.
+7. **Interaction sequences**: for hover/click/drag features, use real mouse paths (`page.mouse.move(x, y, {steps: 8})`) — `el.click()` hides hover-state bugs.
+8. **Composability**: when a runtime change touches a skill that ships alongside others, re-run R22's composite-fixture check (`all-techniques-sample.html`) to confirm zero interference with other skills.
+9. **iTerm pane**: if you opened a preview pane during testing, run `open_preview` again with `${ITERM_SESSION_ID##*:}` (the safeguard auto-closes the previous pane).
 
 ## Anti-patterns (NEVER do)
 
@@ -384,6 +721,21 @@ For ANY change that touches the runtime, the renderer, or a visualization skill,
 - Ship a snippet popup chip that uses `display:none` and pass it to `openCommentModal` as the anchor — connector line draws to (0,0). Use a transient anchor div instead (see R15).
 - Add a hover-pill duplicate of the bubble handle. The bubble handle is the SOLE comment-entry affordance for atoms; tests use `window.__veOpenCommentModal(anchor)` directly.
 - Open multiple iTerm preview panes from the same shell. The safeguard in `open_preview.applescript` closes any existing preview pane in the caller's tab before splitting again — bypassing it stacks panes.
+- **Attach `.ve-decision-mini` on a host whose `data-ve-mode` is not a choice variant** (see R20/R23). The default is `readonly` — decision pills are an OPT-IN by the agent, not the runtime's default.
+- **Render a skill's output as plain `<p>` text** when the skill's content type warrants structural DOM (see R19). A "colors" skill emits swatches, a "graph" skill emits `<svg>` nodes, etc.
+- **Declare a choice host without a cardinality** (see R21). `data-ve-mode="choice"` alone is acceptable as a back-compat alias for `multi`, but new code SHOULD say `single`, `multi`, or `max-N` explicitly.
+- **Race two skills on the same `data-ve-id` namespace** (see R22). Use per-skill prefixes (`scene-foo-1`, `chart-bar-2`, `gallery-baz-3`); never let two skills both assign `data-ve-id="3"`.
+- **Mutate the host page's DOM in overlay mode** (see R24). Inject ONE overlay-root sibling; arm/disarm cleanly; never touch existing elements' classes or inline styles.
+- **Submit a selection payload missing `id` + `text/label` + `kind`** (see R25). The agent cannot map the user's choice back to the source if any of these is missing.
+- **Add a new skill without `## Modes` and `## Composability` sections in its SKILL.md** (see R26). Future planner skills need to discover what each skill can do without grepping runtime files.
+
+## Modes
+
+Not applicable — this is a rules/spec document, not a visual skill. It defines R1-R26 for the OTHER skills to follow. It does NOT emit DOM.
+
+## Composability
+
+Not applicable — this document is loaded by the developer/agent context, not by the runtime.
 
 ## See also
 

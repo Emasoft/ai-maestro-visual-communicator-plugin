@@ -155,6 +155,14 @@ the deep dive.
 | "delegate one token to another" | (architecture) | [token-delegation-chain.md](./references/token-delegation-chain.md), [centralised-token-pattern.md](./references/centralised-token-pattern.md) |
 | "dual-theme contract" / "why both light AND dark" | (rationale) | [dual-theme-contract.md](./references/dual-theme-contract.md) |
 
+## Modes
+
+This skill supports `data-ve-mode="readonly"` only. It is the foundational token-vocabulary layer — every other skill themes off the `--vc-*` tokens it defines. Token swatches in the contact-sheet view are click-to-copy, NOT decision atoms; the per-element 3-state decision pill (R20-R23 of `amvcp-self-debug-rules`) does NOT apply.
+
+## Composability
+
+This skill is composed by EVERY other amvcp-* skill on the page (R22) — it is the substrate. The contact-sheet view itself composes with all other visual surfaces. The only exclusive skill is the overlay-runtime (R24).
+
 ## Resources
 
 ### Architecture and vocabulary

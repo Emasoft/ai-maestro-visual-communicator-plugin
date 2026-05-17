@@ -58,6 +58,14 @@ A click on the wrapper background still fires the Phase 1 element-toggle; Edit-t
 
 **Output:** User opens Edit, prepends `-?`, presses Submit. Agent receives `kind:"regex-edit"` with the edited pattern and full AST.
 
+## Modes
+
+This skill supports `data-ve-mode="readonly"` only. The regex visualizer is an interactive editor — nodes are selectable for comment, but the per-element 3-state decision pill (R20-R23 of `amvcp-self-debug-rules`) does NOT apply. The visualizer's OWN edit UI (shift+click extend, Cmd-Z undo, etc.) is not part of the decision-pill system.
+
+## Composability
+
+Composes with every other amvcp-* skill on the same page (R22). Multiple regex-vis instances coexist independently. The only exclusive skill is the overlay-runtime (R24).
+
 ## Resources
 
 - [interactive-selection-base.md](../../references/interactive-selection-base.md) — wire format + boilerplate

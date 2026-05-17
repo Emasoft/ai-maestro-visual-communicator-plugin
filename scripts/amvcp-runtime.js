@@ -10925,6 +10925,25 @@
     catch (_) {}
   }
 
+  // R20/R23 gate: an atom only gets a decision-mini pill if it lives
+  // inside a host that explicitly declared a choice-variant mode via
+  // data-ve-mode. Missing mode = readonly (no pill). Accepted choice
+  // variants: "choice" (alias for multi, back-compat), "single",
+  // "multi", and "max-N" with N >= 1.
+  function isChoiceMode(mode) {
+    if (!mode) return false;
+    if (mode === 'choice' || mode === 'single' || mode === 'multi') return true;
+    if (mode.indexOf('max-') === 0) {
+      var n = parseInt(mode.slice(4), 10);
+      return n >= 1;
+    }
+    return false;
+  }
+  function atomInChoiceHost(atom) {
+    var host = atom.closest && atom.closest('[data-ve-mode]');
+    return !!host && isChoiceMode(host.getAttribute('data-ve-mode'));
+  }
+
   function injectDecisionMinis() {
     // Selectable atoms per R3 + the universal model: prose paragraphs,
     // list items, table rows, and blockquotes (styled prose). Containers
@@ -10946,6 +10965,10 @@
       // user expects no chip and no selection. Same gate as
       // findCommentAnchor() / isSelectableAtom().
       if (atom.tagName === 'P' && isFakeHeadingParagraph(atom)) continue;
+      // R20 + R23 gate: skip atoms that aren't inside a choice host.
+      // The default (no data-ve-mode anywhere up the tree) is readonly —
+      // pills are an OPT-IN by the agent, not a runtime default.
+      if (!atomInChoiceHost(atom)) continue;
       var key = atom.getAttribute('data-ve-pnum')
                 || atom.getAttribute('data-ve-comment-id')
                 || ('atom-' + i);

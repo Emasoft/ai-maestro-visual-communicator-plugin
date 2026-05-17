@@ -41,6 +41,14 @@ The runtime auto-loads KaTeX with mhchem on first ve-math element and lazy-loads
 <span class="ve-math ve-math--chem">CH4 + 2 O2 -> CO2 + 2 H2O</span>
 ```
 
+## Modes
+
+This skill supports `data-ve-mode="readonly"` only. KaTeX / TikZ output is mathematical/scientific visualization — symbols and sub-elements (cells, indices, bounds, terms, operators) are selectable for comment via the `\vecell` / `\veidx` / `\vebound` / `\veterm` / `\veop` macros, but the per-element 3-state decision pill (R20-R23) does NOT apply. For "pick one formula from N candidates" wrap the formulas in `amvcp-choice-tables` with this skill rendering each row's content.
+
+## Composability
+
+Composes with every other amvcp-* skill on the same page (R22). KaTeX/TikZ can be embedded inside diagrams (via `<foreignObject>`), code blocks, or tables. The only exclusive skill is the overlay-runtime (R24). NOTE: one TikZ error crashes every later TikZ on the page — see R13 for the isolation contract.
+
 ## Resources
 
 - [interactive-selection-base.md](../../references/interactive-selection-base.md) — wire format, boilerplate, payload, marking
