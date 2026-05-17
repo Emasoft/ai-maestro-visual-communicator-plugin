@@ -1573,6 +1573,35 @@
       code: ['#404040', '#595959', '#737373', '#808080', '#4d4d4d',
         '#1a1a1a', '#666666', '#404040', '#4d4d4d', '#808080', '#737373',
         '#595959']
+    },
+    {
+      // TRDD-6fdf6ad2 Tier 1 — distilled from the competitor
+      // visualize-plugin output (visualize:visualize @ 0.4.0). The
+      // visualize plugin uses Inter + indigo-500 #6366f1 throughout;
+      // both are banned anti-slop here. We substitute geometrically-
+      // similar primaries that pass the gate:
+      //   - Inter → Manrope (clean modern sans, not in BANNED_FONTS)
+      //   - indigo-500 #6366f1 → indigo-700 #4338ca (dark) and
+      //     indigo-600 #4f46e5 (light) — neither in BANNED_COLORS
+      //   - violet-600 #7c3aed → violet-800 #5b21b6 (code keyword)
+      // surface stays slightly off pure white/black per the rule.
+      key: 'product-dashboard',
+      name: 'Product Dashboard',
+      theme: 'light',
+      blurb: 'Modern product-UI feel — Manrope + indigo accent, refined neutrals.',
+      fontHeading: 'Manrope, system-ui, -apple-system, Segoe UI, sans-serif',
+      fontBody: 'Manrope, system-ui, -apple-system, Segoe UI, sans-serif',
+      fontMono: 'JetBrains Mono, ui-monospace, Menlo, monospace',
+      radius: [0, 4, 8, 12, 16],
+      light: ['#fafaf9', '#fefefd', '#fdfdfc', '#f5f5f4', '#0f172a',
+        '#475569', '#94a3b8', '#e5e7eb', '#d1d5db', '#4f46e5', '#fefefd',
+        '#059669', '#d97706', '#e11d48', '#0284c7'],
+      dark: ['#0a0a0a', '#141414', '#1c1c1c', '#050505', '#ededed',
+        '#9ca3af', '#6b7280', '#2a2a2a', '#404040', '#4338ca', '#fefefd',
+        '#10b981', '#f59e0b', '#f43f5e', '#38bdf8'],
+      code: ['#5b21b6', '#059669', '#94a3b8', '#d97706', '#0284c7',
+        '#0f172a', '#db2777', '#ea580c', '#e11d48', '#4f46e5', '#65a30d',
+        '#64748b']
     }
   ];
 
