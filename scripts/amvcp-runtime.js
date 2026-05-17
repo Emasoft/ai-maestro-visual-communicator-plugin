@@ -9815,6 +9815,212 @@
     document.head.appendChild(style);
   }
 
+  // ─── Tier 4 — visual-component atoms (TRDD-6fdf6ad2 item #8) ──────
+  //
+  // Declarative class-only atoms authors / renderers drop into any
+  // rendered surface. Each is theme-aware (--vc-* tokens), responsive
+  // (folds with the Tier 3 breakpoints), and works with the per-atom
+  // selection contract (any element can also carry data-ve-comment-id
+  // / data-ve-finding-id for the modal-comment thread workflow).
+  //
+  //   .ve-stat            — KPI card  ──────────────────
+  //     .ve-stat-label    — chip-style uppercase label
+  //     .ve-stat-value    — large bold number
+  //     .ve-stat-sub      — secondary one-line subtext
+  //     (use data-va-stat="N" + .va-counter for animated count-up,
+  //      already wired by the amvcp-animation module)
+  //
+  //   .ve-tier            — priority pill (variants: t1/t2/t3/t4)
+  //     <span class="ve-tier ve-tier-t1">Tier 1</span>
+  //
+  //   .ve-vs-row          — side-by-side comparison row with center
+  //                         "VS" divider via ::before
+  //     <div class="ve-vs-row">
+  //       <div>Left content</div>
+  //       <div>Right content</div>
+  //     </div>
+  //
+  //   .ve-stack           — vertically-stacked architecture diagram
+  //     <ol class="ve-stack">
+  //       <li class="ve-stack-layer">Policy</li>
+  //       <li class="ve-stack-layer">Coordination</li>
+  //     </ol>
+  //
+  //   .ve-timeline        — day-by-day / step-by-step timeline
+  //     <ol class="ve-timeline">
+  //       <li class="ve-timeline-row" data-ve-day="Day 1">
+  //         <p>Step description</p>
+  //       </li>
+  //     </ol>
+  //
+  // Tier-pill colour variants reuse R40's semantic colours so they
+  // work uniformly across any DESIGN.md preset.
+  function injectVisualComponentsCss() {
+    if (document.getElementById('ve-visual-components-style')) return;
+    var style = document.createElement('style');
+    style.id = 've-visual-components-style';
+    style.textContent = [
+      // ── KPI stat card ──────────────────────────────────────────────
+      '.ve-stat {',
+      '  background: var(--vc-color-surface, #fff);',
+      '  border: 1px solid var(--vc-color-border, rgba(0,0,0,0.08));',
+      '  border-radius: 12px;',
+      '  padding: 24px;',
+      '  display: flex; flex-direction: column; gap: 8px;',
+      '  position: relative; overflow: hidden;',
+      '  transition: box-shadow 0.2s ease, transform 0.15s ease;',
+      '}',
+      '.ve-stat:hover {',
+      '  box-shadow: 0 0 0 1px var(--vc-color-border, rgba(0,0,0,0.08)),',
+      '              0 12px 24px rgba(0,0,0,0.08);',
+      '  transform: translateY(-2px);',
+      '}',
+      '.ve-stat-label {',
+      '  font-size: 12px; font-weight: 500;',
+      '  letter-spacing: 0.04em; text-transform: uppercase;',
+      '  color: var(--vc-color-content-muted, #475569);',
+      '  margin-bottom: 4px;',
+      '}',
+      '.ve-stat-value {',
+      '  font-size: 3rem; font-weight: 800;',
+      '  line-height: 1; letter-spacing: -0.03em;',
+      '  color: var(--vc-color-content, #0f172a);',
+      '}',
+      '.ve-stat-value.ve-stat-accent { color: var(--vc-color-accent, #4f46e5); }',
+      '.ve-stat-value.ve-stat-positive { color: var(--vc-color-success, #059669); }',
+      '.ve-stat-value.ve-stat-negative { color: var(--vc-color-danger, #e11d48); }',
+      '.ve-stat-sub {',
+      '  font-size: 13px;',
+      '  color: var(--vc-color-content-muted, #475569);',
+      '  margin-top: 4px;',
+      '}',
+      // ── Tier priority pill ─────────────────────────────────────────
+      '.ve-tier {',
+      '  display: inline-block;',
+      '  padding: 3px 10px;',
+      '  font-size: 11px; font-weight: 700;',
+      '  letter-spacing: 0.06em; text-transform: uppercase;',
+      '  border-radius: 4px;',
+      '  background: var(--vc-color-surface, #fff);',
+      '  color: var(--vc-color-content-muted, #475569);',
+      '  border: 1px solid var(--vc-color-border, rgba(0,0,0,0.08));',
+      '  white-space: nowrap;',
+      '}',
+      '.ve-tier.ve-tier-t1 {',
+      '  background: color-mix(in srgb, var(--vc-color-success, #059669) 14%, transparent);',
+      '  color: var(--vc-color-success, #059669);',
+      '  border-color: color-mix(in srgb, var(--vc-color-success, #059669) 25%, transparent);',
+      '}',
+      '.ve-tier.ve-tier-t2 {',
+      '  background: color-mix(in srgb, var(--vc-color-warning, #d97706) 14%, transparent);',
+      '  color: var(--vc-color-warning, #d97706);',
+      '  border-color: color-mix(in srgb, var(--vc-color-warning, #d97706) 25%, transparent);',
+      '}',
+      '.ve-tier.ve-tier-t3 {',
+      '  background: color-mix(in srgb, var(--vc-color-accent, #4f46e5) 14%, transparent);',
+      '  color: var(--vc-color-accent, #4f46e5);',
+      '  border-color: color-mix(in srgb, var(--vc-color-accent, #4f46e5) 25%, transparent);',
+      '}',
+      '.ve-tier.ve-tier-t4 {',
+      '  background: color-mix(in srgb, var(--vc-color-danger, #e11d48) 14%, transparent);',
+      '  color: var(--vc-color-danger, #e11d48);',
+      '  border-color: color-mix(in srgb, var(--vc-color-danger, #e11d48) 25%, transparent);',
+      '}',
+      // ── VS comparison row ──────────────────────────────────────────
+      '.ve-vs-row {',
+      '  display: grid; grid-template-columns: 1fr 1fr;',
+      '  gap: 24px; position: relative;',
+      '}',
+      '.ve-vs-row > * {',
+      '  background: var(--vc-color-surface, #fff);',
+      '  border: 1px solid var(--vc-color-border, rgba(0,0,0,0.08));',
+      '  border-radius: 12px;',
+      '  padding: 24px;',
+      '}',
+      '.ve-vs-row::before {',
+      '  content: "VS";',
+      '  position: absolute;',
+      '  top: 50%; left: 50%;',
+      '  transform: translate(-50%, -50%);',
+      '  z-index: 1;',
+      '  background: var(--vc-color-canvas, #fafaf9);',
+      '  color: var(--vc-color-content-muted, #475569);',
+      '  font-weight: 700; font-size: 12px;',
+      '  letter-spacing: 0.1em;',
+      '  padding: 8px 12px;',
+      '  border: 1px solid var(--vc-color-border, rgba(0,0,0,0.08));',
+      '  border-radius: 6px;',
+      '  pointer-events: none;',
+      '}',
+      // ── Stack diagram ──────────────────────────────────────────────
+      '.ve-stack {',
+      '  list-style: none; padding: 0; margin: 0;',
+      '  display: flex; flex-direction: column; gap: 4px;',
+      '}',
+      '.ve-stack-layer {',
+      '  padding: 14px 18px;',
+      '  background: var(--vc-color-surface, #fff);',
+      '  border: 1px solid var(--vc-color-border, rgba(0,0,0,0.08));',
+      '  border-radius: 8px;',
+      '  display: flex; align-items: center; justify-content: space-between;',
+      '  gap: 16px;',
+      '  font-size: 14px;',
+      '  color: var(--vc-color-content, #0f172a);',
+      '  transition: border-color 0.15s ease, transform 0.15s ease;',
+      '}',
+      '.ve-stack-layer:hover {',
+      '  border-color: var(--vc-color-accent, #4f46e5);',
+      '  transform: translateX(4px);',
+      '}',
+      '.ve-stack-layer-name {',
+      '  font-size: 11px; font-weight: 600;',
+      '  letter-spacing: 0.06em; text-transform: uppercase;',
+      '  color: var(--vc-color-content-muted, #475569);',
+      '}',
+      '.ve-stack-layer-impl {',
+      '  font-size: 13px; text-align: right;',
+      '  color: var(--vc-color-content, #0f172a);',
+      '  font-family: var(--vc-font-mono, ui-monospace, monospace);',
+      '}',
+      // ── Timeline ───────────────────────────────────────────────────
+      '.ve-timeline {',
+      '  list-style: none; padding: 0; margin: 0;',
+      '  display: flex; flex-direction: column; gap: 12px;',
+      '}',
+      '.ve-timeline-row {',
+      '  display: grid; grid-template-columns: 80px 1fr; gap: 16px;',
+      '  padding: 14px 16px;',
+      '  background: var(--vc-color-surface, #fff);',
+      '  border: 1px solid var(--vc-color-border, rgba(0,0,0,0.08));',
+      '  border-radius: 8px;',
+      '  align-items: start;',
+      '}',
+      '.ve-timeline-row::before {',
+      '  content: attr(data-ve-day);',
+      '  font-size: 11px; font-weight: 700;',
+      '  letter-spacing: 0.06em; text-transform: uppercase;',
+      '  color: var(--vc-color-accent, #4f46e5);',
+      '  padding-top: 2px;',
+      '}',
+      // ── Mobile responsiveness for the visual components ────────────
+      '@media (max-width: 768px) {',
+      '  .ve-vs-row { grid-template-columns: minmax(0, 1fr); }',
+      '  .ve-vs-row::before { display: none; }',
+      '  .ve-stat-value { font-size: 2.25rem; }',
+      '  .ve-stack-layer {',
+      '    flex-direction: column; align-items: flex-start; gap: 6px;',
+      '  }',
+      '  .ve-stack-layer-impl { text-align: left; }',
+      '  .ve-timeline-row {',
+      '    grid-template-columns: minmax(0, 1fr);',
+      '    gap: 6px;',
+      '  }',
+      '}',
+      ''
+    ].join('\n');
+    document.head.appendChild(style);
+  }
+
   // ─── Tier 5 — Chart.js opt-in atom ────────────────────────────────
   //
   // Authors drop a `<div data-ve-chart-type="bar|line|pie|...">` with
@@ -11785,6 +11991,12 @@
     // meta row + dot-grid backdrop). The classes use --vc-* tokens
     // throughout so they re-theme automatically.
     injectResponsiveAndHeroCss();
+    // TRDD-6fdf6ad2 Tier 4 (item #8): inject the visual-component CSS
+    // class library — .ve-stat (KPI cards), .ve-tier (priority pills),
+    // .ve-vs-row (side-by-side comparison), .ve-stack (architecture
+    // diagram), .ve-timeline (day-by-day rows). Every component reads
+    // --vc-* tokens so it re-themes with DESIGN.md.
+    injectVisualComponentsCss();
     // TRDD-6fdf6ad2 Tier 5 (item #2): scan for [data-ve-chart-type]
     // atoms and lazy-load Chart.js if any are present. Pages without
     // chart atoms pay zero CDN cost. Re-renders on themechange.
