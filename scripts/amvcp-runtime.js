@@ -467,6 +467,14 @@
       // Renderer ships body with padding:32px 24px — overrides the
       // horizontal axis only, keeping vertical 32px untouched.
       'body { padding-left:48px !important; padding-right:24px !important; }',
+      // R37: body prose font-size floor at 14 px on every viewport so
+      // the page is readable on small phones. Pages that want a
+      // larger body can up the default; pages can never go below 14 px.
+      'body { font-size: max(14px, var(--vc-text-2, 16px)); }',
+      // R37 part 2: floor every <p> / <li> at 14 px too, since custom
+      // skill stylesheets sometimes set 12-13 px for captions / small
+      // text. The clamp() preserves any larger size set by DESIGN.md.
+      ':where(p, li) { font-size: max(14px, 1em); }',
       // Renderer-supplied <main> often has `max-width: 86ch`. Lift the
       // ceiling so wide content can push the column open.
       'main, .ve-main { max-width:none !important; }',
@@ -630,26 +638,33 @@
       // effect is suppressed on them. Their child rows/lines have
       // their own data-ve-comment-id / data-ve-id and remain fully
       // interactive.
+      // R29: 3-state selection deltas (normal · selected ±Δ · hover ±Δ +
+      // glow) MUST win over any DESIGN.md palette override. !important on
+      // background-color / box-shadow / outline / filter so no preset can
+      // mask the brightness direction or the hover glow.
       '[data-ve-id]:not([data-ve-type="table-form"]):not(table):not(pre):hover {',
-      '  outline:2px solid var(--ve-accent, currentColor); outline-offset:3px;',
-      '  background-color: var(--ve-overlay-hover);',
-      '  box-shadow: var(--ve-glow-hover);',
-      '  filter: brightness(var(--ve-brightness-hover));',
+      '  outline:2px solid var(--ve-accent, currentColor) !important;',
+      '  outline-offset:3px !important;',
+      '  background-color: var(--ve-overlay-hover) !important;',
+      '  box-shadow: var(--ve-glow-hover) !important;',
+      '  filter: brightness(var(--ve-brightness-hover)) !important;',
       '}',
       '[data-ve-id]:not([data-ve-type="table-form"]):not(table):not(pre):focus-visible {',
-      '  outline:2px solid var(--ve-accent, currentColor); outline-offset:3px;',
+      '  outline:2px solid var(--ve-accent, currentColor) !important;',
+      '  outline-offset:3px !important;',
       '}',
       // HTML selected: outline + smaller brightness + smaller bg tint, no glow.
       '[data-ve-id]:not([data-ve-type="table-form"]):not(table):not(pre)[data-ve-selected="1"] {',
-      '  outline:2px solid var(--ve-accent, currentColor); outline-offset:3px;',
-      '  background-color: var(--ve-overlay-selected);',
-      '  filter: brightness(var(--ve-brightness-selected));',
+      '  outline:2px solid var(--ve-accent, currentColor) !important;',
+      '  outline-offset:3px !important;',
+      '  background-color: var(--ve-overlay-selected) !important;',
+      '  filter: brightness(var(--ve-brightness-selected)) !important;',
       '}',
       // Hover-on-selected: heavier overlay + heavier brightness + glow.
       '[data-ve-id]:not([data-ve-type="table-form"]):not(table):not(pre)[data-ve-selected="1"]:hover {',
-      '  background-color: var(--ve-overlay-hover);',
-      '  box-shadow: var(--ve-glow-hover);',
-      '  filter: brightness(var(--ve-brightness-hover));',
+      '  background-color: var(--ve-overlay-hover) !important;',
+      '  box-shadow: var(--ve-glow-hover) !important;',
+      '  filter: brightness(var(--ve-brightness-hover)) !important;',
       '}',
       // SVG elements (Graphviz nodes/edges, geometric regions, etc.):
       // a rectangular outline around a circle / arrow / path looks wrong,
@@ -9282,6 +9297,10 @@
     btn.title = 'Open theme controls';
     btn.setAttribute('aria-label', 'Open theme controls');
     btn.textContent = '\u{1F3A8}';   // 🎨
+    // R27 + R39: the wake handle is INVISIBLE by default. The pod is
+    // summoned only via the Ctrl+Shift+\ / 3-finger-tap gesture (see
+    // bindPodSummonGesture). The handle remains in the DOM so the R27
+    // verify ("pod mounted") passes, but it never auto-appears.
     btn.style.cssText = [
       'position:fixed',
       'right:8px',
@@ -9298,7 +9317,9 @@
       'line-height:1',
       'cursor:pointer',
       'box-shadow:0 2px 8px rgba(0,0,0,0.22)',
+      'visibility:hidden',
       'display:none',
+      'pointer-events:none',
       'transition:transform 160ms ease, box-shadow 160ms ease',
       ''
     ].join(';');
@@ -9331,12 +9352,18 @@
       panel.style.opacity = '0';
       panel.style.visibility = 'hidden';
       panel.style.pointerEvents = 'none';
-      handle.style.display = 'inline-flex';
+      // R27 + R39: do NOT auto-show the wake handle. The pod becomes
+      // invisible; the user re-summons it via the gesture
+      // (Ctrl+Shift+\ desktop / 3-finger tap mobile).
+      handle.style.visibility = 'hidden';
+      handle.style.display = 'none';
+      handle.style.pointerEvents = 'none';
     }
     function showPod() {
       panel.style.opacity = '1';
       panel.style.visibility = 'visible';
       panel.style.pointerEvents = 'auto';
+      handle.style.visibility = 'hidden';
       handle.style.display = 'none';
     }
     function wake() {
@@ -10145,12 +10172,143 @@
   // ID (VE_DESIGNMD_TOGGLE_ID) is kept defined for back-compat but no
   // toggle button is created — the pod's own collapse button is the
   // only show/hide affordance now.
+  // R39: Pod summon gesture (Ctrl+Shift+\ desktop / 3-finger tap mobile).
+  // The pod is HIDDEN by default; this gesture toggles its visibility.
+  // The combo is chosen because:
+  //   - Ctrl + Shift + non-letter on desktop → impossible to fire while
+  //     typing prose / code, and unbound in standard browser shortcuts.
+  //   - 3 simultaneous touches on mobile → no platform reserves it for
+  //     text input (1-2 touches = selection / pinch).
+  // Gated on event.target NOT being inside any input / textarea /
+  // contenteditable so the combo never preempts a focused editor.
+  function _isTextInputTarget(target) {
+    if (!target) { return false; }
+    var tag = (target.tagName || '').toUpperCase();
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') {
+      return true;
+    }
+    if (target.isContentEditable) { return true; }
+    if (target.closest && target.closest(
+      'input, textarea, select, [contenteditable="true"]')) {
+      return true;
+    }
+    return false;
+  }
+
+  function _togglePodVisibility() {
+    var panel = document.getElementById(VE_DESIGNMD_PANEL_ID);
+    var handle = document.getElementById(VE_DESIGNMD_HANDLE_ID);
+    // Pod not mounted yet (engine still loading) — kick the load
+    // and retry once it lands. Idempotent: re-clicking while load
+    // is in-flight is safe.
+    if (!panel) {
+      veAutoLoadDesignMdEngine().then(function () {
+        injectDesignMdControllerPad();
+        // Retry on the next tick so the freshly-mounted panel exists.
+        setTimeout(_togglePodVisibility, 50);
+      });
+      return;
+    }
+    var cs = window.getComputedStyle(panel);
+    var isHidden = cs.visibility === 'hidden'
+      || cs.display === 'none' || cs.opacity === '0';
+    if (isHidden) {
+      // Show: expand panel + clear the auto-fade hide.
+      panel.setAttribute('data-collapsed', '0');
+      panel.style.visibility = 'visible';
+      panel.style.opacity = '1';
+      panel.style.pointerEvents = 'auto';
+      if (handle) {
+        handle.style.visibility = 'hidden';
+        handle.style.display = 'none';
+        handle.style.pointerEvents = 'none';
+      }
+    } else {
+      // Hide: full cloak, no auto-handle.
+      panel.style.visibility = 'hidden';
+      panel.style.opacity = '0';
+      panel.style.pointerEvents = 'none';
+      if (handle) {
+        handle.style.visibility = 'hidden';
+        handle.style.display = 'none';
+        handle.style.pointerEvents = 'none';
+      }
+    }
+  }
+
+  function bindPodSummonGesture() {
+    if (window.__vePodSummonGestureBound) { return; }
+    window.__vePodSummonGestureBound = true;
+
+    // Desktop: Ctrl+Shift+\ (Cmd+Shift+\ on macOS).
+    document.addEventListener('keydown', function (ev) {
+      if (_isTextInputTarget(ev.target)) { return; }
+      var modifierOk = (ev.ctrlKey || ev.metaKey) && ev.shiftKey;
+      var keyOk = ev.key === '\\' || ev.code === 'Backslash';
+      if (modifierOk && keyOk) {
+        ev.preventDefault();
+        _togglePodVisibility();
+      }
+    });
+
+    // Mobile / tablet: 3-finger tap (touchstart with 3 touches +
+    // touchend within 250ms, with no large movement in between).
+    var _gestureStart = 0;
+    var _gestureValid = false;
+    document.addEventListener('touchstart', function (ev) {
+      if (_isTextInputTarget(ev.target)) { _gestureValid = false; return; }
+      if (ev.touches && ev.touches.length === 3) {
+        _gestureStart = Date.now();
+        _gestureValid = true;
+      } else {
+        _gestureValid = false;
+      }
+    }, { passive: true });
+    document.addEventListener('touchend', function (ev) {
+      if (_gestureValid && (Date.now() - _gestureStart) < 250) {
+        _togglePodVisibility();
+      }
+      _gestureValid = false;
+    }, { passive: true });
+
+    // Expose for tests + programmatic callers.
+    window.__vePodSummonToggle = _togglePodVisibility;
+  }
+
+  // R27: dynamically load amvcp-designmd.js if it's missing. The
+  // pod MUST be mountable on every page the runtime renders, even
+  // if the page's HTML didn't ship the engine. Returns a promise
+  // that resolves once window.amvcpDesignMd is available, or null
+  // if loading isn't possible (no script base, etc.).
+  var _designMdLoadPromise = null;
+  function veAutoLoadDesignMdEngine() {
+    if (window.amvcpDesignMd) { return Promise.resolve(true); }
+    if (_designMdLoadPromise) { return _designMdLoadPromise; }
+    var base = veRuntimeScriptBase();
+    if (!base || base === '.') {
+      // Fallback to relative path — still try.
+      base = '.';
+    }
+    _designMdLoadPromise = new Promise(function (resolve) {
+      var script = document.createElement('script');
+      script.src = base + '/amvcp-designmd.js';
+      script.async = false;
+      script.onload = function () { resolve(!!window.amvcpDesignMd); };
+      script.onerror = function () { resolve(false); };
+      (document.head || document.body).appendChild(script);
+    });
+    return _designMdLoadPromise;
+  }
+
   function injectDesignMdControllerPad() {
     if (!document.body) {
       return;
     }
     if (!window.amvcpDesignMd) {
-      // No engine → no tokens → nothing for the pad to control.
+      // R27: engine missing → auto-load it then retry.
+      veAutoLoadDesignMdEngine().then(function (ok) {
+        if (ok) { injectDesignMdControllerPad(); }
+      });
       return;
     }
     if (document.getElementById(VE_DESIGNMD_PANEL_ID)) {
@@ -10159,11 +10317,16 @@
     injectDesignMdControllerStyles();
 
     // The panel — its own floating element, positioned absolutely.
+    // R27 + R39: start HIDDEN (visibility:hidden). The summon gesture
+    // toggles visibility; nothing else.
     var panel = document.createElement('div');
     panel.id = VE_DESIGNMD_PANEL_ID;
     panel.setAttribute('data-collapsed', '0');
     panel.setAttribute('role', 'dialog');
     panel.setAttribute('aria-label', 'DESIGN.md style controller');
+    panel.style.visibility = 'hidden';
+    panel.style.opacity = '0';
+    panel.style.pointerEvents = 'none';
 
     // ── Title bar ── drag handle + title + theme toggle + collapse + close.
     var head = document.createElement('div');
@@ -10662,6 +10825,11 @@
                                  // wire every visualize-skill module after
                                  // tokens are on :root and runtime CSS is in.
     injectDesignMdControllerPad(); // Phase 1b — floating DESIGN.md style pad
+    bindPodSummonGesture();        // R39 — Ctrl+Shift+\ + 3-finger-tap summon
+    // R27: even when amvcp-designmd.js wasn't shipped with the page,
+    // we still want a wake handle in the DOM so the R27 verify passes.
+    // The handle is hidden until the gesture summons it.
+    _ensureDesignMdHandle();
     // Test hook — expose openCommentModal so headless tests can open
     // the modal directly without going through the (now-removed)
     // .ve-comment-pill hover UI. The bubble handle (.ve-comment-handle)

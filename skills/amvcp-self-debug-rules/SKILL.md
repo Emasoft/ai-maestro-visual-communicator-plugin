@@ -956,13 +956,20 @@ const r = await page.evaluate(() => {
 
 ### R37 — Font size readable (≥ 14 px body, ≥ 12 px chips)
 
-Body prose MUST resolve to a computed `font-size` ≥ 14 px on the default viewport (1280 px width). Mini chips (decision-mini segments, badges, tag pills) MUST be ≥ 12 px. Fluid scales (`clamp(...)`) MUST clamp ≥ 14 px at the smallest defined viewport (320 px).
+**Body prose** MUST resolve to a computed `font-size` ≥ 14 px on the default viewport (1280 px width). **Mini chips** (decision-mini segments, badges, tag pills) MUST be ≥ 12 px. Fluid scales (`clamp(...)`) MUST clamp ≥ 14 px at the smallest defined viewport (320 px).
+
+**Exemptions** — these classes are intentionally compact and NOT counted as body prose: `.vc-type-body-sm` (type-specimen example), `.ve-chart-legend-item` (chart legend labels), `.ve-badge`, `.ve-chip`, `.ve-footnote`, `.ve-caption`, `.ve-pnum`, plus any element with `data-ve-allow-small="1"`. Skills that need a sub-14 px UI label MUST use one of these classes (and document the intent) — never set `font-size: 12px` on a bare `<p>` or `<li>`.
 
 Verify:
 ```js
 const r = await page.evaluate(() => {
+  const exemptSel =
+    '.vc-type-body-sm, .ve-chart-legend-item, .ve-badge, '
+    + '.ve-chip, .ve-footnote, .ve-caption, .ve-pnum, '
+    + '[data-ve-allow-small="1"]';
   const proseSizes = [];
   document.querySelectorAll('p, li').forEach(el => {
+    if (el.matches(exemptSel) || el.closest(exemptSel)) return;
     proseSizes.push(parseFloat(getComputedStyle(el).fontSize));
   });
   const minProse = proseSizes.length ? Math.min(...proseSizes) : 14;

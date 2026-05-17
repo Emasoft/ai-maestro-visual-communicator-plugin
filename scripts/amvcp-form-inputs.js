@@ -2759,7 +2759,7 @@
     '  background: var(--vc-color-surface-raised, #fffdf8);',
     '  border: 1px solid var(--vc-color-border-strong, #c9bfa3);',
     '  border-radius: 999px;',
-    '  font: 13px/1.3 var(--vc-font-body,'
+    '  font: 14px/1.3 var(--vc-font-body,'
       + ' ui-sans-serif, system-ui, sans-serif);',
     '  color: var(--vc-color-content, #1f1a14);',
     '  cursor: grab;',
