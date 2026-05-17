@@ -9195,6 +9195,15 @@
   var VE_DESIGNMD_LS_COLLAPSED = 've-designmd-pad-collapsed';
   var VE_DESIGNMD_LS_LIB_OPEN = 've-designmd-pad-library-open';
   var VE_DESIGNMD_LS_PRESET = 've-designmd-pad-preset';
+  // TRDD-6fdf6ad2 Tier 1B — per-theme active preset. The user can
+  // assign a DIFFERENT DESIGN.md preset to each theme via the pod's
+  // library drawer (two pills per row: [L] for light, [D] for dark).
+  // Toggling the corner-button theme automatically swaps the active
+  // preset to whichever is assigned to the new theme. If a slot is
+  // unset, the corner-button toggle falls back to "re-derive same
+  // designmd under new theme" (the legacy behaviour).
+  var VE_DESIGNMD_LS_PRESET_LIGHT = 've-designmd-pad-preset-light';
+  var VE_DESIGNMD_LS_PRESET_DARK = 've-designmd-pad-preset-dark';
 
   function veDesignMdLsRead(key) {
     try {
@@ -9478,7 +9487,33 @@
     var html = document.documentElement;
     var current = html.getAttribute('data-ve-theme') || 'light';
     var next = current === 'dark' ? 'light' : 'dark';
+    // TRDD-6fdf6ad2 Tier 1B — if the user assigned a different
+    // preset to the new theme, swap the entire DESIGN.md (not just
+    // re-derive). veDesignMdResolveThemePreset returns null if the
+    // engine isn't loaded yet or no preset is assigned; in that
+    // case we fall through to just flipping data-ve-theme, and the
+    // bound MutationObserver re-derives tokens from the current
+    // DESIGN.md under the new theme (legacy behaviour).
+    var preset = null;
+    try {
+      if (typeof veDesignMdResolveThemePreset === 'function') {
+        preset = veDesignMdResolveThemePreset(next);
+      }
+    } catch (e) { /* engine not loaded — legacy path */ }
     html.setAttribute('data-ve-theme', next);
+    if (preset) {
+      var panel = document.getElementById(VE_DESIGNMD_PANEL_ID);
+      try {
+        veDesignMdHotSwap(panel, preset.text,
+          preset.label + ' (preset, ' + next + ' slot)');
+        // Mirror "single active preset" so the library row pill
+        // reflects what's painted.
+        veDesignMdLsWrite(VE_DESIGNMD_LS_PRESET, preset.key);
+        // Re-render library pills so they reflect the new active.
+        var listEl = document.querySelector('.ve-designmd-library-list');
+        if (listEl && panel) { veDesignMdRenderLibrary(panel, listEl); }
+      } catch (e) { /* swap failed — fall back to attribute flip */ }
+    }
     try {
       if (typeof localStorage !== 'undefined') {
         localStorage.setItem(VE_USER_THEME_LS_KEY, next);
@@ -10175,6 +10210,40 @@
       '  border-color:var(--ve-control-border-strong, rgba(0,0,0,0.3));',
       '}',
       '.ve-designmd-preset[aria-pressed="true"] {',
+      '  background:var(--ve-accent, #b8861f);',
+      '  color:var(--ve-on-accent, #fff);',
+      '  border-color:var(--ve-accent, #b8861f);',
+      '}',
+      // TRDD-6fdf6ad2 Tier 1B — per-theme preset row + L/D pills.
+      // Each library entry is now a 3-button row: [Name] [L] [D].
+      // The L/D pills are tiny square toggles that assign this
+      // preset to the light or dark theme slot independently.
+      '.ve-designmd-preset-row {',
+      '  display:inline-flex; align-items:center; gap:2px;',
+      '  margin:0 4px 4px 0;',
+      '}',
+      '.ve-designmd-preset-row .ve-designmd-preset {',
+      '  border-top-right-radius:0; border-bottom-right-radius:0;',
+      '  margin:0;',
+      '}',
+      '.ve-designmd-preset-theme {',
+      '  appearance:none; -webkit-appearance:none; cursor:pointer;',
+      '  background:var(--ve-control-bg, #fff);',
+      '  color:var(--ve-control-fg, #14110b);',
+      '  border:1px solid var(--ve-control-border, rgba(0,0,0,0.18));',
+      '  font:700 10px/1 var(--ve-control-font, inherit);',
+      '  width:22px; height:22px; padding:0;',
+      '  display:inline-flex; align-items:center; justify-content:center;',
+      '  border-left:0; border-radius:0;',
+      '}',
+      '.ve-designmd-preset-theme[data-theme="dark"] {',
+      '  border-top-right-radius:var(--ve-control-radius-sm, 6px);',
+      '  border-bottom-right-radius:var(--ve-control-radius-sm, 6px);',
+      '}',
+      '.ve-designmd-preset-theme:hover {',
+      '  background:var(--ve-control-bg-hover, #f0f0f0);',
+      '}',
+      '.ve-designmd-preset-theme[aria-pressed="true"] {',
       '  background:var(--ve-accent, #b8861f);',
       '  color:var(--ve-on-accent, #fff);',
       '  border-color:var(--ve-accent, #b8861f);',
@@ -11098,41 +11167,147 @@
     });
   }
 
-  // Render the theme-library drawer's preset list. Each row is a button
-  // that, on click, calls veDesignMdHotSwap with the preset's text and
-  // marks itself aria-pressed (the runtime never multi-selects — only
-  // one preset can be active at a time).
+  // TRDD-6fdf6ad2 Tier 1B helpers — per-theme preset assignment.
+  // Each theme has its own active preset slot in localStorage; the
+  // resolver returns the preset row that should drive the page when
+  // the given theme is active, falling back to the single VE_DESIGNMD_LS_PRESET
+  // and finally to null if no slot is set.
+  function _themeLsKey(theme) {
+    return theme === 'dark'
+      ? VE_DESIGNMD_LS_PRESET_DARK
+      : VE_DESIGNMD_LS_PRESET_LIGHT;
+  }
+  function veDesignMdResolveThemePreset(theme) {
+    var key = veDesignMdLsRead(_themeLsKey(theme))
+      || veDesignMdLsRead(VE_DESIGNMD_LS_PRESET);
+    if (!key) return null;
+    var rows = veDesignMdAllPresets();
+    var i;
+    for (i = 0; i < rows.length; i++) {
+      if (rows[i].key === key) return rows[i];
+    }
+    return null;
+  }
+
+  // Render the theme-library drawer's preset list. Each row is a
+  // wrapper holding three buttons:
+  //   1. The preset NAME — click applies it to the CURRENT theme
+  //      (legacy single-active behaviour, unchanged).
+  //   2. [L] mini-pill — assigns this preset to the LIGHT slot. If
+  //      the current theme is light, also applies immediately.
+  //   3. [D] mini-pill — assigns this preset to the DARK slot. If
+  //      the current theme is dark, also applies immediately.
+  // The two pills are radio-scoped per column (only one preset can
+  // be the active light; only one can be the active dark). aria-pressed
+  // reflects the assignment, not the immediate-apply effect.
   function veDesignMdRenderLibrary(panel, listEl) {
     if (!listEl) return;
     while (listEl.firstChild) listEl.removeChild(listEl.firstChild);
     var rows = veDesignMdAllPresets();
     var lastKey = veDesignMdLsRead(VE_DESIGNMD_LS_PRESET);
+    var lightKey = veDesignMdLsRead(VE_DESIGNMD_LS_PRESET_LIGHT);
+    var darkKey = veDesignMdLsRead(VE_DESIGNMD_LS_PRESET_DARK);
+
+    function refreshAriaPressed() {
+      var allName = listEl.querySelectorAll('.ve-designmd-preset');
+      var allLight = listEl.querySelectorAll(
+        '.ve-designmd-preset-theme[data-theme="light"]');
+      var allDark = listEl.querySelectorAll(
+        '.ve-designmd-preset-theme[data-theme="dark"]');
+      var k;
+      var curLast = veDesignMdLsRead(VE_DESIGNMD_LS_PRESET);
+      var curLight = veDesignMdLsRead(VE_DESIGNMD_LS_PRESET_LIGHT);
+      var curDark = veDesignMdLsRead(VE_DESIGNMD_LS_PRESET_DARK);
+      for (k = 0; k < allName.length; k++) {
+        allName[k].setAttribute('aria-pressed',
+          allName[k].getAttribute('data-preset-key') === curLast
+            ? 'true' : 'false');
+      }
+      for (k = 0; k < allLight.length; k++) {
+        allLight[k].setAttribute('aria-pressed',
+          allLight[k].getAttribute('data-preset-key') === curLight
+            ? 'true' : 'false');
+      }
+      for (k = 0; k < allDark.length; k++) {
+        allDark[k].setAttribute('aria-pressed',
+          allDark[k].getAttribute('data-preset-key') === curDark
+            ? 'true' : 'false');
+      }
+    }
+
     var i;
     for (i = 0; i < rows.length; i++) {
       var row = rows[i];
+
+      var wrap = document.createElement('div');
+      wrap.className = 've-designmd-preset-row';
+      wrap.setAttribute('data-preset-key', row.key);
+
+      // (1) Preset name — applies to current theme on click.
       var btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 've-designmd-preset';
       btn.setAttribute('data-preset-key', row.key);
       btn.setAttribute('aria-pressed', row.key === lastKey ? 'true' : 'false');
       btn.textContent = row.label;
-      // Bind the click via an IIFE so each button captures its own row.
-      (function (r) {
-        btn.addEventListener('click', function () {
+
+      // (2) Light-slot toggle.
+      var lightBtn = document.createElement('button');
+      lightBtn.type = 'button';
+      lightBtn.className = 've-designmd-preset-theme';
+      lightBtn.setAttribute('data-theme', 'light');
+      lightBtn.setAttribute('data-preset-key', row.key);
+      lightBtn.setAttribute('aria-pressed',
+        row.key === lightKey ? 'true' : 'false');
+      lightBtn.textContent = 'L';
+      lightBtn.title = 'Use ' + row.label + ' when in light theme';
+
+      // (3) Dark-slot toggle.
+      var darkBtn = document.createElement('button');
+      darkBtn.type = 'button';
+      darkBtn.className = 've-designmd-preset-theme';
+      darkBtn.setAttribute('data-theme', 'dark');
+      darkBtn.setAttribute('data-preset-key', row.key);
+      darkBtn.setAttribute('aria-pressed',
+        row.key === darkKey ? 'true' : 'false');
+      darkBtn.textContent = 'D';
+      darkBtn.title = 'Use ' + row.label + ' when in dark theme';
+
+      // Bind click handlers via IIFE so each button captures its row.
+      (function (r, nameB, lightB, darkB) {
+        nameB.addEventListener('click', function () {
           var res = veDesignMdHotSwap(panel, r.text, r.label + ' (preset)');
           if (res && res.ok) {
             veDesignMdLsWrite(VE_DESIGNMD_LS_PRESET, r.key);
-            // Update aria-pressed across the row.
-            var all = listEl.querySelectorAll('.ve-designmd-preset');
-            var k;
-            for (k = 0; k < all.length; k++) {
-              all[k].setAttribute('aria-pressed',
-                all[k].getAttribute('data-preset-key') === r.key ? 'true' : 'false');
-            }
+            refreshAriaPressed();
           }
         });
-      })(row);
-      listEl.appendChild(btn);
+        lightB.addEventListener('click', function () {
+          veDesignMdLsWrite(VE_DESIGNMD_LS_PRESET_LIGHT, r.key);
+          // If the current theme matches, apply immediately so the
+          // user sees the effect of their selection.
+          var currentTheme = document.documentElement.getAttribute('data-ve-theme') || 'light';
+          if (currentTheme === 'light') {
+            veDesignMdHotSwap(panel, r.text, r.label + ' (preset, light slot)');
+            veDesignMdLsWrite(VE_DESIGNMD_LS_PRESET, r.key);
+          }
+          refreshAriaPressed();
+        });
+        darkB.addEventListener('click', function () {
+          veDesignMdLsWrite(VE_DESIGNMD_LS_PRESET_DARK, r.key);
+          var currentTheme = document.documentElement.getAttribute('data-ve-theme') || 'light';
+          if (currentTheme === 'dark') {
+            veDesignMdHotSwap(panel, r.text, r.label + ' (preset, dark slot)');
+            veDesignMdLsWrite(VE_DESIGNMD_LS_PRESET, r.key);
+          }
+          refreshAriaPressed();
+        });
+      })(row, btn, lightBtn, darkBtn);
+
+      wrap.appendChild(btn);
+      wrap.appendChild(lightBtn);
+      wrap.appendChild(darkBtn);
+      listEl.appendChild(wrap);
     }
   }
 
