@@ -2677,6 +2677,13 @@
     var selections = [];
     for (var i = 0; i < veSelection.length; i++) {
       var e = veSelection[i];
+      // Re-read the per-finding decision at submit time so the payload
+      // reflects any segment flip that happened AFTER the textarea was
+      // last touched. Without this re-read, the payload would carry the
+      // stale decision frozen at type-time.
+      if (e && e.kind === 'finding-reply' && e.findingId) {
+        e.decision = currentDecisionFor('ve-' + e.findingId);
+      }
       var out = {};
       for (var k in e) {
         if (INTERNAL[k]) continue;
@@ -7088,6 +7095,13 @@
   function pushOrUpdateFindingReply(findingId, text) {
     var trimmed = (text || '').replace(/\s+$/g, '').replace(/^\s+/g, '');
     var entryId = 'finding-reply:' + findingId;
+    // Carry the per-finding 3-state decision (skip/approve/reject) so the
+    // submit payload's selections[i].decision matches whatever the user
+    // had set on the segmented control at the moment they stopped typing.
+    // currentDecisionFor() reads the decisionState Map maintained by the
+    // segment click/keyboard handlers, falling back to the hidden checkbox
+    // DOM state. anchorId mirrors the fieldset's data-anchor-id: `ve-<fid>`.
+    var decision = currentDecisionFor('ve-' + findingId);
     var existingIdx = -1;
     for (var i = 0; i < veSelection.length; i++) {
       if (veSelection[i].entryId === entryId) { existingIdx = i; break; }
@@ -7101,12 +7115,14 @@
     }
     if (existingIdx >= 0) {
       veSelection[existingIdx].text = trimmed;
+      veSelection[existingIdx].decision = decision;
     } else {
       veSelection.push({
         kind: 'finding-reply',
         entryId: entryId,
         findingId: findingId,
-        text: trimmed
+        text: trimmed,
+        decision: decision
       });
     }
     updateSubmitButtonsState();
@@ -12513,6 +12529,12 @@
   if (typeof window !== 'undefined') {
     window.amvcpRuntime = window.amvcpRuntime || {};
     window.amvcpRuntime.attachDecisionMini = attachDecisionMini;
+    // Read-only test hook — exposes the canonical submit payload (the
+    // exact shape POSTed to /__ve-select) without firing the POST. Used
+    // by test-decision-pills.js to verify finding-reply entries carry
+    // the current per-finding decision (skip/approve/reject). Not used
+    // by production callers.
+    window.amvcpRuntime.buildSubmissionPayload = buildSubmissionPayload;
   }
 
   if (document.readyState === 'loading') {

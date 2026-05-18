@@ -492,6 +492,104 @@ async function testAutoStampSkipsChromeAndFakeHeadings(page) {
     JSON.stringify(r));
 }
 
+async function typeIntoFindingReply(page, findingId, text) {
+  // Set value directly + dispatch `input` to trigger the runtime's
+  // delegated debounced handler. Same shape as setDecisionToggle —
+  // bypasses click-flakiness in the dev-browser sandbox by talking
+  // straight to the listener the production code registers.
+  const ok = await page.evaluate((args) => {
+    const ta = document.querySelector(
+      'textarea[data-ve-finding-reply][data-ve-finding-id="' + args.fid + '"]'
+    );
+    if (!ta) return false;
+    ta.scrollIntoView({ block: 'center' });
+    ta.focus();
+    ta.value = args.text;
+    ta.dispatchEvent(new Event('input', { bubbles: true }));
+    return true;
+  }, { fid: findingId, text });
+  // The runtime debounces input events at 350ms before pushing into
+  // veSelection. Wait a bit longer to be safe under sandbox jitter.
+  await page.waitForTimeout(500);
+  return ok;
+}
+
+async function testFindingReplyCarriesDecisionAtTypeTime(page) {
+  // TRDD-4c300620 §6 — finding-reply entries in the submit payload
+  // MUST carry the current 3-state decision (skip|approve|reject) so
+  // the agent receiving the payload knows whether the user accepts /
+  // rejects the finding alongside the reply text.
+  //
+  // Scenario: flip finding-1 to "approve" FIRST, then type a reply.
+  // The push handler reads currentDecisionFor('ve-finding-1') at
+  // type-time, so the entry must carry decision:"approve".
+  await setup(page);
+  const flipped = await setDecisionToggle(page, 'finding-1', 'approve');
+  const typed = await typeIntoFindingReply(
+    page, 'finding-1', 'looks good, accepting this one'
+  );
+  const sel = await page.evaluate(() => {
+    return (window.veSelection || []).filter(
+      (e) => e && e.kind === 'finding-reply'
+    );
+  });
+  const entry = sel.find((e) => e.findingId === 'finding-1');
+  const ok = flipped && typed && entry
+    && entry.text === 'looks good, accepting this one'
+    && entry.decision === 'approve';
+  record(
+    'finding_reply_carries_decision_type_time',
+    ok ? 'PASS' : 'FAIL',
+    'flip then type — finding-reply entry carries decision:"approve"',
+    JSON.stringify({ flipped, typed, entry })
+  );
+}
+
+async function testFindingReplyRefreshesDecisionAtSubmitTime(page) {
+  // Scenario: type a reply FIRST (decision still default "skip"),
+  // THEN flip finding-2 to "reject" WITHOUT re-typing. The veSelection
+  // entry still carries the stale "skip" at this point — but the
+  // submit-time refresh in buildSubmissionPayload() re-reads the
+  // current decision and rewrites the entry. The test calls the
+  // read-only payload-builder hook exposed by the runtime and
+  // verifies the payload's finding-reply entry carries "reject".
+  await setup(page);
+  const typed = await typeIntoFindingReply(
+    page, 'finding-2', 'this needs more work'
+  );
+  // Snapshot BEFORE the decision flip — entry should be "skip".
+  const before = await page.evaluate(() => {
+    const e = (window.veSelection || []).find(
+      (x) => x && x.kind === 'finding-reply' && x.findingId === 'finding-2'
+    );
+    return e ? { text: e.text, decision: e.decision } : null;
+  });
+  const flipped = await setDecisionToggle(page, 'finding-2', 'reject');
+  // Call the read-only payload-builder. The submit-time refresh re-reads
+  // currentDecisionFor() for every finding-reply entry, mutating veSelection
+  // in place and copying the fresh state into the payload's selections[].
+  const payload = await page.evaluate(() => {
+    if (!window.amvcpRuntime || !window.amvcpRuntime.buildSubmissionPayload) {
+      return null;
+    }
+    return window.amvcpRuntime.buildSubmissionPayload();
+  });
+  const f2 = payload && payload.selections
+    ? payload.selections.find(
+        (s) => s.kind === 'finding-reply' && s.findingId === 'finding-2'
+      )
+    : null;
+  const ok = typed && flipped && before
+    && before.decision === 'skip'
+    && f2 && f2.decision === 'reject' && f2.text === 'this needs more work';
+  record(
+    'finding_reply_refreshes_decision_submit_time',
+    ok ? 'PASS' : 'FAIL',
+    'type then flip — submit payload reflects fresh "reject" decision',
+    JSON.stringify({ typed, flipped, before, payloadEntry: f2 })
+  );
+}
+
 // ── Runner ──────────────────────────────────────────────────────────
 
 const tests = [
@@ -500,6 +598,8 @@ const tests = [
   testDecisionWithComment,
   testDecisionMutex,
   testDecisionSummaryPersisted,
+  testFindingReplyCarriesDecisionAtTypeTime,
+  testFindingReplyRefreshesDecisionAtSubmitTime,
   testAutoStampMissingParagraphAtoms,
   testAutoStampSkipsChromeAndFakeHeadings,
 ];
