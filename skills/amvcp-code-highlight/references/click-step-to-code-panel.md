@@ -15,6 +15,9 @@
 - [G1.11 Tokens consumed](#g111-tokens-consumed)
 - [G1.12 Author rules](#g112-author-rules)
 - [G1.13 Mined source attribution](#g113-mined-source-attribution)
+- [Overview](#overview)
+
+## Overview
 
 The diagram-adjacent code pattern: click any node in an SVG flowchart
 → populate a sticky right-side detail panel with title + meta + prose

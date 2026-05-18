@@ -21,6 +21,9 @@ This file documents every failure mode + what the error block looks like.
   - [7. Renderer throws](#7-renderer-throws)
 - [What the error block looks like](#what-the-error-block-looks-like)
 - [Accessing the error reason programmatically](#accessing-the-error-reason-programmatically)
+- [Overview](#overview)
+
+## Overview
 
 ---
 

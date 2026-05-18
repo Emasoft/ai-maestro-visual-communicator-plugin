@@ -10,6 +10,9 @@
 - [Anti-slop interaction](#anti-slop-interaction)
 - [Selection / comment / decision-mini contract](#selection--comment--decision-mini-contract)
 - [Visual verification](#visual-verification)
+- [Overview](#overview)
+
+## Overview
 
 The `state` panel of the token contact sheet renders interaction-
 state demos: idle / hover / focus / pressed / disabled, side-by-

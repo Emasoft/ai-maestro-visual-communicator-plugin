@@ -144,10 +144,10 @@ the deep dive.
   > What it is · When to pick · Scaffold to emit · Lib functions used · DESIGN.md tokens used · Anti-slop interaction · Selection / comment / decision-mini contract · Visual verification
 | "make it warmer / cooler / playful / corporate" | step 3 | [personality-deltas.md](./references/personality-deltas.md), [hot-swap-restyling.md](./references/hot-swap-restyling.md) |
   > What it does · When to use which delta · Composing deltas · Scaffold to emit · Lib functions used · DESIGN.md tokens used · Anti-slop interaction · Selection / comment / decision-mini contract · Visual verification
-  > What it does · When to use · Scaffold to emit · Lib functions used · DESIGN.md tokens used · Anti-slop interaction · Selection / comment / decision-mini contract · Visual verification
+  > Overview · What it does · When to use · Scaffold to emit · Lib functions used · DESIGN.md tokens used · Anti-slop interaction · Selection / comment / decision-mini contract · Visual verification
 | "live-token playground" / "token tuner UI" | step 3 | [live-token-playground.md](./references/live-token-playground.md), [hot-swap-restyling.md](./references/hot-swap-restyling.md) |
   > What it does · When to ship a playground · Scaffold to emit · The hover→snippet preview pattern (DM-22 reference) · Lib functions used · DESIGN.md tokens used · Anti-slop interaction · Selection / comment / decision-mini contract · Visual verification
-  > What it does · When to use · Scaffold to emit · Lib functions used · DESIGN.md tokens used · Anti-slop interaction · Selection / comment / decision-mini contract · Visual verification
+  > Overview · What it does · When to use · Scaffold to emit · Lib functions used · DESIGN.md tokens used · Anti-slop interaction · Selection / comment / decision-mini contract · Visual verification
 | "spacing scale" / "8pt grid" / "phi spacing" | step 2 | [phi-spacing-generator.md](./references/phi-spacing-generator.md) |
   > What it does · When to choose · Scaffold to emit · Lib functions used · DESIGN.md tokens used · Anti-slop interaction · Selection / comment / decision-mini contract · Visual verification
 | "elevation" / "shadow scale" / "cinematic shadows" | step 2 | [elevation-scale.md](./references/elevation-scale.md) |
@@ -162,7 +162,7 @@ the deep dive.
   > What it does · When to choose · Scaffold to emit · Lib functions used · DESIGN.md tokens used · Anti-slop interaction · Single source of truth · Selection / comment / decision-mini contract · Visual verification
 | "interaction states" / "hover/focus/pressed" | (downstream of step 3) | [interaction-state-tokens.md](./references/interaction-state-tokens.md), [contact-sheet-state-panel.md](./references/contact-sheet-state-panel.md) |
   > What it does · When to use · Scaffold to emit · Lib functions used · DESIGN.md tokens used · Anti-slop interaction · Selection / comment / decision-mini contract · Visual verification
-  > What it does · Why both frozen AND live · Scaffold to emit · Lib functions used · DESIGN.md tokens used · Anti-slop interaction · Selection / comment / decision-mini contract · Visual verification
+  > Overview · What it does · Why both frozen AND live · Scaffold to emit · Lib functions used · DESIGN.md tokens used · Anti-slop interaction · Selection / comment / decision-mini contract · Visual verification
 | "dark text hierarchy" / "on-surface text tiers" | (downstream of step 3) | [dark-text-hierarchy.md](./references/dark-text-hierarchy.md) |
   > What it does · When to use which tier · When to use the on-surface family vs. the engine's content roles · Scaffold to emit · Lib functions used · DESIGN.md tokens used · Anti-slop interaction · Selection / comment / decision-mini contract · Visual verification
 | "badge / severity colors" (MUST/IMO/Q/FYI) | step 4 | [badge-severity-roles.md](./references/badge-severity-roles.md), [derived-state-color-split.md](./references/derived-state-color-split.md) |
@@ -305,7 +305,7 @@ This skill is composed by EVERY other amvcp-* skill on the page (R22) — it is 
   > What it does · When to use which delta · Composing deltas · Scaffold to emit · Lib functions used · DESIGN.md tokens used · Anti-slop interaction · Selection / comment / decision-mini contract · Visual verification
   / corporate / minimal / warmer / cooler deltas.
 - [hot-swap-restyling.md](./references/hot-swap-restyling.md) —
-  > What it does · When to use · Scaffold to emit · Lib functions used · DESIGN.md tokens used · Anti-slop interaction · Selection / comment / decision-mini contract · Visual verification
+  > Overview · What it does · When to use · Scaffold to emit · Lib functions used · DESIGN.md tokens used · Anti-slop interaction · Selection / comment / decision-mini contract · Visual verification
   `window.__veDesignMd.hotSwap(text)` (DM-25).
 - [live-token-playground.md](./references/live-token-playground.md) —
   > What it does · When to ship a playground · Scaffold to emit · The hover→snippet preview pattern (DM-22 reference) · Lib functions used · DESIGN.md tokens used · Anti-slop interaction · Selection / comment / decision-mini contract · Visual verification
@@ -375,7 +375,7 @@ This skill is composed by EVERY other amvcp-* skill on the page (R22) — it is 
   > What it does · Why overlap (vs a single-column legend) · Scaffold to emit · Lib functions used · DESIGN.md tokens used · Anti-slop interaction · Selection / comment / decision-mini contract · Visual verification
   overlapping plates stack.
 - [contact-sheet-state-panel.md](./references/contact-sheet-state-panel.md)
-  > What it does · Why both frozen AND live · Scaffold to emit · Lib functions used · DESIGN.md tokens used · Anti-slop interaction · Selection / comment / decision-mini contract · Visual verification
+  > Overview · What it does · Why both frozen AND live · Scaffold to emit · Lib functions used · DESIGN.md tokens used · Anti-slop interaction · Selection / comment / decision-mini contract · Visual verification
   — frozen state demos + live instance.
 - [contact-sheet-code-panel.md](./references/contact-sheet-code-panel.md)
   > What it does · Why a tiny built-in tokenizer · Scaffold to emit · Lib functions used · DESIGN.md tokens used · Anti-slop interaction · Selection / comment / decision-mini contract · Visual verification

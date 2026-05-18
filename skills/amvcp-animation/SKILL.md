@@ -101,7 +101,7 @@ Six layers shipped:
 | "list of every keyframe" / "what does vaFloatY do" | Keyframe catalog | [keyframe-catalog](references/keyframe-catalog.md) |
   > The ten keyframes · `vaFadeSlideUp` — the entrance default · `vaFadeOnly` — the universal reduce substitute · `vaFloatY` — the vertical bob · `vaBreathe` — the scale pulse · `vaOrbit` — the circular orbit · `vaRotate` — the in-place spin · `vaPulseRing` — the expanding ring · `vaShimmer` — the sliding gradient · Composition rules · DESIGN.md token consumption per keyframe · Reduced-motion handling · Selection + comment + decision integration · Diagnostics · Visual verification
 | "informational or decorative" / "what substitute pattern" | Categorization | [decorative-vs-informational](references/decorative-vs-informational.md) |
-  > The two categories defined · The decision tree · Worked examples · What about edge cases? · Why the category matters for selection · Why the category matters for performance · Mistakes to avoid · DESIGN.md tokens by category · Authoring checklist · Diagnostics · Visual verification
+  > Overview · The two categories defined · The decision tree · Worked examples · What about edge cases? · Why the category matters for selection · Why the category matters for performance · Mistakes to avoid · DESIGN.md tokens by category · Authoring checklist · Diagnostics · Visual verification
 | "scroll-driven CSS" / "animation-timeline" / "view()" | Native scroll-driven | [scroll-driven-timelines](references/scroll-driven-timelines.md) |
   > The two timelines · The catalog of native scroll patterns · Browser support (as of writing) · Authoring the pinned pattern · Authoring the stacking pattern · Authoring the scrub pattern · DESIGN.md tokens consumed · Reduced-motion substitute · Selection + comment + decision integration · Why ship JS fallbacks for everything · Diagnostics · Visual verification · When to opt into the native API
 | "what NOT to do" / "common mistakes" / "antipatterns" | Anti-patterns | [anti-patterns](references/anti-patterns.md) |
@@ -205,7 +205,7 @@ Composes with every other amvcp-* skill on the same page (R22). Multiple instanc
 - [reduced-motion-gate](references/reduced-motion-gate.md) — the substitute pattern, never `animation: none`.
   > Why substitute (not disable) · The two categories — information-bearing vs decorative · OS detection at runtime · Live OS-preference updates · CSS pattern — every animation, twice · JS pattern — read `REDUCED` once per call · DESIGN.md `motion.scale: 0` is ORTHOGONAL, not equivalent · The decision-tree for "what substitute do I write?" · Diagnostics · Visual verification · Selection / decision integration
 - [decorative-vs-informational](references/decorative-vs-informational.md) — the binary that drives substitute choice.
-  > The two categories defined · The decision tree · Worked examples · What about edge cases? · Why the category matters for selection · Why the category matters for performance · Mistakes to avoid · DESIGN.md tokens by category · Authoring checklist · Diagnostics · Visual verification
+  > Overview · The two categories defined · The decision tree · Worked examples · What about edge cases? · Why the category matters for selection · Why the category matters for performance · Mistakes to avoid · DESIGN.md tokens by category · Authoring checklist · Diagnostics · Visual verification
 
 ### Layer 2 — Entry animation
 - [stagger-entry](references/stagger-entry.md) — `--va-index`-driven cascade (complete contract).

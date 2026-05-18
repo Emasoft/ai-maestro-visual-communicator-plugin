@@ -13,6 +13,9 @@
 - [Composition](#composition)
 - [Selection / comment notes](#selection--comment-notes)
 - [Anti-patterns](#anti-patterns)
+- [Overview](#overview)
+
+## Overview
 
 The append-only `<dl>` of date / version / author / summary entries
 that documents how a long-lived document has evolved. Distinct from a

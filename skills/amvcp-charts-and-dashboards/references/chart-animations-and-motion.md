@@ -18,6 +18,9 @@ gates on `prefers-reduced-motion: reduce`.
   - [Radar polygon inflate (RAF)](#radar-polygon-inflate-raf)
 - [Cross-cutting tokens](#cross-cutting-tokens)
 - [Test hooks](#test-hooks)
+- [Overview](#overview)
+
+## Overview
 
 ---
 

@@ -10,6 +10,9 @@
 - [Anti-slop interaction](#anti-slop-interaction)
 - [Selection / comment / decision-mini contract](#selection--comment--decision-mini-contract)
 - [Visual verification](#visual-verification)
+- [Overview](#overview)
+
+## Overview
 
 The runtime exposes `window.__veDesignMd.hotSwap(designMdText)` —
 swap a different DESIGN.md text and the WHOLE page re-themes live: no

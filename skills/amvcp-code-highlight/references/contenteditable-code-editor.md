@@ -16,6 +16,9 @@
 - [F1.12 When to use](#f112-when-to-use)
 - [F1.13 Author rules](#f113-author-rules)
 - [F1.14 Mined source attribution](#f114-mined-source-attribution)
+- [Overview](#overview)
+
+## Overview
 
 The pattern for live-editing code (or a templated text format)
 in-browser with continuous syntax highlighting. The reference impl is

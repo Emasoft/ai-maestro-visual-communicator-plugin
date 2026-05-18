@@ -16,6 +16,9 @@
 - [When to set `range > target`](#when-to-set-range--target)
 - [Bullet for "lower is better" metrics](#bullet-for-lower-is-better-metrics)
 - [Visual verification](#visual-verification)
+- [Overview](#overview)
+
+## Overview
 
 A McKinsey-style KPI visualization. Each category band shows three layers:
 

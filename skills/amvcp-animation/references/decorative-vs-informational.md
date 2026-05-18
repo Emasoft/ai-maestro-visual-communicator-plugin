@@ -13,6 +13,9 @@
 - [Authoring checklist](#authoring-checklist)
 - [Diagnostics](#diagnostics)
 - [Visual verification](#visual-verification)
+- [Overview](#overview)
+
+## Overview
 
 Every animation in the skill falls into ONE of two categories.
 The category drives:

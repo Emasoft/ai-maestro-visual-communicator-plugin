@@ -68,14 +68,14 @@ visual token resolves via `var(--vc-*, <fallback>)`.
 - **Pie chart spec** → remapped to `chart:bar@1` with `sortDescending:true`. See [chart-pie-guardrail.md](./references/chart-pie-guardrail.md).
   > Why no pie charts · What the runtime does · Example · When the author actually wants a circular form · Anti-patterns · Empirical evidence summary · What about lone Hyperframes-style guidance documents? · See also · Visual verification
 - **Malformed JSON / missing title / missing series / unknown type / version too new** → degrades to a VISIBLE error block (danger banner with reason + original JSON kept verbatim). Never silent. See [chart-error-degradation.md](./references/chart-error-degradation.md).
-  > The degrade function · Failure modes · What the error block looks like · Accessing the error reason programmatically · See also
+  > Overview · The degrade function · Failure modes · What the error block looks like · Accessing the error reason programmatically · See also
 - **Chart overflows the viewport** → forbidden inner scrollers. Every `.ve-chart`, `.ve-chart-svg`, `.ve-chart-canvas` is `overflow: visible`. Wide charts extend the page; the document's own scrollbar handles it.
 - **Hover halo grey / palette feels wrong** → DESIGN.md is missing `--vc-color-accent` (or the dark variant). Fix the token, not the spec.
 - **>100 marks** → auto-switches to Canvas backend for `bar`/`line`/`area`/`dot-plot`. Other types stay SVG. See [chart-canvas-backend.md](./references/chart-canvas-backend.md).
   > When the switch fires · Which types are Canvas-capable · What changes for the user · Hit-testing · Accessibility — the hidden a11y list · Theme hot-swap on Canvas · Drawing model · Anti-patterns · See also
 - **Theme swap leaves Canvas stale** → call `amvcpChart.scan(document)` after the theme change; the scanner re-runs each Canvas's `__veChartRedraw()`.
 - **Animation triggers vestibular distress** → all entry animations gate on `prefers-reduced-motion: reduce`. See [chart-animations-and-motion.md](./references/chart-animations-and-motion.md).
-  > The fire-once IntersectionObserver · The motion gate — `prefers-reduced-motion` · Per-type entry animations · Cross-cutting tokens · Test hooks · See also
+  > Overview · The fire-once IntersectionObserver · The motion gate — `prefers-reduced-motion` · Per-type entry animations · Cross-cutting tokens · Test hooks · See also
 - **Color literal hardcoded in a spec** → there is no `color` field on any datum; palette comes from tokens. Edit DESIGN.md to re-theme.
 
 ## When to choose this category — decision matrix (short)
@@ -112,7 +112,7 @@ visual token resolves via `var(--vc-*, <fallback>)`.
 | Show a KPI dashboard | `metric-cards` | [chart-metric-cards.md](./references/chart-metric-cards.md) |
   > When to choose metric-cards · Authoring shape · Options · Examples · What the runtime emits · Lib functions called · DESIGN.md tokens · Selection / atoms · Anti-patterns · Visual verification
 | Show a value vs target | `bullet` (multi) / `gauge` (single) | [chart-bullet.md](./references/chart-bullet.md), [chart-gauge.md](./references/chart-gauge.md) |
-  > When to choose bullet · Authoring shape · Options · Examples · What the runtime emits · Lib functions called · DESIGN.md tokens · Selection / atoms · Anti-patterns · Bullet vs alternatives · The three layers explained · When to set `range > target` · Bullet for "lower is better" metrics · Visual verification
+  > Overview · When to choose bullet · Authoring shape · Options · Examples · What the runtime emits · Lib functions called · DESIGN.md tokens · Selection / atoms · Anti-patterns · Bullet vs alternatives · The three layers explained · When to set `range > target` · Bullet for "lower is better" metrics · Visual verification
   > When to choose gauge · Authoring shape · Options · Semantics: more-is-worse vs more-is-better · Examples · What the runtime emits · Lib functions called · DESIGN.md tokens · Selection / atoms · Anti-patterns · Gauge vs alternatives · Gauge geometry · Three threshold zones explained · Gauge size in a dashboard · Visual verification
 | Low-ink magnitude comparison | `lollipop` / `dot-plot` | [chart-lollipop.md](./references/chart-lollipop.md), [chart-dot-plot.md](./references/chart-dot-plot.md) |
   > When to choose lollipop · Authoring shape · Options · Examples · What the runtime emits · Lib functions called · DESIGN.md tokens · Selection / atoms · Anti-patterns · Lollipop vs alternatives · When lollipop beats bar · When lollipop loses to bar · Multi-series lollipop · Stem styling overrides · Visual verification
@@ -213,7 +213,7 @@ The references below are organised in three groups: per-type, cross-cutting, and
 - [chart-connected-dot-plot.md](./references/chart-connected-dot-plot.md) — `connected-dot-plot` (before/after pairs joined)
   > When to choose connected-dot-plot · Authoring shape · Options · Examples · What the runtime emits · Lib functions called · DESIGN.md tokens · Selection / atoms · Anti-patterns · Connected-dot-plot vs alternatives · Reading direction · Connector + value-label combo · Visual verification
 - [chart-bullet.md](./references/chart-bullet.md) — `bullet` (KPI vs target + qualitative range)
-  > When to choose bullet · Authoring shape · Options · Examples · What the runtime emits · Lib functions called · DESIGN.md tokens · Selection / atoms · Anti-patterns · Bullet vs alternatives · The three layers explained · When to set `range > target` · Bullet for "lower is better" metrics · Visual verification
+  > Overview · When to choose bullet · Authoring shape · Options · Examples · What the runtime emits · Lib functions called · DESIGN.md tokens · Selection / atoms · Anti-patterns · Bullet vs alternatives · The three layers explained · When to set `range > target` · Bullet for "lower is better" metrics · Visual verification
 - [chart-segmented-bar.md](./references/chart-segmented-bar.md) — `segmented-bar` (CSS-flex part-to-whole)
   > When to choose segmented-bar · Authoring shape · Options · Examples · What the runtime emits · Lib functions called · DESIGN.md tokens · Selection / atoms · Anti-patterns · Visual verification
 - [chart-line.md](./references/chart-line.md) — `line` (Catmull-Rom smooth)
@@ -264,11 +264,11 @@ The references below are organised in three groups: per-type, cross-cutting, and
 - [chart-selection-and-comments.md](./references/chart-selection-and-comments.md) — the `chart-point` atom contract: data-ve-* attributes, payload, comment-handle, decision-mini pill.
   > What a chart-point atom is · The selection payload shape · The DOM contract — `data-ve-*` attributes · The pointer + keyboard wiring · Selected-state styling · The per-figure group comment-handle · The 3-radio Skip/Approve/Deny decision-mini pill · The defensive standalone-mode fallback · `veWireChart` — the legacy Chart.js bridge · See also
 - [chart-animations-and-motion.md](./references/chart-animations-and-motion.md) — entry animations (growUp, draw-on, arc sweep, polygon inflate) + `prefers-reduced-motion`.
-  > The fire-once IntersectionObserver · The motion gate — `prefers-reduced-motion` · Per-type entry animations · Cross-cutting tokens · Test hooks · See also
+  > Overview · The fire-once IntersectionObserver · The motion gate — `prefers-reduced-motion` · Per-type entry animations · Cross-cutting tokens · Test hooks · See also
 - [chart-tooltip-and-hover.md](./references/chart-tooltip-and-hover.md) — the singleton tooltip + hover-bridge anti-flicker pattern.
   > The singleton tooltip · The hover-bridge anti-flicker pattern · Click-to-lock · Positioning + viewport clamp · Native SVG `<title>` fallback · Canvas-side hover · Tooltip body shape · See also
 - [chart-error-degradation.md](./references/chart-error-degradation.md) — every failure mode + the visible error block.
-  > The degrade function · Failure modes · What the error block looks like · Accessing the error reason programmatically · See also
+  > Overview · The degrade function · Failure modes · What the error block looks like · Accessing the error reason programmatically · See also
 - [chart-design-tokens.md](./references/chart-design-tokens.md) — complete `--vc-*` token reference.
   > Color tokens · Type-scale tokens · Font-family tokens · Weight tokens · Spacing tokens · Radius tokens · Shadow tokens · Motion tokens · Z-index tokens · How DESIGN.md should populate these · See also
 

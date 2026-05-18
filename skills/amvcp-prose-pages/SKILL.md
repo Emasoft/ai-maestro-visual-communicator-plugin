@@ -373,7 +373,7 @@ The full 37-reference progressive-discovery index is grouped below by topic — 
 - [design-system-doc-shape](./references/design-system-doc-shape.md) — living one-pager of the DESIGN.md
   > When to choose this shape · Section order (fixed) · Markdown scaffold · The swatch grid · The type-scale row atom · The spacing ruler atom · DESIGN.md tokens consumed · Composition with other skills · Lib functions called · Selection / comment notes · Decision-mini hook · Anti-patterns
 - [change-log-document-shape](./references/change-log-document-shape.md) — versioned-document edit history
-  > When to add a change log · Scaffold (canonical) · CSS contract · Reverse chronological order · Entry-content discipline · Initial-draft entry · When to roll a new version · DESIGN.md tokens consumed · Composition · Selection / comment notes · Anti-patterns
+  > Overview · When to add a change log · Scaffold (canonical) · CSS contract · Reverse chronological order · Entry-content discipline · Initial-draft entry · When to roll a new version · DESIGN.md tokens consumed · Composition · Selection / comment notes · Anti-patterns
 
 ### Structural primitives (embed inside any shape)
 
