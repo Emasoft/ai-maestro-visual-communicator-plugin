@@ -1,6 +1,6 @@
 ---
-name: amvcp-report-doc
-description: "Cross-cutting non-element technique for the visual-communicator plugin. Two jobs: (1) scaffold a long-form static document (executive summary, technical report, case study, proposal, whitepaper, design-system doc) — plus 15+ deliverable shapes (implementation plan, status report, incident postmortem, PR writeup / review, RFC, ADR, retrospective, architecture / feature / concept explainer, compare-N-approaches, visual-design exploration) — as a single-file DESIGN.md-themed HTML page; (2) run the Output QA pipeline (`runGates`) that verifies any rendered page for nested scrollbars, WCAG AA contrast, prefers-reduced-motion, print CSS, semantic HTML, banned-color, banned-font. Use when the user wants a written report, executive summary, technical writeup, case study, proposal, whitepaper, RFC, ADR, postmortem, status report, retrospective, design-system documentation, an essay or blog post with paragraph-numbered prose, OR asks to QA-check / verify / lint an already-generated visual page, OR asks 'which visual technique should I use'. Trigger with 'write a technical report', 'executive summary page', 'case study doc', 'proposal document', 'whitepaper', 'RFC', 'ADR', 'incident postmortem', 'status report', 'retrospective', 'PR writeup', 'PR review', 'architecture doc', 'feature explainer', 'concept explainer', 'compare options', 'design exploration', 'design-system documentation', 'essay with pull quotes', 'long-form article', 'render this README', 'paragraph-numbered prose', 'QA-check this page', 'verify the report', 'lint the HTML output', 'which visual technique should I use'."
+name: amvcp-prose-pages
+description: "Use when the user wants a written report, executive summary, technical writeup, case study, proposal, whitepaper, RFC, ADR, postmortem, status report, retrospective, design-system documentation, an essay or blog post with paragraph-numbered prose, OR asks to QA-check / verify / lint an already-generated visual page, OR asks 'which visual technique should I use'. Trigger with 'write a technical report', 'executive summary page', 'case study doc', 'proposal document', 'whitepaper', 'RFC', 'ADR', 'incident postmortem', 'status report', 'retrospective', 'PR writeup', 'PR review', 'architecture doc', 'feature explainer', 'concept explainer', 'compare options', 'design exploration', 'design-system documentation', 'essay with pull quotes', 'long-form article', 'render this README', 'paragraph-numbered prose', 'QA-check this page', 'verify the report', 'lint the HTML output', 'which visual technique should I use'."
 license: MIT
 metadata:
   author: Emasoft
@@ -9,6 +9,10 @@ metadata:
 # Report-doc — the cross-cutting non-element technique
 
 > **Parent umbrella:** [`skills/amvcp-visual-communication/SKILL.md`](../amvcp-visual-communication/SKILL.md) — load the umbrella first to route between the 13 category skills.
+
+## Overview
+
+This skill scaffolds long-form static documents (executive summary, technical report, case study, proposal, whitepaper, design-system doc, 15+ deliverable shapes) and runs the 7-gate QA pipeline that verifies any rendered page for nested scrollbars, WCAG AA contrast, prefers-reduced-motion, print CSS, semantic HTML, banned-color, and banned-font violations.
 
 ## What this skill does
 
@@ -136,6 +140,10 @@ skills/amvcp-prose-pages/
   `references/prose-mode.md`.
 - **"Which technique should I use?"** → walk the decision tree in
   `references/request-routing-decision-tree.md`.
+
+## Instructions
+
+The skill has three workflows: scaffold a document, write prose / article pages, and run the QA pipeline. Each is detailed in its own subsection below — start with "Pick the right path" above to choose which one applies.
 
 ## Instructions — scaffold a document
 
@@ -312,7 +320,9 @@ This skill supports `data-ve-mode="readonly"` (the default for prose/report page
 
 Composes with every other amvcp-* skill on the same page (R22). Prose pages typically embed diagrams, tables, code blocks, math, etc. via their respective skills. The only exclusive skill is the overlay-runtime (R24).
 
-## Resources — 37 progressive-discovery references
+## Resources
+
+The full 37-reference progressive-discovery index is grouped below by topic — document shapes, primitive blocks, prose-mode rules, QA pipeline, decision tree, and runtime APIs. Load only the reference whose title matches the current job.
 
 ### Document shapes (pick one per deliverable)
 

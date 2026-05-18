@@ -30,7 +30,8 @@
     "skill_size_severity": "warning",
     "installer_severity": "off",
     "allow_orchestrator_traversal": [
-      "skills/.."
+      "skills/amvcp-visual-communication",
+      "skills/amvcp-self-debug-rules"
     ]
   }
 }

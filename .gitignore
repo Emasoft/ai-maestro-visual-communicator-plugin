@@ -27,6 +27,11 @@ htmlcov/
 venv/
 env/
 
+# Environment files — never commit secrets / API tokens / local config
+.env
+.env.*
+!.env.example
+
 # Janitor runtime state
 /.janitor/
 
