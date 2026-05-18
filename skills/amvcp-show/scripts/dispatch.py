@@ -235,12 +235,20 @@ def _render_markdown_then_launch(md_path: pathlib.Path) -> dict[str, Any]:
         }
     html_path = md_path.with_suffix(".html")
     replies_path = md_path.with_suffix(".replies.json")
+    # --mode auto so EVERY `## …` heading becomes a finding section with a
+    # Skip/Approve/Reject decision control. The default `--mode finding`
+    # only anchors `## Finding N: …` headings, which silently skips
+    # decision controls for hand-authored reports whose section structure
+    # is "## 1. Title" / "## 2. Title" / etc. (the common case for the
+    # Symphony-vs-AMOA-style comparison reports). Per TRDD-4c300620 §6,
+    # every section must have the 3-state controls.
     cmd = [
         "python3", str(RENDER_INTERACTIVE_REPORT),
         "--report", str(md_path),
         "--replies", str(replies_path),
         "--out", str(html_path),
         "--runtime-url", "amvcp-runtime.js",
+        "--mode", "auto",
     ]
     try:
         result = subprocess.run(cmd, capture_output=True, text=True, timeout=60, check=False)
