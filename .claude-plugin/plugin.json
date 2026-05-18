@@ -30,8 +30,22 @@
     "skill_size_severity": "warning",
     "installer_severity": "off",
     "allow_orchestrator_traversal": [
+      "skills/..",
       "skills/amvcp-visual-communication",
-      "skills/amvcp-self-debug-rules"
+      "skills/amvcp-self-debug-rules",
+      "skills/amvcp-animation",
+      "skills/amvcp-charts-and-dashboards",
+      "skills/amvcp-code-highlight",
+      "skills/amvcp-design-tokens",
+      "skills/amvcp-diagram",
+      "skills/amvcp-icon-svg",
+      "skills/amvcp-interactive-controls",
+      "skills/amvcp-layout",
+      "skills/amvcp-prose-pages",
+      "skills/amvcp-slide-decks",
+      "skills/amvcp-tables",
+      "skills/amvcp-typography",
+      "skills/amvcp-wireframe"
     ]
   }
 }

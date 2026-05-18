@@ -12,6 +12,21 @@ metadata:
 
 Every visualization the plugin emits MUST satisfy a fixed set of universal rules. This skill is the canonical checklist + the exact dev-browser snippets to verify each rule. Use it BEFORE telling the user "wrap is fixed", "selection works", "the chip is sized right" — measure, don't claim.
 
+## Prerequisites
+
+- `dev-browser` plugin installed (visible/windowed mode, never headless — R41).
+- Page rendered to a file path (HTML or SVG) the dev-browser can open.
+- Node `puppeteer` available if running snippets via CLI; otherwise the embedded dev-browser MCP works directly.
+
+## Instructions
+
+1. Open the rendered page via dev-browser.
+2. Walk the Universal Rules (R1 - R41) in sequence; run each rule's embedded CDP snippet.
+3. After every measurement that flags a rule as failing, fix the source code (CSS / runtime / authoring) and re-render.
+4. Re-run the relevant rule's snippet to confirm the fix.
+5. Take a screenshot via `page.screenshot({clip: ...})` after each fix and read it back with the `Read` tool for a visual sanity check.
+6. When all rules pass, the page is publishable — repeat for the dark theme and for `prefers-reduced-motion: reduce` emulated.
+
 ## How to debug
 
 1. Open the page via `dev-browser` so the headless Chromium can be inspected from JS — this is faster than the iTerm preview pane and gives byte-level measurements.
@@ -1295,9 +1310,55 @@ For ANY change that touches the runtime, the renderer, or a visualization skill,
 - **Add a new skill without `## Modes` and `## Composability` sections in its SKILL.md** (see R26). Future planner skills need to discover what each skill can do without grepping runtime files.
 - **Launch dev-browser in headless mode** (see R41). Every dev-browser invocation — test runner, scenario runner, screenshot script, agent delegation — MUST run in visible/windowed mode so the user can watch. No `--headless`, no `HEADLESS=1`, no equivalent. Override headless defaults to visible before invocation; do not use tools that only support headless.
 
+## Output
+
+The skill itself emits no DOM and no files. The OUTPUT of running its checks is a pass/fail verdict per rule plus screenshots saved by the caller. Pass criteria: every applicable rule reports `pass` from its snippet OR the snippet's measured value falls inside the rule's tolerance band. Fail criteria: any rule reports `fail` or a measurement outside tolerance.
+
+## Error Handling
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| `page.evaluate` throws "rule snippet" undefined | dev-browser cannot reach the page DOM | Wait for `DOMContentLoaded`; re-open via `page.goto(url, {waitUntil: 'networkidle0'})` |
+| Screenshot is blank / mostly white | Light theme defaulted but CSS shipped only dark vars | Inject `<html data-theme="light">` and re-take; fix dual-theme parity per R1 |
+| Hover-state rule fires false-positive | Programmatic click bypassed the hover-bridge timing | Use `page.mouse.move(x, y, {steps: 8})` then `page.mouse.click()` per R10 |
+| Test passes locally but fails on CI | CI ran dev-browser in headless mode | Per R41, force visible/windowed mode — never `--headless`, never `HEADLESS=1` |
+| New skill flagged "missing ## Modes / ## Composability" | SKILL.md skipped R26 mandatory sections | Add both sections at the end; even "Not applicable" content is acceptable |
+
+## Examples
+
+**Example 1 — verify a new chart skill**
+
+```
+Input: skills/amvcp-charts-and-dashboards rendered a bar chart at /tmp/q1-revenue.html
+Walk: R1 (light+dark), R2 (no-nested-scrollbars), R7 (canonical-tokens),
+      R11 (figure-aria), R22 (data-ve-id), R37 (font-size base).
+Output: 6/6 pass — chart is publishable.
+```
+
+**Example 2 — diagnose a hover bug**
+
+```
+Input: tooltip on an icon flickers when user moves cursor onto it
+Walk: R10 (hover-bridge) — measure the 180 ms delay between mouseleave on
+      anchor and hide-on-tooltip.
+Output: measured delay is 60 ms (< 180 ms tolerance) → fix the hide-timer
+      to default to 200 ms; re-run R10; now pass.
+```
+
+## Resources
+
+This SKILL.md ships the full R1 - R41 rule index inline. There are no separate reference files — the rules ARE the content.
+
+- [amvcp-iterm2-preview](../amvcp-iterm2-preview/SKILL.md) — iTerm split-pane preview lifecycle
+- [amvcp-modal-comments](../amvcp-modal-comments/SKILL.md) — modal comment thread architecture
+- [amvcp-math-and-latex](../amvcp-math-and-latex/SKILL.md) — KaTeX + TikZJax usage details
+- [amvcp-regex-vis](../amvcp-regex-vis/SKILL.md) — regex visualizer
+- [amvcp-prose-pages](../amvcp-prose-pages/SKILL.md) — multi-click text selection chain
+- [amvcp-graph-diagrams](../amvcp-graph-diagrams/SKILL.md) — Graphviz / Mermaid embedding
+
 ## Modes
 
-Not applicable — this is a rules/spec document, not a visual skill. It defines R1-R26 for the OTHER skills to follow. It does NOT emit DOM.
+Not applicable — this is a rules/spec document, not a visual skill. It defines R1-R41 for the OTHER skills to follow. It does NOT emit DOM.
 
 ## Composability
 
