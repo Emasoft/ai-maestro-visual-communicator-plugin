@@ -60,7 +60,7 @@ Before generating any diagram, route the request:
 | UI mockup / device-framed wireframe | the `amvcp-wireframe` skill |
 | 2D data matrix or tabular comparison | the `amvcp-tables` skill |
 
-See `references/notation-dispatch.md` for the full decision tree.
+See [notation-dispatch](references/notation-dispatch.md) for the full decision tree.
 
 ## Prerequisites
 
@@ -98,9 +98,9 @@ See `references/notation-dispatch.md` for the full decision tree.
    an edge, or `data-ve-scene-reveal="scroll"` on the wrapper for
    a draw-on reveal. Both honor `prefers-reduced-motion`.
 6. **Interact** — for a navigable diagram, pair with
-   `click-step-detail-panel.md` (side panel updates on click).
+   [click-step-detail-panel](references/click-step-detail-panel.md) (side panel updates on click).
    For a teaching diagram, pair with
-   `teaching-diagram-perturbable.md` (slider re-renders the
+   [teaching-diagram-perturbable](references/teaching-diagram-perturbable.md) (slider re-renders the
    scene). For a phase graph, the chain-highlight is automatic.
 7. **ASCII** — when SVG is wrong (no-JS, terminal, comment), use
    `<pre class="ve-ascii-diagram">` with the ASCII glyphs. Run
@@ -116,13 +116,13 @@ edges }`. Every node is `{ id, type, label }` plus optional `x`/
 lack coordinates. Every edge is `{ from, to }` plus optional
 `label`/`style`/`route`/`animate`/`arrow`. The full schema, the
 seven node types, the role-to-token fill map, and edge routing are
-in `references/scene-graph-schema.md` and
-`references/node-type-library.md`.
+in [scene-graph-schema](references/scene-graph-schema.md) and
+[node-type-library](references/node-type-library.md).
 
 Validation is **fail-fast** — a bad version, an unknown node type,
 a dangling edge, a duplicate id, or a non-positive width throws
 and the runtime paints a red error box into the figure (never a
-blank SVG). See `references/validation-error-handling.md`.
+blank SVG). See [validation-error-handling](references/validation-error-handling.md).
 
 ## Theming
 
@@ -131,8 +131,8 @@ so a DESIGN.md theme swap re-themes the SVG with no re-render.
 Mermaid is themed by forwarding `--vc-*` into its `themeVariables`
 (Mermaid bakes colors at init and cannot read CSS vars). The six
 named theme presets and the two-color derivation are in
-`references/theming-presets.md`. The blueprint engineering style
-gets its own deep dive in `references/blueprint-grid-style.md`.
+[theming-presets](references/theming-presets.md). The blueprint engineering style
+gets its own deep dive in [blueprint-grid-style](references/blueprint-grid-style.md).
 
 ## Animation
 
@@ -140,8 +140,8 @@ Animated edges use three pure-SVG/SMIL techniques. Every one ships
 a `prefers-reduced-motion: reduce` substitute (under reduce the
 edge renders static-visible — no march, no particle, no pulse).
 Scroll-reveal draws edges on as they enter the viewport. See
-`references/flow-animation.md` and
-`references/numbered-flow-scroll-reveal.md`.
+[flow-animation](references/flow-animation.md) and
+[numbered-flow-scroll-reveal](references/numbered-flow-scroll-reveal.md).
 
 ## Selection + interactions
 
@@ -150,22 +150,22 @@ every edge is `<g data-ve-id data-ve-type="diagram-edge">`; every
 group is `<g data-ve-id data-ve-type="diagram-group">`. The full
 DOM contract — id format, payload schema, hit-area twins, hover
 CSS, multi-select, comment-thread anchoring — is in
-`references/selection-atom-payload.md`.
+[selection-atom-payload](references/selection-atom-payload.md).
 
 For the interaction patterns built on top:
 
-- `references/dependency-chain-highlight.md` — phase-graph's
+- [dependency-chain-highlight](references/dependency-chain-highlight.md) — phase-graph's
   click-to-highlight-a-chain logic, with accessibility and
   performance notes.
-- `references/click-step-detail-panel.md` — diagram becomes
+- [click-step-detail-panel](references/click-step-detail-panel.md) — diagram becomes
   navigable: click a node, side panel updates with title + meta +
   body + code.
-- `references/teaching-diagram-perturbable.md` — diagram becomes
+- [teaching-diagram-perturbable](references/teaching-diagram-perturbable.md) — diagram becomes
   explorable: a slider perturbs parameters and the diagram
   recomputes live.
-- `references/group-collapse-handles.md` — large-diagram
+- [group-collapse-handles](references/group-collapse-handles.md) — large-diagram
   ergonomics: collapse a group to one line and back.
-- `references/viewport-scaffold.md` — opt-in `data-ve-scene-
+- [viewport-scaffold](references/viewport-scaffold.md) — opt-in `data-ve-scene-
   viewport` mode for dense/large diagrams: fixed-height stage with
   pan, mouse-wheel zoom, toolbar, and mini-map (the documented
   "true application surface" exception to no-nested-scrollbars).
@@ -179,7 +179,7 @@ height:auto` so a wide diagram extends the document — there is
 never an inner scrollbar. **Opt-in:** add
 `data-ve-scene-viewport="<height>"` to the host for a fixed-height
 pannable / zoomable surface with mini-map; see
-`references/viewport-scaffold.md`.
+[viewport-scaffold](references/viewport-scaffold.md).
 
 ## Error handling
 
@@ -187,10 +187,10 @@ pannable / zoomable surface with mini-map; see
   malformed; the box `title` carries the precise reason (unknown
   node type, dangling edge, duplicate id, bad version,
   non-positive width). See
-  `references/validation-error-handling.md`.
+  [validation-error-handling](references/validation-error-handling.md).
 - **A node has no x/y in a `free` scene** → `free` has no
   auto-layout; supply explicit coordinates or switch to a placed
-  preset. See `references/free-preset-geometry.md`.
+  preset. See [free-preset-geometry](references/free-preset-geometry.md).
 - **Diagram not selectable** → `amvcp-runtime.js` not loaded; the
   module injects its own hover/select CSS so a standalone page
   still shows the affordance, but the click-to-POST wiring needs
@@ -198,7 +198,7 @@ pannable / zoomable surface with mini-map; see
 - **Animation ignored** → the OS `prefers-reduced-motion` is on
   (intended — the static substitute is shown).
 - **ASCII diagram misaligned** → run the alignment validator
-  (`references/ascii-diagrams.md`) before pasting; double-width
+  ([ascii-diagrams](references/ascii-diagrams.md)) before pasting; double-width
   characters break monospace columns.
 
 ## Examples
@@ -213,7 +213,7 @@ graph: a `start` node, a `process` node "Ingest" (role
 "Persist" (role `data`), and an `end` node. The runtime
 auto-places them into a left-to-right lane, numbers the process
 steps, and makes every node and edge a click-to-select atom. See
-`references/process-flow-preset.md` for the full pattern.
+[process-flow-preset](references/process-flow-preset.md) for the full pattern.
 
 **Input:** "show our quarterly plan as a phase graph — discovery
 through release."
@@ -222,20 +222,20 @@ through release."
 data-ve-scene-preset="phase-graph">` with `card` nodes for each
 phase carrying title + duration, bezier dependency edges, and a
 chain-highlight interaction that lets the reader click any phase
-to see what depends on it. See `references/phase-graph-preset.md`
-and `references/dependency-chain-highlight.md`.
+to see what depends on it. See [phase-graph-preset](references/phase-graph-preset.md)
+and [dependency-chain-highlight](references/dependency-chain-highlight.md).
 
 ## Composition with other skills
 
 The diagram skill is one of 13 visualizing skills; see
-`references/composing-with-other-skills.md` for the boundary map
+[composing-with-other-skills](references/composing-with-other-skills.md) for the boundary map
 and composition patterns (diagram + code-highlight, diagram +
 chart, diagram + slide-decks, diagram + modal-comments, etc.).
 
 ## Visual verification
 
 Every visual change MUST be verified per
-`skills/amvcp-self-debug-rules/SKILL.md` — dev-browser
+[amvcp-self-debug-rules](../amvcp-self-debug-rules/SKILL.md) — dev-browser
 screenshot in light theme, then again in dark theme, then a
 third screenshot if the change involves interaction (click,
 slider, hover). A diagram that works light + dark + interactive
@@ -252,97 +252,97 @@ Composes with every other amvcp-* skill on the same page (R22). Multiple diagram
 ## Resources
 
 ### Renderer routing
-- `references/notation-dispatch.md` — which renderer? the decision
+- [notation-dispatch](references/notation-dispatch.md) — which renderer? the decision
   tree.
 
 ### Scene-graph engine fundamentals
-- `references/scene-graph-schema.md` — the JSON scene-graph
+- [scene-graph-schema](references/scene-graph-schema.md) — the JSON scene-graph
   contract.
-- `references/node-type-library.md` — the seven node types, when
+- [node-type-library](references/node-type-library.md) — the seven node types, when
   to pick each, role-tinting per type.
-- `references/edge-routing-strategies.md` — `straight` / `ortho` /
+- [edge-routing-strategies](references/edge-routing-strategies.md) — `straight` / `ortho` /
   `bezier` / `loop`; styles; arrowheads; hit-area twins.
-- `references/arrow-marker-defs.md` — marker `<defs>`, the
+- [arrow-marker-defs](references/arrow-marker-defs.md) — marker `<defs>`, the
   3-marker scheme (default + success + failure), `context-stroke`.
-- `references/group-container-rects.md` — group rectangles for
+- [group-container-rects](references/group-container-rects.md) — group rectangles for
   layers / swimlanes / namespaces / callouts.
-- `references/coordinate-snap-grid.md` — the 4-unit grid, when to
+- [coordinate-snap-grid](references/coordinate-snap-grid.md) — the 4-unit grid, when to
   override, snapping interaction with auto-place.
-- `references/validation-error-handling.md` — fail-fast errors,
+- [validation-error-handling](references/validation-error-handling.md) — fail-fast errors,
   the red error box, common mistakes.
-- `references/selection-atom-payload.md` — exact `data-ve-id` /
+- [selection-atom-payload](references/selection-atom-payload.md) — exact `data-ve-id` /
   `data-ve-data` contract, hover CSS, multi-select.
 
 ### Presets (deep dives)
-- `references/process-flow-preset.md` — horizontal step lane,
+- [process-flow-preset](references/process-flow-preset.md) — horizontal step lane,
   numbered badges, step ordering, decision branching.
-- `references/architecture-canvas-preset.md` — layered system,
+- [architecture-canvas-preset](references/architecture-canvas-preset.md) — layered system,
   groups as layers, bezier cross-layer edges.
-- `references/phase-graph-preset.md` — cards + bezier
+- [phase-graph-preset](references/phase-graph-preset.md) — cards + bezier
   dependencies, longest-path layering, chain interaction.
-- `references/free-preset-geometry.md` — the escape hatch for
+- [free-preset-geometry](references/free-preset-geometry.md) — the escape hatch for
   floor plans, racks, schematics; explicit coordinates.
 
 ### Diagram archetypes (specific topologies)
-- `references/data-flow-diagram.md` — sync solid + async dashed,
+- [data-flow-diagram](references/data-flow-diagram.md) — sync solid + async dashed,
   hot-path tinting, conservation discipline.
-- `references/step-strip-pattern.md` — compact shared-border
+- [step-strip-pattern](references/step-strip-pattern.md) — compact shared-border
   horizontal pipeline for linear 3-6 step processes.
-- `references/numbered-flow-scroll-reveal.md` — vertical
+- [numbered-flow-scroll-reveal](references/numbered-flow-scroll-reveal.md) — vertical
   numbered flow that draws its connectors as you scroll.
-- `references/fan-out-fan-in.md` — parallel processing
+- [fan-out-fan-in](references/fan-out-fan-in.md) — parallel processing
   topology: source -> shards -> merge.
-- `references/queue-diagram-fifo.md` — FIFO queue snapshot with
+- [queue-diagram-fifo](references/queue-diagram-fifo.md) — FIFO queue snapshot with
   head highlight and direction indicator.
-- `references/swimlane-diagram.md` — parallel actor lanes
+- [swimlane-diagram](references/swimlane-diagram.md) — parallel actor lanes
   (horizontal or vertical), cross-lane handoffs.
-- `references/sequence-diagram-svg.md` — native-SVG sequence
+- [sequence-diagram-svg](references/sequence-diagram-svg.md) — native-SVG sequence
   diagram (when Mermaid isn't enough).
-- `references/state-machine-diagram.md` — states + transitions,
+- [state-machine-diagram](references/state-machine-diagram.md) — states + transitions,
   self-loops, guards, composite states.
-- `references/decision-tree-diagram.md` — tree of decisions to
+- [decision-tree-diagram](references/decision-tree-diagram.md) — tree of decisions to
   outcomes, recommendation paths.
-- `references/sankey-flow-diagram.md` — proportional flow
+- [sankey-flow-diagram](references/sankey-flow-diagram.md) — proportional flow
   bands, conservation, source-tinted bands.
-- `references/tree-hierarchy-diagram.md` — org charts,
+- [tree-hierarchy-diagram](references/tree-hierarchy-diagram.md) — org charts,
   file-system trees, class hierarchies.
-- `references/mind-map-radial.md` — central topic + radial
+- [mind-map-radial](references/mind-map-radial.md) — central topic + radial
   branches; fishbone, concept maps.
-- `references/timeline-diagram.md` — events on a time axis
+- [timeline-diagram](references/timeline-diagram.md) — events on a time axis
   (horizontal milestones or vertical history).
-- `references/gantt-style-bars.md` — task bars with
+- [gantt-style-bars](references/gantt-style-bars.md) — task bars with
   dependencies, today line, completion bars.
 
 ### Theming and animation
-- `references/theming-presets.md` — `--vc-*` forwarding, the six
+- [theming-presets](references/theming-presets.md) — `--vc-*` forwarding, the six
   named theme presets, the two-color color-mix derivation.
-- `references/blueprint-grid-style.md` — the cyan-on-navy
+- [blueprint-grid-style](references/blueprint-grid-style.md) — the cyan-on-navy
   engineering preset, paired with `background: "grid"`.
-- `references/hot-path-tinting.md` — marking trust boundaries
+- [hot-path-tinting](references/hot-path-tinting.md) — marking trust boundaries
   and critical paths with `role: "accent"` or `"danger"`.
-- `references/flow-animation.md` — animated edges (`flow` /
+- [flow-animation](references/flow-animation.md) — animated edges (`flow` /
   `particle` / `pulse`) + scroll-reveal, with
   `prefers-reduced-motion` substitutes.
 
 ### Interaction patterns
-- `references/dependency-chain-highlight.md` — phase-graph's
+- [dependency-chain-highlight](references/dependency-chain-highlight.md) — phase-graph's
   click-to-highlight-a-chain logic.
-- `references/click-step-detail-panel.md` — turn a diagram into
+- [click-step-detail-panel](references/click-step-detail-panel.md) — turn a diagram into
   navigation; side panel updates on click.
-- `references/teaching-diagram-perturbable.md` — slider-driven
+- [teaching-diagram-perturbable](references/teaching-diagram-perturbable.md) — slider-driven
   recomputation for explorable concept diagrams.
-- `references/group-collapse-handles.md` — large-diagram
+- [group-collapse-handles](references/group-collapse-handles.md) — large-diagram
   ergonomics: collapse a group to one line.
 
 ### ASCII fallback
-- `references/ascii-diagrams.md` — the four ASCII styles and the
+- [ascii-diagrams](references/ascii-diagrams.md) — the four ASCII styles and the
   build-time alignment validator workflow.
-- `references/ascii-state-machine.md` — state machines drawn in
+- [ascii-state-machine](references/ascii-state-machine.md) — state machines drawn in
   monospace.
-- `references/ascii-tree-and-hierarchy.md` — file-system trees,
+- [ascii-tree-and-hierarchy](references/ascii-tree-and-hierarchy.md) — file-system trees,
   package hierarchies, taxonomies.
 
 ### Cross-skill composition
-- `references/composing-with-other-skills.md` — boundaries with
+- [composing-with-other-skills](references/composing-with-other-skills.md) — boundaries with
   chart / code-highlight / interactive-controls / modal-comments
   / slide-decks / wireframe / animation / tables / typography.

@@ -20,7 +20,7 @@ Loads on requests for a layout, grid, dashboard, reading page, KPI row, table of
 - The DESIGN.md engine (`scripts/amvcp-designmd.js`) wired — it supplies every `--vc-*` token. Layout NEVER sets a `--vc-*` value; it only reads them and defines `--la-*` aliases.
 - `scripts/amvcp-layout.css` linked (the whole CSS surface) and `scripts/amvcp-layout.js` loaded ONLY when groups 4/5/2c (sticky header, TOC, IDE collapse) are used — the other groups are pure CSS.
 - `scripts/amvcp-runtime.js` for selection + the no-nested-scrollbars backstop (optional — a layout page renders correctly without it; selection just won't fire).
-- Python 3.12+ for `scripts/amvcp-select.py`. See `references/layout-patterns.md` for the base contract.
+- Python 3.12+ for `scripts/amvcp-select.py`. See [layout-patterns](references/layout-patterns.md) for the base contract.
 
 ## When to choose this category
 
@@ -58,7 +58,7 @@ Loads on requests for a layout, grid, dashboard, reading page, KPI row, table of
 1. Look up the request shape in the table above; open the cited refs.
 2. Paste the scaffold from the ref (each ref includes a complete `<html>` + `<style>` snippet).
 3. Set `data-ve-id` on every region (auto-stamped by `markLayoutAtoms()` for SHAPES classes; hand-stamp for custom containers).
-4. Verify with the visual-verification section of each ref — every ref ends with a `Visual verification` section pointing at `skills/amvcp-self-debug-rules/SKILL.md`.
+4. Verify with the visual-verification section of each ref — every ref ends with a `Visual verification` section pointing at [amvcp-self-debug-rules](../amvcp-self-debug-rules/SKILL.md).
 
 ## Output
 
@@ -91,40 +91,40 @@ This skill is foundational — every other amvcp-* skill is composed inside one 
 
 ## Resources
 
-- `references/layout-patterns.md` — full HTML+CSS catalog (one section per group); the RTL authoring gate; the no-nested-scrollbars note.
-- `references/layout-tokens.md` — the `--la-*` derived-token contract; the recommended DESIGN.md `spacing.scale`; the `--vc-z-sticky` and `ch`-measure rationale.
-- `references/01-spatial-token-ladder.md` — 8px grid spacing-token contract; hot-swap path.
-- `references/02-derived-aliases.md` — the semantic `--la-*` alias layer over indexed engine tokens.
-- `references/03-named-gaps-semantics.md` — the canonical map of WHEN to use which `--la-gap*` token.
-- `references/04-reading-measure-ch-based.md` — why `ch`-units (not px) for reading measures.
-- `references/05-asymmetric-grid-2-1.md` — 2fr:1fr content+sidebar (the canonical 2-region page).
-- `references/06-asymmetric-grid-3-1.md` — 3fr:1fr feature-article variant.
-- `references/07-subgrid-card-row.md` — title/body/footer alignment across cards via subgrid.
-- `references/08-ide-3-panel.md` — 240px+1fr+minmax 3-panel shell + collapse toggle.
-- `references/09-twelve-column-dashboard.md` — `repeat(12,1fr)` grid + `data-span` placement.
-- `references/10-kpi-row.md` — auto-fit small-card strip for metric tiles.
-- `references/11-card-grid-autofill.md` — `auto-fill` gallery / thumbnail grid.
-- `references/12-mobile-collapse-breakpoint.md` — the single 768px breakpoint convention.
-- `references/13-article-three-column-grid.md` — measured reading column via 3-col grid.
-- `references/14-article-wide-bleed.md` — `__wide` (92ch) and `__bleed` (full) escape hatches.
-- `references/15-fluid-headings-clamp.md` — `clamp(MIN, IDEAL, MAX)` fluid sizing primer.
-- `references/16-section-numbered-headers.md` — section header with numeric badge + meta chip.
-- `references/17-sticky-header.md` — `position:sticky` page header + IO sentinel for scroll state.
-- `references/18-glassmorphism-header.md` — opt-in glass flavour via `color-mix` over surface.
-- `references/19-toolbar-sticky-bar.md` — sticky controls bar inside a section.
-- `references/20-fluid-h1-headings.md` — fluid clamp() applied to page-level H1.
-- `references/21-scroll-spy-toc.md` — auto-built TOC with `IntersectionObserver` highlight.
-- `references/22-sticky-sidebar-toc.md` — TOC in a sidebar with `position:sticky; align-self:start`.
-- `references/23-right-margin-toc.md` — TOC anchored to article right margin via `right:max(…)`.
-- `references/24-prefilled-static-toc.md` — JS-off-safe static TOC (live highlight still works).
-- `references/25-a4-page-rules.md` — `@page { size:A4; margin:16mm }` for print / PDF.
-- `references/26-print-reset.md` — `@media print` reset: hide chrome, force token tints, etc.
-- `references/27-cover-and-page-breaks.md` — `.la-cover` + `.la-break-*` utilities.
-- `references/28-device-mockup-frame.md` — `.la-device` + `--dev-*` props (any device).
-- `references/29-hero-with-radial-glows.md` — 4-layer decorative hero (canvas + glows + ghost + content).
-- `references/30-rotated-card-comparison.md` — two-paper rotated comparison hero.
-- `references/31-rtl-logical-properties.md` — the cross-cutting RTL authoring rule.
-- `references/32-no-nested-scrollbars-pattern.md` — the universal no-inner-scrollbars contract.
-- `references/33-selection-atoms.md` — `markLayoutAtoms()` SHAPES + decision-mini pill contract.
-- `skills/amvcp-self-debug-rules/SKILL.md` — universal visual-verification checklist every ref points at.
-- `interactive-selection-base.md` — the selection-runtime page contract.
+- [layout-patterns](references/layout-patterns.md) — full HTML+CSS catalog (one section per group); the RTL authoring gate; the no-nested-scrollbars note.
+- [layout-tokens](references/layout-tokens.md) — the `--la-*` derived-token contract; the recommended DESIGN.md `spacing.scale`; the `--vc-z-sticky` and `ch`-measure rationale.
+- [01-spatial-token-ladder](references/01-spatial-token-ladder.md) — 8px grid spacing-token contract; hot-swap path.
+- [02-derived-aliases](references/02-derived-aliases.md) — the semantic `--la-*` alias layer over indexed engine tokens.
+- [03-named-gaps-semantics](references/03-named-gaps-semantics.md) — the canonical map of WHEN to use which `--la-gap*` token.
+- [04-reading-measure-ch-based](references/04-reading-measure-ch-based.md) — why `ch`-units (not px) for reading measures.
+- [05-asymmetric-grid-2-1](references/05-asymmetric-grid-2-1.md) — 2fr:1fr content+sidebar (the canonical 2-region page).
+- [06-asymmetric-grid-3-1](references/06-asymmetric-grid-3-1.md) — 3fr:1fr feature-article variant.
+- [07-subgrid-card-row](references/07-subgrid-card-row.md) — title/body/footer alignment across cards via subgrid.
+- [08-ide-3-panel](references/08-ide-3-panel.md) — 240px+1fr+minmax 3-panel shell + collapse toggle.
+- [09-twelve-column-dashboard](references/09-twelve-column-dashboard.md) — `repeat(12,1fr)` grid + `data-span` placement.
+- [10-kpi-row](references/10-kpi-row.md) — auto-fit small-card strip for metric tiles.
+- [11-card-grid-autofill](references/11-card-grid-autofill.md) — `auto-fill` gallery / thumbnail grid.
+- [12-mobile-collapse-breakpoint](references/12-mobile-collapse-breakpoint.md) — the single 768px breakpoint convention.
+- [13-article-three-column-grid](references/13-article-three-column-grid.md) — measured reading column via 3-col grid.
+- [14-article-wide-bleed](references/14-article-wide-bleed.md) — `__wide` (92ch) and `__bleed` (full) escape hatches.
+- [15-fluid-headings-clamp](references/15-fluid-headings-clamp.md) — `clamp(MIN, IDEAL, MAX)` fluid sizing primer.
+- [16-section-numbered-headers](references/16-section-numbered-headers.md) — section header with numeric badge + meta chip.
+- [17-sticky-header](references/17-sticky-header.md) — `position:sticky` page header + IO sentinel for scroll state.
+- [18-glassmorphism-header](references/18-glassmorphism-header.md) — opt-in glass flavour via `color-mix` over surface.
+- [19-toolbar-sticky-bar](references/19-toolbar-sticky-bar.md) — sticky controls bar inside a section.
+- [20-fluid-h1-headings](references/20-fluid-h1-headings.md) — fluid clamp() applied to page-level H1.
+- [21-scroll-spy-toc](references/21-scroll-spy-toc.md) — auto-built TOC with `IntersectionObserver` highlight.
+- [22-sticky-sidebar-toc](references/22-sticky-sidebar-toc.md) — TOC in a sidebar with `position:sticky; align-self:start`.
+- [23-right-margin-toc](references/23-right-margin-toc.md) — TOC anchored to article right margin via `right:max(…)`.
+- [24-prefilled-static-toc](references/24-prefilled-static-toc.md) — JS-off-safe static TOC (live highlight still works).
+- [25-a4-page-rules](references/25-a4-page-rules.md) — `@page { size:A4; margin:16mm }` for print / PDF.
+- [26-print-reset](references/26-print-reset.md) — `@media print` reset: hide chrome, force token tints, etc.
+- [27-cover-and-page-breaks](references/27-cover-and-page-breaks.md) — `.la-cover` + `.la-break-*` utilities.
+- [28-device-mockup-frame](references/28-device-mockup-frame.md) — `.la-device` + `--dev-*` props (any device).
+- [29-hero-with-radial-glows](references/29-hero-with-radial-glows.md) — 4-layer decorative hero (canvas + glows + ghost + content).
+- [30-rotated-card-comparison](references/30-rotated-card-comparison.md) — two-paper rotated comparison hero.
+- [31-rtl-logical-properties](references/31-rtl-logical-properties.md) — the cross-cutting RTL authoring rule.
+- [32-no-nested-scrollbars-pattern](references/32-no-nested-scrollbars-pattern.md) — the universal no-inner-scrollbars contract.
+- [33-selection-atoms](references/33-selection-atoms.md) — `markLayoutAtoms()` SHAPES + decision-mini pill contract.
+- [amvcp-self-debug-rules](../amvcp-self-debug-rules/SKILL.md) — universal visual-verification checklist every ref points at.
+- [interactive-selection-base](../../references/interactive-selection-base.md) — the selection-runtime page contract.

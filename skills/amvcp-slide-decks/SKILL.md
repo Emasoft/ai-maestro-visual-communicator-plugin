@@ -114,7 +114,7 @@ Bad: `Q3 Results` (label, no verb, 2 words). Good: `Latency dropped 38% after th
 | "Make a comment thread on this artefact" | NO — that's the modal-comments layer, not the slide layer. | `amvcp-modal-comments` |
 | "Print this for a handout" | YES if the source naturally paginates as slides (cover-letter / project plan). NO if it's an article. | `amvcp-prose-pages` for articles. |
 
-See `references/41-decision-matrix-when-to-choose-slides.md` for the full
+See [41-decision-matrix-when-to-choose-slides](references/41-decision-matrix-when-to-choose-slides.md) for the full
 boundary-case discussion.
 
 ## Modes
@@ -133,101 +133,101 @@ above is the entry-point, not the manual.
 
 ### Foundation refs
 
-- `references/01-stage-and-letterbox-fitting.md` — the fixed-pixel stage,
+- [01-stage-and-letterbox-fitting](references/01-stage-and-letterbox-fitting.md) — the fixed-pixel stage,
   letterbox vs responsive fit, the `transform: scale()` resize math.
-- `references/02-deck-navigation-and-chrome.md` — keyboard / swipe / dots /
+- [02-deck-navigation-and-chrome](references/02-deck-navigation-and-chrome.md) — keyboard / swipe / dots /
   counter / progress / fullscreen / position persistence.
-- `references/03-json-deck-contract.md` — the typed-block authoring
+- [03-json-deck-contract](references/03-json-deck-contract.md) — the typed-block authoring
   contract: every deck-level field, every slide field, every block type.
 
 ### Layout catalog refs
 
-- `references/04-the-16-layout-catalog.md` — the 16 canonical layouts +
+- [04-the-16-layout-catalog](references/04-the-16-layout-catalog.md) — the 16 canonical layouts +
   the "pick by job, not by looks" rule.
-- `references/05-layout-manifesto.md` — opening anchor.
-- `references/06-layout-section-divider.md` — ghost numeral chapter break.
-- `references/07-layout-statement.md` — bold pivot claim.
-- `references/08-layout-content.md` — workhorse heading + bullets.
-- `references/09-layout-two-column.md` — heading + two parallel stacks.
-- `references/10-layout-comparison.md` — left vs right contrast.
-- `references/11-layout-quadrant.md` — 2×2 phase-space matrix.
-- `references/12-layout-data-story.md` — chart + headline + annotation.
-- `references/13-layout-metrics.md` — heading + KPI row.
-- `references/14-layout-timeline.md` — heading + horizontal sequence.
-- `references/15-layout-bento.md` — heading + bento grid summary.
-- `references/16-bento-grid-templates.md` — the 7 named bento grids
+- [05-layout-manifesto](references/05-layout-manifesto.md) — opening anchor.
+- [06-layout-section-divider](references/06-layout-section-divider.md) — ghost numeral chapter break.
+- [07-layout-statement](references/07-layout-statement.md) — bold pivot claim.
+- [08-layout-content](references/08-layout-content.md) — workhorse heading + bullets.
+- [09-layout-two-column](references/09-layout-two-column.md) — heading + two parallel stacks.
+- [10-layout-comparison](references/10-layout-comparison.md) — left vs right contrast.
+- [11-layout-quadrant](references/11-layout-quadrant.md) — 2×2 phase-space matrix.
+- [12-layout-data-story](references/12-layout-data-story.md) — chart + headline + annotation.
+- [13-layout-metrics](references/13-layout-metrics.md) — heading + KPI row.
+- [14-layout-timeline](references/14-layout-timeline.md) — heading + horizontal sequence.
+- [15-layout-bento](references/15-layout-bento.md) — heading + bento grid summary.
+- [16-bento-grid-templates](references/16-bento-grid-templates.md) — the 7 named bento grids
   (`hero` / `gallery` / `asymmetric` / `feature` / `stats` / `split` / `full`).
-- `references/17-layout-stack.md` — heading + layered cards.
-- `references/18-layout-full-bleed.md` — edge-to-edge image + overlay text.
-- `references/19-layout-quote.md` — oversized blockquote + cite.
-- `references/20-layout-code-focus.md` — heading + one centred code block.
-- `references/21-layout-closing.md` — wrap / call-to-action / next step.
+- [17-layout-stack](references/17-layout-stack.md) — heading + layered cards.
+- [18-layout-full-bleed](references/18-layout-full-bleed.md) — edge-to-edge image + overlay text.
+- [19-layout-quote](references/19-layout-quote.md) — oversized blockquote + cite.
+- [20-layout-code-focus](references/20-layout-code-focus.md) — heading + one centred code block.
+- [21-layout-closing](references/21-layout-closing.md) — wrap / call-to-action / next step.
 
 ### Motion refs
 
-- `references/22-moods-and-transitions.md` — the 5 entrance moods +
+- [22-moods-and-transitions](references/22-moods-and-transitions.md) — the 5 entrance moods +
   4 section transitions + reduced-motion gate.
 
 ### Block refs (per family)
 
-- `references/23-block-eyebrow-and-heading.md` — the title family.
-- `references/24-block-bullets-and-text.md` — the body family + density limits.
-- `references/25-block-metric-and-callout.md` — the impact family (KPI + annotation).
-- `references/26-block-quote-and-comparison.md` — the contrast family.
-- `references/27-block-image-spacer-and-delegated.md` — image, spacer, and
+- [23-block-eyebrow-and-heading](references/23-block-eyebrow-and-heading.md) — the title family.
+- [24-block-bullets-and-text](references/24-block-bullets-and-text.md) — the body family + density limits.
+- [25-block-metric-and-callout](references/25-block-metric-and-callout.md) — the impact family (KPI + annotation).
+- [26-block-quote-and-comparison](references/26-block-quote-and-comparison.md) — the contrast family.
+- [27-block-image-spacer-and-delegated](references/27-block-image-spacer-and-delegated.md) — image, spacer, and
   the three delegated block types (`code` / `diagram` / `chart`).
 
 ### Authoring-quality refs
 
-- `references/28-density-and-overflow-guard.md` — `MAX_BULLETS=6` /
+- [28-density-and-overflow-guard](references/28-density-and-overflow-guard.md) — `MAX_BULLETS=6` /
   `MAX_BODY_WORDS=40`, splitting strategies, the no-nested-scrollbars rule.
-- `references/29-assertion-evidence-headline-rule.md` — the soft headline
+- [29-assertion-evidence-headline-rule](references/29-assertion-evidence-headline-rule.md) — the soft headline
   validator: pass criteria, the literal verb-signal list, fix examples.
-- `references/34-content-completeness-from-source.md` — the 5-step process
+- [34-content-completeness-from-source](references/34-content-completeness-from-source.md) — the 5-step process
   for mapping a source document into a deck without dropping content.
-- `references/35-compositional-variety-and-rhythm.md` — deck-level pacing:
+- [35-compositional-variety-and-rhythm](references/35-compositional-variety-and-rhythm.md) — deck-level pacing:
   no run of 3+ identical compositions; dense / sparse alternation;
   full-bleed restraint.
 
 ### Theming refs
 
-- `references/30-design-md-token-mapping.md` — the AUTHORITATIVE map of
+- [30-design-md-token-mapping](references/30-design-md-token-mapping.md) — the AUTHORITATIVE map of
   every `--vc-*` token the slide layer reads, with light + dark defaults.
-- `references/36-presets-and-named-styles.md` — the 12 anti-slop named
+- [36-presets-and-named-styles](references/36-presets-and-named-styles.md) — the 12 anti-slop named
   presets, expressed as DESIGN.md YAML fragments.
 
 ### Integration refs
 
-- `references/31-selection-comment-and-decision-mini.md` — Phase 2.5
+- [31-selection-comment-and-decision-mini](references/31-selection-comment-and-decision-mini.md) — Phase 2.5
   contract: `data-ve-id` / `data-ve-type` / `data-ve-label` / `tabindex`
   attribute stamping; the inset-outline + inset-glow overrides.
-- `references/32-poster-mode.md` — `kind: "poster"` — single-slide static
+- [32-poster-mode](references/32-poster-mode.md) — `kind: "poster"` — single-slide static
   export, no nav chrome, share-card aspect.
-- `references/33-print-and-pdf-export.md` — `@media print` block,
+- [33-print-and-pdf-export](references/33-print-and-pdf-export.md) — `@media print` block,
   one-slide-per-page native browser export.
-- `references/37-speaker-notes-presenter-mode.md` — per-slide `notes` field
+- [37-speaker-notes-presenter-mode](references/37-speaker-notes-presenter-mode.md) — per-slide `notes` field
   + the `?notes` window via `postMessage`.
-- `references/38-self-contained-export-and-deps.md` — the deployment
+- [38-self-contained-export-and-deps](references/38-self-contained-export-and-deps.md) — the deployment
   contract: one HTML file + 2 to 5 sibling scripts, no CDN.
-- `references/39-aspect-ratios-deep-dive.md` — when to pick `16:9` vs
+- [39-aspect-ratios-deep-dive](references/39-aspect-ratios-deep-dive.md) — when to pick `16:9` vs
   `4:3` vs `3:2`; layout efficiency table per aspect.
 
 ### Debugging refs
 
-- `references/40-fail-fast-errors-and-debugging.md` — every hard error +
+- [40-fail-fast-errors-and-debugging](references/40-fail-fast-errors-and-debugging.md) — every hard error +
   every soft warning the renderer can emit, with the fix.
 
 ### Routing ref
 
-- `references/41-decision-matrix-when-to-choose-slides.md` — the full
+- [41-decision-matrix-when-to-choose-slides](references/41-decision-matrix-when-to-choose-slides.md) — the full
   matrix for picking slide-decks vs prose-pages / charts / diagrams /
   tables / modal-comments / share-pages.
 
 ### Legacy long-form catalog
 
-- `references/slide-deck-mode.md` — when to switch to deck mode, content
+- [slide-deck-mode](references/slide-deck-mode.md) — when to switch to deck mode, content
   completeness, the `--slides` flag.
-- `references/slide-patterns.md` — the legacy long-form catalog (kept for
+- [slide-patterns](references/slide-patterns.md) — the legacy long-form catalog (kept for
   the `next-slide` and Folio source links; the layouts catalog has been
   deduplicated into the §6 list above and re-organised into the per-layout
   refs `05`-`21`).
@@ -236,7 +236,7 @@ above is the entry-point, not the manual.
 
 Every authoring change to a deck — new slide, new layout choice,
 new preset, new transition — MUST be verified via the dev-browser
-screenshot path described in `skills/amvcp-self-debug-rules/SKILL.md`.
+screenshot path described in [amvcp-self-debug-rules](../amvcp-self-debug-rules/SKILL.md).
 Capture light + dark at 1280×720; verify the deck reads at projection
 distance; verify the console reports zero `amvcp-slide:` errors and
 that any `data-vsd-headline-warn` / `data-vsd-overflow` warnings are

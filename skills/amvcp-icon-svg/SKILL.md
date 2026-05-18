@@ -58,7 +58,7 @@ Need a STANDALONE icon / logo / mark / mockup
 ```
 
 Full routing rules + `diagram` / `chart` / `wireframe` boundary
-contracts in `references/dispatch-decision-tree.md`.
+contracts in [dispatch-decision-tree](references/dispatch-decision-tree.md).
 
 ## Instructions
 
@@ -68,27 +68,27 @@ contracts in `references/dispatch-decision-tree.md`.
    `{viewBox: [0,0,1000,1000], ariaLabel, primitives: [...]}`.
    The runtime finds, validates, and replaces it with `<figure><svg>`.
 3. Every node accepts an optional `variant` (`success` / `warning` /
-   `danger` / `info`) — see `references/variant-semantic-stroke.md`.
+   `danger` / `info`) — see [variant-semantic-stroke](references/variant-semantic-stroke.md).
 4. Every primitive needs an `id` (becomes a `data-ve-id` selection
-   atom — see `references/data-ve-id-selection.md`).
+   atom — see [data-ve-id-selection](references/data-ve-id-selection.md)).
 5. For a device mockup: `window.amvcpIconSvg.deviceFrame({kind, …})`
    — see `references/device-frame-*.md`.
 6. For an annotated image: wrap in `<figure class="isvg-annotated">`
    with `<span class="isvg-hotspot" style="--x: 0.42; --y: 0.31">`
-   children — see `references/hotspot-annotation.md`.
+   children — see [hotspot-annotation](references/hotspot-annotation.md).
 7. Open via `python3 "$CLAUDE_PLUGIN_ROOT/scripts/amvcp-select.py"
    <file>.html`.
 
 The full JSON schema, every type, every kind, every variant is in
-`references/scene-graph-contract.md`.
+[scene-graph-contract](references/scene-graph-contract.md).
 
 ## Theming + lint
 
 Every fill / stroke is a `var(--vc-color-*, <hex>)` expression. A
 theme swap restyles every SVG with zero JS. Details +
-no-engine fallback in `references/theming-tokens.md`. The C1..C7
+no-engine fallback in [theming-tokens](references/theming-tokens.md). The C1..C7
 lint contract (auto-fix vs throw, `<mask>` exemption, semantic-role
-collapse) is in `references/lint-c1-to-c7.md`.
+collapse) is in [lint-c1-to-c7](references/lint-c1-to-c7.md).
 
 ## Output
 
@@ -104,7 +104,7 @@ no-nested-scrollbars rule).
 
 - Red error placeholder in the figure → scene JSON is malformed; the
   text carries the precise reason. See
-  `references/error-placeholder.md`.
+  [error-placeholder](references/error-placeholder.md).
 - Unknown `kind` / `variant` / `type` → fail-fast throw with the
   valid-options list in the message.
 - Hotspot in the wrong place → `--x` / `--y` are 0..1 fractions, not
@@ -114,7 +114,7 @@ no-nested-scrollbars rule).
 
 For every change touching this skill's CSS, JS, or scene-graph
 output, walk the canonical checklist in
-**`skills/amvcp-self-debug-rules/SKILL.md`** — both light AND dark
+**[amvcp-self-debug-rules](../amvcp-self-debug-rules/SKILL.md)** — both light AND dark
 themes, no-nested-scrollbars audit, selection hover state, every
 C1..C7 lint pass. Measure with dev-browser; never claim "fixed"
 without a screenshot in both themes.
@@ -132,28 +132,28 @@ Composes with every other amvcp-* skill on the same page (R22). Multiple icon SV
 The `references/` folder contains 42 self-sufficient technique
 references organized into eight groups:
 
-- **Contract** (4) — `dispatch-decision-tree.md`,
-  `scene-graph-contract.md`, `theming-tokens.md`, `lint-c1-to-c7.md`.
-- **Node primitives** (5) — `node-process-rect.md`,
-  `node-database-cylinder.md`, `node-decision-diamond.md`,
-  `node-external-dashed.md`, `node-network-cloud.md`.
-- **Logo blocks** (6) — `logo-mask-cutout.md`, `logo-arc-bite.md`,
-  `logo-zig-zag.md`, `logo-stacked-rects.md`,
-  `logo-tint-hierarchy.md`, `logo-current-color.md`.
-- **Decorative shapes** (6) — `shape-triangle-up.md`,
-  `shape-arrow-right.md`, `shape-chevron.md`,
-  `shape-parallelogram.md`, `shape-hexagon.md`, `shape-star.md`.
-- **Device frames** (4) — `device-frame-ios.md`,
-  `device-frame-android.md`, `device-frame-mac.md`,
-  `device-frame-browser.md`.
+- **Contract** (4) — [dispatch-decision-tree](references/dispatch-decision-tree.md),
+  [scene-graph-contract](references/scene-graph-contract.md), [theming-tokens](references/theming-tokens.md), [lint-c1-to-c7](references/lint-c1-to-c7.md).
+- **Node primitives** (5) — [node-process-rect](references/node-process-rect.md),
+  [node-database-cylinder](references/node-database-cylinder.md), [node-decision-diamond](references/node-decision-diamond.md),
+  [node-external-dashed](references/node-external-dashed.md), [node-network-cloud](references/node-network-cloud.md).
+- **Logo blocks** (6) — [logo-mask-cutout](references/logo-mask-cutout.md), [logo-arc-bite](references/logo-arc-bite.md),
+  [logo-zig-zag](references/logo-zig-zag.md), [logo-stacked-rects](references/logo-stacked-rects.md),
+  [logo-tint-hierarchy](references/logo-tint-hierarchy.md), [logo-current-color](references/logo-current-color.md).
+- **Decorative shapes** (6) — [shape-triangle-up](references/shape-triangle-up.md),
+  [shape-arrow-right](references/shape-arrow-right.md), [shape-chevron](references/shape-chevron.md),
+  [shape-parallelogram](references/shape-parallelogram.md), [shape-hexagon](references/shape-hexagon.md), [shape-star](references/shape-star.md).
+- **Device frames** (4) — [device-frame-ios](references/device-frame-ios.md),
+  [device-frame-android](references/device-frame-android.md), [device-frame-mac](references/device-frame-mac.md),
+  [device-frame-browser](references/device-frame-browser.md).
 - **Annotation + reuse + scaffolding** (6) —
-  `hotspot-annotation.md`, `defs-use-reuse-pass.md`,
-  `variant-semantic-stroke.md`, `data-ve-id-selection.md`,
-  `decision-mini-pill.md`, `error-placeholder.md`.
-- **Patterns + helpers** (7) — `junction-dot-primitive.md`,
-  `inline-style-block-export.md`, `blob-download-helper.md`,
-  `inline-thumbnail-pattern.md`, `svg-ornament-marks.md`,
-  `named-port-anchors.md`, `empty-state-illustration.md`.
-- **Invariants + exclusions** (4) — `reduced-motion-substitutes.md`,
-  `no-build-no-dep-invariant.md`, `canvas-pixel-art-exclusion.md`
-  (IS-05 SKIP), `fontkit-glyph-exclusion.md` (IS-08 SKIP).
+  [hotspot-annotation](references/hotspot-annotation.md), [defs-use-reuse-pass](references/defs-use-reuse-pass.md),
+  [variant-semantic-stroke](references/variant-semantic-stroke.md), [data-ve-id-selection](references/data-ve-id-selection.md),
+  [decision-mini-pill](references/decision-mini-pill.md), [error-placeholder](references/error-placeholder.md).
+- **Patterns + helpers** (7) — [junction-dot-primitive](references/junction-dot-primitive.md),
+  [inline-style-block-export](references/inline-style-block-export.md), [blob-download-helper](references/blob-download-helper.md),
+  [inline-thumbnail-pattern](references/inline-thumbnail-pattern.md), [svg-ornament-marks](references/svg-ornament-marks.md),
+  [named-port-anchors](references/named-port-anchors.md), [empty-state-illustration](references/empty-state-illustration.md).
+- **Invariants + exclusions** (4) — [reduced-motion-substitutes](references/reduced-motion-substitutes.md),
+  [no-build-no-dep-invariant](references/no-build-no-dep-invariant.md), [canvas-pixel-art-exclusion](references/canvas-pixel-art-exclusion.md)
+  (IS-05 SKIP), [fontkit-glyph-exclusion](references/fontkit-glyph-exclusion.md) (IS-08 SKIP).

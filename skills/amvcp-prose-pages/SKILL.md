@@ -134,12 +134,12 @@ skills/amvcp-prose-pages/
   `render-interactive-report.py` (different runtime).
 - **Verify an already-generated page** → run
   `runGates(document)` (browser) or `runGatesOnHtml(htmlText)`
-  (Node CLI `--qa`). See `references/output-qa-pipeline-7-gates.md`.
+  (Node CLI `--qa`). See [output-qa-pipeline-7-gates](references/output-qa-pipeline-7-gates.md).
 - **Article / essay / README-as-page** → `<article data-ve-prose>`
   for auto numbering + selectable snippets. See
-  `references/prose-mode.md`.
+  [prose-mode](references/prose-mode.md).
 - **"Which technique should I use?"** → walk the decision tree in
-  `references/request-routing-decision-tree.md`.
+  [request-routing-decision-tree](references/request-routing-decision-tree.md).
 
 ## Instructions
 
@@ -150,14 +150,14 @@ The skill has three workflows: scaffold a document, write prose / article pages,
 1. **Pick a template** — `executive-summary`, `technical-report`,
    `case-study`, `proposal`, `whitepaper`, `design-system-doc`. Each
    is a `.vc-doc--<name>` modifier on `<article class="vc-doc">`.
-   See `references/template-presets-six-shapes.md` for the picker.
+   See [template-presets-six-shapes](references/template-presets-six-shapes.md) for the picker.
 2. **Pick a shape** — what KIND of deliverable is this? See the 15+
    shape references in `references/*-shape.md`. Each shape pins the
    section sequence and tells you which element skills to embed.
 3. **Wrap the body** in `<article class="vc-doc vc-doc--<template>">`,
    with a `<header class="vc-doc-header">` carrying eyebrow + h1 +
    subtitle + byline. See
-   `references/document-header-byline-subtitle.md`.
+   [document-header-byline-subtitle](references/document-header-byline-subtitle.md).
 4. **Add structural blocks as needed** —
    `<aside class="vc-callout vc-callout--<variant>">`,
    `<table class="vc-rubric">`, `<blockquote class="vc-pullquote">`,
@@ -165,14 +165,14 @@ The skill has three workflows: scaffold a document, write prose / article pages,
    `<div class="vc-pill-row">`, etc. See the per-primitive
    references.
 5. **Add a TOC** for documents with 4+ `<h2>` sections — see
-   `references/toc-and-anchor-system.md`. The runtime auto-spies the
+   [toc-and-anchor-system](references/toc-and-anchor-system.md). The runtime auto-spies the
    active section.
 6. **Load the runtime** — `<script src="amvcp-designmd.js"></script>`
    then `<script src="amvcp-report-doc.js"></script>`. The skill
    self-injects its CSS and wires the scroll-spy on
    `DOMContentLoaded` unless `window.__vcReportDocManualInit` is set.
 7. **Always run the QA pipeline** before handing the page back — see
-   `references/output-qa-pipeline-7-gates.md`.
+   [output-qa-pipeline-7-gates](references/output-qa-pipeline-7-gates.md).
 
 ## Instructions — prose / article pages
 
@@ -185,7 +185,7 @@ The skill has three workflows: scaffold a document, write prose / article pages,
    page.html` to react to user selections.
 4. Paragraph clicks → `kind:"element"`/`type:"paragraph"`. Text
    highlights → `kind:"text"` with `paragraphId` + surrounding
-   text. See `references/prose-mode.md`.
+   text. See [prose-mode](references/prose-mode.md).
 
 ## Instructions — run the QA pipeline
 
@@ -206,7 +206,7 @@ degradations); only a P1 FAIL flips `ok` to `false`.
 `loop.failedTwice` becomes `true` on the second consecutive fail of
 the same gate for the same `pageId` — escalate, do not auto-retry.
 
-Full coverage: `references/output-qa-pipeline-7-gates.md`.
+Full coverage: [output-qa-pipeline-7-gates](references/output-qa-pipeline-7-gates.md).
 
 ## Output
 
@@ -225,7 +225,7 @@ For prose pages the selection payload is:
  "paragraphId":"1.2.1","paragraphText":"…surrounding…"}
 ```
 
-QA reports are JSON — see `references/output-qa-pipeline-7-gates.md`.
+QA reports are JSON — see [output-qa-pipeline-7-gates](references/output-qa-pipeline-7-gates.md).
 
 ## Composing with the 12 element skills
 
@@ -249,7 +249,7 @@ Quick map:
 | `amvcp-modal-comments` | every shape that supports decision-minis |
 
 Full composition contract + interaction patterns:
-`references/composing-with-other-skills.md`.
+[composing-with-other-skills](references/composing-with-other-skills.md).
 
 ## Error Handling
 
@@ -290,7 +290,7 @@ Full composition contract + interaction patterns:
    before each h2, decimal-leading-zero formatting, accent-color
    marker. The whole document fits in the 64ch reading measure the
    template sets via `--vc-doc-measure`. See
-   `references/section-numbering-leading-zero.md`.
+   [section-numbering-leading-zero](references/section-numbering-leading-zero.md).
 3. **Incident postmortem** — `incident-postmortem-shape` over
    `vc-doc--technical-report`. SEV pill + slate TL;DR + typed-dot
    timeline + impact mini-table + action-items checklist + fixed-
@@ -310,7 +310,7 @@ Full composition contract + interaction patterns:
 ## Visual verification
 
 For visual verification (does the page actually look right in light
-+ dark + print?), see `skills/amvcp-self-debug-rules/SKILL.md`.
++ dark + print?), see [amvcp-self-debug-rules](../amvcp-self-debug-rules/SKILL.md).
 
 ## Modes
 

@@ -19,29 +19,29 @@ Loads when the agent needs a styled, interactive `<table>` that goes beyond the 
 
 | You want to … | Mode / pattern | Read reference |
 |---|---|---|
-| Show a sortable data table the reader can click headers on | `data-ve-table="data"` | `references/sort-cycle-3-state.md` + `references/numeric-cell-parser.md` |
-| Sort hundreds or thousands of rows without lag | `data` + `data-ve-table-virtual="1"` | `references/virtualization-window-scroll.md` |
-| Keep the row identifier visible during horizontal scroll | `data-ve-freeze-cols="N"` | `references/frozen-columns-sticky.md` |
-| Audit N items × M criteria (design-system, a11y, browsers) | `data-ve-table="matrix"` | `references/coverage-audit-pattern.md` + `references/matrix-glyph-injection.md` |
-| Show "Before / After" or "Anti-pattern → Fix" | `data-ve-table="compare"` (2-col, right column emphasised) | `references/before-after-2col.md` |
-| Compare 3-N options with a recommended one | `data-ve-table="compare"` + `data-ve-col-emphasis="1"` | `references/comparison-emphasis-column.md` + `references/icon-headers-unicode.md` |
-| Export any table as CSV (clipboard, RFC-4180) | `data-ve-table-csv="1"` | `references/csv-export-rfc4180.md` |
-| Show per-column P/F/~ counts at the bottom of a matrix | `data-ve-matrix-summary` | `references/matrix-summary-footer.md` |
-| Inline status flag — green/yellow/red dot beside text | `<span class="risk-dot risk-X">` | `references/risk-dot-severity-badge.md` |
-| Per-row severity pill (HIGH / MED / LOW) | `<span class="sev sev-X">` | `references/risk-dot-severity-badge.md` |
-| 1-line metadata strip (SEV-2 / Resolved / Duration) | `<span class="pill">` row | `references/status-pill-key-value.md` |
-| Big-number stat row with one "warn" exception | `<div class="stat-card warn">` | `references/stat-card-warn-modifier.md` |
-| Small chip strip for supplementary metrics | `<span class="chip">` row | `references/compact-metric-chip-strip.md` |
-| 2-col compact key/value (mini-table) | `<table class="mini-stats">` | `references/impact-mini-table.md` |
-| Tradeoff sub-grid (pros + cons) | 2-col `<table>` with `.pro-dot` / `.con-dot` | `references/pro-con-tradeoff-grid.md` |
-| Triage list (Now / Next / Later / Cut) | kanban-as-table | `references/kanban-as-table.md` |
-| Rules → outcomes decision aid | 3-col `data` table | `references/decision-matrix-pattern.md` |
-| DESIGN.md token specification (Role / Hex / System / Notes) | 4-col `data` table with swatch column | `references/token-spec-table.md` |
-| Chess board, sudoku grid, 3×3 colored demo | colored-cell board (plain `<table>` + author CSS) | `references/colored-cell-board.md` |
+| Show a sortable data table the reader can click headers on | `data-ve-table="data"` | [sort-cycle-3-state](references/sort-cycle-3-state.md) + [numeric-cell-parser](references/numeric-cell-parser.md) |
+| Sort hundreds or thousands of rows without lag | `data` + `data-ve-table-virtual="1"` | [virtualization-window-scroll](references/virtualization-window-scroll.md) |
+| Keep the row identifier visible during horizontal scroll | `data-ve-freeze-cols="N"` | [frozen-columns-sticky](references/frozen-columns-sticky.md) |
+| Audit N items × M criteria (design-system, a11y, browsers) | `data-ve-table="matrix"` | [coverage-audit-pattern](references/coverage-audit-pattern.md) + [matrix-glyph-injection](references/matrix-glyph-injection.md) |
+| Show "Before / After" or "Anti-pattern → Fix" | `data-ve-table="compare"` (2-col, right column emphasised) | [before-after-2col](references/before-after-2col.md) |
+| Compare 3-N options with a recommended one | `data-ve-table="compare"` + `data-ve-col-emphasis="1"` | [comparison-emphasis-column](references/comparison-emphasis-column.md) + [icon-headers-unicode](references/icon-headers-unicode.md) |
+| Export any table as CSV (clipboard, RFC-4180) | `data-ve-table-csv="1"` | [csv-export-rfc4180](references/csv-export-rfc4180.md) |
+| Show per-column P/F/~ counts at the bottom of a matrix | `data-ve-matrix-summary` | [matrix-summary-footer](references/matrix-summary-footer.md) |
+| Inline status flag — green/yellow/red dot beside text | `<span class="risk-dot risk-X">` | [risk-dot-severity-badge](references/risk-dot-severity-badge.md) |
+| Per-row severity pill (HIGH / MED / LOW) | `<span class="sev sev-X">` | [risk-dot-severity-badge](references/risk-dot-severity-badge.md) |
+| 1-line metadata strip (SEV-2 / Resolved / Duration) | `<span class="pill">` row | [status-pill-key-value](references/status-pill-key-value.md) |
+| Big-number stat row with one "warn" exception | `<div class="stat-card warn">` | [stat-card-warn-modifier](references/stat-card-warn-modifier.md) |
+| Small chip strip for supplementary metrics | `<span class="chip">` row | [compact-metric-chip-strip](references/compact-metric-chip-strip.md) |
+| 2-col compact key/value (mini-table) | `<table class="mini-stats">` | [impact-mini-table](references/impact-mini-table.md) |
+| Tradeoff sub-grid (pros + cons) | 2-col `<table>` with `.pro-dot` / `.con-dot` | [pro-con-tradeoff-grid](references/pro-con-tradeoff-grid.md) |
+| Triage list (Now / Next / Later / Cut) | kanban-as-table | [kanban-as-table](references/kanban-as-table.md) |
+| Rules → outcomes decision aid | 3-col `data` table | [decision-matrix-pattern](references/decision-matrix-pattern.md) |
+| DESIGN.md token specification (Role / Hex / System / Notes) | 4-col `data` table with swatch column | [token-spec-table](references/token-spec-table.md) |
+| Chess board, sudoku grid, 3×3 colored demo | colored-cell board (plain `<table>` + author CSS) | [colored-cell-board](references/colored-cell-board.md) |
 
 ## When NOT to use this skill
 
-- For a `<table data-ve-type="table-form">` (single/multi-select question form), use `amvcp-choice-tables` — it owns the form payload contract. See `references/table-form-scope-skip.md` for the boundary.
+- For a `<table data-ve-type="table-form">` (single/multi-select question form), use `amvcp-choice-tables` — it owns the form payload contract. See [table-form-scope-skip](references/table-form-scope-skip.md) for the boundary.
 - For a free-form HTML block with no semantic table, use `amvcp-prose-pages` or `amvcp-report-doc`.
 - For a chart with axes / SVG primitives, use `amvcp-charts-and-dashboards`.
 
@@ -94,7 +94,7 @@ Composes with every other amvcp-* skill on the same page (R22). Multiple tables 
 
 ## Resources
 
-The skill ships with 35 reference files. Start with `table-modes.md` for the complete attribute reference, then drill into the per-feature references for the mode you're using.
+The skill ships with 35 reference files. Start with [table-modes](references/table-modes.md) for the complete attribute reference, then drill into the per-feature references for the mode you're using.
 
 ### Cross-runtime context
 - [interactive-selection-base.md](../../references/interactive-selection-base.md) — runtime contract, payload, marking selectable elements
@@ -151,4 +151,4 @@ The skill ships with 35 reference files. Start with `table-modes.md` for the com
 
 ## Visual verification
 
-Every visual change MUST be verified per `skills/amvcp-self-debug-rules/SKILL.md`. Run the dev-browser snippets there for: light + dark theme parity (R1), no-nested-scrollbars (R2), `aria-sort` after each sort cycle, atom-contract stamps (`data-ve-comment-id` on rows / `data-ve-id` on matrix and compare cells), CSV button presence + clipboard copy contents.
+Every visual change MUST be verified per [amvcp-self-debug-rules](../amvcp-self-debug-rules/SKILL.md). Run the dev-browser snippets there for: light + dark theme parity (R1), no-nested-scrollbars (R2), `aria-sort` after each sort cycle, atom-contract stamps (`data-ve-comment-id` on rows / `data-ve-id` on matrix and compare cells), CSV button presence + clipboard copy contents.
