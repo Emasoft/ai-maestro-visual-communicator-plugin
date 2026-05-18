@@ -9868,12 +9868,10 @@
       '  padding: 24px;',
       '  display: flex; flex-direction: column; gap: 8px;',
       '  position: relative; overflow: hidden;',
-      '  transition: box-shadow 0.2s ease, transform 0.15s ease;',
-      '}',
-      '.ve-stat:hover {',
-      '  box-shadow: 0 0 0 1px var(--vc-color-border, rgba(0,0,0,0.08)),',
-      '              0 12px 24px rgba(0,0,0,0.08);',
-      '  transform: translateY(-2px);',
+      // R29 — NO :hover rule here. The runtime owns the 3-state
+      // selection visual (normal / hover±Δ+glow / selected±Δ+outline)
+      // exclusively. A page-level :hover that adds box-shadow + transform
+      // would drown the runtime drop-shadow glow.
       '}',
       '.ve-stat-label {',
       '  font-size: 12px; font-weight: 500;',
@@ -9966,11 +9964,7 @@
       '  gap: 16px;',
       '  font-size: 14px;',
       '  color: var(--vc-color-content, #0f172a);',
-      '  transition: border-color 0.15s ease, transform 0.15s ease;',
-      '}',
-      '.ve-stack-layer:hover {',
-      '  border-color: var(--vc-color-accent, #4f46e5);',
-      '  transform: translateX(4px);',
+      // R29 — no :hover here either. Runtime owns the 3-state visual.
       '}',
       '.ve-stack-layer-name {',
       '  font-size: 11px; font-weight: 600;',
