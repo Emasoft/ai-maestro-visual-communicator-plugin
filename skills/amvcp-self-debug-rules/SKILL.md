@@ -1200,6 +1200,55 @@ vestibular-disorder users, and anyone trying to print or PDF the
 page. Unlike R37 (font size) which has a workaround (zoom), R40's
 absence has no workaround.
 
+### R41 — dev-browser NEVER runs in headless mode
+
+When the test suite, a scenario runner, a screenshot script, or
+ANY plugin tooling launches `dev-browser` (Chromium / Puppeteer
+via the dev-browser plugin), it MUST run in **visible / windowed**
+mode. Headless mode is forbidden because:
+
+1. **Human-in-the-loop oversight.** The user is watching the test
+   run — visible mode lets them catch UX regressions that
+   automated assertions miss (a layout that looks right in the
+   DOM but feels wrong on screen, an animation that lands at the
+   wrong moment, a hover state that flashes instead of holding).
+2. **Debugging signal.** When a test fails, the visible window is
+   already showing the state right before the failure — no need
+   to re-run with a screenshot harness to see what happened.
+3. **Trust gradient.** Headless runs feel opaque — the agent says
+   "tests passed" and the user has to take it on faith. Visible
+   runs put the proof in front of the user as it happens.
+
+Specifically forbidden:
+
+- Passing `--headless`, `--headless=true`, `--headless=new`, or
+  `headless: true` to puppeteer.launch / chrome / chromium CLIs.
+- Setting env vars: `HEADLESS=1`, `HEADLESS=true`,
+  `PUPPETEER_HEADLESS=true`, `CHROMIUM_HEADLESS=1`, or any
+  equivalent.
+- Invoking the dev-browser skill / agent with a "headless" flag.
+- Running scenarios under any wrapper that silently switches to
+  headless (some CI harnesses do this; the local plugin runs MUST
+  stay visible).
+
+Verify in any new tooling:
+```bash
+# Snapshot the test runner / scenario script for headless flags.
+grep -nE 'headless|HEADLESS|--no-sandbox.*--headless' \
+    tests/run-tests.py scripts/*.py
+# Expected: zero matches OR explicit `headless: false` / `--no-headless`.
+```
+
+If a downstream tool defaults to headless, override it to visible
+before invocation. If a tool only supports headless, do not use it
+for this plugin — find a visible alternative.
+
+This rule applies to every dev-browser invocation in the project:
+the main test runner (`tests/run-tests.py`), per-skill smoke tests,
+the scenarios runner, screenshot capture scripts, and any agent
+that delegates to dev-browser (run-scenario-test, the plugin-fixer
+when re-running tests, etc.).
+
 ## Verification protocol — run before claiming "fixed"
 
 For ANY change that touches the runtime, the renderer, or a visualization skill, run this sequence:
@@ -1214,6 +1263,7 @@ For ANY change that touches the runtime, the renderer, or a visualization skill,
 8. **Interaction sequences**: for hover/click/drag features, use real mouse paths (`page.mouse.move(x, y, {steps: 8})`) — `el.click()` hides hover-state bugs. For touch (R30), use `page.emulate({mobile: true, hasTouch: true})`.
 9. **Composability**: when a runtime change touches a skill that ships alongside others, re-run R22's composite-fixture check (`all-techniques-sample.html`) to confirm zero interference with other skills.
 10. **iTerm pane**: if you opened a preview pane during testing, run `open_preview` again with `${ITERM_SESSION_ID##*:}` (the safeguard auto-closes the previous pane).
+11. **dev-browser visible mode (R41)**: when re-running tests / scenarios / screenshot scripts, verify dev-browser is launched in visible/windowed mode — never headless. Snapshot the runner script for `headless` flags before invocation.
 
 ## Anti-patterns (NEVER do)
 
@@ -1243,6 +1293,7 @@ For ANY change that touches the runtime, the renderer, or a visualization skill,
 - **Mutate the host page's DOM in overlay mode** (see R24). Inject ONE overlay-root sibling; arm/disarm cleanly; never touch existing elements' classes or inline styles.
 - **Submit a selection payload missing `id` + `text/label` + `kind`** (see R25). The agent cannot map the user's choice back to the source if any of these is missing.
 - **Add a new skill without `## Modes` and `## Composability` sections in its SKILL.md** (see R26). Future planner skills need to discover what each skill can do without grepping runtime files.
+- **Launch dev-browser in headless mode** (see R41). Every dev-browser invocation — test runner, scenario runner, screenshot script, agent delegation — MUST run in visible/windowed mode so the user can watch. No `--headless`, no `HEADLESS=1`, no equivalent. Override headless defaults to visible before invocation; do not use tools that only support headless.
 
 ## Modes
 

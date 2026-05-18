@@ -144,3 +144,18 @@ These contracts (per TRDD-4c300620) are non-negotiable:
 - Authoring new sub-skills (the router only calls existing ones).
 - Replacing `amvcp-select.py` (the iTerm-first launcher wraps it).
 - Multi-round response loop for `amvcp-interactive-report` (the responder is `/amvcp-respond-to-comment`; the router only fires the first round).
+
+## Modes
+
+Not applicable in the runtime sense — `amvcp-show` does not emit DOM, so it has no `data-ve-mode` host. It is a **dispatch skill**: it classifies an input and either renders + launches it directly (markdown / HTML paths) or returns a JSON instruction telling the orchestrator which downstream skill to invoke. The downstream skills (`amvcp-interactive-report`, `amvcp-prose-pages`, `amvcp-charts-and-dashboards`, etc.) own their own `data-ve-mode` declarations per R23.
+
+## Composability
+
+Compatible with every visual-communicator sub-skill — by design. The router's job is to compose them, not interfere with them. It never mutates a rendered page, never overrides a sub-skill's runtime initialisation, and never assigns `data-ve-id` values itself (per R22). When dispatching to a downstream skill the router passes the input verbatim and stays out of the way.
+
+Specific composability guarantees:
+
+- Does NOT race any other skill on `data-ve-id` namespaces — emits no DOM.
+- Does NOT mount any runtime — `amvcp-runtime.js` is loaded only by the rendered HTML the downstream skill emits.
+- Always invokes the iTerm-first launcher (`scripts/amvcp-show-launcher.py`) so the iTerm split-pane / Chromium fallback decision is made in exactly one place, regardless of which downstream skill rendered the HTML (per R33 corner buttons always present + the launcher's iTerm contract).
+- Compatible with `/amvcp-respond-to-comment` for the multi-round response loop on markdown reports — the router only fires round 1; the responder picks up subsequent rounds.
