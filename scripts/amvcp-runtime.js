@@ -9429,8 +9429,12 @@
     } catch (e) { /* sandbox without localStorage — fall back to auto */ }
   }
 
-  // Apply common visual styling shared by all corner-control buttons
-  // (matches the pod handle so the four sit consistently).
+  // Apply common visual styling shared by all corner-control buttons.
+  // Uses DESIGN.md surface tokens for theme-correct visibility — the
+  // previous version used `rgba(255,255,255,0.92)` which is nearly
+  // invisible on a near-white page bg (#fafaf9). Surface + strong
+  // border + saturated shadow + backdrop blur make the row stand out
+  // on EVERY DESIGN.md preset.
   function _styleCornerBtn(btn, rightPx) {
     btn.type = 'button';
     btn.className = 've-corner-control';
@@ -9442,15 +9446,30 @@
       'width:36px',
       'height:36px',
       'padding:0',
-      'border:1px solid var(--ve-control-border, rgba(0,0,0,0.18))',
+      // border-strong is reserved for affordances that must stand out
+      // — corner controls are exactly that case.
+      'border:1px solid var(--vc-color-border-strong,'
+        + ' var(--ve-control-border-strong, rgba(0,0,0,0.28)))',
       'border-radius:50%',
-      'background:var(--ve-control-overlay-bg, rgba(255,255,255,0.92))',
-      'color:var(--ve-control-fg, #14110b)',
+      // surface-raised is the DESIGN.md role for floating elements;
+      // falls back to surface, then to a near-opaque off-white.
+      'background:var(--vc-color-surface-raised,'
+        + ' var(--vc-color-surface, var(--ve-control-overlay-bg, #ffffff)))',
+      'color:var(--vc-color-content,'
+        + ' var(--ve-control-fg, #14110b))',
       'cursor:pointer',
       'display:flex',
       'align-items:center',
       'justify-content:center',
-      'box-shadow:0 2px 8px rgba(0,0,0,0.22)',
+      // Stronger drop-shadow so the button is unmistakable against
+      // both light + dark page backgrounds. The dark-theme branch
+      // (page bg ~#0a0a0a) sees the shadow blend with the bg; the
+      // light-theme branch needs the explicit shadow to lift the
+      // button off the canvas.
+      'box-shadow:0 4px 14px rgba(0,0,0,0.28),'
+        + ' 0 0 0 1px rgba(255,255,255,0.06) inset',
+      'backdrop-filter:blur(8px)',
+      '-webkit-backdrop-filter:blur(8px)',
       'transition:transform 160ms ease, box-shadow 160ms ease',
       ''
     ].join(';');
