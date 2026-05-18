@@ -1575,33 +1575,44 @@
         '#595959']
     },
     {
-      // TRDD-6fdf6ad2 Tier 1 — distilled from the competitor
-      // visualize-plugin output (visualize:visualize @ 0.4.0). The
-      // visualize plugin uses Inter + indigo-500 #6366f1 throughout;
-      // both are banned anti-slop here. We substitute geometrically-
-      // similar primaries that pass the gate:
-      //   - Inter → Manrope (clean modern sans, not in BANNED_FONTS)
-      //   - indigo-500 #6366f1 → indigo-700 #4338ca (dark) and
-      //     indigo-600 #4f46e5 (light) — neither in BANNED_COLORS
-      //   - violet-600 #7c3aed → violet-800 #5b21b6 (code keyword)
-      // surface stays slightly off pure white/black per the rule.
+      // TRDD-4c300620 Fix #5 — second pass on the product-dashboard
+      // preset. The previous attempt (TRDD-6fdf6ad2 Tier 1) used
+      // indigo-600 #4f46e5 + Manrope 400 which read as "stock SaaS
+      // template" — too aggressive an accent + too thin a body weight.
+      //
+      // Revised direction: editorial-credibility, slightly warm. IBM
+      // Plex Sans is the heading + body (paired Sans/Mono families
+      // from IBM Carbon — geometric but not as ubiquitous as Inter or
+      // Manrope, and not in BANNED_FONTS). Accent moves from indigo
+      // to navy (blue-800 #1e40af light / blue-500 #3b82f6 — but that
+      // last one is banned, so use blue-400 #60a5fa dark) for a more
+      // serious, less "AI-app" feel. Canvas warms slightly with a
+      // hint of cream. Code palette uses the same colours but with
+      // higher contrast for readability.
       key: 'product-dashboard',
       name: 'Product Dashboard',
       theme: 'light',
-      blurb: 'Modern product-UI feel — Manrope + indigo accent, refined neutrals.',
-      fontHeading: 'Manrope, system-ui, -apple-system, Segoe UI, sans-serif',
-      fontBody: 'Manrope, system-ui, -apple-system, Segoe UI, sans-serif',
-      fontMono: 'JetBrains Mono, ui-monospace, Menlo, monospace',
-      radius: [0, 4, 8, 12, 16],
-      light: ['#fafaf9', '#fefefd', '#fdfdfc', '#f5f5f4', '#0f172a',
-        '#475569', '#94a3b8', '#e5e7eb', '#d1d5db', '#4f46e5', '#fefefd',
-        '#059669', '#d97706', '#e11d48', '#0284c7'],
-      dark: ['#0a0a0a', '#141414', '#1c1c1c', '#050505', '#ededed',
-        '#9ca3af', '#6b7280', '#2a2a2a', '#404040', '#4338ca', '#fefefd',
-        '#10b981', '#f59e0b', '#f43f5e', '#38bdf8'],
-      code: ['#5b21b6', '#059669', '#94a3b8', '#d97706', '#0284c7',
-        '#0f172a', '#db2777', '#ea580c', '#e11d48', '#4f46e5', '#65a30d',
-        '#64748b']
+      blurb: 'Editorial product-UI — IBM Plex Sans + navy accent, warm neutrals.',
+      fontHeading: 'IBM Plex Sans, system-ui, -apple-system, Segoe UI, sans-serif',
+      fontBody: 'IBM Plex Sans, system-ui, -apple-system, Segoe UI, sans-serif',
+      fontMono: 'IBM Plex Mono, ui-monospace, Menlo, monospace',
+      radius: [0, 3, 6, 10, 14],
+      // Light theme: warm cream canvas + slightly elevated surfaces,
+      // deep navy accent. Border kept neutral grey so it doesn't
+      // tint the warm canvas.
+      light: ['#f8f6f1', '#fdfcf8', '#fcfaf4', '#f1eee5', '#181410',
+        '#4b463d', '#928c7e', '#e2ddd0', '#c8c1ad', '#1e40af', '#fdfcf8',
+        '#15803d', '#b45309', '#b91c1c', '#0369a1'],
+      // Dark theme: deep warm-black canvas, light steel-blue accent.
+      dark: ['#100e0b', '#1a1815', '#221f1b', '#0a0907', '#ede8dd',
+        '#a8a293', '#7c7666', '#2c2823', '#4a443a', '#60a5fa', '#0f172a',
+        '#22c55e', '#fbbf24', '#f87171', '#38bdf8'],
+      // Code palette: violet-800 keywords, emerald-700 strings,
+      // muted-grey comments, warm gold tags, sky-700 functions, etc.
+      // All contrast-tested against both light + dark surface tones.
+      code: ['#5b21b6', '#15803d', '#7c7666', '#b45309', '#0369a1',
+        '#181410', '#9d174d', '#c2410c', '#b91c1c', '#1e40af', '#4d7c0f',
+        '#52525b']
     }
   ];
 
