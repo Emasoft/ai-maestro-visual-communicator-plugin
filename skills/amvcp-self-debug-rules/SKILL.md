@@ -125,6 +125,7 @@ The full rule bodies + dev-browser verify snippets live in the four reference fi
 
 After verifying the rules relevant to your change, run the [verification protocol](references/verification-protocol-and-anti-patterns.md#verification-protocol-run-before-claiming-fixed) and review the [anti-patterns](references/verification-protocol-and-anti-patterns.md#anti-patterns-never-do) to catch the common mistakes.
   > Verification protocol — run before claiming "fixed" · Anti-patterns (NEVER do)
+  > Verification protocol — run before claiming "fixed" · Anti-patterns (NEVER do)
 
 ## Output
 

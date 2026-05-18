@@ -417,6 +417,4 @@ Listed by category:
 > hard-coded `font-size` literals is a separate refactor task —
 > this skill defines the destination tokens (see
 > [semantic-hierarchy.md](./references/semantic-hierarchy.md) §B.6),
-> it does not perform the migration. The CJK token home is owned by
-> the `design-tokens` skill (DT-25); the typography skill ships only
-> the `:lang()` bridge.
+  > B.1 The contract table · B.2 How it is delivered · B.3 Why the hierarchy is *strict* · B.4 No-nested-scrollbars compliance · B.5 Light + dark — correct for free · B.6 Runtime migration map (NOT this skill's build work) · Tokens consumed
