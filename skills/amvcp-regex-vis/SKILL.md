@@ -80,6 +80,7 @@ Composes with every other amvcp-* skill on the same page (R22). Multiple regex-v
   - Runtime-injected UI must inherit host palette
   - Common shape & Running tests
 - [regex-vis-cookbook.md](./references/regex-vis-cookbook.md) — payload schema
+  > What `.ve-regex` does · Auto-stamped attributes · Wire-format payload — `kind:"regex-edit"` · Authoring guidance · Failure handling
   - What `.ve-regex` does
   - Auto-stamped attributes
   - Wire-format payload — `kind:"regex-edit"`

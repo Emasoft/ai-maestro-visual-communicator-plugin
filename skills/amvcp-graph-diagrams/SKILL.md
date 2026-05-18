@@ -74,8 +74,10 @@ Composes with every other amvcp-* skill on the same page (R22). Multiple graphs 
   - anime.js — Orchestrated Animations
   - Google Fonts — Typography
 - [mermaid-integration.md](./references/mermaid-integration.md) — `click` + `veSelectMermaid()` wiring
+  > Wiring Mermaid clicks to the selection runtime
   - Wiring Mermaid clicks to the selection runtime
 - [graphviz-cookbook.md](./references/graphviz-cookbook.md) — Defaults · IDs · Math · `rankdir` · `.ve-graph` CSS
+  > Graphviz defaults · IDs on nodes and edges · Math labels in DOT · Choosing `rankdir` · Forcing layer alignment · Page CSS requirements for `.ve-graph` · What the runtime gives you for free · Directed graphs (Graphviz / `.ve-graph`) · Math labels in graphs (LaTeX, not ASCII) · Engine selection · When auto-layout still doesn't cut it: the manual-grid escape hatch · When to use which engine
   - Graphviz defaults
   - IDs on nodes and edges
   - Math labels in DOT

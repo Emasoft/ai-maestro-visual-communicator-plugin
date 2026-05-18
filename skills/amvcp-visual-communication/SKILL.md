@@ -179,10 +179,15 @@ Trigger this umbrella whenever you are about to add ANY visual to a document. Th
 - `${CLAUDE_PLUGIN_ROOT}/references/css-patterns.md` — theme + atmosphere, layout, content blocks, visual components
 - `${CLAUDE_PLUGIN_ROOT}/references/libraries.md` — when (and when NOT) to reach for Mermaid, Chart.js, anime.js, Google Fonts
 - [authoring-workflow](./references/authoring-workflow.md) — the 5-step author-and-run loop in long form
+  > Step 1 — Pick a direction (5 seconds) · Step 2 — Read the reference material · Step 3 — Author the page · Step 4 — Open with the interactive runner (always) · Step 5 — React to the selection · Output: file location, format, stdout shape
 - [environment-and-runner](./references/environment-and-runner.md) — `amvcp-select.py` CLI, env vars, optional deps
+  > Prerequisites · Environment variables · Runner CLI · Timeout knob — explanatory vs interrogative pages · Optional dependencies · External libraries (CDN, optional)
 - [example-flows](./references/example-flows.md) — four end-to-end flows (architecture, comparison, agent report, slide deck)
+  > Example 1 — Quick architecture diagram · Example 2 — Comparison table that asks a question · Example 3 — Agent report as a commentable interactive page · Example 4 — Slide deck from a plan
 - [troubleshooting](./references/troubleshooting.md) — Chromium missing, file:// direct, timeouts, render failures
+  > No Chromium browser found · Page opened directly via file:// (not via the runner) · Timeout without a click · `surf` CLI missing · Mermaid render failure · TikZ / MathJax silent failures · Vercel deploy errors (`/amvcp-share-page`) · Always check the browser console first
 - [quality-checklist](./references/quality-checklist.md) — squint test, swap test, both themes, no overflow, anti-patterns
+  > The squint test · The swap test · Both themes · Information completeness · No overflow · Mermaid zoom controls · No anti-patterns · File opens cleanly
 
 ## Output
 
@@ -217,10 +222,15 @@ Project-root shared references (loaded via `${CLAUDE_PLUGIN_ROOT}/references/`):
 Per-skill walk-throughs (loaded via `./references/`):
 
 - [authoring-workflow](./references/authoring-workflow.md) — the 5-step author-and-run loop in long form
+  > Step 1 — Pick a direction (5 seconds) · Step 2 — Read the reference material · Step 3 — Author the page · Step 4 — Open with the interactive runner (always) · Step 5 — React to the selection · Output: file location, format, stdout shape
 - [environment-and-runner](./references/environment-and-runner.md) — `amvcp-select.py` CLI, env vars, optional deps
+  > Prerequisites · Environment variables · Runner CLI · Timeout knob — explanatory vs interrogative pages · Optional dependencies · External libraries (CDN, optional)
 - [example-flows](./references/example-flows.md) — four end-to-end flows (architecture, comparison, agent report, slide deck)
+  > Example 1 — Quick architecture diagram · Example 2 — Comparison table that asks a question · Example 3 — Agent report as a commentable interactive page · Example 4 — Slide deck from a plan
 - [troubleshooting](./references/troubleshooting.md) — Chromium missing, file:// direct, timeouts, render failures
+  > No Chromium browser found · Page opened directly via file:// (not via the runner) · Timeout without a click · `surf` CLI missing · Mermaid render failure · TikZ / MathJax silent failures · Vercel deploy errors (`/amvcp-share-page`) · Always check the browser console first
 - [quality-checklist](./references/quality-checklist.md) — squint test, swap test, both themes, no overflow, anti-patterns
+  > The squint test · The swap test · Both themes · Information completeness · No overflow · Mermaid zoom controls · No anti-patterns · File opens cleanly
 
 Sibling skills the umbrella dispatches to (loaded via plugin skill index):
 

@@ -135,11 +135,14 @@ skills/amvcp-prose-pages/
 - **Verify an already-generated page** → run
   `runGates(document)` (browser) or `runGatesOnHtml(htmlText)`
   (Node CLI `--qa`). See [output-qa-pipeline-7-gates](references/output-qa-pipeline-7-gates.md).
+    > When to run the QA pipeline · The 7 gates · Calling the pipeline · Gate output shape · The loop-detection (failedTwice) · DESIGN.md tokens consumed (by Gate 2) · Banned lists (Gates 6 + 7) · Lib API surface · Visual verification · Anti-patterns
 - **Article / essay / README-as-page** → `<article data-ve-prose>`
   for auto numbering + selectable snippets. See
   [prose-mode](references/prose-mode.md).
+    > Paragraph numbering + text-snippet selection · Text-snippet selection · Why opt-in via `data-ve-prose` · Authoring rules for prose pages · Reference response patterns
 - **"Which technique should I use?"** → walk the decision tree in
   [request-routing-decision-tree](references/request-routing-decision-tree.md).
+    > Top-level decision tree · Layering: shape × element skills · Decision matrix — when shapes overlap · The "5-layer infographic composition" mental model (OT-07) · Composition · Anti-patterns
 
 ## Instructions
 
@@ -157,6 +160,7 @@ Start with "Pick the right path" above to confirm this is the right skill for th
    `case-study`, `proposal`, `whitepaper`, `design-system-doc`. Each
    is a `.vc-doc--<name>` modifier on `<article class="vc-doc">`.
    See [template-presets-six-shapes](references/template-presets-six-shapes.md) for the picker.
+     > When to pick which template · What each template adds · Picking the right template — decision tree · Template stacking · Template + shape mapping · DESIGN.md tokens consumed · Composition · Lib API · Anti-patterns
 2. **Pick a shape** — what KIND of deliverable is this? See the 15+
    shape references in `references/*-shape.md`. Each shape pins the
    section sequence and tells you which element skills to embed.
@@ -164,6 +168,7 @@ Start with "Pick the right path" above to confirm this is the right skill for th
    with a `<header class="vc-doc-header">` carrying eyebrow + h1 +
    subtitle + byline. See
    [document-header-byline-subtitle](references/document-header-byline-subtitle.md).
+     > When to add each element · Scaffold · CSS contract (already injected by the runtime) · The eyebrow's job · Title-writing discipline · Subtitle discipline · Byline discipline · DESIGN.md tokens consumed · Composition · Selection / comment notes · Anti-patterns
 4. **Add structural blocks as needed** —
    `<aside class="vc-callout vc-callout--<variant>">`,
    `<table class="vc-rubric">`, `<blockquote class="vc-pullquote">`,
@@ -172,6 +177,7 @@ Start with "Pick the right path" above to confirm this is the right skill for th
    references.
 5. **Add a TOC** for documents with 4+ `<h2>` sections — see
    [toc-and-anchor-system](references/toc-and-anchor-system.md). The runtime auto-spies the
+     > When to add a TOC · Scaffold (default — single-column doc) · CSS (already injected by the runtime) · The scroll-spy (already implemented in `init`) · Variants by layout · DESIGN.md tokens consumed · The heading-anchor offset · Composition with other skills · Lib functions called · Selection / comment notes · Anti-patterns
    active section.
 6. **Load the runtime** — `<script src="amvcp-designmd.js"></script>`
    then `<script src="amvcp-report-doc.js"></script>`. The skill
@@ -179,6 +185,7 @@ Start with "Pick the right path" above to confirm this is the right skill for th
    `DOMContentLoaded` unless `window.__vcReportDocManualInit` is set.
 7. **Always run the QA pipeline** before handing the page back — see
    [output-qa-pipeline-7-gates](references/output-qa-pipeline-7-gates.md).
+     > When to run the QA pipeline · The 7 gates · Calling the pipeline · Gate output shape · The loop-detection (failedTwice) · DESIGN.md tokens consumed (by Gate 2) · Banned lists (Gates 6 + 7) · Lib API surface · Visual verification · Anti-patterns
 
 ## Instructions — prose / article pages
 
@@ -192,6 +199,7 @@ Start with "Pick the right path" above to confirm this is the right skill for th
 4. Paragraph clicks → `kind:"element"`/`type:"paragraph"`. Text
    highlights → `kind:"text"` with `paragraphId` + surrounding
    text. See [prose-mode](references/prose-mode.md).
+     > Paragraph numbering + text-snippet selection · Text-snippet selection · Why opt-in via `data-ve-prose` · Authoring rules for prose pages · Reference response patterns
 
 ## Instructions — run the QA pipeline
 
@@ -213,6 +221,7 @@ degradations); only a P1 FAIL flips `ok` to `false`.
 the same gate for the same `pageId` — escalate, do not auto-retry.
 
 Full coverage: [output-qa-pipeline-7-gates](references/output-qa-pipeline-7-gates.md).
+  > When to run the QA pipeline · The 7 gates · Calling the pipeline · Gate output shape · The loop-detection (failedTwice) · DESIGN.md tokens consumed (by Gate 2) · Banned lists (Gates 6 + 7) · Lib API surface · Visual verification · Anti-patterns
 
 ## Output
 
@@ -232,6 +241,7 @@ For prose pages the selection payload is:
 ```
 
 QA reports are JSON — see [output-qa-pipeline-7-gates](references/output-qa-pipeline-7-gates.md).
+  > When to run the QA pipeline · The 7 gates · Calling the pipeline · Gate output shape · The loop-detection (failedTwice) · DESIGN.md tokens consumed (by Gate 2) · Banned lists (Gates 6 + 7) · Lib API surface · Visual verification · Anti-patterns
 
 ## Composing with the 12 element skills
 
@@ -256,6 +266,7 @@ Quick map:
 
 Full composition contract + interaction patterns:
 [composing-with-other-skills](references/composing-with-other-skills.md).
+  > The composition contract · The compatibility matrix · Worked example — `implementation-plan-shape` · Runtime interaction patterns · QA on composed pages · When NOT to compose · Anti-patterns
 
 ## Error Handling
 
@@ -297,6 +308,7 @@ Full composition contract + interaction patterns:
    marker. The whole document fits in the 64ch reading measure the
    template sets via `--vc-doc-measure`. See
    [section-numbering-leading-zero](references/section-numbering-leading-zero.md).
+     > When to use leading-zero numbering · The whitepaper template's auto-numbering · Cross-referencing by name, not number · Multi-level numbering (sections + subsections) · The standalone `vc-num` eyebrow (alternative) · DESIGN.md tokens consumed · Composition · Selection / comment notes · Anti-patterns
 3. **Incident postmortem** — `incident-postmortem-shape` over
    `vc-doc--technical-report`. SEV pill + slate TL;DR + typed-dot
    timeline + impact mini-table + action-items checklist + fixed-
@@ -333,51 +345,88 @@ The full 37-reference progressive-discovery index is grouped below by topic — 
 ### Document shapes (pick one per deliverable)
 
 - [implementation-plan-shape](./references/implementation-plan-shape.md) — 8-section forward-looking plan
+  > When to choose this shape · Section order (fixed — do not reorder) · Markdown scaffold · Lib functions called · DESIGN.md tokens consumed · Composition with the 12 element skills · Selection / comment notes · Decision-mini hook · Verification · Anti-patterns
 - [status-report-shape](./references/status-report-shape.md) — recurring time-windowed retrospective summary
+  > When to choose this shape · Section order (fixed) · Markdown scaffold · The `.vc-metric--warn` modifier · The `vc-auto-pill` provenance pill · DESIGN.md tokens consumed · Composition with other skills · Lib functions called · Selection / comment notes · Decision-mini hook · Anti-patterns
 - [incident-postmortem-shape](./references/incident-postmortem-shape.md) — SEV / TL;DR / timeline / impact / actions
+  > When to choose this shape · Section order (fixed) · Markdown scaffold · The typed-dot timeline · The key/value pill (`vc-pill-k` + `vc-pill-v`) · The slate TL;DR variant · The fixed-right TOC · DESIGN.md tokens consumed · Composition with other skills · Lib functions called · Selection / comment notes · Decision-mini hook · Anti-patterns
 - [pr-review-reviewer-side-shape](./references/pr-review-reviewer-side-shape.md) — reviewer's writeup with risk chips
+  > When to choose this shape · Section order (fixed) · Markdown scaffold · The risk-chip navigator · The 3-column diff subgrid + comment bubble · DESIGN.md tokens consumed · Composition with other skills · Lib functions called · Selection / comment notes · Decision-mini hook · Anti-patterns
 - [pr-writeup-author-side-shape](./references/pr-writeup-author-side-shape.md) — author's writeup with rollout strip
+  > When to choose this shape · Section order (fixed) · Markdown scaffold · The before/after panel pair · The rollout strip (shared borders) · Reading-order file tour vs alphabetical · DESIGN.md tokens consumed · Composition with other skills · Lib functions called · Selection / comment notes · Decision-mini hook · Anti-patterns
 - [architecture-explainer-shape](./references/architecture-explainer-shape.md) — flow + walkthrough + sticky sidebar
+  > When to choose this shape · Section order (fixed) · Layout — 2-column grid with sticky sidebar · Markdown scaffold · The hot-step modifier (`.vc-step--hot`) · The Gotchas panel (clay-bordered sidebar block) · Mutually-exclusive `<details>` (optional) · DESIGN.md tokens consumed · Composition with other skills · Lib functions called · Selection / comment notes · Decision-mini hook · Anti-patterns
 - [feature-explainer-shape](./references/feature-explainer-shape.md) — TOC + step-by-step + tabbed code + FAQ
+  > When to choose this shape · Section order (fixed) · Markdown scaffold · The "Files read" sidebar block · The tabbed code panel · The star callout · The FAQ `<dl>` block · DESIGN.md tokens consumed · Composition with other skills · Lib functions called · Selection / comment notes · Decision-mini hook · Anti-patterns
 - [concept-explainer-shape](./references/concept-explainer-shape.md) — interactive demo + comparison + glossary
+  > When to choose this shape · Section order (fixed) · Layout — main column + sticky right glossary · Markdown scaffold · The interactive demo — slider → recompute → re-render · The hover-linked glossary · DESIGN.md tokens consumed · Composition with other skills · Lib functions called · Selection / comment notes · Decision-mini hook · Anti-patterns
 - [compare-n-approaches-shape](./references/compare-n-approaches-shape.md) — N columns + Pro/Con + recommendation
+  > When to choose this shape · Section order (fixed) · Markdown scaffold · The N-column grid · The Pro/Con sub-grid · The metric-chip strip · The recommendation card (clay left-border) · DESIGN.md tokens consumed · Composition with other skills · Lib functions called · Selection / comment notes · Decision-mini hook · Anti-patterns
 - [visual-design-exploration-shape](./references/visual-design-exploration-shape.md) — toolbar + artboards + rationale
+  > When to choose this shape · Section order (fixed) · Markdown scaffold · The light/dark toolbar switcher · The 2×2 artboard grid · The per-artboard "Risk:" line · DESIGN.md tokens consumed · Composition with other skills · Lib functions called · Selection / comment notes · Decision-mini hook · Anti-patterns
 - [rfc-shape](./references/rfc-shape.md) — Abstract / Context / Proposal / Alternatives / …
+  > When to choose this shape · Section order (fixed) · Markdown scaffold · The RFC status pill · The Alternatives section · The whitepaper template's auto-numbering · DESIGN.md tokens consumed · Composition with other skills · Lib functions called · Selection / comment notes · Decision-mini hook · Anti-patterns
 - [adr-decision-log-shape](./references/adr-decision-log-shape.md) — Nygard 4-section append-only
+  > When to choose this shape · Section order (fixed — Nygard 2011 contract) · Markdown scaffold · The `.vc-adr` modifier · The Status pill — special behaviour · DESIGN.md tokens consumed · Composition with other skills · Lib functions called · Selection / comment notes · Decision-mini hook · Anti-patterns
 - [retrospective-shape](./references/retrospective-shape.md) — four-quadrant retro + action items
+  > When to choose this shape · Section order (fixed) · Markdown scaffold · The four-quadrant grid · The "extract action items from the quadrant" rule · The "follow-up to prior retro" section · DESIGN.md tokens consumed · Composition with other skills · Lib functions called · Selection / comment notes · Decision-mini hook · Anti-patterns
 - [design-system-doc-shape](./references/design-system-doc-shape.md) — living one-pager of the DESIGN.md
+  > When to choose this shape · Section order (fixed) · Markdown scaffold · The swatch grid · The type-scale row atom · The spacing ruler atom · DESIGN.md tokens consumed · Composition with other skills · Lib functions called · Selection / comment notes · Decision-mini hook · Anti-patterns
 - [change-log-document-shape](./references/change-log-document-shape.md) — versioned-document edit history
+  > When to add a change log · Scaffold (canonical) · CSS contract · Reverse chronological order · Entry-content discipline · Initial-draft entry · When to roll a new version · DESIGN.md tokens consumed · Composition · Selection / comment notes · Anti-patterns
 
 ### Structural primitives (embed inside any shape)
 
 - [document-header-byline-subtitle](./references/document-header-byline-subtitle.md) — eyebrow + h1 + subtitle + byline
+  > When to add each element · Scaffold · CSS contract (already injected by the runtime) · The eyebrow's job · Title-writing discipline · Subtitle discipline · Byline discipline · DESIGN.md tokens consumed · Composition · Selection / comment notes · Anti-patterns
 - [tldr-summary-card](./references/tldr-summary-card.md) — clay-border summary; slate variant for postmortems
+  > When to add a TL;DR · Default scaffold (clay-border) · Slate-bg variant (postmortem / security advisory) · Word-count discipline · DESIGN.md tokens consumed · Composition · Selection / comment notes · Decision-mini hook · Anti-patterns
 - [callout-admonition-blocks](./references/callout-admonition-blocks.md) — 5 variants (tip / warning / info / note / danger)
+  > When to use which variant · Scaffold (canonical) · CSS (already injected by the runtime) · DESIGN.md tokens consumed · Special variants (extensions beyond the 5 builtins) · Composition with other skills · Selection / comment notes · Decision-mini hook · QA notes · Anti-patterns
 - [pull-quote-cap-one-per-page](./references/pull-quote-cap-one-per-page.md) — editorial pull-quote, default + display + epigraph
+  > When to use a pull-quote · Scaffold · CSS (already injected by the runtime) · The "exactly one per page" rule · Variants · DESIGN.md tokens consumed · Composition with other shapes · Selection / comment notes · Anti-patterns
 - [metrics-stat-band](./references/metrics-stat-band.md) — 3-5 stat cells with one-warn modifier
+  > When to use a stat-band · Scaffold · CSS (already injected by the runtime) · The `--warn` modifier · Number formatting discipline · DESIGN.md tokens consumed · Composition · Selection / comment notes · Decision-mini hook · Anti-patterns
 - [quality-rubric-scored-matrix](./references/quality-rubric-scored-matrix.md) — N-row × scored-cell evaluation table
+  > When to use · Scaffold (canonical /20 rubric) · CSS (already injected by the runtime) · Custom rubric scales · Runtime auto-sum (optional) · DESIGN.md tokens consumed · Composition with other skills · Lib functions called · Selection / comment notes · Decision-mini hook · Anti-patterns
 - [metadata-keypill-strip](./references/metadata-keypill-strip.md) — compact key/value pill row + status pills
+  > When to use · Scaffold · CSS contract · Status-variant catalog · Severity-pill content discipline · Key/value content discipline · DESIGN.md tokens consumed · Composition with other shapes · Selection / comment notes · Decision-mini hook · Anti-patterns
 - [timeline-typed-dots](./references/timeline-typed-dots.md) — vertical timeline; impact / detect / mitigated dots
+  > When to use a timeline · Scaffold (incident timeline) · CSS contract · Dot-color semantics · Time-column conventions · DESIGN.md tokens consumed · Composition · Selection / comment notes · Decision-mini hook · Anti-patterns
 - [action-items-checklist](./references/action-items-checklist.md) — owned + due-dated commitment register
+  > When to use · Scaffold (canonical 4-column row) · CSS contract · State modifiers · Owner discipline · Due-date discipline · Composition · Lib hooks · DESIGN.md tokens consumed · Selection / comment notes · Decision-mini hook · Anti-patterns
 - [glossary-and-hover-linked-terms](./references/glossary-and-hover-linked-terms.md) — `<dl>` + bidirectional hover-link
+  > When to add a glossary · Scaffold — body markup · Scaffold — glossary block · CSS contract · The hover-link runtime · Click-to-jump variant · DESIGN.md tokens consumed · Composition · Selection / comment notes · Decision-mini hook · QA notes · Anti-patterns
 - [abstract-keywords-block](./references/abstract-keywords-block.md) — formal-document opener (RFC / whitepaper)
+  > When to use which · Scaffold · CSS contract · The IMRAD-like structure inside an abstract · Word-count discipline · Keyword discipline · DESIGN.md tokens consumed · Composition · Selection / comment notes · Anti-patterns
 - [appendix-and-references-bibliography](./references/appendix-and-references-bibliography.md) — formal-document closer
+  > When to add each · Appendix scaffold · CSS for appendices · References scaffold · CSS for references · Citation discipline · DESIGN.md tokens consumed · Composition · Selection / comment notes · Anti-patterns
 
 ### Document chrome
 
 - [prose-mode](./references/prose-mode.md) — `data-ve-prose` paragraph numbering + text-snippet selection
+  > Paragraph numbering + text-snippet selection · Text-snippet selection · Why opt-in via `data-ve-prose` · Authoring rules for prose pages · Reference response patterns
 - [responsive-nav](./references/responsive-nav.md) — sticky sidebar TOC + mobile horizontal bar
+  > Layout Structure · CSS · JavaScript — Scroll Spy · Adaptation Notes
 - [toc-and-anchor-system](./references/toc-and-anchor-system.md) — `vc-toc` + scroll-spy + heading-anchor offset
+  > When to add a TOC · Scaffold (default — single-column doc) · CSS (already injected by the runtime) · The scroll-spy (already implemented in `init`) · Variants by layout · DESIGN.md tokens consumed · The heading-anchor offset · Composition with other skills · Lib functions called · Selection / comment notes · Anti-patterns
 - [section-numbering-leading-zero](./references/section-numbering-leading-zero.md) — CSS-counter `01`, `02`, `03`
+  > When to use leading-zero numbering · The whitepaper template's auto-numbering · Cross-referencing by name, not number · Multi-level numbering (sections + subsections) · The standalone `vc-num` eyebrow (alternative) · DESIGN.md tokens consumed · Composition · Selection / comment notes · Anti-patterns
 - [template-presets-six-shapes](./references/template-presets-six-shapes.md) — the 6 `vc-doc--<name>` modifiers
+  > When to pick which template · What each template adds · Picking the right template — decision tree · Template stacking · Template + shape mapping · DESIGN.md tokens consumed · Composition · Lib API · Anti-patterns
 - [print-stylesheet-and-back-to-top](./references/print-stylesheet-and-back-to-top.md) — print CSS + back-to-top affordance
+  > Why these matter · Print stylesheet (already shipped) · Print: page numbering (optional) · Print: cover page (optional) · Back-to-top affordance · Back-to-top runtime · DESIGN.md tokens consumed · Composition · Anti-patterns
 - [provenance-footer-and-autopill](./references/provenance-footer-and-autopill.md) — auto-pill + sources line + prompt box
+  > When to add provenance markers · The auto-pill · The provenance footer · Files-read sidebar variant · The prompt box (provenance for one-shots) · DESIGN.md tokens consumed · Composition · Selection / comment notes · Anti-patterns
 
 ### Composition + QA
 
 - [output-qa-pipeline-7-gates](./references/output-qa-pipeline-7-gates.md) — `runGates`, gate-by-gate reference
+  > When to run the QA pipeline · The 7 gates · Calling the pipeline · Gate output shape · The loop-detection (failedTwice) · DESIGN.md tokens consumed (by Gate 2) · Banned lists (Gates 6 + 7) · Lib API surface · Visual verification · Anti-patterns
 - [request-routing-decision-tree](./references/request-routing-decision-tree.md) — "which technique should I use?"
+  > Top-level decision tree · Layering: shape × element skills · Decision matrix — when shapes overlap · The "5-layer infographic composition" mental model (OT-07) · Composition · Anti-patterns
 - [composing-with-other-skills](./references/composing-with-other-skills.md) — embed contract + theme-swap propagation
+  > The composition contract · The compatibility matrix · Worked example — `implementation-plan-shape` · Runtime interaction patterns · QA on composed pages · When NOT to compose · Anti-patterns
 
 ### Cross-cutting / shared
 

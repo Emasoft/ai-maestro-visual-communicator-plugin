@@ -66,6 +66,7 @@ Not applicable in the visual sense — the skill orchestrates external tools (br
   - Engine routing — read this BEFORE generating a graph
   - Runtime & Process Caveats
 - [sharing-pages.md](./references/sharing-pages.md) — full deploy workflow, `share.py`, `vercel-deploy` API, error modes, retention.
+  > Overview · Usage · Example · How it works · Requirements · Notes
   - Overview
   - Usage
   - Example

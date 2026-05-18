@@ -73,12 +73,14 @@ Composes with EVERY other amvcp-* skill — that is its job. Every visual elemen
   - Runtime-injected UI must inherit host palette
   - Common shape & Running tests
 - [agent-report-flow](./references/agent-report-flow.md) — v2/v3 flow, responder.
+  > When to use · Two halves of the round-trip · Responding to comments (the workflow respond-to-comment runs) · v3 — per-element decision toggles (approve / reject — both off = skip) · When NOT to use v2 modal comments
   - When to use
   - Two halves of the round-trip
   - Responding to comments (the workflow respond-to-comment runs)
   - v3 — per-element decision toggles (approve / reject — both off = skip)
   - When NOT to use v2 modal comments
 - [v3-decision-toggles](./references/v3-decision-toggles.md) — state, payload, summary.
+  > Visual model · State model · Keyboard · DOM contract · Theming hooks · On-disk decision payload · Aggregate summary on close · Responder behaviour when decisions are present · When the control does NOT fire
   - Visual model
   - State model
   - Keyboard

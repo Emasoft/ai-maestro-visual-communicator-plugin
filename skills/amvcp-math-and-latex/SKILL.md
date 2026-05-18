@@ -68,6 +68,7 @@ Composes with every other amvcp-* skill on the same page (R22). KaTeX/TikZ can b
   - Surfaces, Hierarchy & Animation
   - Engines & Illustrations
 - [math-cookbook.md](./references/math-cookbook.md) — flavours, macros, figures, regions
+  > Three flavours · Notation coverage · Granular sub-selection inside math (matrix cells, indices, sum bounds, …) · Adding more macros · Copy-tex · What's selectable · Sub-element selection (variables, terms, operators) · Math in tables · TikZ diagrams (binary trees, FSMs, DAGs, Karnaugh maps, OBDDs, geometry, free-body diagrams) · What's selectable in TikZ diagrams · Semantic geometric regions — clicks return *named entities*, not paths · Region shapes · Calibrating regions · Workflow: iterate on a LaTeX-paper figure by clicking elements · Pattern: chemistry molecule with selectable atoms and bonds · When to use named regions vs. mouse-highlight snippets vs. whole-diagram click · Choosing between `.ve-math` and `.ve-tikz`
   - Three flavours
   - Notation coverage
   - Granular sub-selection inside math
@@ -86,6 +87,7 @@ Composes with every other amvcp-* skill on the same page (R22). KaTeX/TikZ can b
   - When to use named regions vs. mouse-highlight snippets vs. whole-diagram click
   - Choosing between `.ve-math` and `.ve-tikz`
 - [tikz-substitutions.md](./references/tikz-substitutions.md) — preload audit, WASM crash, substitutes
+  > TikZJax preload audit (verified empirically 2026-05-05) · CRITICAL — WASM crash on first error blocks every subsequent diagram · Working substitutes by diagram category · Detecting silent failure during development · Detecting silent failure
   - TikZJax preload audit (verified empirically 2026-05-05)
   - CRITICAL — WASM crash on first error blocks every subsequent diagram
   - Working substitutes by diagram category

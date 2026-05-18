@@ -74,6 +74,7 @@ Composes with every other amvcp-* skill on the same page (R22). Common compositi
   - Documentation Layouts
   - Prose Accent Elements
 - [table-form-schema.md](./references/table-form-schema.md) — Mode A/B/C, free-text row, payload spec
+  > Tables — three modes · Form-mode payload · When to use form mode vs. passive mode
   - Tables — three modes
   - Form-mode payload
   - When to use form mode vs. passive mode

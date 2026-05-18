@@ -75,6 +75,7 @@ Not applicable in the visual sense — iTerm pane management is orthogonal to th
 ## Resources
 
 - [iterm2-preview-cookbook.md](./references/iterm2-preview-cookbook.md) — detector internals, Mermaid workflow, abort cases.
+  > Why detect iTerm2 first · Detector internals · Mode 1 — HTML preview workflow · Mode 2 — Mermaid → SVG workflow · Worked examples · Closing the preview · Side effects of opening a preview · Page navigation — Python API + keystroke fallback · Recommended one-time profile setup · Why focused/unfocused title bars sometimes look the same · close_preview.applescript safety
   - Why detect iTerm2 first
   - Detector internals
   - Mode 1 — HTML preview workflow
