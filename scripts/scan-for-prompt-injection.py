@@ -65,9 +65,9 @@ import json
 import re
 import sys
 import unicodedata
+from collections.abc import Iterable
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
-from typing import Iterable
 
 # ---------------------------------------------------------------------------
 # Severity ordering — used for both per-finding tagging and exit-code logic.
@@ -447,9 +447,11 @@ def iter_paths(roots: Iterable[Path]) -> Iterable[Path]:
             skip = False
             for part in path.parts:
                 if part in SKIP_DIR_NAMES:
-                    skip = True; break
+                    skip = True
+                    break
                 if part.startswith(".") and part not in (".", ".."):
-                    skip = True; break
+                    skip = True
+                    break
             if not skip:
                 yield path
 
@@ -495,7 +497,7 @@ def print_human(results: list[FileResult]) -> None:
     print()
     print(f"  PROMPT-INJECTION SCAN — {len(all_findings)} finding(s) "
           f"across {total} file(s):")
-    print(f"  " + "  ".join(
+    print("  " + "  ".join(
         f"{_fmt(s).strip()}={by_severity[s]}"
         for s in SEV_ORDER if by_severity[s] > 0
     ))
