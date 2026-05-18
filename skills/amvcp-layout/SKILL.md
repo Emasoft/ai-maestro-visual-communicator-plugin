@@ -204,3 +204,4 @@ This skill is foundational — every other amvcp-* skill is composed inside one 
   > What this is · Why layout containers are EXCLUDED · The decision-mini pill contract · Scaffold to emit · Lib functions called · DESIGN.md tokens used · The fake-heading exclusion · When to add a new shape · Idempotency · Selection / comment / decision-mini contract summary · Visual verification
 - [amvcp-self-debug-rules](../amvcp-self-debug-rules/SKILL.md) — universal visual-verification checklist every ref points at.
 - [interactive-selection-base](../../references/interactive-selection-base.md) — the selection-runtime page contract.
+  > How it works & Page Setup · The selection payload · Selectable Elements · Engine routing — read this BEFORE generating a graph · Runtime & Process Caveats

@@ -57,18 +57,21 @@ Composes with every other amvcp-* skill on the same page (R22). Common compositi
 ## Resources
 
 - [interactive-selection-base.md](../../references/interactive-selection-base.md) — payload contract, runtime boilerplate, marking elements
+  > How it works & Page Setup · The selection payload · Selectable Elements · Engine routing — read this BEFORE generating a graph · Runtime & Process Caveats
   - How it works & Page Setup
   - The selection payload
   - Selectable Elements
   - Engine routing — read this BEFORE generating a graph
   - Runtime & Process Caveats
 - [css-patterns.md](../../references/css-patterns.md) — sticky `<thead>`, alternating rows, status indicators
+  > Theme & Atmosphere · Layout & Containers · Visual Components · Prose Page Elements · Generated Images
   - Theme & Atmosphere
   - Layout & Containers
   - Content Blocks
   - Visual Components
   - Prose Page Elements
 - [diagram-types.md](../../references/diagram-types.md) — when a table beats other visuals
+  > Diagrams (Mermaid + CSS) · Data Visualizations · Documentation Layouts · Prose Accent Elements
   - Diagrams (Mermaid + CSS)
   - Data Visualizations
   - Documentation Layouts

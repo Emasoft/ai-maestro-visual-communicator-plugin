@@ -122,6 +122,7 @@ The skill ships with 35 reference files. Start with [table-modes](references/tab
 
 ### Cross-runtime context
 - [interactive-selection-base.md](../../references/interactive-selection-base.md) — runtime contract, payload, marking selectable elements
+  > How it works & Page Setup · The selection payload · Selectable Elements · Engine routing — read this BEFORE generating a graph · Runtime & Process Caveats
 - [skills/amvcp-self-debug-rules/SKILL.md](../amvcp-self-debug-rules/SKILL.md) — visual verification checklist (always run after changes)
 
 ### Core contract (read first)

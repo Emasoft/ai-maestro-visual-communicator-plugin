@@ -431,7 +431,12 @@ The full 37-reference progressive-discovery index is grouped below by topic — 
 ### Cross-cutting / shared
 
 - [interactive-selection-base](../../references/interactive-selection-base.md) — wire format, depths 1-7
+  > How it works & Page Setup · The selection payload · Selectable Elements · Engine routing — read this BEFORE generating a graph · Runtime & Process Caveats
 - [css-patterns](../../references/css-patterns.md) — Prose Page Elements (lead, pullquote, callout)
+  > Theme & Atmosphere · Layout & Containers · Visual Components · Prose Page Elements · Generated Images
 - [styling-guide](../../references/styling-guide.md) — Editorial / Paper-ink directions
+  > Aesthetic directions · Typography & Color · Surfaces, Hierarchy & Animation · Engines & Illustrations
 - [libraries](../../references/libraries.md) — Typography by Voice
+  > Mermaid.js — Diagramming Engine · Chart.js — Data Visualizations · anime.js — Orchestrated Animations · Google Fonts — Typography
 - [diagram-types](../../references/diagram-types.md) — Prose Accent Elements
+  > Diagrams (Mermaid + CSS) · Data Visualizations · Documentation Layouts · Prose Accent Elements

@@ -52,17 +52,20 @@ Composes with every other amvcp-* skill on the same page (R22). KaTeX/TikZ can b
 ## Resources
 
 - [interactive-selection-base.md](../../references/interactive-selection-base.md) — wire format, boilerplate, payload, marking
+  > How it works & Page Setup · The selection payload · Selectable Elements · Engine routing — read this BEFORE generating a graph · Runtime & Process Caveats
   - How it works & Page Setup
   - The selection payload
   - Selectable Elements
   - Engine routing — read this BEFORE generating a graph
   - Runtime & Process Caveats
 - [libraries.md](../../references/libraries.md) — CDN (Mermaid, Chart.js, anime, fonts)
+  > Mermaid.js — Diagramming Engine · Chart.js — Data Visualizations · anime.js — Orchestrated Animations · Google Fonts — Typography
   - Mermaid.js — Diagramming Engine
   - Chart.js — Data Visualizations
   - anime.js — Orchestrated Animations
   - Google Fonts — Typography
 - [styling-guide.md](../../references/styling-guide.md) — palette, aesthetic, typography
+  > Aesthetic directions · Typography & Color · Surfaces, Hierarchy & Animation · Engines & Illustrations
   - Aesthetic directions
   - Typography & Color
   - Surfaces, Hierarchy & Animation

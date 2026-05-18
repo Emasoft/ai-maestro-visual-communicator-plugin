@@ -54,6 +54,7 @@ Composes with EVERY other amvcp-* skill — that is its job. Every visual elemen
 ## Resources
 
 - [comment-chat-box](../../references/comment-chat-box.md) — modal UI, wire format.
+  > What this is · Queue-dir contract — share the same path across both halves · Wire format (what lives on disk) · Modal layout (the chat box) · Polling cycle · Atomic-write pattern · Page-side guarantees
   - What this is
   - Queue-dir contract — share the same path across both halves
   - Wire format (what lives on disk)
@@ -62,12 +63,14 @@ Composes with EVERY other amvcp-* skill — that is its job. Every visual elemen
   - Atomic-write pattern
   - Page-side guarantees
 - [interactive-selection-base](../../references/interactive-selection-base.md) — `submit`/`exit`/`selections[]`.
+  > How it works & Page Setup · The selection payload · Selectable Elements · Engine routing — read this BEFORE generating a graph · Runtime & Process Caveats
   - How it works & Page Setup
   - The selection payload
   - Selectable Elements
   - Engine routing — read this BEFORE generating a graph
   - Runtime & Process Caveats
 - [runtime-bug-patterns](../../references/runtime-bug-patterns.md) — hover-bridge, polling-resume.
+  > v2 modal bugs · ve-regex bugs · Runtime-injected UI must inherit host palette · Common shape & Running tests
   - v2 modal bugs
   - ve-regex bugs
   - Runtime-injected UI must inherit host palette

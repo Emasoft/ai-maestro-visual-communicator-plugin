@@ -144,6 +144,7 @@ Worked examples — each shows how the agent matches a user request to one of th
 ### Example 1 — "chart Q1 revenue by region"
 1. Match the matrix: "quantitative comparison across categories" → **charts-and-dashboards (`bar`)**.
 2. Read [amvcp-charts-and-dashboards](../amvcp-charts-and-dashboards/SKILL.md) plus [chart-bar](../amvcp-charts-and-dashboards/references/chart-bar.md).
+  > When to choose `bar` · Authoring shape · Options · Examples · What the runtime emits · Lib functions called · DESIGN.md tokens used · Selection / comments / decision-mini · Anti-patterns and pitfalls · Visual verification
 3. Emit a fenced `chart:bar@1` block inside a `<figure class="ve-chart">`:
    ```html
    <figure class="ve-chart" data-ve-chart-type="bar"><pre><code class="language-chart:bar@1">
@@ -157,6 +158,8 @@ Worked examples — each shows how the agent matches a user request to one of th
 ### Example 2 — "compare three deployment plans, B is recommended"
 1. Match the matrix: "comparison of N options" → **tables (`compare` mode)**.
 2. Read [amvcp-tables](../amvcp-tables/SKILL.md) plus [comparison-emphasis-column](../amvcp-tables/references/comparison-emphasis-column.md) and [icon-headers-unicode](../amvcp-tables/references/icon-headers-unicode.md).
+  > What the emphasis column communicates · The `data-ve-col-emphasis` attribute · Zero or one — never two · The two-column emphasis warning — fail-fast, console.warn · How the tint is applied — grid-walked column · The accent border-left + border-right · The 10% accent wash · Icon recoloring on the emphasis header · The 2-column anti-pattern → fix variant · Pairing emphasis with a deliberate row order · Sample HTML — 3-column recommendation · Sample HTML — 2-column before/after · DESIGN.md tokens consumed · Selection / comment / decision-mini notes · CSV-export contract
+  > The job an icon header does · The hard rule — Unicode geometric marks only · Pairing icons — open vs filled, the rank signal · The canonical 4-icon palette · Mode-specific icon idioms · The injection — span before the header text · Color is per emphasis state · Why no icons on the row-label column · Sample HTML · Choosing an icon set for a specific comparison · DESIGN.md tokens consumed · Selection / comment / decision-mini notes · CSV-export contract
 3. Emit `<table data-ve-table="compare">` with three option `<th>`s carrying `data-ve-col-icon` Unicode glyphs and `data-ve-col-emphasis="1"` on the B column.
 4. Load `amvcp-designmd.js` + `amvcp-runtime.js` + `amvcp-tables.js`. Done.
 
@@ -213,11 +216,17 @@ This skill IS the orchestrator — by definition it composes the other amvcp-* s
 Project-root shared references (loaded via `${CLAUDE_PLUGIN_ROOT}/references/`):
 
 - [interactive-selection-base](../../references/interactive-selection-base.md) — runtime contract, selection payload, atom stamps
+  > How it works & Page Setup · The selection payload · Selectable Elements · Engine routing — read this BEFORE generating a graph · Runtime & Process Caveats
 - [diagram-types](../../references/diagram-types.md) — every diagram archetype the plugin supports
+  > Diagrams (Mermaid + CSS) · Data Visualizations · Documentation Layouts · Prose Accent Elements
 - [styling-guide](../../references/styling-guide.md) — aesthetic directions, typography + color, surfaces + hierarchy
+  > Aesthetic directions · Typography & Color · Surfaces, Hierarchy & Animation · Engines & Illustrations
 - [anti-patterns](../../references/anti-patterns.md) — the slop test, banned colors, banned fonts
+  > Typography · Color Palette · Section Headers · Layout & Hierarchy · Template Patterns · The Slop Test
 - [css-patterns](../../references/css-patterns.md) — theme + atmosphere, layout, content blocks, visual components
+  > Theme & Atmosphere · Layout & Containers · Visual Components · Prose Page Elements · Generated Images
 - [libraries](../../references/libraries.md) — when (and when NOT) to reach for Mermaid, Chart.js, anime.js, Google Fonts
+  > Mermaid.js — Diagramming Engine · Chart.js — Data Visualizations · anime.js — Orchestrated Animations · Google Fonts — Typography
 
 Per-skill walk-throughs (loaded via `./references/`):
 

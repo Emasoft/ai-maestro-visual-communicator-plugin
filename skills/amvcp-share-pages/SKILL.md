@@ -60,6 +60,7 @@ Not applicable in the visual sense — the skill orchestrates external tools (br
 ## Resources
 
 - [interactive-selection-base.md](../../references/interactive-selection-base.md) — wire format + runtime contract; selection pages lose interactivity on Vercel.
+  > How it works & Page Setup · The selection payload · Selectable Elements · Engine routing — read this BEFORE generating a graph · Runtime & Process Caveats
   - How it works & Page Setup
   - The selection payload
   - Selectable Elements

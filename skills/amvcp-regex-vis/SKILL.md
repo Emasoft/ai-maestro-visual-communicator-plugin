@@ -69,12 +69,14 @@ Composes with every other amvcp-* skill on the same page (R22). Multiple regex-v
 ## Resources
 
 - [interactive-selection-base.md](../../references/interactive-selection-base.md) — wire format + boilerplate
+  > How it works & Page Setup · The selection payload · Selectable Elements · Engine routing — read this BEFORE generating a graph · Runtime & Process Caveats
   - How it works & Page Setup
   - The selection payload
   - Selectable Elements
   - Engine routing — read this BEFORE generating a graph
   - Runtime & Process Caveats
 - [runtime-bug-patterns.md](../../references/runtime-bug-patterns.md) — bug catalogue
+  > v2 modal bugs · ve-regex bugs · Runtime-injected UI must inherit host palette · Common shape & Running tests
   - v2 modal bugs
   - ve-regex bugs
   - Runtime-injected UI must inherit host palette

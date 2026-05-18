@@ -53,22 +53,26 @@ Composes with every other amvcp-* skill on the same page (R22). Multiple graphs 
 ## Resources
 
 - [interactive-selection-base.md](../../references/interactive-selection-base.md) — READ FIRST. runtime contract
+  > How it works & Page Setup · The selection payload · Selectable Elements · Engine routing — read this BEFORE generating a graph · Runtime & Process Caveats
   - How it works & Page Setup
   - The selection payload
   - Selectable Elements
   - Engine routing — read this BEFORE generating a graph
   - Runtime & Process Caveats
 - [diagram-types.md](../../references/diagram-types.md) — Architecture · Flowcharts · Sequence · ER · State · Mindmaps · Class · C4
+  > Diagrams (Mermaid + CSS) · Data Visualizations · Documentation Layouts · Prose Accent Elements
   - Diagrams (Mermaid + CSS)
   - Data Visualizations
   - Documentation Layouts
   - Prose Accent Elements
 - [styling-guide.md](../../references/styling-guide.md) — Aesthetics · Typography · Color · Mermaid theming
+  > Aesthetic directions · Typography & Color · Surfaces, Hierarchy & Animation · Engines & Illustrations
   - Aesthetic directions
   - Typography & Color
   - Surfaces, Hierarchy & Animation
   - Engines & Illustrations
 - [libraries.md](../../references/libraries.md) — Mermaid v11 ESM + ELK · `theme:'base'` · Google Fonts
+  > Mermaid.js — Diagramming Engine · Chart.js — Data Visualizations · anime.js — Orchestrated Animations · Google Fonts — Typography
   - Mermaid.js — Diagramming Engine
   - Chart.js — Data Visualizations
   - anime.js — Orchestrated Animations
