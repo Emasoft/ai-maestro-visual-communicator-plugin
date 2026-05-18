@@ -97,7 +97,6 @@ visual token resolves via `var(--vc-*, <fallback>)`.
   > When to choose donut · Authoring shape · Options · Examples · What the runtime emits · Lib functions called · DESIGN.md tokens · Selection / atoms · Anti-patterns · Donut vs alternatives · Center text customisation · Inner radius — why a hole · Slice order · Visual verification
   > When to choose segmented-bar · Authoring shape · Options · Examples · What the runtime emits · Lib functions called · DESIGN.md tokens · Selection / atoms · Anti-patterns · Visual verification
   > When to choose mekko · Authoring shape · Options · Examples · What the runtime emits · Lib functions called · DESIGN.md tokens · Selection / atoms · Anti-patterns · Mekko vs alternatives — the two-encoding test · How to read a mekko chart · Mekko design rule — sort by descending column total · Mekko with negative segments · Visual verification
-  > Why no pie charts · What the runtime does · Example · When the author actually wants a circular form · Anti-patterns · Empirical evidence summary · What about lone Hyperframes-style guidance documents? · See also · Visual verification
 | Show a cumulative bridge | `waterfall` | [chart-waterfall.md](./references/chart-waterfall.md) |
   > When to choose waterfall · Authoring shape · Options · Examples · What the runtime emits · Lib functions called · DESIGN.md tokens · Selection / atoms · Anti-patterns · Waterfall vs alternatives · Intermediate subtotals · Connector dash pattern · Negative starting value · Visual verification
 | Show stage drop-off | `funnel` | [chart-funnel.md](./references/chart-funnel.md) |
@@ -118,13 +117,11 @@ visual token resolves via `var(--vc-*, <fallback>)`.
   > When to choose lollipop · Authoring shape · Options · Examples · What the runtime emits · Lib functions called · DESIGN.md tokens · Selection / atoms · Anti-patterns · Lollipop vs alternatives · When lollipop beats bar · When lollipop loses to bar · Multi-series lollipop · Stem styling overrides · Visual verification
   > When to choose dot-plot · Authoring shape · Options · Examples · What the runtime emits · Lib functions called · DESIGN.md tokens · Selection / atoms · Dot-plot vs alternatives — comparison table · When dot-plot wins over lollipop · Grouping nuances — horizontal spread within a band · Anti-patterns · Visual verification
 | Compose a multi-chart dashboard | recipes for status report, hero, comparison, etc. | [chart-dashboard-recipes.md](./references/chart-dashboard-recipes.md) |
-  > Recipe 1 — Status report shape · Recipe 2 — Single-KPI hero + trend · Recipe 3 — Compare-N-approaches · Recipe 4 — Funnel + cohort retention · Recipe 5 — Performance regression hunt · Recipe 6 — Sales pipeline review · Layout guidance · See also
 | Inline tiny trend chart in prose / a table | sparkline | [chart-sparklines-and-inline.md](./references/chart-sparklines-and-inline.md) |
   > When to choose a sparkline · Authoring a sparkline · Inline single-point markers · Sparkline in a table cell · Inline in a metric card · Constraints · See also
 
 Full version with alternatives + when-the-alternative-wins:
 [chart-decision-matrix.md](./references/chart-decision-matrix.md).
-  > 1. Compare categories — how big is each? · 2. Trend over time · 3. Before vs after · 4. Parts of a whole · 5. Multi-criterion comparison · 6. Process flow with cumulative narrative · 7. Stage drop-off (funnel) · 8. 2-D intensity surface · 9. KPI dashboard · 10. Value vs target / threshold · 11. Rank-over-time · 12. Inline part-to-whole · Cross-cutting tips · See also
 
 ## Examples
 
@@ -201,83 +198,53 @@ The references below are organised in three groups: per-type, cross-cutting, and
 - [chart-fence-protocol.md](./references/chart-fence-protocol.md) — the `chart:<type>@<version>` language tag, JSON envelope, per-type schema map, validation gates, version policy, boot order. **READ THIS FIRST.**
   > The contract — one fenced block, one chart · Language tag grammar · The JSON envelope · Per-type schemas at a glance · Validation gates (fail-fast) · Versioning · Boot order · The `<figure>` the runtime emits · Choosing the right type — the decision matrix · See also
 - [chart-bar.md](./references/chart-bar.md) — `bar` (single/grouped, sort, value labels)
-  > When to choose `bar` · Authoring shape · Options · Examples · What the runtime emits · Lib functions called · DESIGN.md tokens used · Selection / comments / decision-mini · Anti-patterns and pitfalls · Visual verification
 - [chart-stacked-bar.md](./references/chart-stacked-bar.md) — `stacked-bar`
   > When to choose stacked-bar · Authoring shape · Options · Example — 100% stacked bar (manual normalisation) · What the runtime emits · Lib functions called · Selection / atoms · DESIGN.md tokens · Stacked-bar variants · Anti-patterns · How to read the stacked-bar visually · Visual verification
 - [chart-diverging-bar.md](./references/chart-diverging-bar.md) — `diverging-bar` (signed values, success/danger fill)
   > When to choose diverging-bar · Authoring shape · Options · Examples · What the runtime emits · Lib functions called · DESIGN.md tokens (in addition to bar's) · Selection · Diverging-bar vs alternatives · Semantic palette swap for colorblind audiences · Zero baseline behavior · Sort + sign combinations · Anti-patterns · Visual verification
 - [chart-lollipop.md](./references/chart-lollipop.md) — `lollipop` (stem + head)
-  > When to choose lollipop · Authoring shape · Options · Examples · What the runtime emits · Lib functions called · DESIGN.md tokens · Selection / atoms · Anti-patterns · Lollipop vs alternatives · When lollipop beats bar · When lollipop loses to bar · Multi-series lollipop · Stem styling overrides · Visual verification
 - [chart-dot-plot.md](./references/chart-dot-plot.md) — `dot-plot` (single value markers)
-  > When to choose dot-plot · Authoring shape · Options · Examples · What the runtime emits · Lib functions called · DESIGN.md tokens · Selection / atoms · Dot-plot vs alternatives — comparison table · When dot-plot wins over lollipop · Grouping nuances — horizontal spread within a band · Anti-patterns · Visual verification
 - [chart-connected-dot-plot.md](./references/chart-connected-dot-plot.md) — `connected-dot-plot` (before/after pairs joined)
-  > When to choose connected-dot-plot · Authoring shape · Options · Examples · What the runtime emits · Lib functions called · DESIGN.md tokens · Selection / atoms · Anti-patterns · Connected-dot-plot vs alternatives · Reading direction · Connector + value-label combo · Visual verification
 - [chart-bullet.md](./references/chart-bullet.md) — `bullet` (KPI vs target + qualitative range)
-  > Overview · When to choose bullet · Authoring shape · Options · Examples · What the runtime emits · Lib functions called · DESIGN.md tokens · Selection / atoms · Anti-patterns · Bullet vs alternatives · The three layers explained · When to set `range > target` · Bullet for "lower is better" metrics · Visual verification
 - [chart-segmented-bar.md](./references/chart-segmented-bar.md) — `segmented-bar` (CSS-flex part-to-whole)
-  > When to choose segmented-bar · Authoring shape · Options · Examples · What the runtime emits · Lib functions called · DESIGN.md tokens · Selection / atoms · Anti-patterns · Visual verification
 - [chart-line.md](./references/chart-line.md) — `line` (Catmull-Rom smooth)
-  > When to choose line · Authoring shape · Options · Examples · What the runtime emits · Lib functions called · DESIGN.md tokens · Selection / atoms · Anti-patterns · Visual verification
 - [chart-area.md](./references/chart-area.md) — `area` (line + OKLCH gradient fill)
-  > When to choose area · Authoring shape · Options · Examples · What the runtime emits · Lib functions called · DESIGN.md tokens · Selection / atoms · Anti-patterns · Area vs alternatives · Gradient details · The closed-path math · Multi-series area pitfalls · Visual verification
 - [chart-step-area.md](./references/chart-step-area.md) — `step-area` (orthogonal step path)
-  > When to choose step-area · Authoring shape · Options · Examples · What the runtime emits · Lib functions called · DESIGN.md tokens · Selection / atoms · Step-area vs alternatives · Step direction — HV vs VH · Reading a step-area chart · Anti-patterns · Visual verification
 - [chart-slope.md](./references/chart-slope.md) — `slope` (before / after slope chart)
-  > When to choose slope · Authoring shape · Options · Examples · What the runtime emits · Lib functions called · DESIGN.md tokens · Selection / atoms · Anti-patterns · Slope vs alternatives — comparison · Rank inversion visual · Slope chart layout — the inset · Color encoding strategies · Visual verification
 - [chart-bump.md](./references/chart-bump.md) — `bump` (rank over time)
-  > When to choose bump · Authoring shape · Options · Examples · What the runtime emits · Lib functions called · DESIGN.md tokens · Selection / atoms · Anti-patterns · Bump vs alternatives · When the rank stays stable · Bump with magnitudes (alternative encoding) · Bump's downside — line tangle · Visual verification
 - [chart-donut.md](./references/chart-donut.md) — `donut` (sanctioned circular form)
-  > When to choose donut · Authoring shape · Options · Examples · What the runtime emits · Lib functions called · DESIGN.md tokens · Selection / atoms · Anti-patterns · Donut vs alternatives · Center text customisation · Inner radius — why a hole · Slice order · Visual verification
 - [chart-gauge.md](./references/chart-gauge.md) — `gauge` (single value vs max + warn/danger thresholds)
-  > When to choose gauge · Authoring shape · Options · Semantics: more-is-worse vs more-is-better · Examples · What the runtime emits · Lib functions called · DESIGN.md tokens · Selection / atoms · Anti-patterns · Gauge vs alternatives · Gauge geometry · Three threshold zones explained · Gauge size in a dashboard · Visual verification
 - [chart-harvey-ball.md](./references/chart-harvey-ball.md) — `harvey-ball` (McKinsey qualitative rating row)
-  > When to choose harvey-ball · Authoring shape · Options · Examples · What the runtime emits · Lib functions called · DESIGN.md tokens · Selection / atoms · Anti-patterns · Harvey-ball vs alternatives · The five canonical ball states · Multiple Harvey-ball rows (per-criterion comparison) · Auto-detected fraction vs percentage · Visual verification
 - [chart-radar.md](./references/chart-radar.md) — `radar` (multi-axis polygon, inflate animation)
-  > When to choose radar · Authoring shape · Options · Examples · What the runtime emits · Lib functions called · DESIGN.md tokens · Selection / atoms · Anti-patterns · Visual verification
 - [chart-waterfall.md](./references/chart-waterfall.md) — `waterfall` (cumulative bridge)
-  > When to choose waterfall · Authoring shape · Options · Examples · What the runtime emits · Lib functions called · DESIGN.md tokens · Selection / atoms · Anti-patterns · Waterfall vs alternatives · Intermediate subtotals · Connector dash pattern · Negative starting value · Visual verification
 - [chart-funnel.md](./references/chart-funnel.md) — `funnel` (drop-off stages)
-  > When to choose funnel · Authoring shape · Options · Examples · What the runtime emits · Lib functions called · DESIGN.md tokens · Selection / atoms · Anti-patterns · Funnel vs alternatives — comparison · Funnel + drop-off pattern · Reverse funnel (amplification) · Funnel with custom colors · Visual verification
 - [chart-mekko.md](./references/chart-mekko.md) — `mekko` (Marimekko — column width by total + internal 100% stack)
-  > When to choose mekko · Authoring shape · Options · Examples · What the runtime emits · Lib functions called · DESIGN.md tokens · Selection / atoms · Anti-patterns · Mekko vs alternatives — the two-encoding test · How to read a mekko chart · Mekko design rule — sort by descending column total · Mekko with negative segments · Visual verification
 - [chart-heatmap.md](./references/chart-heatmap.md) — `heatmap` (OKLCH sequential / diverging ramp; logScale)
-  > When to choose heatmap · Authoring shape · Options · Examples · What the runtime emits · Lib functions called · DESIGN.md tokens · Selection / atoms · Anti-patterns · Visual verification
 - [chart-matrix.md](./references/chart-matrix.md) — `matrix` (heatmap + per-cell value glyph)
-  > When to choose matrix · Authoring shape · Options · Examples · What the runtime emits · Lib functions called · DESIGN.md tokens · Selection / atoms · Anti-patterns · Visual verification
 - [chart-activity-heatmap.md](./references/chart-activity-heatmap.md) — `activity-heatmap` (GitHub-style calendar)
-  > When to choose activity-heatmap · Authoring shape · Options · Examples · What the runtime emits · Lib functions called · DESIGN.md tokens · Selection / atoms · Anti-patterns · When `activity-heatmap` vs `heatmap` semantically · Conventional row count · Cell shape · The decay-canvas variant (out of scope) · Color schema variations · Visual verification
 - [chart-metric-cards.md](./references/chart-metric-cards.md) — `metric-cards` (KPI tile row)
-  > When to choose metric-cards · Authoring shape · Options · Examples · What the runtime emits · Lib functions called · DESIGN.md tokens · Selection / atoms · Anti-patterns · Visual verification
 - [chart-pie-guardrail.md](./references/chart-pie-guardrail.md) — `pie` (BANNED — auto-remaps to sorted `bar`)
-  > Why no pie charts · What the runtime does · Example · When the author actually wants a circular form · Anti-patterns · Empirical evidence summary · What about lone Hyperframes-style guidance documents? · See also · Visual verification
 
 ### Cross-cutting infrastructure
 
 - [chart-decision-matrix.md](./references/chart-decision-matrix.md) — **the data-shape → chart-type lookup**. Use this when you don't know which type to pick.
-  > 1. Compare categories — how big is each? · 2. Trend over time · 3. Before vs after · 4. Parts of a whole · 5. Multi-criterion comparison · 6. Process flow with cumulative narrative · 7. Stage drop-off (funnel) · 8. 2-D intensity surface · 9. KPI dashboard · 10. Value vs target / threshold · 11. Rank-over-time · 12. Inline part-to-whole · Cross-cutting tips · See also
 - [chart-palette-engine.md](./references/chart-palette-engine.md) — golden-angle palette + OKLCH sequential/diverging ramps.
-  > Categorical: the golden-angle palette · Sequential / diverging: OKLCH ramps · Accent extraction — `_accentLCH()` · Why no per-datum colors · Light + dark · Public API · See also
 - [chart-guardrails.md](./references/chart-guardrails.md) — enforced design rules (no pie, sparse gridlines, no D3, etc.).
   > Guardrail 1 — No pie charts · Guardrail 2 — Sparse horizontal gridlines only (≤ 4) · Guardrail 3 — No vertical gridlines, ever · Guardrail 4 — No D3, no Plotly, no Chart.js · Guardrail 5 — Every chart needs an insight title · Guardrail 6 — No inner scrollbars · Guardrail 7 — Fail-fast, fail-visible · Guardrail 8 — Theme-driven colors, no hardcoded literals · Guardrail 9 — Motion respects `prefers-reduced-motion` · See also
 - [chart-canvas-backend.md](./references/chart-canvas-backend.md) — the >100-mark auto-switch + Canvas hit-testing + a11y fallback list.
-  > When the switch fires · Which types are Canvas-capable · What changes for the user · Hit-testing · Accessibility — the hidden a11y list · Theme hot-swap on Canvas · Drawing model · Anti-patterns · See also
 - [chart-selection-and-comments.md](./references/chart-selection-and-comments.md) — the `chart-point` atom contract: data-ve-* attributes, payload, comment-handle, decision-mini pill.
   > What a chart-point atom is · The selection payload shape · The DOM contract — `data-ve-*` attributes · The pointer + keyboard wiring · Selected-state styling · The per-figure group comment-handle · The 3-radio Skip/Approve/Deny decision-mini pill · The defensive standalone-mode fallback · `veWireChart` — the legacy Chart.js bridge · See also
 - [chart-animations-and-motion.md](./references/chart-animations-and-motion.md) — entry animations (growUp, draw-on, arc sweep, polygon inflate) + `prefers-reduced-motion`.
-  > Overview · The fire-once IntersectionObserver · The motion gate — `prefers-reduced-motion` · Per-type entry animations · Cross-cutting tokens · Test hooks · See also
 - [chart-tooltip-and-hover.md](./references/chart-tooltip-and-hover.md) — the singleton tooltip + hover-bridge anti-flicker pattern.
   > The singleton tooltip · The hover-bridge anti-flicker pattern · Click-to-lock · Positioning + viewport clamp · Native SVG `<title>` fallback · Canvas-side hover · Tooltip body shape · See also
 - [chart-error-degradation.md](./references/chart-error-degradation.md) — every failure mode + the visible error block.
-  > Overview · The degrade function · Failure modes · What the error block looks like · Accessing the error reason programmatically · See also
 - [chart-design-tokens.md](./references/chart-design-tokens.md) — complete `--vc-*` token reference.
   > Color tokens · Type-scale tokens · Font-family tokens · Weight tokens · Spacing tokens · Radius tokens · Shadow tokens · Motion tokens · Z-index tokens · How DESIGN.md should populate these · See also
 
 ### Meta + composition
 
 - [chart-dashboard-recipes.md](./references/chart-dashboard-recipes.md) — 6 multi-chart compositions (status report, single-KPI hero, compare-N-approaches, funnel+cohort, regression hunt, sales pipeline).
-  > Recipe 1 — Status report shape · Recipe 2 — Single-KPI hero + trend · Recipe 3 — Compare-N-approaches · Recipe 4 — Funnel + cohort retention · Recipe 5 — Performance regression hunt · Recipe 6 — Sales pipeline review · Layout guidance · See also
 - [chart-sparklines-and-inline.md](./references/chart-sparklines-and-inline.md) — small inline charts in prose / table cells / KPI tiles.
-  > When to choose a sparkline · Authoring a sparkline · Inline single-point markers · Sparkline in a table cell · Inline in a metric card · Constraints · See also
 - [chart-public-api.md](./references/chart-public-api.md) — `window.amvcpChart` surface: `scan`, `render`, `parseFence`, `palette`, `ramp`, `niceTicks`, `describeArc`, `catmullRom`, `getSelection`, `registry`, `injectChartCSS`, test hook `window.__veChart`.
   > The API surface · `scan(root)` · `render(spec, type, host)` · `parseFence(preEl)` · `palette(n)` · `ramp(t, mode)` · `niceTicks(min, max, count)` · `describeArc(cx, cy, rOuter, rInner, a0, a1)` · `catmullRom(points)` · `getSelection()` · `registry` · `injectChartCSS(doc)` · Test hook: `window.__veChart` · See also
 - [chartjs-integration.md](./references/chartjs-integration.md) — the legacy `veWireChart(chart, {id})` bridge for hand-built Chart.js charts (compatibility only — NEW work should use the fence protocol).
