@@ -143,7 +143,13 @@ skills/amvcp-prose-pages/
 
 ## Instructions
 
-The skill has three workflows: scaffold a document, write prose / article pages, and run the QA pipeline. Each is detailed in its own subsection below — start with "Pick the right path" above to choose which one applies.
+The skill has three workflows. Run them in this order:
+
+1. **Scaffold a document** — pick a template + shape, wrap the body in `<article class="vc-doc">`, add structural blocks (callouts, rubrics, pull-quotes, metrics, TLDR, pill rows), add a TOC if 4+ H2 sections, load the runtime. Full detail in the "Instructions — scaffold a document" subsection below.
+2. **Write prose / article pages** — populate the scaffolded shell with content, applying the per-primitive references for callouts, blockquotes, code fences, image figures, etc. Full detail in the "Instructions — prose / article pages" subsection below.
+3. **Run the QA pipeline** — the 7-gate quality check that ships with the skill. Verify each gate before handing the page back. Full detail in the "Instructions — run the QA pipeline" subsection below.
+
+Start with "Pick the right path" above to confirm this is the right skill for the input; then proceed through steps 1-3 in order.
 
 ## Instructions — scaffold a document
 

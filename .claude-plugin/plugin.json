@@ -31,20 +31,26 @@
     "installer_severity": "off",
     "allow_orchestrator_traversal": [
       "skills/..",
-      "skills/amvcp-visual-communication",
-      "skills/amvcp-self-debug-rules",
       "skills/amvcp-animation",
       "skills/amvcp-charts-and-dashboards",
       "skills/amvcp-code-highlight",
       "skills/amvcp-design-tokens",
       "skills/amvcp-diagram",
+      "skills/amvcp-form-inputs",
+      "skills/amvcp-graph-diagrams",
       "skills/amvcp-icon-svg",
       "skills/amvcp-interactive-controls",
+      "skills/amvcp-iterm2-preview",
       "skills/amvcp-layout",
+      "skills/amvcp-math-and-latex",
+      "skills/amvcp-modal-comments",
       "skills/amvcp-prose-pages",
+      "skills/amvcp-regex-vis",
+      "skills/amvcp-self-debug-rules",
       "skills/amvcp-slide-decks",
       "skills/amvcp-tables",
       "skills/amvcp-typography",
+      "skills/amvcp-visual-communication",
       "skills/amvcp-wireframe"
     ]
   }
