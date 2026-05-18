@@ -1,6 +1,6 @@
 ---
 name: amvcp-prose-pages
-description: "Use when the user wants a written report, executive summary, technical writeup, case study, proposal, whitepaper, RFC, ADR, postmortem, status report, retrospective, design-system documentation, an essay or blog post with paragraph-numbered prose, OR asks to QA-check / verify / lint an already-generated visual page, OR asks 'which visual technique should I use'. Trigger with 'write a technical report', 'executive summary page', 'case study doc', 'proposal document', 'whitepaper', 'RFC', 'ADR', 'incident postmortem', 'status report', 'retrospective', 'PR writeup', 'PR review', 'architecture doc', 'feature explainer', 'concept explainer', 'compare options', 'design exploration', 'design-system documentation', 'essay with pull quotes', 'long-form article', 'render this README', 'paragraph-numbered prose', 'QA-check this page', 'verify the report', 'lint the HTML output', 'which visual technique should I use'."
+description: "Use when the user wants a written report, executive summary, technical writeup, case study, proposal, whitepaper, RFC, ADR, postmortem, status report, retrospective, design-system doc, essay, or to QA-check / verify / lint an already-generated visual page. Trigger with 'technical report', 'executive summary', 'case study', 'whitepaper', 'RFC', 'ADR', 'postmortem', 'status report', 'retrospective', 'PR writeup', 'feature explainer', 'long-form article', 'render this README', 'QA-check page'."
 license: MIT
 metadata:
   author: Emasoft

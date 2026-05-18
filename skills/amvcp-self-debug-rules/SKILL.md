@@ -1,6 +1,6 @@
 ---
 name: amvcp-self-debug-rules
-description: "Self-debugging checklist for visual-communicator pages. Use when verifying that a rendered HTML/SVG visualization (report, slide, diagram, math, code block, table, regex panel, etc.) adheres to the universal rules collected from prior debug sessions. Trigger when the user says 'verify the visualization', 'self-debug', 'check the rendered page', 'audit the visualization', 'why does X look wrong'. Run via dev-browser in visible/windowed mode (never headless per R41) — every rule below maps to a concrete CDP / page.evaluate measurement."
+description: "Self-debugging checklist for visual-communicator pages. Use when verifying a rendered HTML/SVG visualization (report, slide, diagram, table) adheres to the universal rules from prior debug sessions. Trigger with 'verify the visualization', 'self-debug', 'check the rendered page', 'audit the visualization'. Run via dev-browser in visible mode (never headless per R41) — every rule maps to a CDP measurement."
 license: MIT
 metadata:
   author: Emasoft

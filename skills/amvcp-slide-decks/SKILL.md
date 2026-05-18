@@ -1,6 +1,6 @@
 ---
 name: amvcp-slide-decks
-description: "Author magazine-quality slide decks as one self-contained interactive HTML file from a JSON deck contract. Fixed-aspect letterbox stage, 16 named layouts, 5 entrance moods, 4 transitions, theme-aware light + dark, dependency-free renderer (no reveal.js, no GSAP, no CDN). Use when the user asks for a presentation, slide deck, talk slides, pitch deck, or to turn a plan into slides. Trigger with 'slide deck', 'presentation', 'pitch deck', 'turn this into slides', '/amvcp-generate-slides', or '--slides'."
+description: "Author magazine-quality slide decks as one self-contained interactive HTML from a JSON deck contract. Letterbox stage, 16 layouts, 5 moods, 4 transitions, dependency-free (no reveal.js, no GSAP). Use when the user asks for a presentation, slide deck, talk slides, pitch deck. Trigger with 'slide deck', 'presentation', 'pitch deck', 'turn this into slides', '/amvcp-generate-slides'."
 license: MIT
 compatibility: "Browser (ResizeObserver, requestAnimationFrame). Python 3.12+ renderer ships amvcp-slide.js + amvcp-designmd.js beside the HTML."
 metadata:

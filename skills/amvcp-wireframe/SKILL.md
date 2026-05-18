@@ -1,6 +1,6 @@
 ---
 name: amvcp-wireframe
-description: "Render navigable grayscale UI wireframes — fidelity-locked placeholder blocks, multi-screen anchor navigation, device-frame bezels (iOS/Android/MacBook/browser), and a wireframe→low→mid→hi fidelity ramp. Grayscale is derived by desaturating the DESIGN.md theme; rising fidelity re-introduces the real accent. Use when the user says 'wireframe', 'mockup', 'prototype', 'low-fidelity', 'lo-fi screen', 'UX layout', 'sketch the UI', or wants to plan a screen before visual design. Trigger with 'wireframe', 'mockup', 'prototype', 'lo-fi', 'low-fidelity', 'clickable prototype', 'app chrome', 'device frame', 'fidelity ramp'."
+description: "Render navigable grayscale UI wireframes — fidelity-locked placeholder blocks, multi-screen anchor navigation, device-frame bezels (iOS/Android/MacBook/browser), wireframe→low→mid→hi fidelity ramp. Grayscale derived by desaturating DESIGN.md; rising fidelity re-introduces accent. Use when planning a screen before visual design. Trigger with 'wireframe', 'mockup', 'prototype', 'lo-fi', 'low-fidelity', 'clickable prototype', 'device frame', 'fidelity ramp'."
 license: MIT
 compatibility: "Browser (CSS + plain anchors; the optional fidelity engine is vanilla JS). Python 3.12+ renderer ships amvcp-wireframe.js + amvcp-wireframe.css + amvcp-designmd.js beside the HTML."
 metadata:

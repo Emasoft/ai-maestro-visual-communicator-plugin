@@ -1,6 +1,6 @@
 ---
 name: amvcp-show
-description: "Smart router for the AI Maestro Visual Communicator plugin. Use when the user wants to view, comment on, or interact with ANY input (file path, URL, plain text, or skill+args two-token form) without choosing the sub-skill themselves — the router classifies the input by extension + content sniff and dispatches to the right sub-skill or command. Always opens results in an iTerm split-pane when iTerm is detected (never spawns Safari or Chromium). Always preserves source content verbatim for markdown reports (routes to /amvcp-interactive-report which adds per-finding 3-state accept/reject/comment + textarea without removing or reinterpreting a single word). Trigger with /amvcp-show, 'show this', 'visualize this report', 'open this in the viewer', 'route this', or any phrasing where the user names content but not the renderer."
+description: "Smart router for the AI Maestro Visual Communicator plugin. Use when the user wants to view, comment on, or interact with ANY input (file path, URL, plain text, or skill+args) — the router classifies by extension + content sniff and dispatches to the right sub-skill. Always uses iTerm split-pane when detected. Preserves markdown reports verbatim (routes to /amvcp-interactive-report). Trigger with /amvcp-show, 'show this', 'visualize this report', 'open this in the viewer', 'route this'."
 license: MIT
 compatibility: "macOS + iTerm2 for split-pane; Python 3.12+; Chromium fallback when iTerm not detected."
 metadata:
