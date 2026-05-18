@@ -1,6 +1,6 @@
 ---
 name: amvcp-visual-communication
-description: "UMBRELLA skill — auto-routes between 13 category skills covering every visual element a Claude agent can put on a page (design tokens, layout, typography, animation, interactive controls, tables, code highlight, charts/dashboards, diagrams, icon SVGs, wireframes, slide decks, prose pages). Loads BEFORE the agent emits any visual: chart, dashboard, KPI grid, sparkline, diagram, flowchart, sequence, ER, state, mind map, sankey, swimlane, Gantt, architecture, dependency graph, table, sortable table, matrix, comparison, big-data table, code block, syntax highlight, diff, annotated PR, inline math, KaTeX, TikZ, slide deck, presentation, pitch, wireframe, mockup, device frame, prototype, icon, logo, SVG mark, hotspot, tabs, accordion, modal, filter pills, segmented control, kanban, before/after slider, copy button, theme toggle, TOC, scroll-spy, lightbox, count-up counter, scroll reveal, parallax, skeleton loader, spring overshoot, design system, OKLCH ramp, design tokens, color palette, type scale, fluid clamp(), elevation scale, anti-slop check, layout grid, dashboard grid, sidebar shell, sticky header, glassmorphism, A4 print, hero background, RTL, executive summary, technical report, case study, RFC, ADR, postmortem, status report, retrospective, design-system doc, essay, paragraph-numbered prose, QA-check page. Trigger phrases: 'add a chart/diagram/table', 'visualize', 'make a dashboard', 'turn into slides', 'wireframe this', 'render code', 'design tokens', 'restyle', 'render report as HTML', 'commentable page', 'make commentable', '/amvcp-generate-web-diagram', '/amvcp-generate-slides', '/amvcp-interactive-report', '/amvcp-diff-review', '/amvcp-fact-check', or ANY request to add ANY visual element to a document. Activates aggressively — when in doubt, load this skill first and let it route."
+description: "UMBRELLA skill — auto-routes between 13 category skills covering every visual element a Claude agent can put on a page (design tokens, layout, typography, animation, interactive controls, tables, code highlight, charts/dashboards, diagrams, icon SVGs, wireframes, slide decks, prose pages). Use when the user wants ANY visual added to a document: chart, dashboard, KPI grid, sparkline, diagram, flowchart, sequence, ER, state, mind map, sankey, swimlane, Gantt, architecture, table, sortable table, matrix, comparison, code block, syntax highlight, diff, annotated PR, math, KaTeX, TikZ, slide deck, wireframe, mockup, icon, logo, tabs, accordion, modal, kanban, slider, theme toggle, TOC, lightbox, count-up, scroll reveal, parallax, design system, OKLCH ramp, color palette, type scale, layout grid, executive summary, technical report, RFC, ADR, postmortem, retrospective, design-system doc, essay, QA-check page. Trigger with 'add a chart/diagram/table', 'visualize', 'make a dashboard', 'turn into slides', 'wireframe this', 'render code', 'design tokens', 'restyle', 'render report as HTML', 'commentable page', '/amvcp-generate-web-diagram', '/amvcp-generate-slides', '/amvcp-interactive-report', '/amvcp-diff-review', '/amvcp-fact-check'. Activates aggressively — when in doubt, load this skill first and let it route."
 license: MIT
 compatibility: "Chromium browser recommended; Python 3.12+ for amvcp-select.py; runtime + designmd + per-category JS libs auto-copied next to each HTML."
 metadata:
@@ -16,6 +16,21 @@ This is the **routing layer** for the AI Maestro Visual Communicator plugin. The
 > **1 agent → 13 category skills → ~502 reference files**
 
 You (the agent) load this umbrella whenever you are about to add any visual to a document. It does not emit HTML itself — it tells you **which** category skill owns the visual the user is asking for, and points you at the right SKILL.md + references for the technique you'll scaffold.
+
+## Prerequisites
+
+- Read this SKILL.md to know which of the 13 category skills owns the requested visual.
+- The plugin's runtime scripts (`amvcp-designmd.js`, `amvcp-runtime.js`, plus the per-category JS lib) must be loaded by the emitted HTML; the category skills tell you which to copy next to the page.
+- For the Python opener (`amvcp-select.py`) and the iTerm preview pane, Python 3.12+ and iTerm2 are needed.
+
+## Instructions
+
+1. Read the user's request and match it to the decision matrix below.
+2. Identify the category skill (one of the 13) that owns the requested visual.
+3. Read that category's SKILL.md plus the specific reference file(s) it points to for the technique.
+4. Scaffold the HTML per the category's contract (atom IDs, `data-ve-*` attributes, runtime scripts).
+5. Run the standard self-debug loop — light + dark theme screenshots, no nested scrollbars, atom contract present.
+6. Open the result via the iTerm-first launcher (`scripts/amvcp-show-launcher.py`) for the user to inspect.
 
 ## The 13 categories
 
@@ -121,7 +136,10 @@ Every scaffold consumes only the `--vc-*` (and a small set of `--ve-*`) CSS cust
 
 The `amvcp-design-tokens` skill ([amvcp-design-tokens](../amvcp-design-tokens/SKILL.md)) owns this vocabulary: 13 named dual-theme presets, the OKLCH color ramp, the phi spacing scale, the MD3 elevation scale, the motion library, the 9-level z-index scale, and the consolidated anti-AI-slop gate. Read it once before authoring DESIGN.md from scratch.
 
-## How an agent uses this skill — worked examples
+## Examples
+
+Worked examples — each shows how the agent matches a user request to one of the 13 categories, loads the right SKILL.md, and emits the canonical scaffold.
+
 
 ### Example 1 — "chart Q1 revenue by region"
 1. Match the matrix: "quantitative comparison across categories" → **charts-and-dashboards (`bar`)**.
@@ -170,7 +188,7 @@ Trigger this umbrella whenever you are about to add ANY visual to a document. Th
 
 A self-contained interactive HTML file at `$CLAUDE_PROJECT_ROOT/reports/visual-communicator/diagrams/`. Stdout from the runner: `{kind:"submit"|"timeout", selections:[{type, data, …}, …]}`.
 
-## Error handling
+## Error Handling
 
 - No Chromium → falls back to default browser; auto-close may not fire (click the page's Done button).
 - Page opened directly via file:// → the selection POST is lost; always run via `amvcp-select.py`.

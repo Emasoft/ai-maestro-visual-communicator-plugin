@@ -1,6 +1,6 @@
 ---
 name: amvcp-code-highlight
-description: "Render code, diffs and code-derived chrome — syntax-highlighted blocks driven by a dependency-free 7-language tokenizer, line-number gutter atoms, soft-wrap with hanging-indent + wrap-marker stripe, drag-paint per-line selection, floating copy button, unified + split diff views, tabbed multi-perspective panels, annotated PR review with comment bubbles anchored to line numbers, inline 4-class hand-wrapped highlighter, live-diff sidebar, contenteditable code editors with caret-preserved re-highlight, file-path + tab-bar code headers, mutually-exclusive `<details>` snippet walkthroughs, click-step-to-side-panel code reveal, and a 12-token `--ve-code-*` palette that re-themes light + dark via DESIGN.md. Use when scaffolding any code-display surface, a PR diff, a postmortem code panel, a tabbed config sample, a live JSON editor, or any visual whose atoms are *source lines*. Trigger with 'code block', 'syntax highlight', 'highlight code', 'show diff', 'split diff', 'unified diff', 'PR review', 'annotated diff', 'code review', 'tabbed code', 'multi-perspective code', 'collapsed snippet', 'config example', 'inline code chip', 'file-path label', 'JSON editor', 'live diff', 'prompt template', 'contenteditable code', 'line numbers', 'gutter', 'wrap code', 'copy code button'."
+description: "Render code, diffs and code-derived chrome — syntax-highlighted blocks driven by a dependency-free 7-language tokenizer, line-number gutter atoms, soft-wrap with hanging-indent + wrap-marker stripe, drag-paint per-line selection, floating copy button, unified + split diff views, tabbed multi-perspective panels, annotated PR review with comment bubbles anchored to line numbers, inline 4-class hand-wrapped highlighter, live-diff sidebar, contenteditable code editors with caret-preserved re-highlight, file-path + tab-bar code headers, mutually-exclusive disclosure snippet walkthroughs, click-step-to-side-panel code reveal, and a 12-token palette that re-themes light + dark via DESIGN.md. Use when scaffolding any code-display surface, a PR diff, a postmortem code panel, a tabbed config sample, a live JSON editor, or any visual whose atoms are source lines. Trigger with 'code block', 'syntax highlight', 'highlight code', 'show diff', 'split diff', 'unified diff', 'PR review', 'annotated diff', 'code review', 'tabbed code', 'multi-perspective code', 'collapsed snippet', 'config example', 'inline code chip', 'file-path label', 'JSON editor', 'live diff', 'prompt template', 'contenteditable code', 'line numbers', 'gutter', 'wrap code', 'copy code button'."
 license: MIT
 compatibility: "Any modern browser supporting CSS `:has()` (Chromium 105+, Safari 15.4+, Firefox 121+). Pure JS, no npm runtime dependency. Requires `scripts/amvcp-designmd.js` (token engine) + `scripts/amvcp-runtime.js` (gutter + selection chrome) + `scripts/amvcp-code-highlight.js` (tokenizer) + `scripts/amvcp-code-highlight.css` (12-token palette)."
 metadata:
@@ -128,6 +128,40 @@ spans, no hand-authored gutter cells, no per-block CSS.
 | Diff colours wrong on dark theme | `data-ve-diff` mistyped, or the page's `:root[data-ve-theme="light"]` mirror is missing. Both themes are mandatory — single-theme = correctness defect. |
 | Highlighter "swallows" a backtick / quote | Edge case in the language table. The integrity probe catches it and falls back to plain text — file a bug against `amvcp-code-highlight.js`, do NOT bypass with hand-wrapped spans. |
 | `_block` selection markers don't yield to token color | Confirm `data-ve-code-sel` / `data-ve-code-sel-block` / `data-ve-pressed="1"` CSS rules from `scripts/amvcp-code-highlight.css` are loaded — they set `color: inherit` on every `.ve-tok-*` span so tokens read on the selection bg. |
+
+## Examples
+
+**Example 1 — basic syntax highlight**
+
+```html
+<pre data-ve-code="auto" data-ve-lang="js"><code>
+const greet = (name) => `Hello, ${name}!`;
+</code></pre>
+```
+
+Loads `amvcp-code-highlight.js` which tokenises on `DOMContentLoaded` and stamps `.ve-tok-keyword`, `.ve-tok-string`, `.ve-tok-fn` spans. Gutter, copy button and wrap-marker are added automatically.
+
+**Example 2 — split-diff PR review**
+
+```html
+<div data-ve-diff="split" data-ve-base="oldfile.js" data-ve-head="newfile.js">
+  <pre data-ve-code="auto" data-ve-lang="js" data-ve-side="base"><code>const x = 1;</code></pre>
+  <pre data-ve-code="auto" data-ve-lang="js" data-ve-side="head"><code>const x = 2;</code></pre>
+</div>
+```
+
+Renders a 2-column diff with `--ve-diff-add` / `--ve-diff-del` colors that re-theme cleanly under both light + dark.
+
+**Example 3 — tabbed multi-perspective code**
+
+```html
+<div data-ve-tabs="code">
+  <button data-ve-tab="server">server</button>
+  <button data-ve-tab="client">client</button>
+  <pre data-ve-tab-panel="server" data-ve-code="auto" data-ve-lang="py"><code>...</code></pre>
+  <pre data-ve-tab-panel="client" data-ve-code="auto" data-ve-lang="ts"><code>...</code></pre>
+</div>
+```
 
 ## Visual verification
 

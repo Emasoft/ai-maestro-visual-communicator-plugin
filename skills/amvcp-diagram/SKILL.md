@@ -181,7 +181,7 @@ never an inner scrollbar. **Opt-in:** add
 pannable / zoomable surface with mini-map; see
 [viewport-scaffold](references/viewport-scaffold.md).
 
-## Error handling
+## Error Handling
 
 - **Red error box in the figure** → the scene-graph JSON is
   malformed; the box `title` carries the precise reason (unknown

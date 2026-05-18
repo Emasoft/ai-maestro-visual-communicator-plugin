@@ -110,6 +110,41 @@ no-nested-scrollbars rule).
 - Hotspot in the wrong place → `--x` / `--y` are 0..1 fractions, not
   percentages or pixels.
 
+## Examples
+
+**Example 1 — inline SVG icon**
+
+```html
+<figure data-ve-icon-svg data-ve-id="icon-search">
+  <pre><code class="language-svg-scene">
+{"kind":"icon","variant":"search","size":24,"color":"currentColor"}
+  </code></pre>
+</figure>
+```
+
+**Example 2 — device frame around a screenshot**
+
+```html
+<figure data-ve-icon-svg data-ve-id="frame-app">
+  <pre><code class="language-svg-scene">
+{"kind":"device-frame","variant":"ios","content":{"img":"./screenshot.png"}}
+  </code></pre>
+</figure>
+```
+
+**Example 3 — image with hotspots (annotated callouts)**
+
+```html
+<figure data-ve-icon-svg data-ve-id="annotations">
+  <pre><code class="language-svg-scene">
+{"kind":"hotspot","image":"./ui.png","points":[
+  {"x":0.20,"y":0.30,"label":"A — sidebar"},
+  {"x":0.62,"y":0.45,"label":"B — main panel"}
+]}
+  </code></pre>
+</figure>
+```
+
 ## Visual verification
 
 For every change touching this skill's CSS, JS, or scene-graph

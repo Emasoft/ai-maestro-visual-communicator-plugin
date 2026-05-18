@@ -175,6 +175,34 @@ dev-browser test fixture
 | Visited links aren't desaturated | The `color-mix(in srgb, var(--vc-color-link) 70%, currentColor)` rule requires `color-mix` browser support (late 2023+). Older browsers render visited at the resting colour — still correct, just no distinction. |
 | TOC sidebar has an internal scrollbar | Wrong — `.vc-toc-sticky` does NOT set `overflow: auto` (compliance with `no-nested-scrollbars.md`). Split the document instead. |
 
+## Examples
+
+**Example 1 — fluid type scale**
+
+```html
+<article class="vc-doc">
+  <h1>Page title</h1>
+  <h2>Section heading</h2>
+  <p>Body copy using <code>--vc-size-md</code> (the fluid clamp() base).</p>
+</article>
+```
+
+The type-role tokens (`--vc-size-h1`, `--vc-size-h2`, `--vc-size-md`) auto-clamp between 320 and 1280 px viewports.
+
+**Example 2 — drop-cap pull-quote**
+
+```html
+<blockquote class="vc-pullquote" data-vc-dropcap>
+  The single most important rule is to ship the document, not perfect it.
+</blockquote>
+```
+
+**Example 3 — kbd shortcut callout**
+
+```html
+<p>Press <kbd>⌘</kbd>+<kbd>K</kbd> to open the palette, then type <kbd>tab</kbd>.</p>
+```
+
 ## Visual verification
 
 For every visual change, verify per

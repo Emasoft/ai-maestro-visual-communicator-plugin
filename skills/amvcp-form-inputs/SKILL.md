@@ -1,23 +1,11 @@
 ---
 name: amvcp-form-inputs
-description: |
-  Use this skill when an agent report needs a STRUCTURED response from
-  the user that is not free-text prose. Six widgets ship:
-  ve-quiz-radio (single-select from N options),
-  ve-quiz-multi (multi-select checkbox group),
-  ve-numeric-input (number + unit dropdown),
-  ve-date-input (native date picker),
-  ve-color-input (native color picker + hex readout),
-  ve-rank-list (drag-to-reorder list).
-  Every widget emits a ve-form-change event with {kind, id, value},
-  persists to localStorage so a refresh keeps the answer, themes via
-  the DESIGN.md --vc-* tokens for light + dark, and fails fast on
-  malformed JSON or a missing data-ve-id. The runtime's universal
-  selection model wires the comment-handle so the user can ALSO add
-  a free-text comment alongside the structured answer.
+description: "Structured-response widgets for conversational agent reports — ve-quiz-radio, ve-quiz-multi, ve-numeric-input, ve-date-input, ve-color-input, ve-rank-list and 13 more typed widgets. Each emits a ve-form-change event with {kind, id, value}, persists to localStorage, themes via DESIGN.md --vc-* tokens for light + dark, and fails fast on malformed JSON. Use when an agent's question has a finite structured answer (single-select, multi-select, numeric+unit, date, color, rating, drag-reorder, file/folder tree, currency, password, URL, gallery, tier-list, tag-input, slider, toggle, card-picker) instead of free-text prose. Trigger with 'multiple choice question', 'radio buttons', 'checkbox list', 'date picker', 'color picker', 'rank list', 'numeric input', 'rating widget', 'tier list', 'file picker', 'tag input', 'structured response', 'form input', 'survey question', 'pick from options', 'drag to reorder'."
 ---
 
 # Form-input widgets
+
+## Overview
 
 A dependency-free runtime module that ships nineteen structured-response
 input widgets for conversational agent reports. The agent renders a
@@ -27,6 +15,21 @@ tag-input, text, textarea, URL, file/folder tree, password, currency,
 gallery, tier-list, rank) instead of typing prose. The result lands
 in a `ve-form-change` event with a stable payload the runtime threads
 into the comment-turn record.
+
+## Prerequisites
+
+- `scripts/amvcp-runtime.js` loaded (provides the selection model and `data-ve-form` discovery).
+- `scripts/amvcp-form-inputs.js` loaded (the widget implementations).
+- DESIGN.md tokens available — `--vc-color-*`, `--vc-radius-*`, `--vc-space-*` from `amvcp-designmd.js`.
+- For drag-reorder widgets, pointer-events / touch are required (mobile + desktop).
+
+## Instructions
+
+1. Pick the widget — match the answer shape to the matrix in "When to use this skill" below.
+2. Emit the widget HTML with a stable `data-ve-id` and the widget's required `data-ve-form-*` attributes.
+3. Load `amvcp-runtime.js` + `amvcp-form-inputs.js` on the page.
+4. Subscribe to `ve-form-change` (bubbles on the widget element) for live state, or read `localStorage[data-ve-id]` for the persisted answer.
+5. Verify per the standard self-debug loop — both themes, no nested scrollbars, atom-contract stamps present.
 
 ## When to use this skill
 
@@ -587,6 +590,70 @@ Every widget is a single-row control (radio / multi options flow
 vertically inside their card, but the cards themselves don't scroll).
 The rank list naturally extends the page if it grows tall — the
 document owns the only scrollbar.
+
+## Output
+
+Each widget emits a `ve-form-change` CustomEvent (bubbles up the DOM) with `event.detail = { kind, id, value, timestamp }`:
+
+- `kind`: widget type (`quiz-radio`, `quiz-multi`, `numeric-input`, etc.).
+- `id`: the widget's `data-ve-id`.
+- `value`: the current answer (type depends on widget — string, array, number, etc.).
+- `timestamp`: epoch-ms when the change fired.
+
+The widget ALSO writes `value` to `localStorage[data-ve-id]` so a page refresh restores the answer. Subscribers reading the persisted value MUST `JSON.parse` it.
+
+## Error Handling
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| Widget renders blank | Missing `data-ve-form-*` config or malformed JSON | Check console — runtime fail-fasts with a clear `[amvcp-form-inputs]` error |
+| `ve-form-change` never fires | Subscriber attached to wrong DOM root | Event bubbles — attach to `document` or an ancestor of the widget |
+| LocalStorage not restoring | Widget missing `data-ve-id` (no persistence key) | Add a stable `data-ve-id` attribute |
+| Drag-reorder unresponsive on mobile | Touch handlers gated behind `pointer-events: none` | Verify the parent's CSS doesn't disable pointer events on touch |
+| Colors illegible on dark theme | Single-theme palette in author CSS | Use only `--vc-*` tokens — never hardcoded hex |
+
+## Examples
+
+**Example 1 — radio (single-select)**
+
+```html
+<div data-ve-id="lang-choice"
+     data-ve-form="quiz-radio"
+     data-ve-form-options='["Python","JavaScript","Rust","Go"]'>
+</div>
+<script>
+document.addEventListener('ve-form-change', (e) => {
+  if (e.detail.id === 'lang-choice') console.log('picked:', e.detail.value);
+});
+</script>
+```
+
+**Example 2 — numeric with unit dropdown**
+
+```html
+<div data-ve-id="memory-budget"
+     data-ve-form="numeric-input"
+     data-ve-form-units='["MB","GB","TB"]'
+     data-ve-form-default='{"value": 4, "unit": "GB"}'>
+</div>
+```
+
+**Example 3 — drag-to-reorder**
+
+```html
+<ol data-ve-id="priority-rank"
+    data-ve-form="rank-list"
+    data-ve-form-items='["Bug fixes","New features","Refactor","Docs"]'>
+</ol>
+```
+
+## Resources
+
+This skill ships SKILL.md as the single source of truth (19 widgets documented inline). For deeper integration patterns see:
+
+- [amvcp-modal-comments](../amvcp-modal-comments/SKILL.md) — pairing a form widget with a free-text comment thread.
+- [amvcp-self-debug-rules](../amvcp-self-debug-rules/SKILL.md) — visual verification loop, R29 (selection-overrides-tokens), R31 (responsive).
+- [amvcp-design-tokens](../amvcp-design-tokens/SKILL.md) — the --vc-* token vocabulary widgets theme off.
 
 ## Reference test cases
 
