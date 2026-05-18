@@ -296,9 +296,9 @@ This way the page's multi-select / comment / decision-pill machinery works
 identically whether the chart is native (fenced) or legacy (Chart.js).
 
 `veWireChart` is documented in
-`/Users/emanuelesabetta/Code/visual-comunicator/skills/amvcp-charts-and-dashboards/references/chartjs-integration.md` (the older
-reference file). NEW work should use the fenced protocol; `veWireChart`
-stays available for compatibility.
+`./chartjs-integration.md` (the older reference file in this folder).
+NEW work should use the fenced protocol; `veWireChart` stays available
+for compatibility.
 
 ## See also
 

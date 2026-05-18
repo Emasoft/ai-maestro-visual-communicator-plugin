@@ -42,13 +42,57 @@ import time
 # Constants
 # ---------------------------------------------------------------------------
 
-# Plugin location. We hard-code 1.2.11 since that's the version currently
-# shipping the iterm2-preview scripts; the launcher could discover the
-# highest version installed but for now this stays explicit.
-PLUGIN_ROOT = pathlib.Path(
-    "/Users/emanuelesabetta/.claude/plugins/cache/ai-maestro-plugins/"
-    "ai-maestro-visual-communicator-plugin/1.2.11"
-)
+def _resolve_plugin_root() -> pathlib.Path:
+    """Resolve the plugin's cache root without leaking absolute paths.
+
+    Resolution order:
+      1. $CLAUDE_PLUGIN_ROOT (set by Claude Code when running inside the
+         plugin sandbox — this is the canonical path).
+      2. The repo's own root, when the launcher is run from a dev
+         checkout of `ai-maestro-visual-communicator-plugin` (the
+         plugin sources live under `scripts/` + `skills/` of the repo).
+      3. Discover the highest-versioned plugin under
+         `~/.claude/plugins/cache/ai-maestro-plugins/
+         ai-maestro-visual-communicator-plugin/` and return that. This
+         is the path-traversal-safe fallback for hand-installed plugins
+         that didn't go through Claude Code's $CLAUDE_PLUGIN_ROOT.
+
+    Fail-fast on no match — the launcher's whole purpose is to invoke
+    plugin scripts; a missing plugin is unrecoverable.
+    """
+    env_root = os.environ.get("CLAUDE_PLUGIN_ROOT")
+    if env_root:
+        p = pathlib.Path(env_root)
+        if (p / "scripts" / "amvcp-select.py").is_file():
+            return p
+
+    # Repo-checkout case — this script lives at `<repo>/scripts/`
+    # alongside `amvcp-select.py` (the plugin source IS the repo).
+    here = pathlib.Path(__file__).resolve().parent
+    if (here / "amvcp-select.py").is_file():
+        return here.parent
+
+    cache_root = (
+        pathlib.Path.home()
+        / ".claude" / "plugins" / "cache" / "ai-maestro-plugins"
+        / "ai-maestro-visual-communicator-plugin"
+    )
+    if cache_root.is_dir():
+        versions = sorted(
+            (p for p in cache_root.iterdir() if p.is_dir()),
+            key=lambda x: tuple(int(s) for s in x.name.split(".") if s.isdigit()),
+            reverse=True,
+        )
+        for v in versions:
+            if (v / "scripts" / "amvcp-select.py").is_file():
+                return v
+    raise FileNotFoundError(
+        "ai-maestro-visual-communicator-plugin not found; expected one of: "
+        "$CLAUDE_PLUGIN_ROOT, a repo checkout, or ~/.claude/plugins/cache/..."
+    )
+
+
+PLUGIN_ROOT = _resolve_plugin_root()
 SELECT_SCRIPT = PLUGIN_ROOT / "scripts" / "amvcp-select.py"
 ITERM_PREVIEW_SKILL = PLUGIN_ROOT / "skills" / "amvcp-iterm2-preview"
 OPEN_PREVIEW_SCRIPT = ITERM_PREVIEW_SKILL / "scripts" / "open_preview.applescript"
