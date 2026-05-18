@@ -15,8 +15,7 @@
 - [G2.11 Tokens consumed](#g211-tokens-consumed)
 - [G2.12 Mined source attribution](#g212-mined-source-attribution)
 
-The lighter-weight cousin of [click-step-to-code-panel.md](./click-
-step-to-code-panel.md): HOVER any chart bar / diagram node → a
+The lighter-weight cousin of [click-step-to-code-panel.md](./click-step-to-code-panel.md): HOVER any chart bar / diagram node → a
 JSX-shaped code snippet renders below the visual with live token
 values interpolated in. Mined from `06-component-variants.html` (html-
 effectiveness catalog #6).

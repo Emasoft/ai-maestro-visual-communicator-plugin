@@ -35,8 +35,7 @@ overview) and the sidebar (the metadata).
 
 ## E6.2 The composition with collapsed-snippets-walkthrough
 
-This composition IS [collapsed-snippets-walkthrough.md](./collapsed-
-snippets-walkthrough.md) — that reference is the GENERIC walkthrough
+This composition IS [collapsed-snippets-walkthrough.md](./collapsed-snippets-walkthrough.md) — that reference is the GENERIC walkthrough
 machinery. THIS reference is the ARCHITECTURE-EXPLAINER use case with
 two specific extras:
 

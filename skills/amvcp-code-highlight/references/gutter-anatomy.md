@@ -193,8 +193,7 @@ starting position).
 The stripe colour comes from `--ve-code-wrap-marker` (subtractive on
 dark — `rgba(0,0,0,0.35)`; brown tint on light — `rgba(110,77,24,
 0.22)`) so the wrap-indent space reads visually distinct from real
-source-code whitespace. See [wrap-and-no-inner-scroll.md](./wrap-and-no-
-inner-scroll.md) for the rationale and the no-inner-scrollbar
+source-code whitespace. See [wrap-and-no-inner-scroll.md](./wrap-and-no-inner-scroll.md) for the rationale and the no-inner-scrollbar
 guarantee.
 
 ## A3.8 The pressed-state visual

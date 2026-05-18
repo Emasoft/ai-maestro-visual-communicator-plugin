@@ -211,8 +211,7 @@ single-gutter diff block's payload.
 
 ## D3.9 Composition with split view
 
-In split-view diff (see [diff-blocks-split.md](./diff-blocks-
-split.md)), each pane uses a SINGLE gutter — the "before" pane shows
+In split-view diff (see [diff-blocks-split.md](./diff-blocks-split.md)), each pane uses a SINGLE gutter — the "before" pane shows
 old line numbers, the "after" pane shows new line numbers. The twin
 gutter is for UNIFIED diff blocks only, where both numbers need to live
 together.

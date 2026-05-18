@@ -28,8 +28,7 @@ A feature explainer documents HOW a feature works. The page has:
 3. **Step-by-step `<details>` walkthrough** for the "request path" (or
    data flow / state machine).
 4. **Tabbed code samples** in the Configuration section (the same
-   change from 3 angles — see [tabbed-code-panel.md](./tabbed-code-
-   panel.md)).
+   change from 3 angles — see [tabbed-code-panel.md](./tabbed-code-panel.md)).
 5. **Star-callout** (oat tint + clay star icon).
 6. **Gotchas** bullet list.
 7. **FAQ** as `<dl>` with serif `<dt>`s.

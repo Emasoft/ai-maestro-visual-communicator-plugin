@@ -235,8 +235,7 @@ shown.
 
 ## D2.11 Light + dark verification
 
-Same as unified diff (see [diff-blocks-unified.md](./diff-blocks-
-unified.md) §D1.11). Plus:
+Same as unified diff (see [diff-blocks-unified.md](./diff-blocks-unified.md) §D1.11). Plus:
 
 - [ ] Both panes' diff tints read correctly on both themes
 - [ ] Phantom lines render as faint hatch in both themes
