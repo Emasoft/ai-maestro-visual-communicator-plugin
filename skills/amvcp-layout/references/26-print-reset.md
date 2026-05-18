@@ -1,5 +1,19 @@
 # 26 — Print reset (`@media print` block — hide chrome, preserve tokens)
 
+## Table of Contents
+
+- [What this is](#what-this-is)
+- [The full print reset (from `amvcp-layout.css`)](#the-full-print-reset-from-amvcp-layoutcss)
+- [The `.no-print` utility class](#the-no-print-utility-class)
+- [The `print-color-adjust: exact` rule](#the-print-color-adjust-exact-rule)
+- [Why `break-after: avoid` on headings](#why-break-after-avoid-on-headings)
+- [Why `break-inside: avoid` on figures / tables / code blocks](#why-break-inside-avoid-on-figures--tables--code-blocks)
+- [Lib functions called](#lib-functions-called)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Selection / comment / decision-mini contract notes](#selection--comment--decision-mini-contract-notes)
+- [When the print reset needs extension](#when-the-print-reset-needs-extension)
+- [Visual verification](#visual-verification)
+
 The `@media print` block in `amvcp-layout.css` strips screen-only
 chrome (navigation, sticky headers, toggle buttons), drops
 shadows / decorative pseudo-layers (ink-expensive), flattens the

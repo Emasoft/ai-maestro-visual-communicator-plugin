@@ -1,5 +1,23 @@
 # 39 — Aspect ratios deep dive (16:9 / 4:3 / 3:2 — when to pick which)
 
+## Table of Contents
+
+- [What this is](#what-this-is)
+- [Why 16:9 is the default](#why-169-is-the-default)
+- [When 4:3 is correct](#when-43-is-correct)
+- [When 3:2 is correct](#when-32-is-correct)
+- [What changes per aspect](#what-changes-per-aspect)
+- [Layout efficiency by aspect](#layout-efficiency-by-aspect)
+- [Scaffold to emit](#scaffold-to-emit)
+- [Mixing aspects — DON'T](#mixing-aspects--dont)
+- [Lib functions called](#lib-functions-called)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Selection / comment / decision-mini contract notes](#selection--comment--decision-mini-contract-notes)
+- [When to use this reference](#when-to-use-this-reference)
+- [Don'ts](#donts)
+- [Visual verification](#visual-verification)
+- [Source provenance](#source-provenance)
+
 The slide module supports three deck-level aspect ratios. This
 reference is the deep guide on when to pick each, what the
 implications are, and how to author content that fits.

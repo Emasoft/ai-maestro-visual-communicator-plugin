@@ -1,5 +1,20 @@
 # 05 — Layout: `manifesto` (the opening declarative anchor)
 
+## Table of Contents
+
+- [What this is](#what-this-is)
+- [Scaffold to emit](#scaffold-to-emit)
+- [Lib functions called](#lib-functions-called)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Selection / comment / decision-mini contract notes](#selection--comment--decision-mini-contract-notes)
+- [When to use this reference](#when-to-use-this-reference)
+- [Don'ts](#donts)
+- [Authoring rules — assertion-evidence](#authoring-rules--assertion-evidence)
+- [Visual verification](#visual-verification)
+- [Manifestos by talk type](#manifestos-by-talk-type)
+- [Manifesto vs subject-line vs hashtag](#manifesto-vs-subject-line-vs-hashtag)
+- [Source provenance](#source-provenance)
+
 The manifesto is the first slide. ONE big sentence that names what the talk
 is going to argue. Display-tier typography (96-128 px); generous breathing
 room on all sides; an `eyebrow` above the heading carrying the date /

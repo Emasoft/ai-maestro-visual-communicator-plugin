@@ -1,5 +1,20 @@
 # Pulse ring — `.va-pulse` expanding-ring loading indicator
 
+## Table of Contents
+
+- [The contract](#the-contract)
+- [The CSS](#the-css)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [When to use the pulse](#when-to-use-the-pulse)
+- [Markup recipes](#markup-recipes)
+- [Performance — paused while off-screen](#performance--paused-while-off-screen)
+- [Reduced-motion substitute](#reduced-motion-substitute)
+- [Selection + comment + decision integration](#selection--comment--decision-integration)
+- [Color tuning across themes](#color-tuning-across-themes)
+- [Ring size tuning](#ring-size-tuning)
+- [Diagnostics](#diagnostics)
+- [Visual verification](#visual-verification)
+
 A small accent dot with an expanding ring that pulses outward —
 the universal "awaiting content here" indicator. Built with
 `box-shadow` + `color-mix()` so no `-rgb` companion token is

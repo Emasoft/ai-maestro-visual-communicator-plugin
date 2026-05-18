@@ -1,5 +1,13 @@
 # Motion tokens — the `--vc-motion-*` contract (Layer 0)
 
+## Table of Contents
+
+- [The `motion:` group in DESIGN.md](#the-motion-group-in-designmd)
+- [CSS custom properties consumed](#css-custom-properties-consumed)
+- [`--vc-motion-scale` — the master damper](#--vc-motion-scale--the-master-damper)
+- [Why durations are not light/dark themed](#why-durations-are-not-lightdark-themed)
+- [Token absence is safe](#token-absence-is-safe)
+
 The animation skill themes every duration, easing, stagger delay, and
 decorative amplitude off CSS custom properties resolved by the DESIGN.md
 engine (`amvcp-designmd.js`). This document is the contract.

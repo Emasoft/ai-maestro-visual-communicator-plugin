@@ -1,5 +1,26 @@
 # CSS / interaction rules (R1-R18)
 
+## Table of Contents
+
+- [R1 — Light + dark themes](#r1--light--dark-themes)
+- [R2 — No nested scrollbars](#r2--no-nested-scrollbars)
+- [R3 — 3-state visual model (normal · selected ±Δ · hover ±Δ + glow)](#r3--3-state-visual-model-normal--selected-δ--hover-δ--glow)
+- [R4 — Atom selection model (only the right things are selectable)](#r4--atom-selection-model-only-the-right-things-are-selectable)
+- [R5 — Two independent bubble handles, distinct colors](#r5--two-independent-bubble-handles-distinct-colors)
+- [R6 — Snippet selection survives the modal](#r6--snippet-selection-survives-the-modal)
+- [R7 — One bubble handle per shell (iTerm pane)](#r7--one-bubble-handle-per-shell-iterm-pane)
+- [R8 — Atom selection vs text selection: disambiguation](#r8--atom-selection-vs-text-selection-disambiguation)
+- [R9 — Code-block soft-wrap rules](#r9--code-block-soft-wrap-rules)
+- [R10 — Code block: copy contract](#r10--code-block-copy-contract)
+- [R11 — Line numbers are NOT selectable](#r11--line-numbers-are-not-selectable)
+- [R12 — Tables: responsive, decision column](#r12--tables-responsive-decision-column)
+- [R13 — LaTeX / math / TikZ embedded elements](#r13--latex--math--tikz-embedded-elements)
+- [R14 — Regex-vis embedded as inline interactive div](#r14--regex-vis-embedded-as-inline-interactive-div)
+- [R15 — Comment-modal connector line](#r15--comment-modal-connector-line)
+- [R16 — Page left-padding for handles](#r16--page-left-padding-for-handles)
+- [R18 — Dispatched-event vs real-mouse-path](#r18--dispatched-event-vs-real-mouse-path)
+- [R17 — Mini decision chip is responsive](#r17--mini-decision-chip-is-responsive)
+
 Universal CSS, layout, and direct-interaction rules every visualization MUST satisfy. Each rule includes the why, the contract, and a dev-browser snippet you can paste into `page.evaluate(...)` to verify conformance.
 
 ### R1 — Light + dark themes

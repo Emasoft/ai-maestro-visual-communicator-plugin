@@ -1,5 +1,18 @@
 # Mobile screens — common mobile app patterns
 
+## Table of Contents
+
+- [Pattern 1 — Feed (vertical scroll list)](#pattern-1--feed-vertical-scroll-list)
+- [Pattern 2 — Detail (header + body + actions)](#pattern-2--detail-header--body--actions)
+- [Pattern 3 — Search (input + filter chips + result list)](#pattern-3--search-input--filter-chips--result-list)
+- [Pattern 4 — Profile (avatar header + stats grid + sections)](#pattern-4--profile-avatar-header--stats-grid--sections)
+- [Pattern 5 — Compose (form + send action)](#pattern-5--compose-form--send-action)
+- [Pattern 6 — Empty state (illustration + CTA)](#pattern-6--empty-state-illustration--cta)
+- [Bottom-tab convention](#bottom-tab-convention)
+- [Floating-action-button (FAB) convention](#floating-action-button-fab-convention)
+- [Pull-to-refresh affordance](#pull-to-refresh-affordance)
+- [Modal sheets — the half-screen drawer](#modal-sheets--the-half-screen-drawer)
+
 Six canonical mobile-app screen shapes you'll author dozens of times.
 All use `wf-archetype--mobile` (390px wide). Pair with a device frame
 (`wf-frame--ios` or `wf-frame--android`) for marketing screenshots.

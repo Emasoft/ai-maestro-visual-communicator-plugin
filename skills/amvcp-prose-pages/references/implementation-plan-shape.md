@@ -1,5 +1,18 @@
 # Implementation-plan all-in-one document shape
 
+## Table of Contents
+
+- [When to choose this shape](#when-to-choose-this-shape)
+- [Section order (fixed — do not reorder)](#section-order-fixed--do-not-reorder)
+- [Markdown scaffold](#markdown-scaffold)
+- [Lib functions called](#lib-functions-called)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Composition with the 12 element skills](#composition-with-the-12-element-skills)
+- [Selection / comment notes](#selection--comment-notes)
+- [Decision-mini hook](#decision-mini-hook)
+- [Verification](#verification)
+- [Anti-patterns](#anti-patterns)
+
 The canonical multi-section model for any "what we are going to build and
 how" deliverable — proposals, sprint plans, design plans, migration
 plans. Lifted from a reference HTML implementation (`html-effectiveness`

@@ -1,5 +1,18 @@
 # Golden-angle categorical hue generator
 
+## Table of Contents
+
+- [What it does](#what-it-does)
+- [When to use](#when-to-use)
+- [Why golden-angle vs. evenly-spaced (`360 / N`)](#why-golden-angle-vs-evenly-spaced-360--n)
+- [When to seed from the active accent](#when-to-seed-from-the-active-accent)
+- [Scaffold to emit](#scaffold-to-emit)
+- [Lib functions used](#lib-functions-used)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Anti-slop interaction](#anti-slop-interaction)
+- [Selection / comment / decision-mini contract](#selection--comment--decision-mini-contract)
+- [Visual verification](#visual-verification)
+
 `amvcpTokens.generateCategoricalHues(seedHex, count)` produces N
 brand-coherent, maximally-separated hues by rotating the seed's OKLCh
 hue by the golden angle 137.508° for each step. The function holds the

@@ -1,5 +1,21 @@
 # Stagger entry — the canonical `--index`-driven cascade
 
+## Table of Contents
+
+- [The contract in one paragraph](#the-contract-in-one-paragraph)
+- [Static markup (JS off, deterministic order)](#static-markup-js-off-deterministic-order)
+- [Dynamic markup (runtime-built lists)](#dynamic-markup-runtime-built-lists)
+- [The keyframe and its CSS contract](#the-keyframe-and-its-css-contract)
+- [Read layout before animate (the AN-04 kept lesson)](#read-layout-before-animate-the-an-04-kept-lesson)
+- [Per-index delay formula details](#per-index-delay-formula-details)
+- [Combining with scroll reveal (`data-va-reveal="stagger"`)](#combining-with-scroll-reveal-data-va-revealstagger)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Reduced-motion substitute — `vaFadeOnly`](#reduced-motion-substitute--vafadeonly)
+- [Selection + comment + decision integration](#selection--comment--decision-integration)
+- [Hot-swap with DESIGN.md](#hot-swap-with-designmd)
+- [Diagnostics](#diagnostics)
+- [Visual verification](#visual-verification)
+
 The single highest-impact zero-cost animation in the skill. A list,
 grid, or row of cards fades-and-rises in sequence so the user's eye
 naturally tracks the order. Both `prefers-reduced-motion`-safe and

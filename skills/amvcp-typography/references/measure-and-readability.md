@@ -1,5 +1,22 @@
 # Measure — the readability sweet spot of 45–75 characters per line
 
+## Table of Contents
+
+- [What it is](#what-it-is)
+- [Scaffold](#scaffold)
+- [Tokens consumed / extended](#tokens-consumed--extended)
+- [The exact numbers — why 65ch](#the-exact-numbers--why-65ch)
+- [Variations — `.vc-type-measure-narrow`, `.vc-type-measure-wide`](#variations--vc-type-measure-narrow-vc-type-measure-wide)
+- [Mixing with `text-align: justify`](#mixing-with-text-align-justify)
+- [Centering vs left-aligned containers](#centering-vs-left-aligned-containers)
+- [The runtime's body width — current state](#the-runtimes-body-width--current-state)
+- [When NOT to use measure](#when-not-to-use-measure)
+- [When measure conflicts with the grid](#when-measure-conflicts-with-the-grid)
+- [Light + dark — orthogonal](#light--dark--orthogonal)
+- [Selection-contract conformance](#selection-contract-conformance)
+- [Verification](#verification)
+- [Cross-references](#cross-references)
+
 The single most under-applied typography rule: a body paragraph
 should be no wider than ~75 characters and no narrower than ~45
 characters per line. Outside that band the reader's eye loses its

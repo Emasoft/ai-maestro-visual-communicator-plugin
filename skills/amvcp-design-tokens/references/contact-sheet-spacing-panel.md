@@ -1,5 +1,16 @@
 # Contact-sheet spacing panel — true-pixel rulers
 
+## Table of Contents
+
+- [What it does](#what-it-does)
+- [Why true pixels (not percentages)](#why-true-pixels-not-percentages)
+- [Scaffold to emit](#scaffold-to-emit)
+- [Lib functions used](#lib-functions-used)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Anti-slop interaction](#anti-slop-interaction)
+- [Selection / comment / decision-mini contract](#selection--comment--decision-mini-contract)
+- [Visual verification](#visual-verification)
+
 The `spacing` panel renders one horizontal bar per spacing step at
 its TRUE PIXEL WIDTH. Not 50% of the panel, not normalised — the
 literal `var(--vc-space-N)` value, so a reader can hold a physical

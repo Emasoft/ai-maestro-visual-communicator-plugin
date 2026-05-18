@@ -1,5 +1,22 @@
 # `chart:area@1` — area chart
 
+## Table of Contents
+
+- [When to choose area](#when-to-choose-area)
+- [Authoring shape](#authoring-shape)
+- [Options](#options)
+- [Examples](#examples)
+- [What the runtime emits](#what-the-runtime-emits)
+- [Lib functions called](#lib-functions-called)
+- [DESIGN.md tokens](#designmd-tokens)
+- [Selection / atoms](#selection--atoms)
+- [Anti-patterns](#anti-patterns)
+- [Area vs alternatives](#area-vs-alternatives)
+- [Gradient details](#gradient-details)
+- [The closed-path math](#the-closed-path-math)
+- [Multi-series area pitfalls](#multi-series-area-pitfalls)
+- [Visual verification](#visual-verification)
+
 A line chart whose path closes back to the baseline and fills with an OKLCH
 linear gradient (full-opacity accent at top, transparent at baseline). The
 magnitude UNDER the curve is emphasised, not just the curve shape.

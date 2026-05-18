@@ -1,5 +1,19 @@
 # Sub-technique A7 — Language resolution + the 17-alias map
 
+## Table of Contents
+
+- [A7.1 The resolution rule](#a71-the-resolution-rule)
+- [A7.2 Why `null` is a deliberate result](#a72-why-null-is-a-deliberate-result)
+- [A7.3 The two attribute conventions](#a73-the-two-attribute-conventions)
+- [A7.4 The 17-alias map (the full vocabulary)](#a74-the-17-alias-map-the-full-vocabulary)
+- [A7.5 The class-extraction regex](#a75-the-class-extraction-regex)
+- [A7.6 Why JS+TS share one table](#a76-why-jsts-share-one-table)
+- [A7.7 Unknown ids — the fail-soft path](#a77-unknown-ids--the-fail-soft-path)
+- [A7.8 Multi-class robustness](#a78-multi-class-robustness)
+- [A7.9 Author rules](#a79-author-rules)
+- [A7.10 The future-proof shape](#a710-the-future-proof-shape)
+- [A7.11 No tokens consumed (this reference)](#a711-no-tokens-consumed-this-reference)
+
 How the tokenizer resolves a `<pre>`'s language id from author markup,
 the full alias map, and the canonical "null = no highlighting" failure
 mode. From `scripts/amvcp-code-highlight.js → detectLanguage` +

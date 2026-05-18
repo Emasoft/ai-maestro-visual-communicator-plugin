@@ -1,5 +1,18 @@
 # Step strip (shared-border pipeline)
 
+## Table of Contents
+
+- [When to choose this pattern](#when-to-choose-this-pattern)
+- [Scaffold (HTML + CSS, not the scene-graph)](#scaffold-html--css-not-the-scene-graph)
+- [Variant: with arrow chevrons](#variant-with-arrow-chevrons)
+- [Authoring contract](#authoring-contract)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Responsive behavior](#responsive-behavior)
+- [Variant: numbered prefix instead of "01 02 03"](#variant-numbered-prefix-instead-of-01-02-03)
+- [When to upgrade to the full process-flow preset](#when-to-upgrade-to-the-full-process-flow-preset)
+- [Anti-patterns](#anti-patterns)
+- [Visual verification](#visual-verification)
+
 A compact alternative to a full SVG flowchart for **linear
 processes** that don't need decision branching. Lifted from
 `17-pr-writeup` in the html-effectiveness catalog. The "shared-

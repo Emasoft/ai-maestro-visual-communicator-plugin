@@ -1,5 +1,21 @@
 # Slide-deck transitions — 5 entrance moods + 4 inter-slide transitions
 
+## Table of Contents
+
+- [The 5 entrance moods](#the-5-entrance-moods)
+- [Why moods, not "transitions"](#why-moods-not-transitions)
+- [The 4 inter-slide transitions](#the-4-inter-slide-transitions)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Reduced-motion substitute](#reduced-motion-substitute)
+- [Selection + comment + decision integration](#selection--comment--decision-integration)
+- [Mood selection heuristics](#mood-selection-heuristics)
+- [Stagger across the deck](#stagger-across-the-deck)
+- [Slide navigation indicators](#slide-navigation-indicators)
+- [Loop-pause for slide animations](#loop-pause-for-slide-animations)
+- [Diagnostics](#diagnostics)
+- [Visual verification](#visual-verification)
+- [Future slide-deck extensions](#future-slide-deck-extensions)
+
 The slide-decks skill ships its own animation patterns for
 slide entrance and slide-to-slide transitions, all using the
 animation skill's tokens. This file documents the contract and

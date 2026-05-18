@@ -1,5 +1,18 @@
 # Decorative shape — triangle-up
 
+## Table of Contents
+
+- [What it renders](#what-it-renders)
+- [Two authoring paths](#two-authoring-paths)
+- [Fill options (scene-graph path)](#fill-options-scene-graph-path)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Selection / comment / decision-mini (scene-graph path)](#selection--comment--decision-mini-scene-graph-path)
+- [When to use](#when-to-use)
+- [When NOT to use](#when-not-to-use)
+- [Common authoring patterns](#common-authoring-patterns)
+- [What NOT to do](#what-not-to-do)
+- [Visual verification](#visual-verification)
+
 The `triangle-up` shape is the universal upward-pointing triangle —
 sort indicator, arrow-up, mountain peak, hierarchy top, increase
 direction. Renders as either a filled SVG `<polygon>` (inside a

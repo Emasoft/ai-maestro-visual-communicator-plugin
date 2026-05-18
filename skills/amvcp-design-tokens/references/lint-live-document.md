@@ -1,5 +1,17 @@
 # `lintLiveDocument` — in-browser slop audit
 
+## Table of Contents
+
+- [What it does](#what-it-does)
+- [Why a live walk vs. linting source](#why-a-live-walk-vs-linting-source)
+- [When to run](#when-to-run)
+- [Scaffold to emit](#scaffold-to-emit)
+- [Lib functions used](#lib-functions-used)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Anti-slop interaction](#anti-slop-interaction)
+- [Selection / comment / decision-mini contract](#selection--comment--decision-mini-contract)
+- [Visual verification](#visual-verification)
+
 The in-browser variant of the slop gate. Walks the DOM under
 `rootEl`, reads `getComputedStyle`, and stamps `data-vc-slop-alert
 ="<reason>"` on each offender. The complement to `lintTokenSet` (which

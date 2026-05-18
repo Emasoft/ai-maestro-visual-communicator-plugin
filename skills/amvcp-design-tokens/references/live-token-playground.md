@@ -1,5 +1,17 @@
 # Live-token playground — sliders & radios writing to CSS vars
 
+## Table of Contents
+
+- [What it does](#what-it-does)
+- [When to ship a playground](#when-to-ship-a-playground)
+- [Scaffold to emit](#scaffold-to-emit)
+- [The hover→snippet preview pattern (DM-22 reference)](#the-hoversnippet-preview-pattern-dm-22-reference)
+- [Lib functions used](#lib-functions-used)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Anti-slop interaction](#anti-slop-interaction)
+- [Selection / comment / decision-mini contract](#selection--comment--decision-mini-contract)
+- [Visual verification](#visual-verification)
+
 The Anthropic-Claude `06-component-variants.html` pattern: a sticky
 toolbar with sliders / radios / checkboxes that mutate CSS custom
 properties on `:root` in real time, with downstream blocks reskinning

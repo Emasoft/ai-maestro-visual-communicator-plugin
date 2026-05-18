@@ -1,5 +1,19 @@
 # Sub-technique C3 — Single-keyword arrow highlight ("look at THIS token")
 
+## Table of Contents
+
+- [C3.1 What it does](#c31-what-it-does)
+- [C3.2 The markup (tokenizer variant)](#c32-the-markup-tokenizer-variant)
+- [C3.3 The CSS](#c33-the-css)
+- [C3.4 The link-to-focus JS](#c34-the-link-to-focus-js)
+- [C3.5 The :target variant (URL anchor)](#c35-the-target-variant-url-anchor)
+- [C3.6 Selection contract](#c36-selection-contract)
+- [C3.7 When to use](#c37-when-to-use)
+- [C3.8 Don't overuse](#c38-dont-overuse)
+- [C3.9 Accessibility](#c39-accessibility)
+- [C3.10 Tokens consumed](#c310-tokens-consumed)
+- [C3.11 Author rules](#c311-author-rules)
+
 When a code block contains one token / keyword that the surrounding
 prose is asking the reader to focus on, this pattern HIGHLIGHTS that
 token with the accent gold + a small SVG arrow rendered in the gutter.

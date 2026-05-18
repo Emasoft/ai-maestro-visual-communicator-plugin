@@ -1,5 +1,19 @@
 # Diagram skill handoff — flow edges, scroll-reveal, and SVG animation
 
+## Table of Contents
+
+- [Scroll-reveal for numbered flow walks](#scroll-reveal-for-numbered-flow-walks)
+- [SVG flow-edge animations](#svg-flow-edge-animations)
+- [Token contract for diagram animations](#token-contract-for-diagram-animations)
+- [Reduced-motion substitute](#reduced-motion-substitute)
+- [Selection + comment + decision integration](#selection--comment--decision-integration)
+- [Interactive flowcharts (click-step → side-panel pattern)](#interactive-flowcharts-click-step--side-panel-pattern)
+- [Scroll-reveal trigger on diagrams](#scroll-reveal-trigger-on-diagrams)
+- [Hot-swap with DESIGN.md](#hot-swap-with-designmd)
+- [Diagnostics](#diagnostics)
+- [Visual verification](#visual-verification)
+- [Future diagram-skill extensions](#future-diagram-skill-extensions)
+
 The diagram skill consumes three animation primitives from this
 skill: the scroll-reveal mechanism (for numbered flow walks),
 the motion-token contract (for SVG flow-edge animations), and

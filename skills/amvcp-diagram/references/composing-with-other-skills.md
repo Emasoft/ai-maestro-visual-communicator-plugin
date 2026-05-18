@@ -1,5 +1,14 @@
 # Composing with other skills
 
+## Table of Contents
+
+- [The boundary map](#the-boundary-map)
+- [Composition patterns](#composition-patterns)
+- [What the diagram skill OWNS vs DELEGATES](#what-the-diagram-skill-owns-vs-delegates)
+- [When to compose vs when to hand off](#when-to-compose-vs-when-to-hand-off)
+- [Anti-patterns](#anti-patterns)
+- [Visual verification](#visual-verification)
+
 How the diagram skill plays with its sibling skills in the
 plugin — `chart`, `code-highlight`, `interactive-controls`,
 `modal-comments`, `slide-decks`, `wireframe`, `animation`,

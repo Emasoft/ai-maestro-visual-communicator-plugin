@@ -1,5 +1,22 @@
 # `chart:diverging-bar@1` — diverging bar
 
+## Table of Contents
+
+- [When to choose diverging-bar](#when-to-choose-diverging-bar)
+- [Authoring shape](#authoring-shape)
+- [Options](#options)
+- [Examples](#examples)
+- [What the runtime emits](#what-the-runtime-emits)
+- [Lib functions called](#lib-functions-called)
+- [DESIGN.md tokens (in addition to bar's)](#designmd-tokens-in-addition-to-bars)
+- [Selection](#selection)
+- [Diverging-bar vs alternatives](#diverging-bar-vs-alternatives)
+- [Semantic palette swap for colorblind audiences](#semantic-palette-swap-for-colorblind-audiences)
+- [Zero baseline behavior](#zero-baseline-behavior)
+- [Sort + sign combinations](#sort--sign-combinations)
+- [Anti-patterns](#anti-patterns)
+- [Visual verification](#visual-verification)
+
 A bar chart whose values may be POSITIVE or NEGATIVE. Bars rise above the
 zero baseline in the success color; bars drop below in the danger color.
 Used for signed metrics: sentiment, net change, surplus/deficit, delta vs

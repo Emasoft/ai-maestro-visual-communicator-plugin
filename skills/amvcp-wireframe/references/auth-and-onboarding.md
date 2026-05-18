@@ -1,5 +1,18 @@
 # Auth & onboarding screens — login, signup, recovery, welcome
 
+## Table of Contents
+
+- [Pattern 1 — Login (email + password)](#pattern-1--login-email--password)
+- [Pattern 2 — Signup (account creation)](#pattern-2--signup-account-creation)
+- [Pattern 3 — Forgot password (request reset link)](#pattern-3--forgot-password-request-reset-link)
+- [Pattern 4 — Password reset (new password form)](#pattern-4--password-reset-new-password-form)
+- [Pattern 5 — Email verification (check inbox)](#pattern-5--email-verification-check-inbox)
+- [Pattern 6 — Welcome / first-run tour (carousel)](#pattern-6--welcome--first-run-tour-carousel)
+- [SSO buttons (Google, GitHub, Apple)](#sso-buttons-google-github-apple)
+- [Two-factor / OTP input](#two-factor--otp-input)
+- [Magic-link signin pattern](#magic-link-signin-pattern)
+- [The "you're logged in elsewhere" disambiguation](#the-youre-logged-in-elsewhere-disambiguation)
+
 Auth + onboarding is the gateway flow into any product. Six
 canonical screens: login, signup, forgot password, password reset,
 email verification, welcome / first-run.

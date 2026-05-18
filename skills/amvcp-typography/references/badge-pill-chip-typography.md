@@ -1,5 +1,24 @@
 # Badge, pill, and chip — the labelled-token typography contract
 
+## Table of Contents
+
+- [What it is](#what-it-is)
+- [The shared typography contract](#the-shared-typography-contract)
+- [Scaffold](#scaffold)
+- [Tokens consumed / extended](#tokens-consumed--extended)
+- [Why `white-space: nowrap`](#why-white-space-nowrap)
+- [Why `border-radius: 999px` for pills, `4px` for chips](#why-border-radius-999px-for-pills-4px-for-chips)
+- [Tabular numerics in pills](#tabular-numerics-in-pills)
+- [Auto-pill — the "auto-generated" doc marker](#auto-pill--the-auto-generated-doc-marker)
+- [Light + dark — fully covered](#light--dark--fully-covered)
+- [Severity colouring — DT-19 ownership](#severity-colouring--dt-19-ownership)
+- [Accessibility](#accessibility)
+- [The runtime's current pill use](#the-runtimes-current-pill-use)
+- [Selection-contract conformance](#selection-contract-conformance)
+- [When to use each](#when-to-use-each)
+- [Verification](#verification)
+- [Cross-references](#cross-references)
+
 The Anthropic-Claude reference corpus (and most AMVCP runtime
 content) uses three closely-related visual atoms: the *badge*
 (`.badge`), the *pill* (`.pill`), and the *chip* (`.chip`). They

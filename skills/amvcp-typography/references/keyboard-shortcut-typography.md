@@ -1,5 +1,22 @@
 # Keyboard shortcut typography — `<kbd>`, key combos, and the modifier-key glyphs
 
+## Table of Contents
+
+- [What it is](#what-it-is)
+- [The contract](#the-contract)
+- [Scaffold](#scaffold)
+- [Tokens consumed / extended](#tokens-consumed--extended)
+- [The modifier-key glyph mapping](#the-modifier-key-glyph-mapping)
+- [The cross-platform convention](#the-cross-platform-convention)
+- [Why `white-space: nowrap` on `.vc-keycombo`](#why-white-space-nowrap-on-vc-keycombo)
+- [The plus separator opacity](#the-plus-separator-opacity)
+- [Light + dark — fully covered](#light--dark--fully-covered)
+- [Accessibility — `aria-label` for clarity](#accessibility--aria-label-for-clarity)
+- [Selection-contract conformance](#selection-contract-conformance)
+- [When NOT to use `<kbd>`](#when-not-to-use-kbd)
+- [Verification](#verification)
+- [Cross-references](#cross-references)
+
 A page that documents keyboard shortcuts — a help menu, a power-user
 cheatsheet, a CLI help text rendered as HTML — needs a consistent
 typographic shape for each KEY and each COMBINATION. The typography

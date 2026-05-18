@@ -1,5 +1,16 @@
 # Queue diagram (FIFO direction)
 
+## Table of Contents
+
+- [When to choose this pattern](#when-to-choose-this-pattern)
+- [Scaffold](#scaffold)
+- [Direction indicator](#direction-indicator)
+- [Variants](#variants)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Selection atoms](#selection-atoms)
+- [Anti-patterns](#anti-patterns)
+- [Visual verification](#visual-verification)
+
 A specialized diagram for visualizing a **queue** — a row of job
 boxes with the head highlighted as "next to run" and an explicit
 direction indicator. Lifted from `10-svg-illustrations` in the

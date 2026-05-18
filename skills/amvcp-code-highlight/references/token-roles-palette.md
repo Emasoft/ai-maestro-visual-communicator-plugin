@@ -1,5 +1,17 @@
 # Sub-technique A2 — The 12-token `--ve-code-*` palette
 
+## Table of Contents
+
+- [A2.1 The 12 token roles](#a21-the-12-token-roles)
+- [A2.2 The dark-theme defaults](#a22-the-dark-theme-defaults)
+- [A2.3 The light-theme mirror — MANDATORY](#a23-the-light-theme-mirror--mandatory)
+- [A2.4 The diff tints](#a24-the-diff-tints)
+- [A2.5 The 12 class rules](#a25-the-12-class-rules)
+- [A2.6 The selection-yield rule (CRITICAL)](#a26-the-selection-yield-rule-critical)
+- [A2.7 JetBrains Mono pairing (CB-03 family rule)](#a27-jetbrains-mono-pairing-cb-03-family-rule)
+- [A2.8 The verification checklist](#a28-the-verification-checklist)
+- [A2.9 Tokens consumed / extended](#a29-tokens-consumed--extended)
+
 The 12 `ve-tok-<role>` CSS classes the tokenizer emits, their
 `--ve-code-<role>` token bindings, the light + dark theme mirrors, and
 the JetBrains Mono pairing. Implements CB-03 (12 syntax-token CSS

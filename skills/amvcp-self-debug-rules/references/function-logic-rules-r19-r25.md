@@ -1,5 +1,15 @@
 # Function / logic rules (R19-R25)
 
+## Table of Contents
+
+- [R19 — Skill output is structural, not text-only](#r19--skill-output-is-structural-not-text-only)
+- [R20 — Selection ≠ choice (universal commentability vs explicit decision)](#r20--selection--choice-universal-commentability-vs-explicit-decision)
+- [R21 — Choice cardinality enforced](#r21--choice-cardinality-enforced)
+- [R22 — Skill composability — same page, zero interference](#r22--skill-composability--same-page-zero-interference)
+- [R23 — Mode declared explicitly; default is read-only](#r23--mode-declared-explicitly-default-is-read-only)
+- [R24 — Overlay-mode runtime — non-destructive contract](#r24--overlay-mode-runtime--non-destructive-contract)
+- [R25 — Submission payload identifies atoms unambiguously](#r25--submission-payload-identifies-atoms-unambiguously)
+
 R19-R26 encode the plugin's *function* contract — the design intent
 of what the plugin DOES, not how it looks. Skills are display
 *techniques* that render specific content types (graph → mermaid

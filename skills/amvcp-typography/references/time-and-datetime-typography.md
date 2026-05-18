@@ -1,5 +1,25 @@
 # Time and datetime — `<time>`, formatting, and tabular dates
 
+## Table of Contents
+
+- [What it is](#what-it-is)
+- [The contract](#the-contract)
+- [Scaffold](#scaffold)
+- [Tokens consumed / extended](#tokens-consumed--extended)
+- [Why tabular numerics by default for `<time>`](#why-tabular-numerics-by-default-for-time)
+- [ISO 8601 — the universal datetime form](#iso-8601--the-universal-datetime-form)
+- [Why `.vc-datetime-tabular` switches to mono](#why-vc-datetime-tabular-switches-to-mono)
+- [ISO-week and Year-month](#iso-week-and-year-month)
+- [Light + dark — orthogonal](#light--dark--orthogonal)
+- [Tabular numerics composition with other numeric features](#tabular-numerics-composition-with-other-numeric-features)
+- [Inline date format conventions](#inline-date-format-conventions)
+- [Timezone display](#timezone-display)
+- [Selection-contract conformance](#selection-contract-conformance)
+- [The runtime's date use](#the-runtimes-date-use)
+- [When NOT to wrap text in `<time>`](#when-not-to-wrap-text-in-time)
+- [Verification](#verification)
+- [Cross-references](#cross-references)
+
 The `<time>` element marks dates, durations, and absolute times in a
 machine-readable form. The typography skill ships the `<time>`
 element-level default plus a `.vc-datetime-tabular` modifier for

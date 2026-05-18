@@ -1,5 +1,16 @@
 # Scoped theming — per-section / per-component DESIGN.md (DT-06)
 
+## Table of Contents
+
+- [What it does](#what-it-does)
+- [When to use](#when-to-use)
+- [Scaffold to emit](#scaffold-to-emit)
+- [Lib functions used](#lib-functions-used)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Anti-slop interaction](#anti-slop-interaction)
+- [Selection / comment / decision-mini contract](#selection--comment--decision-mini-contract)
+- [Visual verification](#visual-verification)
+
 `applyTokens(map, rootEl)` accepts ANY element as `rootEl`. So a SINGLE
 section / sidebar / modal can carry its OWN DESIGN.md while the rest of
 the page keeps the global one. No engine change, no new mechanism — the

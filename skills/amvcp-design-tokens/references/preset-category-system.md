@@ -1,5 +1,17 @@
 # 9-category palette system (DT-26)
 
+## Table of Contents
+
+- [The nine categories](#the-nine-categories)
+- [When to use which category](#when-to-use-which-category)
+- [Scaffold to emit](#scaffold-to-emit)
+- [Lib functions used](#lib-functions-used)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Anti-slop interaction](#anti-slop-interaction)
+- [Adding a new preset to a category](#adding-a-new-preset-to-a-category)
+- [Selection / comment / decision-mini contract](#selection--comment--decision-mini-contract)
+- [Visual verification](#visual-verification)
+
 The umbrella taxonomy that organises the 13 named presets into nine
 aesthetic categories: Bold / Warm / Dark / Clean / Nature / Neon /
 Pastel / Jewel / Monochrome. Helps the agent (and the human) pick a

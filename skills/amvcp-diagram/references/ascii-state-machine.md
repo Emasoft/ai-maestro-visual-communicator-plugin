@@ -1,5 +1,22 @@
 # ASCII state machine diagram
 
+## Table of Contents
+
+- [When to choose ASCII](#when-to-choose-ascii)
+- [Authoring](#authoring)
+- [Glyph vocabulary](#glyph-vocabulary)
+- [Alignment validator (build-time)](#alignment-validator-build-time)
+- [State boxes](#state-boxes)
+- [Transitions](#transitions)
+- [Self-loops](#self-loops)
+- [Conditional transitions (guards)](#conditional-transitions-guards)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Selection atoms](#selection-atoms)
+- [Compactness — when to switch styles](#compactness--when-to-switch-styles)
+- [Anti-patterns](#anti-patterns)
+- [Visual verification](#visual-verification)
+- [Cross-skill seam](#cross-skill-seam)
+
 The ASCII variant of `state-machine-diagram.md` — a state machine
 drawn in monospace box-drawing characters. No JS, no SVG, no
 theming — pure text. Use when the audience reads in a terminal,

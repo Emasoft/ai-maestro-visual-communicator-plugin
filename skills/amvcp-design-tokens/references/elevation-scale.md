@@ -1,5 +1,16 @@
 # Elevation shadow scale (DT-04)
 
+## Table of Contents
+
+- [What it does](#what-it-does)
+- [When to choose](#when-to-choose)
+- [Scaffold to emit](#scaffold-to-emit)
+- [Lib functions used](#lib-functions-used)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Anti-slop interaction](#anti-slop-interaction)
+- [Selection / comment / decision-mini contract](#selection--comment--decision-mini-contract)
+- [Visual verification](#visual-verification)
+
 Two production-tested elevation models, expressed as a 5-step shadow
 scale + a `shadow-border` (the 1-px ring trick). Authored once, themed
 everywhere via `--vc-shadow-*`.

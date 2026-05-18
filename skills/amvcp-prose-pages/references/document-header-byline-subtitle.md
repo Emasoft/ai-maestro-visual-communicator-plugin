@@ -1,5 +1,19 @@
 # Document header — eyebrow + h1 + subtitle + byline
 
+## Table of Contents
+
+- [When to add each element](#when-to-add-each-element)
+- [Scaffold](#scaffold)
+- [CSS contract (already injected by the runtime)](#css-contract-already-injected-by-the-runtime)
+- [The eyebrow's job](#the-eyebrows-job)
+- [Title-writing discipline](#title-writing-discipline)
+- [Subtitle discipline](#subtitle-discipline)
+- [Byline discipline](#byline-discipline)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Composition](#composition)
+- [Selection / comment notes](#selection--comment-notes)
+- [Anti-patterns](#anti-patterns)
+
 The four-element opening every report-doc page uses, in fixed order
 and fixed visual hierarchy:
 

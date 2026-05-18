@@ -1,5 +1,21 @@
 # `free` preset and explicit geometry
 
+## Table of Contents
+
+- [When to choose `free`](#when-to-choose-free)
+- [Scaffold (a server rack)](#scaffold-a-server-rack)
+- [Coordinate space](#coordinate-space)
+- [Grid snapping](#grid-snapping)
+- [Background grid](#background-grid)
+- [Mixing auto-placed and explicit nodes](#mixing-auto-placed-and-explicit-nodes)
+- [Edges in a `free` diagram](#edges-in-a-free-diagram)
+- [Groups as containers](#groups-as-containers)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Selection atoms](#selection-atoms)
+- [Use-case archetypes](#use-case-archetypes)
+- [Anti-patterns](#anti-patterns)
+- [Visual verification](#visual-verification)
+
 The `free` preset is the **escape hatch** — no auto-layout, no
 auto-placement, no opinionated defaults. The agent supplies every
 node's `x` and `y` and the engine places the SVG faithfully. Use

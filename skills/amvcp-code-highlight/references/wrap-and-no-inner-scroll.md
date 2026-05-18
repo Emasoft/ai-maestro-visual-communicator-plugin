@@ -1,5 +1,19 @@
 # Sub-technique A4 — Soft-wrap + no inner scrollbar invariant
 
+## Table of Contents
+
+- [A4.1 What it does](#a41-what-it-does)
+- [A4.2 The rule (verbatim from the project)](#a42-the-rule-verbatim-from-the-project)
+- [A4.3 Why nested scrollbars break code reading specifically](#a43-why-nested-scrollbars-break-code-reading-specifically)
+- [A4.4 The wrap-marker stripe — making wraps visible](#a44-the-wrap-marker-stripe--making-wraps-visible)
+- [A4.5 The hanging-indent math (why it matters here)](#a45-the-hanging-indent-math-why-it-matters-here)
+- [A4.6 The author rule](#a46-the-author-rule)
+- [A4.7 Wrap correctness with token spans](#a47-wrap-correctness-with-token-spans)
+- [A4.8 The vertical-extent corollary](#a48-the-vertical-extent-corollary)
+- [A4.9 What about a really long line (a minified bundle pasted in)?](#a49-what-about-a-really-long-line-a-minified-bundle-pasted-in)
+- [A4.10 The verification checklist](#a410-the-verification-checklist)
+- [A4.11 Project-rule cross-reference](#a411-project-rule-cross-reference)
+
 The hard rule: code blocks NEVER have an inner horizontal scrollbar.
 Wide code wraps. Wider code extends the page. The page's own
 scrollbars are the only scrollbars permitted. Implements CB-06 (HAVE —

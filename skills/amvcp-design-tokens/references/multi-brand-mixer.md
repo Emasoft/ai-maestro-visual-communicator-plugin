@@ -1,5 +1,17 @@
 # Multi-brand DESIGN.md mixer (DM-23)
 
+## Table of Contents
+
+- [What it does](#what-it-does)
+- [When to use](#when-to-use)
+- [The per-role rules (suggested defaults)](#the-per-role-rules-suggested-defaults)
+- [Scaffold to emit](#scaffold-to-emit)
+- [Lib functions used](#lib-functions-used)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Anti-slop interaction](#anti-slop-interaction)
+- [Selection / comment / decision-mini contract](#selection--comment--decision-mini-contract)
+- [Visual verification](#visual-verification)
+
 Load two DESIGN.md files and BLEND tokens per-token comparison rules,
 tagging each decision with source brand. The pattern for "design a
 co-branded artifact" where neither brand should fully dominate. A

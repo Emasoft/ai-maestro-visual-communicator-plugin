@@ -1,5 +1,17 @@
 # Icon-tint rotation — 6-color `:nth-child` rotation (DT-12 + DT-15)
 
+## Table of Contents
+
+- [What it does](#what-it-does)
+- [When to use](#when-to-use)
+- [Scaffold to emit](#scaffold-to-emit)
+- [DT-15 — the `--icon-color-rgb` legacy alternative](#dt-15--the---icon-color-rgb-legacy-alternative)
+- [Lib functions used](#lib-functions-used)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Anti-slop interaction](#anti-slop-interaction)
+- [Selection / comment / decision-mini contract](#selection--comment--decision-mini-contract)
+- [Visual verification](#visual-verification)
+
 A 6-color `:nth-child` rotation for icon-card backgrounds. Each
 `.vc-icon-card:nth-child(6n+k)` sets `--vc-icon-color` to one stop of
 a 6-step golden-angle categorical ramp; the card container uses

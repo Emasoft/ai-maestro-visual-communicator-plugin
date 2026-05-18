@@ -1,5 +1,19 @@
 # Transition properties — what CSS properties to animate (and avoid)
 
+## Table of Contents
+
+- [The two property categories](#the-two-property-categories)
+- [Examples — the skill's choices](#examples--the-skills-choices)
+- [Why opacity AND transform together](#why-opacity-and-transform-together)
+- [Properties to AVOID animating](#properties-to-avoid-animating)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Reduced-motion substitute](#reduced-motion-substitute)
+- [`will-change` hints — when (NOT) to use](#will-change-hints--when-not-to-use)
+- [Combining properties on one element](#combining-properties-on-one-element)
+- [Diagnostics](#diagnostics)
+- [Visual verification](#visual-verification)
+- [Reference table — animation-safe properties](#reference-table--animation-safe-properties)
+
 Browsers render animations at GPU vs CPU speeds depending on
 which CSS properties change. The skill animates ONLY GPU-friendly
 properties (transform, opacity) — never layout-triggering

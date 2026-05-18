@@ -1,5 +1,24 @@
 # Figure and caption — the image + caption typography contract
 
+## Table of Contents
+
+- [What it is](#what-it-is)
+- [The contract](#the-contract)
+- [Scaffold](#scaffold)
+- [Tokens consumed / extended](#tokens-consumed--extended)
+- [Why italic caption](#why-italic-caption)
+- [Why `opacity: 0.85` (not a colour)](#why-opacity-085-not-a-colour)
+- [The CSS counter — `counter-increment` + `counter()`](#the-css-counter--counter-increment--counter)
+- [Side-floated figures and body wrap](#side-floated-figures-and-body-wrap)
+- [Wide figures and the `100vw` trick](#wide-figures-and-the-100vw-trick)
+- [Alt text — non-negotiable](#alt-text--non-negotiable)
+- [The `<picture>` element for responsive images](#the-picture-element-for-responsive-images)
+- [Light + dark — fully covered](#light--dark--fully-covered)
+- [Selection-contract conformance](#selection-contract-conformance)
+- [When NOT to wrap in `<figure>`](#when-not-to-wrap-in-figure)
+- [Verification](#verification)
+- [Cross-references](#cross-references)
+
 A `<figure>` is a semantic container for self-contained content that's
 *illustrative* — an image, a chart, a diagram, a code listing —
 optionally with a `<figcaption>` describing it. The typography skill

@@ -1,5 +1,19 @@
 # Sub-technique B3 — The slate-bg dark code panel (PR / postmortem / explainer canonical container)
 
+## Table of Contents
+
+- [B3.1 What it is](#b31-what-it-is)
+- [B3.2 The visual](#b32-the-visual)
+- [B3.3 The markup](#b33-the-markup)
+- [B3.4 The CSS (page-stylesheet, NOT runtime)](#b34-the-css-page-stylesheet-not-runtime)
+- [B3.5 The 12-token palette over slate](#b35-the-12-token-palette-over-slate)
+- [B3.6 The selection visual over slate](#b36-the-selection-visual-over-slate)
+- [B3.7 The diff variant](#b37-the-diff-variant)
+- [B3.8 The file-path label variant](#b38-the-file-path-label-variant)
+- [B3.9 When to use](#b39-when-to-use)
+- [B3.10 Tokens consumed](#b310-tokens-consumed)
+- [B3.11 Author rules](#b311-author-rules)
+
 The canonical dark-on-dark code container used by every PR review,
 postmortem, and architecture explainer in the AMVCP visual library.
 Mined from the html-effectiveness extended catalog (`12-incident-

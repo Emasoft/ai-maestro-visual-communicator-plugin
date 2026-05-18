@@ -1,5 +1,22 @@
 # Sub-technique H3 — CSV / TSV / JSON data fences (when a `<pre>` is data, not code)
 
+## Table of Contents
+
+- [H3.1 The "is this code or data?" question](#h31-the-is-this-code-or-data-question)
+- [H3.2 JSON (data, but typically declared as `language-json`)](#h32-json-data-but-typically-declared-as-language-json)
+- [H3.3 YAML (data, often declared as `language-yaml`)](#h33-yaml-data-often-declared-as-language-yaml)
+- [H3.4 CSV / TSV](#h34-csv--tsv)
+- [H3.5 TOML / INI](#h35-toml--ini)
+- [H3.6 Diff data](#h36-diff-data)
+- [H3.7 The "is this fence DATA-WITH-PROVENANCE?" check](#h37-the-is-this-fence-data-with-provenance-check)
+- [H3.8 The "is this fence SAMPLE OUTPUT?" check](#h38-the-is-this-fence-sample-output-check)
+- [H3.9 The "raw data dump" fallback](#h39-the-raw-data-dump-fallback)
+- [H3.10 The selection model](#h310-the-selection-model)
+- [H3.11 The runtime's class-language separation](#h311-the-runtimes-class-language-separation)
+- [H3.12 Author rules](#h312-author-rules)
+- [H3.13 No tokens consumed (this reference)](#h313-no-tokens-consumed-this-reference)
+- [H3.14 Cross-references](#h314-cross-references)
+
 When a `<pre>` contains DATA — CSV rows, TSV cells, JSON-as-text,
 YAML config — not source code, the author still uses `<pre><code>`
 but with specific language tags + the right authoring attitude. This

@@ -1,5 +1,15 @@
 # Composing report-doc with the other 12 element skills
 
+## Table of Contents
+
+- [The composition contract](#the-composition-contract)
+- [The compatibility matrix](#the-compatibility-matrix)
+- [Worked example — `implementation-plan-shape`](#worked-example--implementation-plan-shape)
+- [Runtime interaction patterns](#runtime-interaction-patterns)
+- [QA on composed pages](#qa-on-composed-pages)
+- [When NOT to compose](#when-not-to-compose)
+- [Anti-patterns](#anti-patterns)
+
 `report-doc` is the *non-element, cross-cutting* technique in the
 plugin — its primitives (callout, rubric, TL;DR, stat-band, TOC,
 metadata pill strip, glossary, change-log, appendix, references)

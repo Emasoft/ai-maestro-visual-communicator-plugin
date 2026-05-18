@@ -1,5 +1,22 @@
 # Sub-technique F1 — contenteditable code editor with caret-preserved re-highlight
 
+## Table of Contents
+
+- [F1.1 The pattern](#f11-the-pattern)
+- [F1.2 Why contenteditable, not textarea](#f12-why-contenteditable-not-textarea)
+- [F1.3 The 4 building blocks](#f13-the-4-building-blocks)
+- [F1.4 Intercepting Enter](#f14-intercepting-enter)
+- [F1.5 Intercepting paste](#f15-intercepting-paste)
+- [F1.6 The slot-finder regex pattern](#f16-the-slot-finder-regex-pattern)
+- [F1.7 Per-slot validation](#f17-per-slot-validation)
+- [F1.8 The 3-sample preview pattern](#f18-the-3-sample-preview-pattern)
+- [F1.9 Selection / commenting](#f19-selection--commenting)
+- [F1.10 The localStorage save pattern](#f110-the-localstorage-save-pattern)
+- [F1.11 Tokens consumed](#f111-tokens-consumed)
+- [F1.12 When to use](#f112-when-to-use)
+- [F1.13 Author rules](#f113-author-rules)
+- [F1.14 Mined source attribution](#f114-mined-source-attribution)
+
 The pattern for live-editing code (or a templated text format)
 in-browser with continuous syntax highlighting. The reference impl is
 the prompt-template `{{slot}}` editor mined from `20-editor-prompt-

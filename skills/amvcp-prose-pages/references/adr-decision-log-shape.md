@@ -1,5 +1,19 @@
 # ADR (Architecture Decision Record) shape — context, decision, consequences
 
+## Table of Contents
+
+- [When to choose this shape](#when-to-choose-this-shape)
+- [Section order (fixed — Nygard 2011 contract)](#section-order-fixed--nygard-2011-contract)
+- [Markdown scaffold](#markdown-scaffold)
+- [The `.vc-adr` modifier](#the-vc-adr-modifier)
+- [The Status pill — special behaviour](#the-status-pill--special-behaviour)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Composition with other skills](#composition-with-other-skills)
+- [Lib functions called](#lib-functions-called)
+- [Selection / comment notes](#selection--comment-notes)
+- [Decision-mini hook](#decision-mini-hook)
+- [Anti-patterns](#anti-patterns)
+
 The minimal decision-record format that captures what was decided, why,
 and what happens next — separate from the longer-form RFC. ADRs are
 short (one screen), terminal (the decision is made), and append-only

@@ -1,5 +1,18 @@
 # Content & CMS screens — articles, editor, media library
 
+## Table of Contents
+
+- [Pattern 1 — Article reader (long-form prose)](#pattern-1--article-reader-long-form-prose)
+- [Pattern 2 — Post editor (WYSIWYG body + meta sidebar)](#pattern-2--post-editor-wysiwyg-body--meta-sidebar)
+- [Pattern 3 — Media library (thumbnail grid + filter)](#pattern-3--media-library-thumbnail-grid--filter)
+- [Pattern 4 — Content list (sortable table of posts)](#pattern-4--content-list-sortable-table-of-posts)
+- [Pattern 5 — Draft preview (mobile + desktop side-by-side)](#pattern-5--draft-preview-mobile--desktop-side-by-side)
+- [Pattern 6 — Publish-flow modal (visibility + schedule)](#pattern-6--publish-flow-modal-visibility--schedule)
+- [Toolbar — bold, italic, link, list, image](#toolbar--bold-italic-link-list-image)
+- [Inline embed (image, video, code block)](#inline-embed-image-video-code-block)
+- [Author byline](#author-byline)
+- [Comment thread (article-attached)](#comment-thread-article-attached)
+
 Content-management shapes. Six patterns: article reader, post
 editor (WYSIWYG-style), media library grid, content list, draft
 preview, publish-flow modal.

@@ -1,5 +1,17 @@
 # Reduced-motion substitutes — accessible hover affordances
 
+## Table of Contents
+
+- [The contract](#the-contract)
+- [The implemented case — hotspot hover](#the-implemented-case--hotspot-hover)
+- [Why "no-preference" not the default](#why-no-preference-not-the-default)
+- [When to apply this pattern](#when-to-apply-this-pattern)
+- [What kinds of substitutes work](#what-kinds-of-substitutes-work)
+- [Testing](#testing)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Why this matters](#why-this-matters)
+- [Visual verification](#visual-verification)
+
 `prefers-reduced-motion: reduce` is an OS-level user preference. When
 it's ON, the icon-svg module's hover animations (the hotspot scale,
 any future motion-based affordance) are REPLACED with a STATIC

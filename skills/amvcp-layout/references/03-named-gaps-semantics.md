@@ -1,5 +1,19 @@
 # 03 — Named-gap semantics (where to use which `--la-gap*` token)
 
+## Table of Contents
+
+- [The map](#the-map)
+- [Scaffold to emit](#scaffold-to-emit)
+- [Lib functions called](#lib-functions-called)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Selection / comment / decision-mini contract notes](#selection--comment--decision-mini-contract-notes)
+- [When the map needs to be extended](#when-the-map-needs-to-be-extended)
+- [Why this map matters more than the values themselves](#why-this-map-matters-more-than-the-values-themselves)
+- [Visual verification](#visual-verification)
+- [The "pick the right gap" decision tree](#the-pick-the-right-gap-decision-tree)
+- [Cross-technique consistency](#cross-technique-consistency)
+- [Edge case: the "almost-right" gap](#edge-case-the-almost-right-gap)
+
 The 5 `--la-gap*` aliases (`xs`, `sm`, base, `lg`, `xl`) cover the
 entire vertical and horizontal rhythm of a layout page. Picking the
 wrong one is the most common layout mistake — a `--la-gap-lg` between

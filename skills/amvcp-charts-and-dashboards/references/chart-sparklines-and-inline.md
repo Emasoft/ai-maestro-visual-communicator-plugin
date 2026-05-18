@@ -1,5 +1,15 @@
 # Sparklines and inline charts
 
+## Table of Contents
+
+- [When to choose a sparkline](#when-to-choose-a-sparkline)
+- [Authoring a sparkline](#authoring-a-sparkline)
+- [Inline single-point markers](#inline-single-point-markers)
+- [Sparkline in a table cell](#sparkline-in-a-table-cell)
+- [Inline in a metric card](#inline-in-a-metric-card)
+- [Constraints](#constraints)
+- [See also](#see-also)
+
 A SPARKLINE is a small chart embedded in prose / a stat tile / a table
 cell — typically a `line` or `area` chart with no axes, no gridlines, no
 legend, no big title. The chart skill renders sparklines via the standard

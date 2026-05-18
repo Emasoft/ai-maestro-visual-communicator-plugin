@@ -1,5 +1,17 @@
 # Pull-quote (`vc-pullquote`) — cap one per page
 
+## Table of Contents
+
+- [When to use a pull-quote](#when-to-use-a-pull-quote)
+- [Scaffold](#scaffold)
+- [CSS (already injected by the runtime)](#css-already-injected-by-the-runtime)
+- [The "exactly one per page" rule](#the-exactly-one-per-page-rule)
+- [Variants](#variants)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Composition with other shapes](#composition-with-other-shapes)
+- [Selection / comment notes](#selection--comment-notes)
+- [Anti-patterns](#anti-patterns)
+
 The oversized italic quotation that pulls a key sentence out of the
 body prose for emphasis. Standard editorial typography idiom: a 20-32
 px italic block-quote, indented from the body, with a clay

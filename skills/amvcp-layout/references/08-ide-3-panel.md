@@ -1,5 +1,18 @@
 # 08 — IDE 3-panel shell (sidebar + main + inspector + collapse toggle)
 
+## Table of Contents
+
+- [What this is](#what-this-is)
+- [Scaffold to emit](#scaffold-to-emit)
+- [Lib functions called](#lib-functions-called)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Selection / comment / decision-mini contract notes](#selection--comment--decision-mini-contract-notes)
+- [When to use this layout](#when-to-use-this-layout)
+- [Why `data-la-sidebar` (DOM attribute) instead of a class?](#why-data-la-sidebar-dom-attribute-instead-of-a-class)
+- [Visual verification](#visual-verification)
+- [The collapse animation](#the-collapse-animation)
+- [Persisting the collapsed state](#persisting-the-collapsed-state)
+
 A VS-Code-style 3-panel layout: a fixed-width sidebar on the left
 (navigation / file tree), a flexible main column in the centre
 (editor / canvas), and a right inspector panel for output / details.

@@ -1,5 +1,21 @@
 # Sub-technique E9 — Compare N approaches: side-by-side code + Pro/Con + chips
 
+## Table of Contents
+
+- [E9.1 The shape](#e91-the-shape)
+- [E9.2 The page-level grid](#e92-the-page-level-grid)
+- [E9.3 Per-column markup](#e93-per-column-markup)
+- [E9.4 The Pro/Con sub-grid](#e94-the-procon-sub-grid)
+- [E9.5 The metric chips strip](#e95-the-metric-chips-strip)
+- [E9.6 The recommendation card](#e96-the-recommendation-card)
+- [E9.7 The "code panel per column" discipline](#e97-the-code-panel-per-column-discipline)
+- [E9.8 Selection / commenting per column](#e98-selection--commenting-per-column)
+- [E9.9 Cross-references](#e99-cross-references)
+- [E9.10 When to use](#e910-when-to-use)
+- [E9.11 Light + dark verification](#e911-light--dark-verification)
+- [E9.12 Tokens consumed](#e912-tokens-consumed)
+- [E9.13 Mined source attribution](#e913-mined-source-attribution)
+
 The 3-column "debounced search × 3 implementations" composition. Code
 block + Pro/Con tradeoff table + metric chips + recommendation card
 per column. Mined from `01-exploration-code-approaches.html` (html-

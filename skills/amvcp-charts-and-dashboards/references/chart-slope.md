@@ -1,5 +1,22 @@
 # `chart:slope@1` — slope chart
 
+## Table of Contents
+
+- [When to choose slope](#when-to-choose-slope)
+- [Authoring shape](#authoring-shape)
+- [Options](#options)
+- [Examples](#examples)
+- [What the runtime emits](#what-the-runtime-emits)
+- [Lib functions called](#lib-functions-called)
+- [DESIGN.md tokens](#designmd-tokens)
+- [Selection / atoms](#selection--atoms)
+- [Anti-patterns](#anti-patterns)
+- [Slope vs alternatives — comparison](#slope-vs-alternatives--comparison)
+- [Rank inversion visual](#rank-inversion-visual)
+- [Slope chart layout — the inset](#slope-chart-layout--the-inset)
+- [Color encoding strategies](#color-encoding-strategies)
+- [Visual verification](#visual-verification)
+
 A McKinsey-style two-point line chart where each series is a diagonal from
 the left edge to the right edge of the plot. Labels print at the right
 endpoint of each series. The geometry IS the story — series whose lines

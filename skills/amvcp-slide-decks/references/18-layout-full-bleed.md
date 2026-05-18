@@ -1,5 +1,20 @@
 # 18 — Layout: `full-bleed` (edge-to-edge image + overlay text)
 
+## Table of Contents
+
+- [What this is](#what-this-is)
+- [Scaffold to emit](#scaffold-to-emit)
+- [Lib functions called](#lib-functions-called)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Selection / comment / decision-mini contract notes](#selection--comment--decision-mini-contract-notes)
+- [When to use this reference](#when-to-use-this-reference)
+- [Don'ts](#donts)
+- [Authoring rules — image source guidance](#authoring-rules--image-source-guidance)
+- [Visual verification](#visual-verification)
+- [Common pitfalls](#common-pitfalls)
+- [Best images for slide-decks](#best-images-for-slide-decks)
+- [Source provenance](#source-provenance)
+
 The full-bleed slide is the talk's emotional anchor — a hero image
 fills the entire stage, with one short headline + optional subtitle
 overlaid via a gradient scrim. No other content. The image carries the

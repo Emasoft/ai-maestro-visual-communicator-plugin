@@ -1,5 +1,17 @@
 # Derived state color split — fg/bg/border/icon from one semantic role
 
+## Table of Contents
+
+- [What it does](#what-it-does)
+- [The percentages](#the-percentages)
+- [When to use the derived family vs. the base role](#when-to-use-the-derived-family-vs-the-base-role)
+- [Scaffold to emit](#scaffold-to-emit)
+- [Lib functions used](#lib-functions-used)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Anti-slop interaction](#anti-slop-interaction)
+- [Selection / comment / decision-mini contract](#selection--comment--decision-mini-contract)
+- [Visual verification](#visual-verification)
+
 The engine ships ONE color per semantic role (`success`, `warning`,
 `danger`, `info`). Real UI needs FOUR sub-tokens per role: foreground,
 background, border, icon. This document covers how `amvcp-tokens.css`

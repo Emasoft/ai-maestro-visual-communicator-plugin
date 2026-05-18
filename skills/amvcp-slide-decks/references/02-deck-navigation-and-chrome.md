@@ -1,5 +1,19 @@
 # 02 — Deck navigation + nav chrome (keyboard, swipe, dots, persistence)
 
+## Table of Contents
+
+- [What this is](#what-this-is)
+- [Scaffold to emit](#scaffold-to-emit)
+- [Lib functions called](#lib-functions-called)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Selection / comment / decision-mini contract notes](#selection--comment--decision-mini-contract-notes)
+- [When to use this reference](#when-to-use-this-reference)
+- [Don'ts](#donts)
+- [Visual verification](#visual-verification)
+- [Programmatic navigation](#programmatic-navigation)
+- [Chrome visibility on mixed-background decks](#chrome-visibility-on-mixed-background-decks)
+- [Source provenance](#source-provenance)
+
 A deck without navigation is a stack of slides. This reference catalogues the
 *usable* navigation surface `amvcp-slide.js` ships: keyboard arrows + page-up
 / page-down + Home/End + spacebar, touch-swipe with a 50 px threshold, clickable

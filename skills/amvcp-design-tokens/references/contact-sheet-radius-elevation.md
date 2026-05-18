@@ -1,5 +1,17 @@
 # Contact-sheet radius + elevation panels
 
+## Table of Contents
+
+- [Radius panel](#radius-panel)
+- [Elevation panel](#elevation-panel)
+- [Why both panels show literal values](#why-both-panels-show-literal-values)
+- [Scaffold to emit](#scaffold-to-emit)
+- [Lib functions used](#lib-functions-used)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Anti-slop interaction](#anti-slop-interaction)
+- [Selection / comment / decision-mini contract](#selection--comment--decision-mini-contract)
+- [Visual verification](#visual-verification)
+
 The `radius` panel renders 6 squares, each `border-radius: var(--vc-
 radius-<k>)`. The `elevation` panel renders one neutral card per
 `--vc-shadow-<n>` (0-4 + border). Both are direct visual proofs of

@@ -1,5 +1,21 @@
 # 11 — Layout: `quadrant` (2×2 phase-space)
 
+## Table of Contents
+
+- [What this is](#what-this-is)
+- [Scaffold to emit](#scaffold-to-emit)
+- [Lib functions called](#lib-functions-called)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Selection / comment / decision-mini contract notes](#selection--comment--decision-mini-contract-notes)
+- [When to use this reference](#when-to-use-this-reference)
+- [Don'ts](#donts)
+- [Authoring rules — axis labelling](#authoring-rules--axis-labelling)
+- [Visual verification](#visual-verification)
+- [Canonical 2×2 matrix examples](#canonical-22-matrix-examples)
+- [Naming the quadrants](#naming-the-quadrants)
+- [When NOT to use quadrant](#when-not-to-use-quadrant)
+- [Source provenance](#source-provenance)
+
 The quadrant slide is the rhetorical 2×2 — the BCG matrix, the Eisenhower
 box, the impact/effort grid. Four labelled regions arranged in a
 two-by-two cross, with axes printed on the cross's edges. The audience

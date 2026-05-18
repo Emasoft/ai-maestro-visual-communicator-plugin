@@ -1,5 +1,19 @@
 # OKLCh color-space rationale
 
+## Table of Contents
+
+- [Why OKLCh](#why-oklch)
+- [The conversions](#the-conversions)
+- [The `oklchToHex` shortcut](#the-oklchtohex-shortcut)
+- [The `oklchToP3` shortcut](#the-oklchtop3-shortcut)
+- [The `oklabDeltaE` distance](#the-oklabdeltae-distance)
+- [When to use OKLCh in custom widgets](#when-to-use-oklch-in-custom-widgets)
+- [Lib functions used](#lib-functions-used)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Anti-slop interaction](#anti-slop-interaction)
+- [Selection / comment / decision-mini contract](#selection--comment--decision-mini-contract)
+- [Visual verification](#visual-verification)
+
 The OKLCh / OKLab color space is the perceptually-uniform basis for
 the design-tokens skill: ramp generation, categorical hue rotation,
 delta-E near-match checking, personality-delta hue rotation. This

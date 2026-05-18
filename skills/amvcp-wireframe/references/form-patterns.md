@@ -1,5 +1,21 @@
 # Form patterns — inputs, fields, layouts, validation states
 
+## Table of Contents
+
+- [Single-column form (the default)](#single-column-form-the-default)
+- [Two-column form (wide screens)](#two-column-form-wide-screens)
+- [Field group — related inputs share a section](#field-group--related-inputs-share-a-section)
+- [Input variants — textarea, select, file, multi-line](#input-variants--textarea-select-file-multi-line)
+- [Inline help — `wf-label` + small text](#inline-help--wf-label--small-text)
+- [Error state — invalid input + error message](#error-state--invalid-input--error-message)
+- [Success state — saved confirmation](#success-state--saved-confirmation)
+- [Required-field marker](#required-field-marker)
+- [Optional-field marker (inverted convention)](#optional-field-marker-inverted-convention)
+- [Multi-step wizard (progress bar + per-step forms)](#multi-step-wizard-progress-bar--per-step-forms)
+- [Login + signup pair (the auth duo)](#login--signup-pair-the-auth-duo)
+- [Search form (single input + filter row)](#search-form-single-input--filter-row)
+- [Action bar — sticky save / cancel at the bottom](#action-bar--sticky-save--cancel-at-the-bottom)
+
 The full form authoring vocabulary for wireframes: single-column
 layouts, two-column layouts, field groups, error states, success
 states, the multi-step wizard. All driven by `wf-input` + `wf-label`

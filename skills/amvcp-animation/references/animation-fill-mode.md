@@ -1,5 +1,21 @@
 # `animation-fill-mode` — the `both` shortcut that prevents flashes
 
+## Table of Contents
+
+- [The four modes](#the-four-modes)
+- [Why `both` is required](#why-both-is-required)
+- [Why `backwards` alone is insufficient](#why-backwards-alone-is-insufficient)
+- [Why not `forwards` alone?](#why-not-forwards-alone)
+- [The skill uses `both` everywhere](#the-skill-uses-both-everywhere)
+- [When `both` doesn't apply](#when-both-doesnt-apply)
+- [Reduced-motion interaction](#reduced-motion-interaction)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [How to combine with other animation properties](#how-to-combine-with-other-animation-properties)
+- [The other fill-mode use cases](#the-other-fill-mode-use-cases)
+- [Diagnostics](#diagnostics)
+- [Visual verification](#visual-verification)
+- [The `data-va-reveal` rule uses transitions, not animations](#the-data-va-reveal-rule-uses-transitions-not-animations)
+
 The single most important detail in any delayed CSS animation.
 Without `animation-fill-mode: both`, items flash visible before
 their delayed animation starts. The "flashing items before

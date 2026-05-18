@@ -1,5 +1,24 @@
 # Spacing and vertical rhythm — paragraph margins, baseline grids
 
+## Table of Contents
+
+- [What it is](#what-it-is)
+- [The contract](#the-contract)
+- [Scaffold](#scaffold)
+- [Tokens consumed / extended](#tokens-consumed--extended)
+- [Why margin-bottom only (not margin-top) on paragraphs](#why-margin-bottom-only-not-margin-top-on-paragraphs)
+- [The `:first-child` no-top-margin rule](#the-first-child-no-top-margin-rule)
+- [The adjacent-sibling rule for heading-then-paragraph](#the-adjacent-sibling-rule-for-heading-then-paragraph)
+- [The eyebrow-then-heading tight pairing](#the-eyebrow-then-heading-tight-pairing)
+- [Baseline grid — `.vc-baseline-grid`](#baseline-grid--vc-baseline-grid)
+- [Why heading margins decrease with rank](#why-heading-margins-decrease-with-rank)
+- [Light + dark — orthogonal](#light--dark--orthogonal)
+- [When the agent overrides](#when-the-agent-overrides)
+- [Selection-contract conformance](#selection-contract-conformance)
+- [When NOT to follow the contract](#when-not-to-follow-the-contract)
+- [Verification](#verification)
+- [Cross-references](#cross-references)
+
 A document with consistent vertical rhythm reads as *composed* — the
 eye perceives the page as a unified system, not as a stack of
 random paragraphs. The typography skill ships the inter-paragraph

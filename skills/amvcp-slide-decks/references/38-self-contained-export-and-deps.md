@@ -1,5 +1,19 @@
 # 38 — Self-contained export + sibling-module dependencies
 
+## Table of Contents
+
+- [What this is](#what-this-is)
+- [Script load order](#script-load-order)
+- [Why no CDN](#why-no-cdn)
+- [Conditional script ordering — keeping the deck minimal](#conditional-script-ordering--keeping-the-deck-minimal)
+- [Lib functions called](#lib-functions-called)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [`<noscript>` fallback](#noscript-fallback)
+- [When to use this reference](#when-to-use-this-reference)
+- [Don'ts](#donts)
+- [Visual verification](#visual-verification)
+- [Source provenance](#source-provenance)
+
 A slide deck is ONE `.html` file. No CDN. No external CSS. No
 external fonts. No build step. The HTML embeds the JSON deck, the
 optional DESIGN.md preset, and ships beside the two scripts

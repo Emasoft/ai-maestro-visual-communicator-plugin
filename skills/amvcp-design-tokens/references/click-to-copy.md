@@ -1,5 +1,16 @@
 # Click-to-copy — the contact-sheet affordance
 
+## Table of Contents
+
+- [What it does](#what-it-does)
+- [Why fail-soft (instead of fail-fast)](#why-fail-soft-instead-of-fail-fast)
+- [Scaffold to emit](#scaffold-to-emit)
+- [Lib functions used](#lib-functions-used)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Anti-slop interaction](#anti-slop-interaction)
+- [Selection / comment / decision-mini contract](#selection--comment--decision-mini-contract)
+- [Visual verification](#visual-verification)
+
 Every swatch / specimen / bar / chip in the contact sheet is a
 `<button data-vc-copy="<value>">`. One delegated `click` listener on
 the sheet root copies the value via `navigator.clipboard.writeText`

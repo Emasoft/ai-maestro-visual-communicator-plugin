@@ -1,5 +1,22 @@
 # 07 — Layout: `statement` (the single bold claim, centred)
 
+## Table of Contents
+
+- [What this is](#what-this-is)
+- [Scaffold to emit](#scaffold-to-emit)
+- [Lib functions called](#lib-functions-called)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Selection / comment / decision-mini contract notes](#selection--comment--decision-mini-contract-notes)
+- [When to use this reference](#when-to-use-this-reference)
+- [Don'ts](#donts)
+- [Authoring rules](#authoring-rules)
+- [Visual verification](#visual-verification)
+- [Placement in the deck](#placement-in-the-deck)
+- [Comparison to other layouts](#comparison-to-other-layouts)
+- [Statement frequency in well-structured decks](#statement-frequency-in-well-structured-decks)
+- [Statement examples by argument type](#statement-examples-by-argument-type)
+- [Source provenance](#source-provenance)
+
 A statement is a pivot. Where the manifesto opens, the statement turns —
 "everything you've heard so far is about to be contradicted by the next
 sentence". One bold claim, centred on the stage, no eyebrow, no

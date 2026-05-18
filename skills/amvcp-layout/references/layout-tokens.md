@@ -1,5 +1,14 @@
 # Layout — derived-token contract (`--la-*`)
 
+## Table of Contents
+
+- [The `:root` alias block (Group 1 — spatial foundation)](#the-root-alias-block-group-1--spatial-foundation)
+- [Why this is an alias layer, not a second `--space-*` ladder](#why-this-is-an-alias-layer-not-a-second---space--ladder)
+- [The `ch`-based reading measure (documented exception)](#the-ch-based-reading-measure-documented-exception)
+- [Recommended DESIGN.md `spacing.scale` (8px grid)](#recommended-designmd-spacingscale-8px-grid)
+- [The sticky-header z-index — `--vc-z-sticky`](#the-sticky-header-z-index----vc-z-sticky)
+- [Other documented non-token values](#other-documented-non-token-values)
+
 The layout technique NEVER sets a `--vc-*` value. The DESIGN.md engine
 (`amvcp-designmd.js`) is the single source of truth for those — it emits
 `--vc-*` onto `:root` and re-emits them on hot-swap and theme toggle.

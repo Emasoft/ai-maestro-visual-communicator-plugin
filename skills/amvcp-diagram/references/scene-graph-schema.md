@@ -1,5 +1,20 @@
 # Scene-graph schema
 
+## Table of Contents
+
+- [The authoring surface](#the-authoring-surface)
+- [SceneGraph](#scenegraph)
+- [Node](#node)
+- [Edge](#edge)
+- [Group](#group)
+- [Validation (all fail-fast)](#validation-all-fail-fast)
+- [Node-type library](#node-type-library)
+- [Role -> token fill map](#role---token-fill-map)
+- [The three presets](#the-three-presets)
+- [Auto-placement (presets other than `free`)](#auto-placement-presets-other-than-free)
+- [Edge routing](#edge-routing)
+- [Selection](#selection)
+
 The JSON contract for `amvcp-diagram.js`. The agent emits this document
 inside a `<script type="application/json">` nested in a
 `<div class="ve-scene-graph">`; the runtime validates it (fail-fast)

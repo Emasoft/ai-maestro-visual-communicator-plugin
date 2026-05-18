@@ -1,5 +1,18 @@
 # Timeline with typed dots — incident, milestone, history
 
+## Table of Contents
+
+- [When to use a timeline](#when-to-use-a-timeline)
+- [Scaffold (incident timeline)](#scaffold-incident-timeline)
+- [CSS contract](#css-contract)
+- [Dot-color semantics](#dot-color-semantics)
+- [Time-column conventions](#time-column-conventions)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Composition](#composition)
+- [Selection / comment notes](#selection--comment-notes)
+- [Decision-mini hook](#decision-mini-hook)
+- [Anti-patterns](#anti-patterns)
+
 The vertical-line + typed-colored-dots pattern that postmortems,
 implementation plans, and project histories use to render a sequence
 of events. Each event is a `<li>` with a `<time>` + a colored dot +

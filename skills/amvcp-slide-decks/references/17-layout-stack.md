@@ -1,5 +1,20 @@
 # 17 — Layout: `stack` (heading + layered cards)
 
+## Table of Contents
+
+- [What this is](#what-this-is)
+- [Scaffold to emit](#scaffold-to-emit)
+- [Lib functions called](#lib-functions-called)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Selection / comment / decision-mini contract notes](#selection--comment--decision-mini-contract-notes)
+- [When to use this reference](#when-to-use-this-reference)
+- [Don'ts](#donts)
+- [Authoring rules — card title and description](#authoring-rules--card-title-and-description)
+- [Visual verification](#visual-verification)
+- [Stack vs metrics vs bullets — picking the right list layout](#stack-vs-metrics-vs-bullets--picking-the-right-list-layout)
+- [Card-title vs card-description authoring](#card-title-vs-card-description-authoring)
+- [Source provenance](#source-provenance)
+
 The stack slide is for a list-of-things with strong title hierarchy —
 each item gets its own card with its own title + body, but the cards
 flow vertically in a single column rather than horizontally across a

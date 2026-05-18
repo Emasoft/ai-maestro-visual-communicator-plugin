@@ -1,5 +1,14 @@
 # Sub-technique D — Font loading + pairing presets
 
+## Table of Contents
+
+- [D.1 DT-09 banned-font reconciliation](#d1-dt-09-banned-font-reconciliation)
+- [D.2 The five pairings](#d2-the-five-pairings)
+- [D.3 Loading discipline](#d3-loading-discipline)
+- [D.4 The offline / System pairing](#d4-the-offline--system-pairing)
+- [D.5 CJK — cross-reference to `design-tokens` DT-25](#d5-cjk--cross-reference-to-design-tokens-dt-25)
+- [Tokens consumed](#tokens-consumed)
+
 Five curated, named font pairings, the correct Google Fonts loading
 discipline, and an offline / system-font fallback set so a scaffolded
 page works with no network. Implements TY-03.

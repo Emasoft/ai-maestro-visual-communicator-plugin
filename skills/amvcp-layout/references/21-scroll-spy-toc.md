@@ -1,5 +1,18 @@
 # 21 — Scroll-spy TOC (`amvcp-layout.js` initTOC — the core scroll-spy)
 
+## Table of Contents
+
+- [What this is](#what-this-is)
+- [Scaffold to emit](#scaffold-to-emit)
+- [Why the `-40% 0px -40% 0px` root margin](#why-the--40-0px--40-0px-root-margin)
+- [The tiebreaker logic](#the-tiebreaker-logic)
+- [Lib functions called](#lib-functions-called)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Selection / comment / decision-mini contract notes](#selection--comment--decision-mini-contract-notes)
+- [When to use the TOC](#when-to-use-the-toc)
+- [JS-off graceful degradation](#js-off-graceful-degradation)
+- [Visual verification](#visual-verification)
+
 The auto-built, auto-highlighted table-of-contents primitive. The
 `.la-toc` element on the page hosts an empty `<ol>`; `initTOC()` in
 `amvcp-layout.js` walks the document's `h2` / `h3` headings, builds

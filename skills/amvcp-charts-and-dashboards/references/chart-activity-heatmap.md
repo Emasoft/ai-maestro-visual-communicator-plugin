@@ -1,5 +1,23 @@
 # `chart:activity-heatmap@1` — GitHub-style activity heatmap
 
+## Table of Contents
+
+- [When to choose activity-heatmap](#when-to-choose-activity-heatmap)
+- [Authoring shape](#authoring-shape)
+- [Options](#options)
+- [Examples](#examples)
+- [What the runtime emits](#what-the-runtime-emits)
+- [Lib functions called](#lib-functions-called)
+- [DESIGN.md tokens](#designmd-tokens)
+- [Selection / atoms](#selection--atoms)
+- [Anti-patterns](#anti-patterns)
+- [When `activity-heatmap` vs `heatmap` semantically](#when-activity-heatmap-vs-heatmap-semantically)
+- [Conventional row count](#conventional-row-count)
+- [Cell shape](#cell-shape)
+- [The decay-canvas variant (out of scope)](#the-decay-canvas-variant-out-of-scope)
+- [Color schema variations](#color-schema-variations)
+- [Visual verification](#visual-verification)
+
 A heatmap convention: rows = weekday, columns = week-of-year, cells colored
 by activity intensity. The "calendar contribution graph" pattern popularised
 by GitHub. Same renderer as `heatmap`, but the conventional dimensions

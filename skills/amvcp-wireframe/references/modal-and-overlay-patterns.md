@@ -1,5 +1,18 @@
 # Modal & overlay patterns — dialogs, drawers, popovers, toasts
 
+## Table of Contents
+
+- [Pattern 1 — Confirmation modal](#pattern-1--confirmation-modal)
+- [Pattern 2 — Form modal (short data entry)](#pattern-2--form-modal-short-data-entry)
+- [Pattern 3 — Side drawer (full-height panel)](#pattern-3--side-drawer-full-height-panel)
+- [Pattern 4 — Popover / dropdown menu](#pattern-4--popover--dropdown-menu)
+- [Pattern 5 — Toast notification](#pattern-5--toast-notification)
+- [Pattern 6 — Tooltip (small hover hint)](#pattern-6--tooltip-small-hover-hint)
+- [Modal stacking — what wins when two open at once](#modal-stacking--what-wins-when-two-open-at-once)
+- [The dismiss patterns — ×, Esc, click-outside](#the-dismiss-patterns---esc-click-outside)
+- [Destructive confirm — typed-name pattern](#destructive-confirm--typed-name-pattern)
+- [Toast queue — multiple stacked toasts](#toast-queue--multiple-stacked-toasts)
+
 The full vocabulary for "stuff that floats over the rest". Six
 patterns: confirmation modal, form modal, side drawer, popover/
 dropdown menu, toast notification, tooltip. All composable; all

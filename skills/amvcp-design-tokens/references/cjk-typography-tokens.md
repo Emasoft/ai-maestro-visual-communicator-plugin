@@ -1,5 +1,16 @@
 # CJK design tokens (DT-25)
 
+## Table of Contents
+
+- [What it is](#what-it-is)
+- [When to pick](#when-to-pick)
+- [Scaffold to emit](#scaffold-to-emit)
+- [Lib functions used](#lib-functions-used)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Anti-slop interaction](#anti-slop-interaction)
+- [Selection / comment / decision-mini contract](#selection--comment--decision-mini-contract)
+- [Visual verification](#visual-verification)
+
 A Claude-orange-accent palette + a CJK-aware font stack + loosened
 typography defaults (`line-height: 1.8`, `letter-spacing: 0.05em`)
 for Chinese / Japanese / Korean body text. The "amvcp speaks CJK"

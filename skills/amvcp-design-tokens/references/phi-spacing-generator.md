@@ -1,5 +1,16 @@
 # Phi spacing-scale generator (DT-01)
 
+## Table of Contents
+
+- [What it does](#what-it-does)
+- [When to choose](#when-to-choose)
+- [Scaffold to emit](#scaffold-to-emit)
+- [Lib functions used](#lib-functions-used)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Anti-slop interaction](#anti-slop-interaction)
+- [Selection / comment / decision-mini contract](#selection--comment--decision-mini-contract)
+- [Visual verification](#visual-verification)
+
 A 9-step ascending pixel scale where every successive step multiplies the
 previous one by the golden ratio φ ≈ 1.618. The resulting rhythm is
 visually harmonious without arbitrary values; every gap, padding, and

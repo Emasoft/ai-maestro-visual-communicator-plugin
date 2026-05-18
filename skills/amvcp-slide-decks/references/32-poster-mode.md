@@ -1,5 +1,22 @@
 # 32 — Poster mode (`kind: "poster"` — single-slide static export)
 
+## Table of Contents
+
+- [What this is](#what-this-is)
+- [Scaffold to emit](#scaffold-to-emit)
+- [Lib functions called](#lib-functions-called)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Selection / comment / decision-mini contract notes](#selection--comment--decision-mini-contract-notes)
+- [When to use this reference](#when-to-use-this-reference)
+- [When to pick poster vs single-slide deck](#when-to-pick-poster-vs-single-slide-deck)
+- [Don'ts](#donts)
+- [Poster aspect ratio](#poster-aspect-ratio)
+- [Print / export workflow](#print--export-workflow)
+- [Visual verification](#visual-verification)
+- [Best layouts for posters](#best-layouts-for-posters)
+- [Use cases for posters in practice](#use-cases-for-posters-in-practice)
+- [Source provenance](#source-provenance)
+
 The slide module's secondary kind. A poster is a single-slide
 "export" rendered onto a fixed-pixel stage WITHOUT nav chrome, ready
 to PNG-export or print as a one-page document. Used for shareable

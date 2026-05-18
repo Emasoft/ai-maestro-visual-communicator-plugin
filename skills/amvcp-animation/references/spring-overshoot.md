@@ -1,5 +1,20 @@
 # Spring overshoot — `--vc-easing-spring` for playful arrivals
 
+## Table of Contents
+
+- [The curve](#the-curve)
+- [When to use](#when-to-use)
+- [Markup example — a spring scale-in](#markup-example--a-spring-scale-in)
+- [The skill DOES NOT ship a default `.va-spring-in` class](#the-skill-does-not-ship-a-default-va-spring-in-class)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Reduced-motion substitute](#reduced-motion-substitute)
+- [Confetti pop — the mined variant (`07-prototype-animation.html`)](#confetti-pop--the-mined-variant-07-prototype-animationhtml)
+- [Settle keyframe — the 3-keyframe spring](#settle-keyframe--the-3-keyframe-spring)
+- [Selection + comment + decision integration](#selection--comment--decision-integration)
+- [Diagnostics](#diagnostics)
+- [Visual verification](#visual-verification)
+- [How the curve is constructed](#how-the-curve-is-constructed)
+
 The one curve in the skill that goes ABOVE 1 — playful, attention-
 grabbing, intentionally not standard. Reserve for the one element
 per page that deserves to overshoot its target.

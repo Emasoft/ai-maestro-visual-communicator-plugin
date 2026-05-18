@@ -1,5 +1,20 @@
 # 04 — `ch`-based reading measure (the one non-spacing length)
 
+## Table of Contents
+
+- [What this is](#what-this-is)
+- [The ch / px conversion](#the-ch--px-conversion)
+- [Scaffold to emit](#scaffold-to-emit)
+- [Lib functions called](#lib-functions-called)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Selection / comment / decision-mini contract notes](#selection--comment--decision-mini-contract-notes)
+- [Why ch, not px](#why-ch-not-px)
+- [Why two measures (`68ch` + `92ch`)?](#why-two-measures-68ch--92ch)
+- [When to override](#when-to-override)
+- [Visual verification](#visual-verification)
+- [Font-specific `ch` width](#font-specific-ch-width)
+- [CJK languages and `ch`](#cjk-languages-and-ch)
+
 `--la-measure` and `--la-measure-wide` are the layout technique's only
 intentionally non-token lengths used for content sizing. Both are
 declared in `ch` units (`68ch` and `92ch`), NOT in `--vc-space-N`

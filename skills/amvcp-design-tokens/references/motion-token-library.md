@@ -1,5 +1,18 @@
 # Motion / easing token library (DT-05 + DM-24)
 
+## Table of Contents
+
+- [What it does](#what-it-does)
+- [When to pick which duration](#when-to-pick-which-duration)
+- [When to pick which easing](#when-to-pick-which-easing)
+- [Scaffold to emit](#scaffold-to-emit)
+- [Lib functions used](#lib-functions-used)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Anti-slop interaction](#anti-slop-interaction)
+- [Reduced-motion contract](#reduced-motion-contract)
+- [Selection / comment / decision-mini contract](#selection--comment--decision-mini-contract)
+- [Visual verification](#visual-verification)
+
 Eight durations × eight easings = the canonical animation vocabulary.
 Single source of truth for transition / animation timing across every
 component a project ships. Replaces ad-hoc `0.3s ease` / `cubic-bezier(…)`

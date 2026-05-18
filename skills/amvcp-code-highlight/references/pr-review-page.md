@@ -1,5 +1,20 @@
 # Sub-technique E3 — PR review page composition
 
+## Table of Contents
+
+- [E3.1 The shape](#e31-the-shape)
+- [E3.2 The header](#e32-the-header)
+- [E3.3 The risk-map chips](#e33-the-risk-map-chips)
+- [E3.4 The per-file diff card](#e34-the-per-file-diff-card)
+- [E3.5 The comment bubble — `::before` rotated-square trick](#e35-the-comment-bubble--before-rotated-square-trick)
+- [E3.6 Anchoring comments to line numbers](#e36-anchoring-comments-to-line-numbers)
+- [E3.7 Collapsed safe files](#e37-collapsed-safe-files)
+- [E3.8 The next-steps checklist](#e38-the-next-steps-checklist)
+- [E3.9 Cross-references](#e39-cross-references)
+- [E3.10 Light + dark verification](#e310-light--dark-verification)
+- [E3.11 Tokens consumed](#e311-tokens-consumed)
+- [E3.12 Mined source attribution](#e312-mined-source-attribution)
+
 The reviewer-facing pull-request review page. Mined verbatim from
 `03-code-review-pr.html` (html-effectiveness catalog #3). The
 canonical reviewer-side composition.

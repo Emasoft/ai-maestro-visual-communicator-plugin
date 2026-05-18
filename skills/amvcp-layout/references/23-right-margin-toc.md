@@ -1,5 +1,19 @@
 # 23 — Right-margin TOC (the `right: max(24px, calc(50vw - …))` trick)
 
+## Table of Contents
+
+- [What this is](#what-this-is)
+- [Scaffold to emit](#scaffold-to-emit)
+- [Why a fixed `200px` TOC width](#why-a-fixed-200px-toc-width)
+- [Why `max(24px, calc(…))` not just `calc(…)`](#why-max24px-calc-not-just-calc)
+- [Lib functions called](#lib-functions-called)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Selection / comment / decision-mini contract notes](#selection--comment--decision-mini-contract-notes)
+- [When to use right-margin instead of sticky-sidebar](#when-to-use-right-margin-instead-of-sticky-sidebar)
+- [Why this is a niche pattern](#why-this-is-a-niche-pattern)
+- [Visual verification](#visual-verification)
+- [The math behind the calc](#the-math-behind-the-calc)
+
 A variant of the sticky-sidebar TOC (ref 22) for pages WITHOUT a
 multi-column grid: the TOC is positioned absolutely in the right
 margin of the document, anchored to the right edge of the article

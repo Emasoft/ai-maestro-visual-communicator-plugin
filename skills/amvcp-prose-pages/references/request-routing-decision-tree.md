@@ -1,5 +1,14 @@
 # Request-routing decision tree — "which technique should I use?"
 
+## Table of Contents
+
+- [Top-level decision tree](#top-level-decision-tree)
+- [Layering: shape × element skills](#layering-shape--element-skills)
+- [Decision matrix — when shapes overlap](#decision-matrix--when-shapes-overlap)
+- [The "5-layer infographic composition" mental model (OT-07)](#the-5-layer-infographic-composition-mental-model-ot-07)
+- [Composition](#composition)
+- [Anti-patterns](#anti-patterns)
+
 The decision tree the agent walks when the user asks for a visual
 deliverable but does not specify which one of the 13 element skills
 to use. Lifted from master catalog OT-01 (7-method × 4-level HTML

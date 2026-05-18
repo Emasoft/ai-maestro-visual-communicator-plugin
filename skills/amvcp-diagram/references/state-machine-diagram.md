@@ -1,5 +1,21 @@
 # State machine diagram
 
+## Table of Contents
+
+- [When to choose this pattern](#when-to-choose-this-pattern)
+- [Scaffold](#scaffold)
+- [State node convention](#state-node-convention)
+- [Transition labels (the event vocabulary)](#transition-labels-the-event-vocabulary)
+- [Self-loops (the same state on different events)](#self-loops-the-same-state-on-different-events)
+- [Multiple outgoing edges from one state](#multiple-outgoing-edges-from-one-state)
+- [Guards / conditions](#guards--conditions)
+- [Actions on entry / exit](#actions-on-entry--exit)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Selection atoms](#selection-atoms)
+- [Variations](#variations)
+- [Anti-patterns](#anti-patterns)
+- [Visual verification](#visual-verification)
+
 A diagram of states and transitions — the canonical shape for
 visualizing a finite state machine (login flow with idle / logging
 in / logged in / locked out, an order's lifecycle, a connection's

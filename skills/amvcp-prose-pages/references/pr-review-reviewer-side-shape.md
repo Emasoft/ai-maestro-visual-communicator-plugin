@@ -1,5 +1,19 @@
 # PR-review (reviewer-side) shape — risk chips + diff cards + comment bubbles
 
+## Table of Contents
+
+- [When to choose this shape](#when-to-choose-this-shape)
+- [Section order (fixed)](#section-order-fixed)
+- [Markdown scaffold](#markdown-scaffold)
+- [The risk-chip navigator](#the-risk-chip-navigator)
+- [The 3-column diff subgrid + comment bubble](#the-3-column-diff-subgrid--comment-bubble)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Composition with other skills](#composition-with-other-skills)
+- [Lib functions called](#lib-functions-called)
+- [Selection / comment notes](#selection--comment-notes)
+- [Decision-mini hook](#decision-mini-hook)
+- [Anti-patterns](#anti-patterns)
+
 The reviewer-facing document for a pull-request review: not the PR
 description, not the patch itself, but the *reviewer's writeup* of what
 they think about it. Canonical reference: `html-effectiveness` demo

@@ -1,5 +1,13 @@
 # ASCII / Unicode diagrams
 
+## Table of Contents
+
+- [When to use ASCII](#when-to-use-ascii)
+- [The authoring surface](#the-authoring-surface)
+- [The four styles](#the-four-styles)
+- [Alignment validator (build-time, NEVER shipped)](#alignment-validator-build-time-never-shipped)
+- [Page-expansion (the hard rule)](#page-expansion-the-hard-rule)
+
 A no-JS, copy-pasteable diagram fallback. Renders as a themed `<pre>`
 that page-expands — wide ASCII art extends the document, never an inner
 `overflow:scroll` box.

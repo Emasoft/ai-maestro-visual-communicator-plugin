@@ -1,5 +1,17 @@
 # 30 — DESIGN.md token mapping (every `--vc-*` the deck reads)
 
+## Table of Contents
+
+- [What this is](#what-this-is)
+- [Scaffold — minimum DESIGN.md for a slide deck](#scaffold--minimum-designmd-for-a-slide-deck)
+- [Lib functions called](#lib-functions-called)
+- [DESIGN.md tokens NOT used by the slide layer](#designmd-tokens-not-used-by-the-slide-layer)
+- [Selection / comment / decision-mini contract notes](#selection--comment--decision-mini-contract-notes)
+- [When to use this reference](#when-to-use-this-reference)
+- [Don'ts](#donts)
+- [Visual verification](#visual-verification)
+- [Source provenance](#source-provenance)
+
 The slide module is fully DESIGN.md-themed — every colour, every
 font, every size, every duration in the injected CSS is a
 `var(--vc-*, fallback)` reference. The engine

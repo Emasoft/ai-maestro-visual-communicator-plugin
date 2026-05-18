@@ -1,5 +1,19 @@
 # 29 — Hero with radial glows + ghost text (`.la-hero` 4-layer)
 
+## Table of Contents
+
+- [What this is](#what-this-is)
+- [Scaffold to emit](#scaffold-to-emit)
+- [The critical `overflow: clip` choice](#the-critical-overflow-clip-choice)
+- [Why `color-mix(token, transparent)` not hardcoded `rgba()`](#why-color-mixtoken-transparent-not-hardcoded-rgba)
+- [Why two glows at 28%/32% and 82%/78%](#why-two-glows-at-2832-and-8278)
+- [Why the ghost word at `font-size: clamp(120px, 28vw, 420px)`](#why-the-ghost-word-at-font-size-clamp120px-28vw-420px)
+- [Lib functions called](#lib-functions-called)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Selection / comment / decision-mini contract notes](#selection--comment--decision-mini-contract-notes)
+- [When to use the hero](#when-to-use-the-hero)
+- [Visual verification](#visual-verification)
+
 A decorative page-top band with up to 4 visual layers: the engine's
 canvas-token background, two radial-glow accents painted by
 `::before`, a giant low-opacity ghost word painted by `::after`,

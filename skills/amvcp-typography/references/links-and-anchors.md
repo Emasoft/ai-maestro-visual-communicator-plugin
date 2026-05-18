@@ -1,5 +1,27 @@
 # Link typography — anchors, underlines, focus, and the AAA contract
 
+## Table of Contents
+
+- [What it is](#what-it-is)
+- [The contract](#the-contract)
+- [Scaffold](#scaffold)
+- [Tokens consumed / extended](#tokens-consumed--extended)
+- [Why `text-underline-offset: 0.2em`](#why-text-underline-offset-02em)
+- [Why `text-decoration-skip-ink: auto`](#why-text-decoration-skip-ink-auto)
+- [Why `text-decoration-thickness: 1px` (not the default)](#why-text-decoration-thickness-1px-not-the-default)
+- [Focus — `:focus-visible` not `:focus`](#focus--focus-visible-not-focus)
+- [The visited-state colour — desaturated, not separate](#the-visited-state-colour--desaturated-not-separate)
+- [The `.vc-link-quiet` modifier — underline only on hover](#the-vc-link-quiet-modifier--underline-only-on-hover)
+- [The `.vc-link-button` modifier — button-shaped link](#the-vc-link-button-modifier--button-shaped-link)
+- [The `.vc-link-external` modifier — small "↗" icon](#the-vc-link-external-modifier--small--icon)
+- [Light + dark — fully covered](#light--dark--fully-covered)
+- [Accessibility — the AAA contrast pair](#accessibility--the-aaa-contrast-pair)
+- [Selection-contract conformance](#selection-contract-conformance)
+- [When NOT to underline](#when-not-to-underline)
+- [When the engine has no link token](#when-the-engine-has-no-link-token)
+- [Verification](#verification)
+- [Cross-references](#cross-references)
+
 Links (`<a href>`) are the most-clicked typographic shape in any
 document — they MUST be visually distinct, accessible, and themed
 correctly. The typography skill ships an element-level default for

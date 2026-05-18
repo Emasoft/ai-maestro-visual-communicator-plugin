@@ -1,5 +1,21 @@
 # Scroll-driven timelines — `animation-timeline: scroll()` / `view()`
 
+## Table of Contents
+
+- [The two timelines](#the-two-timelines)
+- [The catalog of native scroll patterns](#the-catalog-of-native-scroll-patterns)
+- [Browser support (as of writing)](#browser-support-as-of-writing)
+- [Authoring the pinned pattern](#authoring-the-pinned-pattern)
+- [Authoring the stacking pattern](#authoring-the-stacking-pattern)
+- [Authoring the scrub pattern](#authoring-the-scrub-pattern)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Reduced-motion substitute](#reduced-motion-substitute)
+- [Selection + comment + decision integration](#selection--comment--decision-integration)
+- [Why ship JS fallbacks for everything](#why-ship-js-fallbacks-for-everything)
+- [Diagnostics](#diagnostics)
+- [Visual verification](#visual-verification)
+- [When to opt into the native API](#when-to-opt-into-the-native-api)
+
 Modern browsers ship a native scroll-driven animation API:
 `animation-timeline: scroll()` (animation tied to a scroll
 container's scroll position) and `animation-timeline: view()`

@@ -1,5 +1,20 @@
 # Dependency chain highlight
 
+## Table of Contents
+
+- [When the chain-highlight interaction shines](#when-the-chain-highlight-interaction-shines)
+- [The chain walk](#the-chain-walk)
+- [Visual treatment](#visual-treatment)
+- [Edge treatment](#edge-treatment)
+- [Clearing the chain](#clearing-the-chain)
+- [Accessibility](#accessibility)
+- [Performance](#performance)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Selection atoms](#selection-atoms)
+- [Variations](#variations)
+- [Anti-patterns](#anti-patterns)
+- [Visual verification](#visual-verification)
+
 The interaction at the heart of `phase-graph-preset.md`: click a
 node, the engine walks the transitive closure of dependencies in
 both directions (ancestors + descendants), and highlights the

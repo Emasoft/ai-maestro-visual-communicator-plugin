@@ -1,5 +1,20 @@
 # Sub-technique E5 — Postmortem code panel (incident-report root-cause section)
 
+## Table of Contents
+
+- [E5.1 The placement](#e51-the-placement)
+- [E5.2 The markup](#e52-the-markup)
+- [E5.3 Why slate-bg here specifically](#e53-why-slate-bg-here-specifically)
+- [E5.4 The pairing with the Impact mini-table](#e54-the-pairing-with-the-impact-mini-table)
+- [E5.5 Selection / commenting on root-cause lines](#e55-selection--commenting-on-root-cause-lines)
+- [E5.6 The "preserved evidence" principle](#e56-the-preserved-evidence-principle)
+- [E5.7 The "fix is part of the evidence" principle](#e57-the-fix-is-part-of-the-evidence-principle)
+- [E5.8 The narrow-viewport rendering](#e58-the-narrow-viewport-rendering)
+- [E5.9 Don't combine with split-view diffs](#e59-dont-combine-with-split-view-diffs)
+- [E5.10 The light + dark verification](#e510-the-light--dark-verification)
+- [E5.11 Tokens consumed](#e511-tokens-consumed)
+- [E5.12 Mined source attribution](#e512-mined-source-attribution)
+
 The slate-bg diff panel inside an incident postmortem's "Root cause"
 section. Mined from `12-incident-report.html` (html-effectiveness
 catalog #12).

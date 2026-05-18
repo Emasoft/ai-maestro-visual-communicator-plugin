@@ -1,5 +1,16 @@
 # Heritage warm palette — the runtime default
 
+## Table of Contents
+
+- [What it is](#what-it-is)
+- [When to pick](#when-to-pick)
+- [Scaffold to emit](#scaffold-to-emit)
+- [Lib functions used](#lib-functions-used)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Anti-slop interaction](#anti-slop-interaction)
+- [Selection / comment / decision-mini contract](#selection--comment--decision-mini-contract)
+- [Visual verification](#visual-verification)
+
 The runtime's default preset. Cream / parchment / honey palette + a
 slight serif heading + system body. Print-heritage editorial feel
 without being heavy. The "no preset chosen" preset — every artifact

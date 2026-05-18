@@ -1,5 +1,20 @@
 # 14 — Layout: `timeline` (heading + horizontal sequence)
 
+## Table of Contents
+
+- [What this is](#what-this-is)
+- [Scaffold to emit](#scaffold-to-emit)
+- [Lib functions called](#lib-functions-called)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Selection / comment / decision-mini contract notes](#selection--comment--decision-mini-contract-notes)
+- [When to use this reference](#when-to-use-this-reference)
+- [Don'ts](#donts)
+- [Authoring rules — event count vs zoom level](#authoring-rules--event-count-vs-zoom-level)
+- [Visual verification](#visual-verification)
+- [Timeline vs Gantt vs roadmap](#timeline-vs-gantt-vs-roadmap)
+- [Examples by timeline scope](#examples-by-timeline-scope)
+- [Source provenance](#source-provenance)
+
 The timeline slide shows a sequence of dated events horizontally. Q1 →
 Q4, day 1 → 14, milestone A → E. Each event is a card with a label, a
 date, and a one-line description; the cards connect via arrows or a

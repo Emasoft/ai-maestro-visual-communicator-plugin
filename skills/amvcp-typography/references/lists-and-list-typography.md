@@ -1,5 +1,24 @@
 # List typography — bullets, numerals, definitions, and nested rhythm
 
+## Table of Contents
+
+- [What it is](#what-it-is)
+- [The contract](#the-contract)
+- [Scaffold](#scaffold)
+- [Tokens consumed / extended](#tokens-consumed--extended)
+- [The density modifiers — tight / loose](#the-density-modifiers--tight--loose)
+- [The dashed-bullet modifier](#the-dashed-bullet-modifier)
+- [The square-bullet modifier (status / report convention)](#the-square-bullet-modifier-status--report-convention)
+- [The check / cross / olive-dot variants](#the-check--cross--olive-dot-variants)
+- [The numeral variants — `type="a"`, `type="A"`, `type="i"`, `type="I"`, `type="1"`](#the-numeral-variants--typea-typea-typei-typei-type1)
+- [Definition list — `<dl>` typography](#definition-list--dl-typography)
+- [Light + dark — fully covered](#light--dark--fully-covered)
+- [Nested list rhythm](#nested-list-rhythm)
+- [Selection-contract conformance](#selection-contract-conformance)
+- [When NOT to use a list](#when-not-to-use-a-list)
+- [Verification](#verification)
+- [Cross-references](#cross-references)
+
 Three list elements: `<ul>` (unordered), `<ol>` (ordered), `<dl>`
 (definition). Each has a distinct typographic contract — bullet
 spacing, numeral style, definition-term emphasis. The typography skill

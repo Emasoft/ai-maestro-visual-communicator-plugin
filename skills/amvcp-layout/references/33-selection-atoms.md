@@ -1,5 +1,19 @@
 # 33 — Selection atoms (the `markLayoutAtoms()` SHAPES list + decision-mini contract)
 
+## Table of Contents
+
+- [What this is](#what-this-is)
+- [Why layout containers are EXCLUDED](#why-layout-containers-are-excluded)
+- [The decision-mini pill contract](#the-decision-mini-pill-contract)
+- [Scaffold to emit](#scaffold-to-emit)
+- [Lib functions called](#lib-functions-called)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [The fake-heading exclusion](#the-fake-heading-exclusion)
+- [When to add a new shape](#when-to-add-a-new-shape)
+- [Idempotency](#idempotency)
+- [Selection / comment / decision-mini contract summary](#selection--comment--decision-mini-contract-summary)
+- [Visual verification](#visual-verification)
+
 The layout technique stamps `data-ve-id` and `data-ve-type` on
 every layout-shaped element so the universal selection model in
 `amvcp-runtime.js` treats it as a commentable atom. The function

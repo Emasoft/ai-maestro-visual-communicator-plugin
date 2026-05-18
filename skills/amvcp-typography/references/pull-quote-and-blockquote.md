@@ -1,5 +1,23 @@
 # Pull quotes and blockquotes — the larger-than-body emphasised text block
 
+## Table of Contents
+
+- [What it is](#what-it-is)
+- [The contract](#the-contract)
+- [Scaffold](#scaffold)
+- [Tokens consumed / extended](#tokens-consumed--extended)
+- [Why blockquote uses the body face but pull quote uses the heading face](#why-blockquote-uses-the-body-face-but-pull-quote-uses-the-heading-face)
+- [The cite attribution — `<cite>` styling](#the-cite-attribution--cite-styling)
+- [Border colour — `var(--vc-color-accent, currentColor)`](#border-colour--var--vc-color-accent-currentcolor)
+- [The pull quote alignment — center vs left](#the-pull-quote-alignment--center-vs-left)
+- [Light + dark — fully covered](#light--dark--fully-covered)
+- [The pull quote with opening / closing quotation glyphs](#the-pull-quote-with-opening--closing-quotation-glyphs)
+- [When to use blockquote vs pull quote](#when-to-use-blockquote-vs-pull-quote)
+- [When NOT to use a pull quote](#when-not-to-use-a-pull-quote)
+- [Selection-contract conformance](#selection-contract-conformance)
+- [Verification](#verification)
+- [Cross-references](#cross-references)
+
 A *blockquote* (`<blockquote>`) is body content that is *quoted from
 elsewhere*. A *pull quote* is body content from *this* document
 pulled out and emphasised for visual scanning. Both render larger

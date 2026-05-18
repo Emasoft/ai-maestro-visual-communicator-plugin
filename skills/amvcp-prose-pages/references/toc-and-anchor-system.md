@@ -1,5 +1,19 @@
 # Table of Contents (`vc-toc`) + scroll-spy + anchor system
 
+## Table of Contents
+
+- [When to add a TOC](#when-to-add-a-toc)
+- [Scaffold (default — single-column doc)](#scaffold-default--single-column-doc)
+- [CSS (already injected by the runtime)](#css-already-injected-by-the-runtime)
+- [The scroll-spy (already implemented in `init`)](#the-scroll-spy-already-implemented-in-init)
+- [Variants by layout](#variants-by-layout)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [The heading-anchor offset](#the-heading-anchor-offset)
+- [Composition with other skills](#composition-with-other-skills)
+- [Lib functions called](#lib-functions-called)
+- [Selection / comment notes](#selection--comment-notes)
+- [Anti-patterns](#anti-patterns)
+
 The structural primitive that makes long documents navigable: a
 `<nav class="vc-toc">` with an ordered list of links, plus a
 JavaScript scroll-spy that adds `.vc-toc-active` to the link of the

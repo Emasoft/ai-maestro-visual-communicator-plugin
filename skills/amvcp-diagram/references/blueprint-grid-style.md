@@ -1,5 +1,21 @@
 # Blueprint grid style
 
+## Table of Contents
+
+- [When to choose the blueprint style](#when-to-choose-the-blueprint-style)
+- [Authoring](#authoring)
+- [The blueprint palette](#the-blueprint-palette)
+- [The grid background](#the-grid-background)
+- [Stroke widths](#stroke-widths)
+- [Typography](#typography)
+- [Edge labels](#edge-labels)
+- [Theme pairing rules](#theme-pairing-rules)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Selection atoms](#selection-atoms)
+- [Variations](#variations)
+- [Anti-patterns](#anti-patterns)
+- [Visual verification](#visual-verification)
+
 The `blueprint` theme preset — cyan-on-navy engineering-drawing
 aesthetic. Pair with `background: "grid"` for the full effect.
 The diagram reads as a piece of engineering documentation, not a

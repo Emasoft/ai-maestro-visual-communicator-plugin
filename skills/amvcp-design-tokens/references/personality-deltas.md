@@ -1,5 +1,17 @@
 # Personality deltas — playful / corporate / minimal / warmer / cooler
 
+## Table of Contents
+
+- [What it does](#what-it-does)
+- [When to use which delta](#when-to-use-which-delta)
+- [Composing deltas](#composing-deltas)
+- [Scaffold to emit](#scaffold-to-emit)
+- [Lib functions used](#lib-functions-used)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Anti-slop interaction](#anti-slop-interaction)
+- [Selection / comment / decision-mini contract](#selection--comment--decision-mini-contract)
+- [Visual verification](#visual-verification)
+
 `amvcpTokens.applyPersonalityDelta(designmdText, deltaName)` parses a
 DESIGN.md, mutates its token tree by a NAMED delta, and re-serializes.
 The deltas are small, composable, brand-coherent — a 5-axis tuner over

@@ -1,5 +1,26 @@
 # 32 — No nested scrollbars (the universal layout rule)
 
+## Table of Contents
+
+- [What this is](#what-this-is)
+- [What is forbidden](#what-is-forbidden)
+- [What is allowed (text wrapping carve-out)](#what-is-allowed-text-wrapping-carve-out)
+- [What is allowed (CLIP, not SCROLL)](#what-is-allowed-clip-not-scroll)
+- [CSS pattern to enforce in any runtime stylesheet](#css-pattern-to-enforce-in-any-runtime-stylesheet)
+- [The escape hatch: `.la-article__wide` / `.la-article__bleed`](#the-escape-hatch-la-articlewide--la-articlebleed)
+- [Lib functions called](#lib-functions-called)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Selection / comment / decision-mini contract notes](#selection--comment--decision-mini-contract-notes)
+- [How to fix a violation](#how-to-fix-a-violation)
+- [When a true app-surface scrollbar is allowed](#when-a-true-app-surface-scrollbar-is-allowed)
+- [Visual verification](#visual-verification)
+- [The `overflow: hidden` vs `overflow: clip` distinction](#the-overflow-hidden-vs-overflow-clip-distinction)
+- [Browser support for `overflow: clip`](#browser-support-for-overflow-clip)
+- [The legitimate scroll containers](#the-legitimate-scroll-containers)
+- [Why "wide content widens the document" works](#why-wide-content-widens-the-document-works)
+- [The print perspective](#the-print-perspective)
+- [When the rule cannot be satisfied](#when-the-rule-cannot-be-satisfied)
+
 The single most important rule in the layout technique: NO INNER
 SCROLLBARS. Wide content (tables, code blocks, diagrams) MUST
 extend the document's width — the reader gets ONE outer scrollbar

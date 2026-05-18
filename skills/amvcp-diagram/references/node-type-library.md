@@ -1,5 +1,22 @@
 # Node-type library
 
+## Table of Contents
+
+- [The seven node types](#the-seven-node-types)
+- [`start` and `end`](#start-and-end)
+- [`process`](#process)
+- [`decision`](#decision)
+- [`subprocess`](#subprocess)
+- [`external`](#external)
+- [`card`](#card)
+- [Authoring shape correctness](#authoring-shape-correctness)
+- [Size customization](#size-customization)
+- [Role tinting per type](#role-tinting-per-type)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Selection atoms](#selection-atoms)
+- [Anti-patterns](#anti-patterns)
+- [Visual verification](#visual-verification)
+
 Reference for the seven shapes the diagram engine ships. Each shape
 is a deliberate choice — picking the right `type` for a node is the
 single highest-leverage authoring decision because shape carries

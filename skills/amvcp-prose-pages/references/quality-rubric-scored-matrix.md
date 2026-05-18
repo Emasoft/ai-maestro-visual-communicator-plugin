@@ -1,5 +1,19 @@
 # Quality rubric (`vc-rubric`) — scored matrix block
 
+## Table of Contents
+
+- [When to use](#when-to-use)
+- [Scaffold (canonical /20 rubric)](#scaffold-canonical-20-rubric)
+- [CSS (already injected by the runtime)](#css-already-injected-by-the-runtime)
+- [Custom rubric scales](#custom-rubric-scales)
+- [Runtime auto-sum (optional)](#runtime-auto-sum-optional)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Composition with other skills](#composition-with-other-skills)
+- [Lib functions called](#lib-functions-called)
+- [Selection / comment notes](#selection--comment-notes)
+- [Decision-mini hook](#decision-mini-hook)
+- [Anti-patterns](#anti-patterns)
+
 A generic N-row × scored-cells table for evaluating something against a
 set of criteria. Each row is a dimension; each cell is a score in a
 fixed range (typically 0-4); the footer auto-sums to a total. Lifted

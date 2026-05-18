@@ -1,5 +1,21 @@
 # CSS injection & bootstrap — `injectAnimationCSS(doc)` + manual-init opt-out
 
+## Table of Contents
+
+- [The injection function](#the-injection-function)
+- [Why ship CSS inside the JS module](#why-ship-css-inside-the-js-module)
+- [The injected stylesheet contents](#the-injected-stylesheet-contents)
+- [Auto-init vs manual init](#auto-init-vs-manual-init)
+- [The test fixture also uses manual init](#the-test-fixture-also-uses-manual-init)
+- [The dual export (browser + Node)](#the-dual-export-browser--node)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Reduced-motion interaction](#reduced-motion-interaction)
+- [Why `data-va="animation"` not `data-amvcp="animation"`](#why-data-vaanimation-not-data-amvcpanimation)
+- [Test hooks — `window.__veAnimation`](#test-hooks--windowveanimation)
+- [Diagnostics](#diagnostics)
+- [Visual verification](#visual-verification)
+- [When to opt into manual init](#when-to-opt-into-manual-init)
+
 The animation skill's CSS is shipped INSIDE the JS module, injected
 into `document.head` on boot via `injectAnimationCSS(doc)`. The
 runtime can opt out of auto-init by setting `window.__vaManualInit

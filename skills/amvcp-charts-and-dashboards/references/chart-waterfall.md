@@ -1,5 +1,22 @@
 # `chart:waterfall@1` — waterfall (cumulative bridge)
 
+## Table of Contents
+
+- [When to choose waterfall](#when-to-choose-waterfall)
+- [Authoring shape](#authoring-shape)
+- [Options](#options)
+- [Examples](#examples)
+- [What the runtime emits](#what-the-runtime-emits)
+- [Lib functions called](#lib-functions-called)
+- [DESIGN.md tokens](#designmd-tokens)
+- [Selection / atoms](#selection--atoms)
+- [Anti-patterns](#anti-patterns)
+- [Waterfall vs alternatives](#waterfall-vs-alternatives)
+- [Intermediate subtotals](#intermediate-subtotals)
+- [Connector dash pattern](#connector-dash-pattern)
+- [Negative starting value](#negative-starting-value)
+- [Visual verification](#visual-verification)
+
 A McKinsey-staple chart that decomposes a START → END change into named
 contributions. Each step is a vertical bar; rising contributions paint
 success, falling contributions paint danger, totals paint accent. Dashed

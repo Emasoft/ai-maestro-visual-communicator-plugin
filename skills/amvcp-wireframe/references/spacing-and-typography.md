@@ -1,5 +1,19 @@
 # Spacing & typography in wireframes
 
+## Table of Contents
+
+- [The `--vc-space-*` scale](#the---vc-space--scale)
+- [The `--vc-text-*` scale](#the---vc-text--scale)
+- [Spacing application rules](#spacing-application-rules)
+- [Vertical rhythm — the consistent gap pattern](#vertical-rhythm--the-consistent-gap-pattern)
+- [Heading hierarchy](#heading-hierarchy)
+- [Text utility classes (wf-text + custom)](#text-utility-classes-wf-text--custom)
+- [Font family contract — serif / sans / mono](#font-family-contract--serif--sans--mono)
+- [Line length (measure) — 65-75 characters](#line-length-measure--65-75-characters)
+- [Letter spacing for tracked uppercase](#letter-spacing-for-tracked-uppercase)
+- [Numerals — tabular vs proportional](#numerals--tabular-vs-proportional)
+- [Common spacing + type bugs](#common-spacing--type-bugs)
+
 Two of the four foundational systems (alongside color + layout)
 that make a wireframe READ correctly. The wireframe kit consumes
 the DESIGN.md engine's spacing + type scales; this file documents

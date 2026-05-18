@@ -1,5 +1,16 @@
 # Factory Dark palette — industrial dark-first preset (DT-07)
 
+## Table of Contents
+
+- [What it is](#what-it-is)
+- [When to pick](#when-to-pick)
+- [Scaffold to emit](#scaffold-to-emit)
+- [Lib functions used](#lib-functions-used)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Anti-slop interaction](#anti-slop-interaction)
+- [Selection / comment / decision-mini contract](#selection--comment--decision-mini-contract)
+- [Visual verification](#visual-verification)
+
 A dark-first preset with an orange accent. The anti-slop counterpart
 to "generic tech dark with purple". Industrial machinery credibility
 — Caterpillar yellow / Komatsu orange territory. Tight radii (2/4/6/8)

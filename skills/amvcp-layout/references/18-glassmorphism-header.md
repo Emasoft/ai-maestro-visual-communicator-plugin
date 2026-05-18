@@ -1,5 +1,22 @@
 # 18 — Glassmorphism sticky header (the `.la-header--glass` modifier)
 
+## Table of Contents
+
+- [What this is](#what-this-is)
+- [Scaffold to emit](#scaffold-to-emit)
+- [Why glass is opt-in (not default)](#why-glass-is-opt-in-not-default)
+- [Lib functions called](#lib-functions-called)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [The browser compatibility caveat](#the-browser-compatibility-caveat)
+- [Selection / comment / decision-mini contract notes](#selection--comment--decision-mini-contract-notes)
+- [When to use glass](#when-to-use-glass)
+- [Visual verification](#visual-verification)
+- [The blur radius spectrum](#the-blur-radius-spectrum)
+- [The opacity in the color-mix](#the-opacity-in-the-color-mix)
+- [Combining glass with the hero (ref 29)](#combining-glass-with-the-hero-ref-29)
+- [Performance notes](#performance-notes)
+- [Accessibility considerations](#accessibility-considerations)
+
 An optional flavour of the sticky header (ref 17) that uses
 `backdrop-filter: blur()` over a semi-transparent surface tint to
 produce the "frosted glass" effect now common in modern macOS / iOS

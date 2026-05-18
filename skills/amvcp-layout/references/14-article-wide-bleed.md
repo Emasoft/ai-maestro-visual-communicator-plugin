@@ -1,5 +1,17 @@
 # 14 — `.la-article__wide` and `.la-article__bleed` — wide-content escape hatches
 
+## Table of Contents
+
+- [What this is](#what-this-is)
+- [Scaffold to emit](#scaffold-to-emit)
+- [Lib functions called](#lib-functions-called)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Selection / comment / decision-mini contract notes](#selection--comment--decision-mini-contract-notes)
+- [When to use `__wide` vs `__bleed`](#when-to-use-wide-vs-bleed)
+- [Why a 92ch cap on `__wide`](#why-a-92ch-cap-on-wide)
+- [Why `margin-inline: auto` on `__wide`](#why-margin-inline-auto-on-wide)
+- [Visual verification](#visual-verification)
+
 The two modifier classes on `.la-article` children that let wide
 content (tables, code blocks, figures, hero images) extend past the
 measured reading column without breaking the layout. Both are

@@ -1,5 +1,21 @@
 # Sub-technique H1 — Author vs runtime authoring boundary
 
+## Table of Contents
+
+- [H1.1 The principle](#h11-the-principle)
+- [H1.2 The author's input contract](#h12-the-authors-input-contract)
+- [H1.3 The runtime's output contract](#h13-the-runtimes-output-contract)
+- [H1.4 The contract enforces fail-soft](#h14-the-contract-enforces-fail-soft)
+- [H1.5 The integrity-probe-friendly authoring rules](#h15-the-integrity-probe-friendly-authoring-rules)
+- [H1.6 The runtime's responsibility surface](#h16-the-runtimes-responsibility-surface)
+- [H1.7 What the author CAN customise](#h17-what-the-author-can-customise)
+- [H1.8 What the author CANNOT customise](#h18-what-the-author-cannot-customise)
+- [H1.9 The "post-render injection" escape hatch](#h19-the-post-render-injection-escape-hatch)
+- [H1.10 The architectural reason for this discipline](#h110-the-architectural-reason-for-this-discipline)
+- [H1.11 The author's authoring checklist](#h111-the-authors-authoring-checklist)
+- [H1.12 No tokens consumed (this is a discipline reference)](#h112-no-tokens-consumed-this-is-a-discipline-reference)
+- [H1.13 Cross-references](#h113-cross-references)
+
 What the AUTHOR writes vs what the RUNTIME injects. The single most
 important contract in this skill — get it wrong, and the integrity
 probe, gutter, copy button, or selection model breaks silently.

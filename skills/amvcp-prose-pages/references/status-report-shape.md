@@ -1,5 +1,19 @@
 # Status-report shape — weekly engineering / project status
 
+## Table of Contents
+
+- [When to choose this shape](#when-to-choose-this-shape)
+- [Section order (fixed)](#section-order-fixed)
+- [Markdown scaffold](#markdown-scaffold)
+- [The `.vc-metric--warn` modifier](#the-vc-metric--warn-modifier)
+- [The `vc-auto-pill` provenance pill](#the-vc-auto-pill-provenance-pill)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Composition with other skills](#composition-with-other-skills)
+- [Lib functions called](#lib-functions-called)
+- [Selection / comment notes](#selection--comment-notes)
+- [Decision-mini hook](#decision-mini-hook)
+- [Anti-patterns](#anti-patterns)
+
 The recurring "what shipped, what is in flight, what is blocked" report
 that every team produces at every cadence. The canonical reference is
 the `html-effectiveness` demo #11, "status-report" — auto-generated

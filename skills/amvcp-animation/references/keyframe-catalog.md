@@ -1,5 +1,23 @@
 # Keyframe catalog — every `@keyframes` shipped by the skill
 
+## Table of Contents
+
+- [The ten keyframes](#the-ten-keyframes)
+- [`vaFadeSlideUp` — the entrance default](#vafadeslideup--the-entrance-default)
+- [`vaFadeOnly` — the universal reduce substitute](#vafadeonly--the-universal-reduce-substitute)
+- [`vaFloatY` — the vertical bob](#vafloaty--the-vertical-bob)
+- [`vaBreathe` — the scale pulse](#vabreathe--the-scale-pulse)
+- [`vaOrbit` — the circular orbit](#vaorbit--the-circular-orbit)
+- [`vaRotate` — the in-place spin](#varotate--the-in-place-spin)
+- [`vaPulseRing` — the expanding ring](#vapulsering--the-expanding-ring)
+- [`vaShimmer` — the sliding gradient](#vashimmer--the-sliding-gradient)
+- [Composition rules](#composition-rules)
+- [DESIGN.md token consumption per keyframe](#designmd-token-consumption-per-keyframe)
+- [Reduced-motion handling](#reduced-motion-handling)
+- [Selection + comment + decision integration](#selection--comment--decision-integration)
+- [Diagnostics](#diagnostics)
+- [Visual verification](#visual-verification)
+
 The animation skill defines TEN named `@keyframes` rules. Each
 is reused across multiple animations OR is the canonical name
 for one specific effect. This file is the index — what each

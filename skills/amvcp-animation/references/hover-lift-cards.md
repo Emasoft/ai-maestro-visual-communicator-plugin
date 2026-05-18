@@ -1,5 +1,18 @@
 # Hover lift on cards — `transform: translateY(-3px)` + shadow
 
+## Table of Contents
+
+- [The recipe](#the-recipe)
+- [The skill does NOT ship `.ve-card`](#the-skill-does-not-ship-ve-card)
+- [Combining with `.va-tilt`](#combining-with-va-tilt)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Reduced-motion substitute](#reduced-motion-substitute)
+- [Touch devices](#touch-devices)
+- [Selection + comment + decision integration](#selection--comment--decision-integration)
+- [Diagnostics](#diagnostics)
+- [Visual verification](#visual-verification)
+- [Pattern note: the brief outline pulse on click-to-anchor](#pattern-note-the-brief-outline-pulse-on-click-to-anchor)
+
 A canonical hover affordance that combines a 3px upward
 translation with a softer shadow and border-color change. The
 skill does NOT ship a `.va-card` class (that belongs to the

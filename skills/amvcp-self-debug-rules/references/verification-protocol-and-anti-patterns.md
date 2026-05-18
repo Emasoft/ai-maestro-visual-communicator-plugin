@@ -1,5 +1,10 @@
 # Verification protocol + anti-patterns
 
+## Table of Contents
+
+- [Verification protocol — run before claiming "fixed"](#verification-protocol--run-before-claiming-fixed)
+- [Anti-patterns (NEVER do)](#anti-patterns-never-do)
+
 The 11-step verification sequence to run before claiming any change is "fixed", plus the running list of anti-patterns (NEVER do) distilled from prior debug sessions. Updated as new violations are caught.
 
 ## Verification protocol — run before claiming "fixed"

@@ -1,5 +1,17 @@
 # 13 — Article 3-column grid (the gutter / measure / gutter trick)
 
+## Table of Contents
+
+- [What this is](#what-this-is)
+- [Scaffold to emit](#scaffold-to-emit)
+- [The HARD rule: NOT on `<main>` / `.ve-main`](#the-hard-rule-not-on-main--ve-main)
+- [Lib functions called](#lib-functions-called)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Selection / comment / decision-mini contract notes](#selection--comment--decision-mini-contract-notes)
+- [When to use this layout](#when-to-use-this-layout)
+- [Why three columns instead of `max-width` + escape hatch overrides](#why-three-columns-instead-of-max-width--escape-hatch-overrides)
+- [Visual verification](#visual-verification)
+
 The reading container `.la-article` is a 3-column CSS Grid:
 `1fr / min(measure, 100% - 2*gutter) / 1fr`. Children land in the
 middle column by default, producing a single measured reading

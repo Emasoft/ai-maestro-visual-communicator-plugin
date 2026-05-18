@@ -1,5 +1,17 @@
 # Sub-technique A — Fluid type-scale engine
 
+## Table of Contents
+
+- [A.1 What it does](#a1-what-it-does)
+- [A.2 The clamp() machinery](#a2-the-clamp-machinery)
+- [A.3 The HTML it scaffolds](#a3-the-html-it-scaffolds)
+- [A.4 The four modular-scale systems](#a4-the-four-modular-scale-systems)
+- [A.5 Pre-computed scales for base 16px](#a5-pre-computed-scales-for-base-16px)
+- [A.6 Display-tier optical correction (TY-08)](#a6-display-tier-optical-correction-ty-08)
+- [A.7 The type-specimen page (sub-technique E)](#a7-the-type-specimen-page-sub-technique-e)
+- [Tokens consumed / extended](#tokens-consumed--extended)
+- [No nested scrollbars](#no-nested-scrollbars)
+
 The fluid `clamp()` type scale + the four named modular-scale systems +
 the display-tier optical correction. Merges TY-01 (canonical `clamp()`
 scale), TY-02 (4 modular-scale systems) and TY-08 (extreme negative

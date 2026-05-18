@@ -1,5 +1,21 @@
 # Phase-graph preset
 
+## Table of Contents
+
+- [When to choose this preset](#when-to-choose-this-preset)
+- [Scaffold](#scaffold)
+- [Card geometry](#card-geometry)
+- [Auto-placement (longest-path layering)](#auto-placement-longest-path-layering)
+- [Chain-highlight interaction](#chain-highlight-interaction)
+- [Edge styling under chain mode](#edge-styling-under-chain-mode)
+- [Cycles](#cycles)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Selection atoms](#selection-atoms)
+- [Theming patterns](#theming-patterns)
+- [Anti-patterns](#anti-patterns)
+- [Composing with other patterns](#composing-with-other-patterns)
+- [Visual verification](#visual-verification)
+
 The `phase-graph` preset draws a **plan with dependencies** — large
 `card` nodes carrying a heading + a single line of detail
 (duration, owner, status), connected by bezier dependency edges.

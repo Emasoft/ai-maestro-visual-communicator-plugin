@@ -1,5 +1,19 @@
 # Change-log document — versioned-document edits in reverse chrono
 
+## Table of Contents
+
+- [When to add a change log](#when-to-add-a-change-log)
+- [Scaffold (canonical)](#scaffold-canonical)
+- [CSS contract](#css-contract)
+- [Reverse chronological order](#reverse-chronological-order)
+- [Entry-content discipline](#entry-content-discipline)
+- [Initial-draft entry](#initial-draft-entry)
+- [When to roll a new version](#when-to-roll-a-new-version)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Composition](#composition)
+- [Selection / comment notes](#selection--comment-notes)
+- [Anti-patterns](#anti-patterns)
+
 The append-only `<dl>` of date / version / author / summary entries
 that documents how a long-lived document has evolved. Distinct from a
 software CHANGELOG (which logs releases of code) — this is the

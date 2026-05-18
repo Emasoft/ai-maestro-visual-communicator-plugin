@@ -1,5 +1,19 @@
 # 12 — Layout: `data-story` (chart + headline + annotation)
 
+## Table of Contents
+
+- [What this is](#what-this-is)
+- [Scaffold to emit](#scaffold-to-emit)
+- [Lib functions called](#lib-functions-called)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Selection / comment / decision-mini contract notes](#selection--comment--decision-mini-contract-notes)
+- [When to use this reference](#when-to-use-this-reference)
+- [Don'ts](#donts)
+- [Authoring rules — chart type by job](#authoring-rules--chart-type-by-job)
+- [Visual verification](#visual-verification)
+- [Anti-patterns for data-story slides](#anti-patterns-for-data-story-slides)
+- [Source provenance](#source-provenance)
+
 The data-story is the slide that lets a chart drive the argument. ONE
 chart, one annotation pointing at the chart's important moment, one
 headline that names the finding the chart shows. The annotation is

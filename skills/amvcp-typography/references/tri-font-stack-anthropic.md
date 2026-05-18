@@ -1,5 +1,21 @@
 # Tri-font stack — the "serif headings + sans body + mono labels" preset
 
+## Table of Contents
+
+- [What it is](#what-it-is)
+- [Why three faces (not two)](#why-three-faces-not-two)
+- [DESIGN.md frontmatter](#designmd-frontmatter)
+- [The three Google-Fonts-served tri-font presets](#the-three-google-fonts-served-tri-font-presets)
+- [Banned-font check](#banned-font-check)
+- [Tokens consumed / extended](#tokens-consumed--extended)
+- [The `<code>` chip — the integration receipt](#the-code-chip--the-integration-receipt)
+- [Selection-contract conformance](#selection-contract-conformance)
+- [When to choose a tri-font preset](#when-to-choose-a-tri-font-preset)
+- [When to choose System over a Google-served preset](#when-to-choose-system-over-a-google-served-preset)
+- [Light + dark — orthogonal](#light--dark--orthogonal)
+- [Verification](#verification)
+- [Cross-references](#cross-references)
+
 The single most-replicated font-pairing pattern in the AMVCP
 catalog: a **three-face stack** locked across an entire deliverable —
 serif for hero / title / section H; sans-serif for body; mono for

@@ -1,5 +1,19 @@
 # Validation and error handling
 
+## Table of Contents
+
+- [What validation catches](#what-validation-catches)
+- [The red error box](#the-red-error-box)
+- [Why fail-fast (not fallback)](#why-fail-fast-not-fallback)
+- [Common errors and fixes](#common-errors-and-fixes)
+- [Per-engine error reporting](#per-engine-error-reporting)
+- [Console logging](#console-logging)
+- [DESIGN.md tokens consumed (by the error box)](#designmd-tokens-consumed-by-the-error-box)
+- [Selection atoms](#selection-atoms)
+- [Test pattern](#test-pattern)
+- [Anti-patterns](#anti-patterns)
+- [Visual verification](#visual-verification)
+
 The engine's fail-fast model: a malformed scene graph throws with
 a precise message, and the catch path paints a RED error box into
 the figure. Never a blank SVG, never a silent fallback. This is

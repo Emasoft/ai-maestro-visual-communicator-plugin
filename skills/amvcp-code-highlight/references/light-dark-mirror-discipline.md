@@ -1,5 +1,21 @@
 # Sub-technique H4 — Light + dark mirror discipline (the verification ritual)
 
+## Table of Contents
+
+- [H4.1 The rule](#h41-the-rule)
+- [H4.2 The standard CSS shape](#h42-the-standard-css-shape)
+- [H4.3 The hue-family preservation rule](#h43-the-hue-family-preservation-rule)
+- [H4.4 The contrast requirement](#h44-the-contrast-requirement)
+- [H4.5 The diff-tint mirror](#h45-the-diff-tint-mirror)
+- [H4.6 The verification ritual](#h46-the-verification-ritual)
+- [H4.7 The screenshot-test integration](#h47-the-screenshot-test-integration)
+- [H4.8 The fail-soft fallback](#h48-the-fail-soft-fallback)
+- [H4.9 The "single-theme defect" examples](#h49-the-single-theme-defect-examples)
+- [H4.10 Adding new tokens](#h410-adding-new-tokens)
+- [H4.11 The DESIGN.md override flow](#h411-the-designmd-override-flow)
+- [H4.12 Tokens consumed](#h412-tokens-consumed)
+- [H4.13 Cross-references](#h413-cross-references)
+
 Every `--ve-code-*` MUST have both a `:root` (dark theme default) AND
 a `:root[data-ve-theme="light"]` mirror declaration. A single-theme
 visual is a CORRECTNESS DEFECT, not a polish concern. This reference

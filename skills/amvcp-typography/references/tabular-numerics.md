@@ -1,5 +1,22 @@
 # Tabular numerics — proportional vs tabular digit widths
 
+## Table of Contents
+
+- [What it is](#what-it-is)
+- [The contract](#the-contract)
+- [Scaffold](#scaffold)
+- [Tokens consumed / extended](#tokens-consumed--extended)
+- [When the data also wants right-alignment](#when-the-data-also-wants-right-alignment)
+- [Mono numerics — sibling pattern](#mono-numerics--sibling-pattern)
+- [Old-style figures vs lining figures](#old-style-figures-vs-lining-figures)
+- [The runtime's existing tabular numerics use](#the-runtimes-existing-tabular-numerics-use)
+- [Slashed zero — when to opt in](#slashed-zero--when-to-opt-in)
+- [Fail-soft on fonts without these features](#fail-soft-on-fonts-without-these-features)
+- [Light + dark — orthogonal to theming](#light--dark--orthogonal-to-theming)
+- [Selection-contract conformance](#selection-contract-conformance)
+- [When NOT to use it](#when-not-to-use-it)
+- [Cross-references](#cross-references)
+
 `font-variant-numeric: tabular-nums` is the single most important
 typography setting for **any column of numbers** in the runtime —
 counters, stat cards, data tables, leaderboards, ticker rows. It is a

@@ -1,5 +1,19 @@
 # Process-flow preset
 
+## Table of Contents
+
+- [When to choose this preset](#when-to-choose-this-preset)
+- [Scaffold](#scaffold)
+- [Auto-placement rules](#auto-placement-rules)
+- [Step badges](#step-badges)
+- [Decision branching](#decision-branching)
+- [Role tinting](#role-tinting)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Selection, comment, decision-mini](#selection-comment-decision-mini)
+- [Animation patterns that compose with process-flow](#animation-patterns-that-compose-with-process-flow)
+- [Anti-patterns](#anti-patterns)
+- [Visual verification](#visual-verification)
+
 The `process-flow` preset of `amvcp-diagram.js` renders a **horizontal
 step lane** — the canonical way to draw a pipeline that has a clear
 start, an ordered chain of named steps, optional decisions, and an

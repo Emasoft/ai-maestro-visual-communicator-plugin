@@ -1,5 +1,18 @@
 # Tailwind-shaped utility classes (DT-20 + DM-15)
 
+## Table of Contents
+
+- [What it does](#what-it-does)
+- [When to use](#when-to-use)
+- [When NOT to use](#when-not-to-use)
+- [Scaffold to emit](#scaffold-to-emit)
+- [Lib functions used](#lib-functions-used)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Anti-slop interaction](#anti-slop-interaction)
+- [Tailwind v4 `@theme` export shape (DM-15)](#tailwind-v4-theme-export-shape-dm-15)
+- [Selection / comment / decision-mini contract](#selection--comment--decision-mini-contract)
+- [Visual verification](#visual-verification)
+
 One `.vc-*` utility class per `--vc-*` token, namespaced `vc-` so they
 never collide with a host page's real Tailwind. LLM-emitted HTML can
 use the familiar shapes (`.vc-bg-canvas`, `.vc-text-muted`,

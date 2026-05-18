@@ -1,5 +1,19 @@
 # Timeline diagram
 
+## Table of Contents
+
+- [When to choose this pattern](#when-to-choose-this-pattern)
+- [Scaffold (horizontal milestone timeline)](#scaffold-horizontal-milestone-timeline)
+- [Vertical timeline variant](#vertical-timeline-variant)
+- [Even spacing vs proportional spacing](#even-spacing-vs-proportional-spacing)
+- [Event card styling](#event-card-styling)
+- [Connector style](#connector-style)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Selection atoms](#selection-atoms)
+- [Variations](#variations)
+- [Anti-patterns](#anti-patterns)
+- [Visual verification](#visual-verification)
+
 A horizontal (or vertical) line with events placed at specific
 positions in time. The canonical shape for product roadmaps,
 incident timelines, release histories, project schedules. Each

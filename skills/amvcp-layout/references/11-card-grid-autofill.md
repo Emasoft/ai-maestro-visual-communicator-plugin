@@ -1,5 +1,20 @@
 # 11 — Auto-fill card grid (a responsive thumbnail / gallery grid)
 
+## Table of Contents
+
+- [What this is](#what-this-is)
+- [Scaffold to emit](#scaffold-to-emit)
+- [Lib functions called](#lib-functions-called)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Selection / comment / decision-mini contract notes](#selection--comment--decision-mini-contract-notes)
+- [When to use this grid vs the KPI row (ref 10)](#when-to-use-this-grid-vs-the-kpi-row-ref-10)
+- [When to use this grid vs the subgrid card row (ref 07)](#when-to-use-this-grid-vs-the-subgrid-card-row-ref-07)
+- [Why min(316px, 100%) in the floor](#why-min316px-100-in-the-floor)
+- [Visual verification](#visual-verification)
+- [The "min card width" tradeoff](#the-min-card-width-tradeoff)
+- [Combining with subgrid](#combining-with-subgrid)
+- [Pagination considerations](#pagination-considerations)
+
 A grid of equal-shape cards (thumbnails, product tiles, gallery
 items) that auto-fills the viewport with as many columns as fit at
 a chosen minimum card width. Differs from the KPI row (ref 10)

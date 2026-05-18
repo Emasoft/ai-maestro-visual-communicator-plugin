@@ -1,5 +1,20 @@
 # 29 — The assertion-evidence headline rule (SL-09 in depth)
 
+## Table of Contents
+
+- [What this is](#what-this-is)
+- [The rule (literal)](#the-rule-literal)
+- [VERB_SIGNALS list (literal)](#verbsignals-list-literal)
+- [Pass examples](#pass-examples)
+- [Fail examples](#fail-examples)
+- [Known false positives (the rule WARNS but the headline is fine)](#known-false-positives-the-rule-warns-but-the-headline-is-fine)
+- [Known false negatives (the rule PASSES but the headline is weak)](#known-false-negatives-the-rule-passes-but-the-headline-is-weak)
+- [When to use this reference](#when-to-use-this-reference)
+- [Workflow — fix every warning](#workflow--fix-every-warning)
+- [Don'ts](#donts)
+- [Visual verification](#visual-verification)
+- [Source provenance](#source-provenance)
+
 The single highest-leverage anti-slop rule in the slide-decks skill.
 Every `heading` block runs through `validateHeadline()`; failures
 collect `data-vsd-headline-warn` + log a console warning. The rule is

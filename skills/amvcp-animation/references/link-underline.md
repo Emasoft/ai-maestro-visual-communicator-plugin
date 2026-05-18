@@ -1,5 +1,20 @@
 # Animated link underline — `.va-link`
 
+## Table of Contents
+
+- [The contract](#the-contract)
+- [The CSS](#the-css)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [When to use](#when-to-use)
+- [Why a left-grow (and not center-out)?](#why-a-left-grow-and-not-center-out)
+- [Underline thickness](#underline-thickness)
+- [Reduced-motion substitute](#reduced-motion-substitute)
+- [Why standard easing, not decel?](#why-standard-easing-not-decel)
+- [Selection + comment + decision integration](#selection--comment--decision-integration)
+- [Mined pattern note: hover lift on cards (`index.html`, `06`)](#mined-pattern-note-hover-lift-on-cards-indexhtml-06)
+- [Diagnostics](#diagnostics)
+- [Visual verification](#visual-verification)
+
 A CSS-only underline that grows from the left on hover or focus.
 Built from a `currentColor` gradient so it inherits the text's
 color — themed by construction, no `--vc-color-*` reference

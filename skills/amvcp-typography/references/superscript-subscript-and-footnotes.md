@@ -1,5 +1,24 @@
 # Superscript, subscript, footnotes — the secondary-text register
 
+## Table of Contents
+
+- [What it is](#what-it-is)
+- [The contract](#the-contract)
+- [Scaffold](#scaffold)
+- [Tokens consumed / extended](#tokens-consumed--extended)
+- [Why `line-height: 0` on `<sup>` / `<sub>`](#why-line-height-0-on-sup--sub)
+- [Why `vertical-align: baseline` + `position: relative` + `top: -0.5em`](#why-vertical-align-baseline--position-relative--top--05em)
+- [Why `font-size: 0.75em`](#why-font-size-075em)
+- [The footnote back-reference](#the-footnote-back-reference)
+- [Click-target sizing](#click-target-sizing)
+- [Ordinal markers — `<sup>` vs `font-variant-numeric: ordinal`](#ordinal-markers--sup-vs-font-variant-numeric-ordinal)
+- [Mathematical notation — `<sup>` vs MathML / KaTeX](#mathematical-notation--sup-vs-mathml--katex)
+- [Light + dark — fully covered](#light--dark--fully-covered)
+- [Selection-contract conformance](#selection-contract-conformance)
+- [When NOT to use footnotes](#when-not-to-use-footnotes)
+- [Verification](#verification)
+- [Cross-references](#cross-references)
+
 The `<sup>` and `<sub>` elements render text above/below the
 baseline at smaller size — used for footnote markers, chemical
 formulas, mathematical exponents, ordinal markers, trademark/

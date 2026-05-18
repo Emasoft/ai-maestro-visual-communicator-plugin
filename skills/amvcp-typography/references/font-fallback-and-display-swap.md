@@ -1,5 +1,24 @@
 # Font fallback chains, FOUT vs FOIT, and `font-display: swap`
 
+## Table of Contents
+
+- [What it is](#what-it-is)
+- [The contract](#the-contract)
+- [The Google Fonts URL](#the-google-fonts-url)
+- [The preconnect optimisation](#the-preconnect-optimisation)
+- [Self-hosting via `@font-face`](#self-hosting-via-font-face)
+- [Metric-matched fallbacks — `size-adjust`](#metric-matched-fallbacks--size-adjust)
+- [Variable-font weight ranges](#variable-font-weight-ranges)
+- [Subsetting — `&text=`](#subsetting--text)
+- [Tokens consumed / extended](#tokens-consumed--extended)
+- [Light + dark — orthogonal](#light--dark--orthogonal)
+- [When the network fails](#when-the-network-fails)
+- [`font-display: optional` for opt-out](#font-display-optional-for-opt-out)
+- [Selection-contract conformance](#selection-contract-conformance)
+- [Verification](#verification)
+- [When NOT to use a web font](#when-not-to-use-a-web-font)
+- [Cross-references](#cross-references)
+
 When a page uses a web font (loaded from Google Fonts, a CDN, or a
 self-hosted file), the browser must decide what to render during the
 period the font is downloading. The wrong choice is FOIT (Flash of

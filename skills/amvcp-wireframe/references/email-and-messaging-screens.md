@@ -1,5 +1,18 @@
 # Email & messaging screens — inbox, conversation, composer, threads
 
+## Table of Contents
+
+- [Pattern 1 — Inbox (3-pane: sidebar / list / preview)](#pattern-1--inbox-3-pane-sidebar--list--preview)
+- [Pattern 2 — Conversation view (header + message stack + composer)](#pattern-2--conversation-view-header--message-stack--composer)
+- [Pattern 3 — Compose modal (overlay form)](#pattern-3--compose-modal-overlay-form)
+- [Pattern 4 — Thread tree (nested replies)](#pattern-4--thread-tree-nested-replies)
+- [Pattern 5 — Contact picker (search + result list + chip selection)](#pattern-5--contact-picker-search--result-list--chip-selection)
+- [Pattern 6 — Unread digest (grouped by sender)](#pattern-6--unread-digest-grouped-by-sender)
+- [The chat bubble — author + text + time + reply link](#the-chat-bubble--author--text--time--reply-link)
+- [The mail row — sender + subject + preview + time](#the-mail-row--sender--subject--preview--time)
+- [Unread vs read — the bold-weight signal](#unread-vs-read--the-bold-weight-signal)
+- [The reply composer — inline at the bottom](#the-reply-composer--inline-at-the-bottom)
+
 Mail and chat are the most-built application shapes. Six canonical
 screens: inbox list, conversation view, compose modal, thread tree,
 contact picker, unread digest.

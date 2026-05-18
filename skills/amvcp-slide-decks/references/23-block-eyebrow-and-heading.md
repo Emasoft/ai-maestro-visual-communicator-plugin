@@ -1,5 +1,19 @@
 # 23 — Blocks: `eyebrow` + `heading` (the title family)
 
+## Table of Contents
+
+- [What this is](#what-this-is)
+- [Level selection](#level-selection)
+- [Scaffold to emit](#scaffold-to-emit)
+- [Lib functions called](#lib-functions-called)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Selection / comment / decision-mini contract notes](#selection--comment--decision-mini-contract-notes)
+- [When to use this reference](#when-to-use-this-reference)
+- [Don'ts](#donts)
+- [Assertion-evidence rule](#assertion-evidence-rule)
+- [Visual verification](#visual-verification)
+- [Source provenance](#source-provenance)
+
 The `eyebrow` + `heading` pair is the title family that appears on
 almost every slide. The eyebrow is the small context line above the
 heading — a date, a section name, a category tag. The heading is the

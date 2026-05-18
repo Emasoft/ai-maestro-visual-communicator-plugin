@@ -1,5 +1,23 @@
 # `chart:gauge@1` — gauge
 
+## Table of Contents
+
+- [When to choose gauge](#when-to-choose-gauge)
+- [Authoring shape](#authoring-shape)
+- [Options](#options)
+- [Semantics: more-is-worse vs more-is-better](#semantics-more-is-worse-vs-more-is-better)
+- [Examples](#examples)
+- [What the runtime emits](#what-the-runtime-emits)
+- [Lib functions called](#lib-functions-called)
+- [DESIGN.md tokens](#designmd-tokens)
+- [Selection / atoms](#selection--atoms)
+- [Anti-patterns](#anti-patterns)
+- [Gauge vs alternatives](#gauge-vs-alternatives)
+- [Gauge geometry](#gauge-geometry)
+- [Three threshold zones explained](#three-threshold-zones-explained)
+- [Gauge size in a dashboard](#gauge-size-in-a-dashboard)
+- [Visual verification](#visual-verification)
+
 A 270° arc gauge showing a single value against a maximum. The fill
 escalates color through accent → warn → danger as the value crosses
 threshold options. Built from the same `describeArc` primitive as the

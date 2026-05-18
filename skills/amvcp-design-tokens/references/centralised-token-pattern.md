@@ -1,5 +1,18 @@
 # Centralised token pattern — one source-of-truth for all primitives
 
+## Table of Contents
+
+- [What it demonstrates](#what-it-demonstrates)
+- [The AMVCP equivalent](#the-amvcp-equivalent)
+- [When to invoke this lesson](#when-to-invoke-this-lesson)
+- [Default-color delegation chain (companion pattern)](#default-color-delegation-chain-companion-pattern)
+- [Separate-file token + vendor overrides (companion pattern)](#separate-file-token--vendor-overrides-companion-pattern)
+- [Lib functions used](#lib-functions-used)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Anti-slop interaction](#anti-slop-interaction)
+- [Selection / comment / decision-mini contract](#selection--comment--decision-mini-contract)
+- [Visual verification](#visual-verification)
+
 Prior art: the LaTeX `signalflowdiagram.sty` package
 (kleemans 2026-05-16 mining report) defines EVERY drawable primitive's
 stroke weight, fill color, and size via named macros at the top of one

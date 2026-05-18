@@ -1,5 +1,21 @@
 # `chart:step-area@1` — step area
 
+## Table of Contents
+
+- [When to choose step-area](#when-to-choose-step-area)
+- [Authoring shape](#authoring-shape)
+- [Options](#options)
+- [Examples](#examples)
+- [What the runtime emits](#what-the-runtime-emits)
+- [Lib functions called](#lib-functions-called)
+- [DESIGN.md tokens](#designmd-tokens)
+- [Selection / atoms](#selection--atoms)
+- [Step-area vs alternatives](#step-area-vs-alternatives)
+- [Step direction — HV vs VH](#step-direction--hv-vs-vh)
+- [Reading a step-area chart](#reading-a-step-area-chart)
+- [Anti-patterns](#anti-patterns)
+- [Visual verification](#visual-verification)
+
 A line/area chart with ORTHOGONAL stepping instead of Catmull-Rom smoothing.
 Each segment is a horizontal hop to the next x, then a vertical jump to
 the new y — exactly the right shape for a value that JUMPS discretely

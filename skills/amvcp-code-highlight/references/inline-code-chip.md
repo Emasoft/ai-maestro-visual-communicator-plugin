@@ -1,5 +1,20 @@
 # Sub-technique C2 — Inline `<code class="inline">` chip
 
+## Table of Contents
+
+- [C2.1 What it does](#c21-what-it-does)
+- [C2.2 The markup](#c22-the-markup)
+- [C2.3 The CSS](#c23-the-css)
+- [C2.4 The shrink-against-prose rule](#c24-the-shrink-against-prose-rule)
+- [C2.5 The `white-space: nowrap` rule](#c25-the-white-space-nowrap-rule)
+- [C2.6 When to use vs the inline 4-class hand-wrap vs a full block](#c26-when-to-use-vs-the-inline-4-class-hand-wrap-vs-a-full-block)
+- [C2.7 Common chip contents](#c27-common-chip-contents)
+- [C2.8 Accessibility](#c28-accessibility)
+- [C2.9 Don't overuse](#c29-dont-overuse)
+- [C2.10 Composition with the prose-pages skill](#c210-composition-with-the-prose-pages-skill)
+- [C2.11 Tokens consumed](#c211-tokens-consumed)
+- [C2.12 Don't override](#c212-dont-override)
+
 The mono-bg-pill inline code mention pattern. Mined from `12-incident-
 report` + every demo file — the standard for referring to a function,
 filename, command, identifier, or short code fragment inside flowing

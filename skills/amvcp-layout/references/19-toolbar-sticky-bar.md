@@ -1,5 +1,18 @@
 # 19 — Sticky toolbar (`position: sticky` action bar above content)
 
+## Table of Contents
+
+- [What this is](#what-this-is)
+- [Scaffold to emit](#scaffold-to-emit)
+- [The "above the playground inside the page" variant](#the-above-the-playground-inside-the-page-variant)
+- [The combined "page header + section toolbar" stack](#the-combined-page-header--section-toolbar-stack)
+- [Lib functions called](#lib-functions-called)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Selection / comment / decision-mini contract notes](#selection--comment--decision-mini-contract-notes)
+- [When to use a sticky toolbar](#when-to-use-a-sticky-toolbar)
+- [Why `position: sticky` not `position: fixed`](#why-position-sticky-not-position-fixed)
+- [Visual verification](#visual-verification)
+
 A pattern frequently seen in editor / playground pages: a
 horizontal toolbar with controls (theme toggle, filters, action
 buttons) that sticks to the top of its scroll container. Distinct

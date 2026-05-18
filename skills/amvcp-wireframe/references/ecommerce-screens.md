@@ -1,5 +1,19 @@
 # E-commerce screens — catalog, product, cart, checkout
 
+## Table of Contents
+
+- [Pattern 1 — Catalog (filter sidebar + product grid)](#pattern-1--catalog-filter-sidebar--product-grid)
+- [Pattern 2 — Product detail (gallery + info + add-to-cart)](#pattern-2--product-detail-gallery--info--add-to-cart)
+- [Pattern 3 — Cart (line items + subtotal + checkout button)](#pattern-3--cart-line-items--subtotal--checkout-button)
+- [Pattern 4 — Checkout (address + payment + review)](#pattern-4--checkout-address--payment--review)
+- [Pattern 5 — Order confirmation (success + summary + next steps)](#pattern-5--order-confirmation-success--summary--next-steps)
+- [Pattern 6 — Account orders (table + status chips)](#pattern-6--account-orders-table--status-chips)
+- [The price block — current + compare-at + sale chip](#the-price-block--current--compare-at--sale-chip)
+- [Quantity stepper (− input +)](#quantity-stepper--input-)
+- [Variant picker (color swatches, size buttons)](#variant-picker-color-swatches-size-buttons)
+- [Stock status badge](#stock-status-badge)
+- [Promo / discount bar](#promo--discount-bar)
+
 The shopping-flow shapes. Six canonical screens: product catalog
 grid, product detail page (PDP), shopping cart, checkout, order
 confirmation, account orders. All driven by `wf-archetype--web` for

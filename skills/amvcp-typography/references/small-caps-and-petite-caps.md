@@ -1,5 +1,24 @@
 # Small caps and petite caps — the editorial sub-register
 
+## Table of Contents
+
+- [What it is](#what-it-is)
+- [The contract](#the-contract)
+- [Scaffold](#scaffold)
+- [Tokens consumed / extended](#tokens-consumed--extended)
+- [Why both `font-variant-caps` AND `font-feature-settings`](#why-both-font-variant-caps-and-font-feature-settings)
+- [True vs synthesised small caps](#true-vs-synthesised-small-caps)
+- [When to use small caps](#when-to-use-small-caps)
+- [When NOT to use small caps](#when-not-to-use-small-caps)
+- [Small caps vs `text-transform: uppercase`](#small-caps-vs-text-transform-uppercase)
+- [The light + dark coverage](#the-light--dark-coverage)
+- [Why `letter-spacing: 0.04em` on `.vc-acronym`](#why-letter-spacing-004em-on-vc-acronym)
+- [Comparison with `<abbr title="…">` — semantic abbreviation](#comparison-with-abbr-title--semantic-abbreviation)
+- [Selection-contract conformance](#selection-contract-conformance)
+- [Browser support](#browser-support)
+- [Verification](#verification)
+- [Cross-references](#cross-references)
+
 Small caps are *uppercase letterforms at lowercase height* — they
 read as "uppercase but quieter". Used for acronyms in body prose
 ("the API"), for transitional headers ("In conclusion"), and for the

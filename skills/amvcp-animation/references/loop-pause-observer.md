@@ -1,5 +1,23 @@
 # Loop-pause observer — auto-pause off-screen infinite loops
 
+## Table of Contents
+
+- [The contract](#the-contract)
+- [Why it matters](#why-it-matters)
+- [Default threshold = 0](#default-threshold--0)
+- [NOT fire-once](#not-fire-once)
+- [When the observer can't attach](#when-the-observer-cant-attach)
+- [Deferred init](#deferred-init)
+- [Re-scanning dynamic content](#re-scanning-dynamic-content)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [When NOT to apply the loop-pause pattern](#when-not-to-apply-the-loop-pause-pattern)
+- [Reduced-motion interaction](#reduced-motion-interaction)
+- [Selection + comment + decision integration](#selection--comment--decision-integration)
+- [Diagnostics](#diagnostics)
+- [Visual verification](#visual-verification)
+- [Why a SEPARATE observer (and not the reveal one)?](#why-a-separate-observer-and-not-the-reveal-one)
+- [Performance budget for loops](#performance-budget-for-loops)
+
 A second `IntersectionObserver` toggles `animation-play-state` on
 every infinite ambient loop so an off-screen loop costs no CPU.
 NOT fire-once — stays attached for the life of the page so each

@@ -1,5 +1,15 @@
 # Junction-dot primitive — wire / cable intersection marker
 
+## Table of Contents
+
+- [What it renders](#what-it-renders)
+- [How to author one](#how-to-author-one)
+- [Why icon-svg doesn't have a junction primitive](#why-icon-svg-doesnt-have-a-junction-primitive)
+- [When you DO need a junction in icon-svg (the edge case)](#when-you-do-need-a-junction-in-icon-svg-the-edge-case)
+- [Cross-skill seam — junction dots in the `diagram` skill](#cross-skill-seam--junction-dots-in-the-diagram-skill)
+- [Visual verification](#visual-verification)
+- [Why this reference exists](#why-this-reference-exists)
+
 The junction dot is a TINY SVG icon: a small filled circle that
 marks a wire intersection in a schematic diagram. Adopted from the
 TikZ `\tikzstyle{branch}=[fill,shape=circle,minimum size=3pt,inner

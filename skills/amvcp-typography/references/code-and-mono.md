@@ -1,5 +1,22 @@
 # Inline code chips and `<pre>` block typography
 
+## Table of Contents
+
+- [What it is](#what-it-is)
+- [The contract](#the-contract)
+- [Scaffold](#scaffold)
+- [Tokens consumed / extended](#tokens-consumed--extended)
+- [Why `0.9em` (not `var(--vc-text-N)`)](#why-09em-not-var--vc-text-n)
+- [Why `<pre>` uses `--vc-text-1` (one step down from body)](#why-pre-uses---vc-text-1-one-step-down-from-body)
+- [No nested scrollbars on `<pre>`](#no-nested-scrollbars-on-pre)
+- [`<kbd>` — the 1px border trick](#kbd--the-1px-border-trick)
+- [`<var>` — italic mono](#var--italic-mono)
+- [Tabular numerics in `<pre>` / `<code>`](#tabular-numerics-in-pre--code)
+- [Light + dark — fully covered](#light--dark--fully-covered)
+- [Selection-contract conformance](#selection-contract-conformance)
+- [When to use which element](#when-to-use-which-element)
+- [Cross-references](#cross-references)
+
 The mono face's typography contract — how inline `<code>` chips read
 inside body prose; how `<pre>` blocks read as self-contained code
 display; how `<kbd>` and `<samp>` get their secondary contracts. The

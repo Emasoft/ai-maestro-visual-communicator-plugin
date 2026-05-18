@@ -1,5 +1,20 @@
 # Action items checklist (`vc-action-list`)
 
+## Table of Contents
+
+- [When to use](#when-to-use)
+- [Scaffold (canonical 4-column row)](#scaffold-canonical-4-column-row)
+- [CSS contract](#css-contract)
+- [State modifiers](#state-modifiers)
+- [Owner discipline](#owner-discipline)
+- [Due-date discipline](#due-date-discipline)
+- [Composition](#composition)
+- [Lib hooks](#lib-hooks)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Selection / comment notes](#selection--comment-notes)
+- [Decision-mini hook](#decision-mini-hook)
+- [Anti-patterns](#anti-patterns)
+
 The structured commitment register that ends action-producing
 documents (postmortems, retrospectives, PR reviews, RFCs). Each item
 is a `[ checkbox ] [text] [owner] [due-date]` row. Owners and due

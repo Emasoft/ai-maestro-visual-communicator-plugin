@@ -1,5 +1,17 @@
 # Provenance footer + auto-pill — marking AI-produced documents
 
+## Table of Contents
+
+- [When to add provenance markers](#when-to-add-provenance-markers)
+- [The auto-pill](#the-auto-pill)
+- [The provenance footer](#the-provenance-footer)
+- [Files-read sidebar variant](#files-read-sidebar-variant)
+- [The prompt box (provenance for one-shots)](#the-prompt-box-provenance-for-one-shots)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Composition](#composition)
+- [Selection / comment notes](#selection--comment-notes)
+- [Anti-patterns](#anti-patterns)
+
 Two conventions for marking a document as agent-produced and
 documenting what the agent read while producing it. The
 `auto-pill` is a small mono-uppercase chip in the document header;

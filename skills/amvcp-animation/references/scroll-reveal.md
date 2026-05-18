@@ -1,5 +1,22 @@
 # Scroll reveal — the fire-once IntersectionObserver engine
 
+## Table of Contents
+
+- [The contract](#the-contract)
+- [The four variants](#the-four-variants)
+- [When to use each variant](#when-to-use-each-variant)
+- [Threshold tuning — why 0.15 and -50px](#threshold-tuning--why-015-and--50px)
+- [Fail-safe: no IntersectionObserver → reveal everything](#fail-safe-no-intersectionobserver--reveal-everything)
+- [Fire-once via `unobserve`](#fire-once-via-unobserve)
+- [Counter targets are also reveal targets](#counter-targets-are-also-reveal-targets)
+- [Combining with stagger (`data-va-reveal="stagger"`)](#combining-with-stagger-data-va-revealstagger)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Reduced-motion substitute](#reduced-motion-substitute)
+- [Selection + comment + decision integration](#selection--comment--decision-integration)
+- [Dynamic insertion — `revealNow(el)` and `refresh(root)`](#dynamic-insertion--revealnowel-and-refreshroot)
+- [Diagnostics](#diagnostics)
+- [Visual verification](#visual-verification)
+
 The canonical reveal primitive every other below-the-fold animated
 element rides on. One observer, one threshold, four variants, fire
 exactly once.

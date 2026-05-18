@@ -1,5 +1,20 @@
 # Sub-technique E8 — Implementation plan with 2-col code panels
 
+## Table of Contents
+
+- [E8.1 The shape](#e81-the-shape)
+- [E8.2 The markup](#e82-the-markup)
+- [E8.3 Why 2 columns](#e83-why-2-columns)
+- [E8.4 The "load-bearing pair" discipline](#e84-the-load-bearing-pair-discipline)
+- [E8.5 The narrow-viewport stacking](#e85-the-narrow-viewport-stacking)
+- [E8.6 The "describe the pair" prose convention](#e86-the-describe-the-pair-prose-convention)
+- [E8.7 Composition with the risk table](#e87-composition-with-the-risk-table)
+- [E8.8 Selection / commenting](#e88-selection--commenting)
+- [E8.9 Cross-references](#e89-cross-references)
+- [E8.10 Light + dark verification](#e810-light--dark-verification)
+- [E8.11 Tokens consumed](#e811-tokens-consumed)
+- [E8.12 Mined source attribution](#e812-mined-source-attribution)
+
 The "Key code" section of an implementation-plan document: 2-column
 code grid showing two pieces of code that work TOGETHER (e.g. a
 migration SQL + the corresponding TypeScript hook). Mined from

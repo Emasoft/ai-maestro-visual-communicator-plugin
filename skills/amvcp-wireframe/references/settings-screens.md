@@ -1,5 +1,18 @@
 # Settings screens — preferences, account, billing, security
 
+## Table of Contents
+
+- [Pattern 1 — Settings hub (sidebar + content)](#pattern-1--settings-hub-sidebar--content)
+- [Pattern 2 — Single section (full-page form)](#pattern-2--single-section-full-page-form)
+- [Pattern 3 — Preferences (toggles + radios)](#pattern-3--preferences-toggles--radios)
+- [Pattern 4 — Security (2FA + active sessions)](#pattern-4--security-2fa--active-sessions)
+- [Pattern 5 — Billing (plan + payment + invoices)](#pattern-5--billing-plan--payment--invoices)
+- [Pattern 6 — Notifications (per-channel matrix)](#pattern-6--notifications-per-channel-matrix)
+- [The toggle switch — CSS-only pattern](#the-toggle-switch--css-only-pattern)
+- [Danger-zone section convention](#danger-zone-section-convention)
+- [Save-bar convention (sticky vs inline)](#save-bar-convention-sticky-vs-inline)
+- [Permission row pattern (label + description + toggle)](#permission-row-pattern-label--description--toggle)
+
 The settings hub is one of the most-iterated screens in any
 product. Six canonical shapes: section list (sidebar nav), single
 section (form), preferences with toggles, security (2FA + sessions),

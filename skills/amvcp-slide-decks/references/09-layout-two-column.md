@@ -1,5 +1,20 @@
 # 09 — Layout: `two-column` (heading + 2 stacks of content)
 
+## Table of Contents
+
+- [What this is](#what-this-is)
+- [Scaffold to emit](#scaffold-to-emit)
+- [Lib functions called](#lib-functions-called)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Selection / comment / decision-mini contract notes](#selection--comment--decision-mini-contract-notes)
+- [When to use this reference](#when-to-use-this-reference)
+- [Don'ts](#donts)
+- [Block-distribution algorithm](#block-distribution-algorithm)
+- [Visual verification](#visual-verification)
+- [Two-column variants by content type](#two-column-variants-by-content-type)
+- [The "second column gives the eye a destination" rule](#the-second-column-gives-the-eye-a-destination-rule)
+- [Source provenance](#source-provenance)
+
 The two-column slide is for a single thesis with two parallel evidence
 stacks — typically text on the left, supporting visual on the right
 (image, icon, mini-diagram, key callout). It's the "asymmetric balance"

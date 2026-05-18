@@ -1,5 +1,16 @@
 # Contact-sheet state panel — interaction-state demos
 
+## Table of Contents
+
+- [What it does](#what-it-does)
+- [Why both frozen AND live](#why-both-frozen-and-live)
+- [Scaffold to emit](#scaffold-to-emit)
+- [Lib functions used](#lib-functions-used)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Anti-slop interaction](#anti-slop-interaction)
+- [Selection / comment / decision-mini contract](#selection--comment--decision-mini-contract)
+- [Visual verification](#visual-verification)
+
 The `state` panel of the token contact sheet renders interaction-
 state demos: idle / hover / focus / pressed / disabled, side-by-
 side, statically forced via the `.vc-state-demo-*` modifier classes

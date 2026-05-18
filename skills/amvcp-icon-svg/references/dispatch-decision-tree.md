@@ -1,5 +1,14 @@
 # Dispatch decision tree — which skill renders what
 
+## Table of Contents
+
+- [The 60-second routing answer](#the-60-second-routing-answer)
+- [The boundary contracts (cross-skill seams)](#the-boundary-contracts-cross-skill-seams)
+- [Negative routing — what icon-svg is NOT](#negative-routing--what-icon-svg-is-not)
+- [Choosing a sub-technique inside icon-svg](#choosing-a-sub-technique-inside-icon-svg)
+- [Selection / comment / decision-pill integration](#selection--comment--decision-pill-integration)
+- [When in doubt](#when-in-doubt)
+
 The visual-communicator plugin ships multiple complementary SVG / HTML
 visualization skills. Pick the wrong one and you waste a render: a
 chart in icon-svg looks like a static decoration, a node primitive

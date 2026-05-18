@@ -1,5 +1,21 @@
 # Sub-technique H2 — Opting a `<pre>` out of the runtime (`data-ve-no-gutter`)
 
+## Table of Contents
+
+- [H2.1 The attribute](#h21-the-attribute)
+- [H2.2 When to opt out](#h22-when-to-opt-out)
+- [H2.3 What opting out preserves](#h23-what-opting-out-preserves)
+- [H2.4 What opting out loses](#h24-what-opting-out-loses)
+- [H2.5 The runtime's check](#h25-the-runtimes-check)
+- [H2.6 Opt-out and `data-ve-snippet-popup`](#h26-opt-out-and-data-ve-snippet-popup)
+- [H2.7 The opt-out vs the data-block discipline](#h27-the-opt-out-vs-the-data-block-discipline)
+- [H2.8 The author's mental model](#h28-the-authors-mental-model)
+- [H2.9 Selection / commenting on opt-out blocks](#h29-selection--commenting-on-opt-out-blocks)
+- [H2.10 Re-opting-in](#h210-re-opting-in)
+- [H2.11 The opt-out hierarchy](#h211-the-opt-out-hierarchy)
+- [H2.12 No tokens consumed](#h212-no-tokens-consumed)
+- [H2.13 Author rules](#h213-author-rules)
+
 The escape hatch: when a `<pre>` should NOT receive the gutter, copy
 button, selection, or tokenizer treatment. Mostly for special-purpose
 elements (overlay snippets, regex graph) that have their own renderers.

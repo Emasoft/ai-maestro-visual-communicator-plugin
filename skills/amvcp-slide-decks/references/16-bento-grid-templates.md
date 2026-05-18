@@ -1,5 +1,14 @@
 # 16 — The 7 bento grid templates (`hero` / `gallery` / `asymmetric` / `feature` / `stats` / `split` / `full`)
 
+## Table of Contents
+
+- [What this is](#what-this-is)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [When to use this reference](#when-to-use-this-reference)
+- [Don'ts](#donts)
+- [Visual verification](#visual-verification)
+- [Source provenance](#source-provenance)
+
 The `layout: "bento"` slide picks ONE of 7 named grid templates via the
 `grid` field. Each template has a specific shape, a specific card
 cardinality, and a specific best-use case. This reference is the deep

@@ -1,5 +1,18 @@
 # `chart:heatmap@1` — heatmap
 
+## Table of Contents
+
+- [When to choose heatmap](#when-to-choose-heatmap)
+- [Authoring shape](#authoring-shape)
+- [Options](#options)
+- [Examples](#examples)
+- [What the runtime emits](#what-the-runtime-emits)
+- [Lib functions called](#lib-functions-called)
+- [DESIGN.md tokens](#designmd-tokens)
+- [Selection / atoms](#selection--atoms)
+- [Anti-patterns](#anti-patterns)
+- [Visual verification](#visual-verification)
+
 A 2-D grid of colored cells; each cell's color encodes a magnitude via an
 OKLCH sequential ramp anchored to `--vc-color-accent`. Optional log-scale
 mapping keeps a sparse high outlier from washing out the rest of the grid.

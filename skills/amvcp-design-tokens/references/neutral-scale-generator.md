@@ -1,5 +1,17 @@
 # Single-ink neutral scale (DT-11)
 
+## Table of Contents
+
+- [What it does](#what-it-does)
+- [When to choose](#when-to-choose)
+- [Scaffold to emit](#scaffold-to-emit)
+- [Lib functions used](#lib-functions-used)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Anti-slop interaction](#anti-slop-interaction)
+- [Single source of truth](#single-source-of-truth)
+- [Selection / comment / decision-mini contract](#selection--comment--decision-mini-contract)
+- [Visual verification](#visual-verification)
+
 A neutral palette derived from ONE ink color via
 `color-mix(in srgb, var(--ink) N%, transparent)`. No need to specify
 multiple gray hex values; the scale auto-adapts to whatever ink hue you

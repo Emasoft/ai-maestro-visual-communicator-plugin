@@ -1,5 +1,19 @@
 # Sub-technique E7 — Feature explainer with sticky TOC + tabbed code samples
 
+## Table of Contents
+
+- [E7.1 The shape](#e71-the-shape)
+- [E7.2 The page layout](#e72-the-page-layout)
+- [E7.3 The step-by-step `<details>` walkthrough](#e73-the-step-by-step-details-walkthrough)
+- [E7.4 The tabbed code panel — Configuration section](#e74-the-tabbed-code-panel--configuration-section)
+- [E7.5 The Files-Read provenance footer](#e75-the-files-read-provenance-footer)
+- [E7.6 Anchor links + smooth scroll](#e76-anchor-links--smooth-scroll)
+- [E7.7 The Gotchas / FAQ sections](#e77-the-gotchas--faq-sections)
+- [E7.8 Selection / commenting flow](#e78-selection--commenting-flow)
+- [E7.9 Light + dark verification](#e79-light--dark-verification)
+- [E7.10 Tokens consumed](#e710-tokens-consumed)
+- [E7.11 Mined source attribution](#e711-mined-source-attribution)
+
 The feature-documentation page: sticky left TOC + TL;DR + step-by-step
 `<details>` + tabbed code samples + callout + Gotchas + FAQ + "Files
 read" provenance footer. Mined from `14-research-feature-explainer.html`

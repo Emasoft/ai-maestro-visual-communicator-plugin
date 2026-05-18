@@ -1,5 +1,18 @@
 # 27 — Blocks: `image` + `spacer` + delegated (`code` / `diagram` / `chart`)
 
+## Table of Contents
+
+- [What this is](#what-this-is)
+- [Scaffold to emit](#scaffold-to-emit)
+- [Lib functions called](#lib-functions-called)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Selection / comment / decision-mini contract notes](#selection--comment--decision-mini-contract-notes)
+- [When to use this reference](#when-to-use-this-reference)
+- [Delegated-block errors](#delegated-block-errors)
+- [Don'ts](#donts)
+- [Visual verification](#visual-verification)
+- [Source provenance](#source-provenance)
+
 This reference covers the "rest of the blocks" — `image` for
 embedded visuals, `spacer` for rhythm control, and the three
 DELEGATED block types (`code`, `diagram`, `chart`) that dispatch to

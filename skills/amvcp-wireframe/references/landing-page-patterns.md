@@ -1,5 +1,20 @@
 # Landing page patterns — marketing site wireframes
 
+## Table of Contents
+
+- [Hero (image + headline + CTA)](#hero-image--headline--cta)
+- [Feature trio (3 cards in a row)](#feature-trio-3-cards-in-a-row)
+- [Feature-with-image (alternating left-right rows)](#feature-with-image-alternating-left-right-rows)
+- [Social proof (logo grid)](#social-proof-logo-grid)
+- [Testimonial card (quote + avatar + attribution)](#testimonial-card-quote--avatar--attribution)
+- [Pricing table (3 tiers, comparison rows)](#pricing-table-3-tiers-comparison-rows)
+- [FAQ accordion (collapsed by default)](#faq-accordion-collapsed-by-default)
+- [Bottom CTA (full-width band)](#bottom-cta-full-width-band)
+- [Footer (multi-column links + brand)](#footer-multi-column-links--brand)
+- [Newsletter signup (inline form)](#newsletter-signup-inline-form)
+- [Newsletter HTML skeletons (email-safe variants)](#newsletter-html-skeletons-email-safe-variants)
+- [Full-bleed sections — escaping the 72ch cap](#full-bleed-sections--escaping-the-72ch-cap)
+
 The canonical landing-page screen shapes — hero, features, social
 proof, pricing, FAQ, CTA. Use `wf-archetype--web` (centered column
 capped at 72ch); for full-bleed hero / feature sections, extend the

@@ -1,5 +1,20 @@
 # RFC (Request for Comments) shape — context + proposal + alternatives + decision
 
+## Table of Contents
+
+- [When to choose this shape](#when-to-choose-this-shape)
+- [Section order (fixed)](#section-order-fixed)
+- [Markdown scaffold](#markdown-scaffold)
+- [The RFC status pill](#the-rfc-status-pill)
+- [The Alternatives section](#the-alternatives-section)
+- [The whitepaper template's auto-numbering](#the-whitepaper-templates-auto-numbering)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Composition with other skills](#composition-with-other-skills)
+- [Lib functions called](#lib-functions-called)
+- [Selection / comment notes](#selection--comment-notes)
+- [Decision-mini hook](#decision-mini-hook)
+- [Anti-patterns](#anti-patterns)
+
 The canonical document shape for surfacing a substantive design decision
 before it is implemented. RFCs sit between a thought-piece (too informal
 to drive a decision) and an implementation plan (commits to *how* before

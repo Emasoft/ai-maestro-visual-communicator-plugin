@@ -1,5 +1,19 @@
 # Metadata key/value pill strip
 
+## Table of Contents
+
+- [When to use](#when-to-use)
+- [Scaffold](#scaffold)
+- [CSS contract](#css-contract)
+- [Status-variant catalog](#status-variant-catalog)
+- [Severity-pill content discipline](#severity-pill-content-discipline)
+- [Key/value content discipline](#keyvalue-content-discipline)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Composition with other shapes](#composition-with-other-shapes)
+- [Selection / comment notes](#selection--comment-notes)
+- [Decision-mini hook](#decision-mini-hook)
+- [Anti-patterns](#anti-patterns)
+
 The compact 1-line meta-row pattern: a horizontal flow of
 `<span class="vc-pill">` chips, each carrying a label / value pair
 (e.g. `Duration · 47 min`, `Detected · 14:18 UTC`). Lifted from

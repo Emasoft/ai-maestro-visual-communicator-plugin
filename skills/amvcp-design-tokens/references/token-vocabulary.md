@@ -1,5 +1,14 @@
 # Token vocabulary — naming, `@layer` architecture, the minimal contract
 
+## Table of Contents
+
+- [The 5-layer naming mapping](#the-5-layer-naming-mapping)
+- [The 3-tier `@layer` architecture](#the-3-tier-layer-architecture)
+- [The 23-variable minimal theme contract](#the-23-variable-minimal-theme-contract)
+- [Dark text hierarchy (DT-08)](#dark-text-hierarchy-dt-08)
+- [Scoped theming (DT-06)](#scoped-theming-dt-06)
+- [Tailwind-shaped utility classes (DT-20 / DM-15)](#tailwind-shaped-utility-classes-dt-20--dm-15)
+
 The DESIGN.md engine's `--vc-*` custom properties ARE the canonical
 token names. This document maps the 5-layer naming convention onto them,
 gives the `@layer` skeleton emitted HTML uses, and documents the derived

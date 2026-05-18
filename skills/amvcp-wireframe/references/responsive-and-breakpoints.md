@@ -1,5 +1,19 @@
 # Responsive design & breakpoints in wireframes
 
+## Table of Contents
+
+- [The standard breakpoint set](#the-standard-breakpoint-set)
+- [Mobile-first vs desktop-first authoring](#mobile-first-vs-desktop-first-authoring)
+- [The 3-viewport screenshot test](#the-3-viewport-screenshot-test)
+- [Responsive grid patterns](#responsive-grid-patterns)
+- [Container queries — the modern alternative](#container-queries--the-modern-alternative)
+- [Show / hide per viewport](#show--hide-per-viewport)
+- [Touch target sizes (44 × 44 minimum)](#touch-target-sizes-44--44-minimum)
+- [Fluid typography (clamp + vw)](#fluid-typography-clamp--vw)
+- [Hover-on-touch fallbacks](#hover-on-touch-fallbacks)
+- [Orientation (portrait / landscape) handling](#orientation-portrait--landscape-handling)
+- [Common responsive bugs in wireframes](#common-responsive-bugs-in-wireframes)
+
 A wireframe at one viewport width is incomplete — most products
 ship on phones, tablets, AND desktops. This file documents the
 breakpoint convention, the responsive grid patterns, and the

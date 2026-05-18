@@ -1,5 +1,18 @@
 # Navigation patterns — global, local, contextual, breadcrumb
 
+## Table of Contents
+
+- [Pattern 1 — Top nav bar (web app header)](#pattern-1--top-nav-bar-web-app-header)
+- [Pattern 2 — Side nav (collapsible)](#pattern-2--side-nav-collapsible)
+- [Pattern 3 — Bottom tabs (mobile only)](#pattern-3--bottom-tabs-mobile-only)
+- [Pattern 4 — Breadcrumb (path-based hierarchy)](#pattern-4--breadcrumb-path-based-hierarchy)
+- [Pattern 5 — Section nav (anchor scroll, in-page TOC)](#pattern-5--section-nav-anchor-scroll-in-page-toc)
+- [Pattern 6 — Command palette (Ctrl-K search)](#pattern-6--command-palette-ctrl-k-search)
+- [Account menu (avatar dropdown)](#account-menu-avatar-dropdown)
+- [Notification badge convention](#notification-badge-convention)
+- [Mobile drawer (hamburger menu)](#mobile-drawer-hamburger-menu)
+- [Tabbed pages (header tabs within a screen)](#tabbed-pages-header-tabs-within-a-screen)
+
 The full vocabulary for "how the user moves around". Six patterns:
 top nav bar, side nav (sticky), bottom tabs (mobile), breadcrumb,
 section nav (anchor scroll), command palette.

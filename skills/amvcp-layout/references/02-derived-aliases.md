@@ -1,5 +1,19 @@
 # 02 — Derived `--la-*` aliases (semantic naming over indexed tokens)
 
+## Table of Contents
+
+- [What this is](#what-this-is)
+- [Scaffold to emit](#scaffold-to-emit)
+- [Lib functions called](#lib-functions-called)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Selection / comment / decision-mini contract notes](#selection--comment--decision-mini-contract-notes)
+- [Why use an alias layer instead of indexed tokens directly?](#why-use-an-alias-layer-instead-of-indexed-tokens-directly)
+- [When to add a new `--la-*` alias](#when-to-add-a-new---la--alias)
+- [Visual verification](#visual-verification)
+- [Worked example: switching to a denser scale](#worked-example-switching-to-a-denser-scale)
+- [When DOES an alias need to be added (not just consumed)?](#when-does-an-alias-need-to-be-added-not-just-consumed)
+- [What NOT to alias](#what-not-to-alias)
+
 The DESIGN.md engine emits indexed tokens (`--vc-space-1`,
 `--vc-space-2`, …). Those numbers are an implementation detail of the
 spacing scale. The layout CSS reads them through a SEMANTIC alias layer

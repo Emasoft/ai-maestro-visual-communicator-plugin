@@ -1,5 +1,19 @@
 # Idle-deferred init — the two-tier init contract
 
+## Table of Contents
+
+- [The two tiers](#the-two-tiers)
+- [The `deferInit` helper](#the-deferinit-helper)
+- [Why two tiers, not one](#why-two-tiers-not-one)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Reduced-motion interaction](#reduced-motion-interaction)
+- [Selection + comment + decision integration](#selection--comment--decision-integration)
+- [Tier-2 init failure recovery](#tier-2-init-failure-recovery)
+- [Order of deferred work](#order-of-deferred-work)
+- [Re-running deferred init](#re-running-deferred-init)
+- [Diagnostics](#diagnostics)
+- [Visual verification](#visual-verification)
+
 The skill's `init()` runs in TWO tiers: immediate (gating visible
 content, runs before first paint) vs deferred (polish + perf, runs
 inside `requestIdleCallback`). This keeps the polish layer off

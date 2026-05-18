@@ -1,5 +1,13 @@
 # Ambient & loading — Layers 4 + 5
 
+## Table of Contents
+
+- [Layer 4 — four floating presets](#layer-4--four-floating-presets)
+- [Layer 4 — animated link underline (`.va-link`)](#layer-4--animated-link-underline-va-link)
+- [Layer 4 — 3D card tilt (`.va-tilt`)](#layer-4--3d-card-tilt-va-tilt)
+- [Layer 5 — pulse-ring dot (`.va-pulse`)](#layer-5--pulse-ring-dot-va-pulse)
+- [Layer 5 — shimmer skeleton (`.va-skeleton`)](#layer-5--shimmer-skeleton-va-skeleton)
+
 Decorative ambient loops, hover polish, and loading-state placeholders.
 All `prefers-reduced-motion` gated, all driven by `--vc-*` tokens.
 

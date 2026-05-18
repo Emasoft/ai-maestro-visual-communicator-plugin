@@ -1,5 +1,20 @@
 # 22 — Moods + transitions (5 entrance moods, 4 section transitions)
 
+## Table of Contents
+
+- [What this is](#what-this-is)
+- [Scaffold to emit](#scaffold-to-emit)
+- [Lib functions called](#lib-functions-called)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Selection / comment / decision-mini contract notes](#selection--comment--decision-mini-contract-notes)
+- [When to use this reference](#when-to-use-this-reference)
+- [Mood by tone](#mood-by-tone)
+- [Transition by pacing](#transition-by-pacing)
+- [Don'ts](#donts)
+- [Reduced-motion gate](#reduced-motion-gate)
+- [Visual verification](#visual-verification)
+- [Source provenance](#source-provenance)
+
 Decks have moods. A minimal mood opens with a clean fade; a dramatic
 mood opens with a clip-path wipe; a playful mood bounces; an editorial
 mood does a serif character stagger; a techy mood scrambles characters

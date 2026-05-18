@@ -1,5 +1,18 @@
 # Sub-technique A6 — Per-line atom selection + the 9-level multi-click ladder
 
+## Table of Contents
+
+- [A6.1 What the runtime ships](#a61-what-the-runtime-ships)
+- [A6.2 The 9-level multi-click ladder (code variant)](#a62-the-9-level-multi-click-ladder-code-variant)
+- [A6.3 The drag-paint contract](#a63-the-drag-paint-contract)
+- [A6.4 The selection payload (the comment-pill format)](#a64-the-selection-payload-the-comment-pill-format)
+- [A6.5 The comment pill](#a65-the-comment-pill)
+- [A6.6 The hover hint (preview state)](#a66-the-hover-hint-preview-state)
+- [A6.7 The yield rule (CRITICAL — re-stated)](#a67-the-yield-rule-critical--re-stated)
+- [A6.8 Author rules](#a68-author-rules)
+- [A6.9 The accessibility surface](#a69-the-accessibility-surface)
+- [A6.10 Tokens consumed (selection-specific)](#a610-tokens-consumed-selection-specific)
+
 Every `.ve-code-line` IS a selectable atom — selectable, commentable,
 drag-paintable, multi-clickable. This reference codifies the contract
 the runtime ships and the rules a code-display reference must respect.

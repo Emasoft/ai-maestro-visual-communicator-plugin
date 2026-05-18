@@ -1,5 +1,25 @@
 # Emphasis — `<em>`, `<strong>`, `<mark>`, and the inline-emphasis register
 
+## Table of Contents
+
+- [What it is](#what-it-is)
+- [The contract](#the-contract)
+- [Scaffold](#scaffold)
+- [Tokens consumed / extended](#tokens-consumed--extended)
+- [Why italic and not just colour for `<em>`](#why-italic-and-not-just-colour-for-em)
+- [Why bold and not bigger for `<strong>`](#why-bold-and-not-bigger-for-strong)
+- [Why `<mark>` uses a tinted background, not a colour change](#why-mark-uses-a-tinted-background-not-a-colour-change)
+- [`<ins>` and `<del>` — the revision pair](#ins-and-del--the-revision-pair)
+- [`<u>` — dotted, not solid](#u--dotted-not-solid)
+- [`<s>` — generally available, often misused](#s--generally-available-often-misused)
+- [Combined `<em><strong>` — the absolute-critical case](#combined-emstrong--the-absolute-critical-case)
+- [Light + dark — fully covered](#light--dark--fully-covered)
+- [Combinations with `text-transform`](#combinations-with-text-transform)
+- [Selection-contract conformance](#selection-contract-conformance)
+- [When NOT to use](#when-not-to-use)
+- [Verification](#verification)
+- [Cross-references](#cross-references)
+
 Inline emphasis is a SEPARATE typographic register from the surrounding
 body — `<em>` for stress emphasis (italic), `<strong>` for strong
 importance (bold), `<mark>` for highlighted text (background tint),

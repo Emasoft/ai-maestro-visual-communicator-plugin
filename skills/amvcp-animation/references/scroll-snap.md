@@ -1,5 +1,20 @@
 # Scroll snap — `.va-snap-root` + `.va-snap-item` on the PAGE root
 
+## Table of Contents
+
+- [The contract](#the-contract)
+- [Markup](#markup)
+- [Why on the page root, NEVER an inner box](#why-on-the-page-root-never-an-inner-box)
+- [Snap-align modes](#snap-align-modes)
+- [Combining with reveal / counter / parallax](#combining-with-reveal--counter--parallax)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Reduced-motion substitute](#reduced-motion-substitute)
+- [Selection + comment + decision integration](#selection--comment--decision-integration)
+- [Combining with the slide-decks skill](#combining-with-the-slide-decks-skill)
+- [Diagnostics](#diagnostics)
+- [Visual verification](#visual-verification)
+- [Pattern note: the "scroll-snap-only slide deck"](#pattern-note-the-scroll-snap-only-slide-deck)
+
 A scroll-snap mechanism that operates on the document's own scroll
 axis — never on an inner `overflow:scroll` box. The natural
 companion to a vertical slide deck rendered as a single page.

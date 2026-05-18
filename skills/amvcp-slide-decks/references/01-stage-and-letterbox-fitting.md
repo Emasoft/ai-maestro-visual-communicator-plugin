@@ -1,5 +1,19 @@
 # 01 — Stage + letterbox fitting (the fixed-pixel canvas)
 
+## Table of Contents
+
+- [What this is](#what-this-is)
+- [Scaffold to emit](#scaffold-to-emit)
+- [Lib functions called](#lib-functions-called)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Selection / comment / decision-mini contract notes](#selection--comment--decision-mini-contract-notes)
+- [When to use this reference](#when-to-use-this-reference)
+- [Don'ts](#donts)
+- [Visual verification](#visual-verification)
+- [Resize behaviour deep dive](#resize-behaviour-deep-dive)
+- [Print path: the same stage at natural size](#print-path-the-same-stage-at-natural-size)
+- [Source provenance](#source-provenance)
+
 The single most-replicated pattern in the slide-deck triage (five independent
 projects converged on the exact same idea): every slide is rendered onto a
 **fixed-pixel "stage"** sized for one of three aspect ratios, then the whole

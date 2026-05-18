@@ -1,5 +1,19 @@
 # 04 — The 16-layout catalog (named compositions, by job)
 
+## Table of Contents
+
+- [What this is](#what-this-is)
+- [Scaffold to emit](#scaffold-to-emit)
+- [Lib functions called](#lib-functions-called)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Selection / comment / decision-mini contract notes](#selection--comment--decision-mini-contract-notes)
+- [When to use this reference](#when-to-use-this-reference)
+- [Don'ts](#donts)
+- [Visual verification](#visual-verification)
+- [Layout-by-role across a 12-slide deck](#layout-by-role-across-a-12-slide-deck)
+- [When a layout choice is wrong](#when-a-layout-choice-is-wrong)
+- [Source provenance](#source-provenance)
+
 A slide layout is NOT a look — it's a job. `manifesto` does opening
 declarations. `metrics` does numeric impact rows. `comparison` does
 then-vs-now contrast. The 16 layouts in `amvcp-slide.js`'s `LAYOUTS` array

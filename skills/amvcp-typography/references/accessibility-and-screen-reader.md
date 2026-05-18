@@ -1,5 +1,25 @@
 # Accessibility and screen readers — semantic HTML, contrast, motion
 
+## Table of Contents
+
+- [What it is](#what-it-is)
+- [Contract — semantic HTML](#contract--semantic-html)
+- [The contrast gates](#the-contrast-gates)
+- [`prefers-reduced-motion`](#prefers-reduced-motion)
+- [`prefers-contrast`](#prefers-contrast)
+- [`prefers-color-scheme`](#prefers-color-scheme)
+- [Focus rings — the keyboard contract](#focus-rings--the-keyboard-contract)
+- [Skip links — the navigation contract](#skip-links--the-navigation-contract)
+- [Alt text — typography's role](#alt-text--typographys-role)
+- [Semantic landmarks](#semantic-landmarks)
+- [The `aria-label` / `aria-labelledby` contract](#the-aria-label--aria-labelledby-contract)
+- [Tokens consumed / extended](#tokens-consumed--extended)
+- [Light + dark — orthogonal](#light--dark--orthogonal)
+- [When the agent should override](#when-the-agent-should-override)
+- [When NOT to override](#when-not-to-override)
+- [Verification](#verification)
+- [Cross-references](#cross-references)
+
 The typography skill's most important rule is *use semantic HTML*.
 Every visual decision (size, weight, leading) is theme-correct and
 high-contrast; the screen-reader correctness comes from the *element

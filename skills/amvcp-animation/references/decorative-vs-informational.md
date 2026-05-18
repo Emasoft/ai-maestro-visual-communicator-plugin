@@ -1,5 +1,19 @@
 # Decorative vs informational — the binary that drives every choice
 
+## Table of Contents
+
+- [The two categories defined](#the-two-categories-defined)
+- [The decision tree](#the-decision-tree)
+- [Worked examples](#worked-examples)
+- [What about edge cases?](#what-about-edge-cases)
+- [Why the category matters for selection](#why-the-category-matters-for-selection)
+- [Why the category matters for performance](#why-the-category-matters-for-performance)
+- [Mistakes to avoid](#mistakes-to-avoid)
+- [DESIGN.md tokens by category](#designmd-tokens-by-category)
+- [Authoring checklist](#authoring-checklist)
+- [Diagnostics](#diagnostics)
+- [Visual verification](#visual-verification)
+
 Every animation in the skill falls into ONE of two categories.
 The category drives:
 - The reduced-motion substitute (preserve or remove).

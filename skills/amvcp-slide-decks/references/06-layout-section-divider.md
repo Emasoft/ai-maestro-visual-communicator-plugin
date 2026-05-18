@@ -1,5 +1,21 @@
 # 06 — Layout: `section-divider` (the ghost-numeral chapter break)
 
+## Table of Contents
+
+- [What this is](#what-this-is)
+- [Scaffold to emit](#scaffold-to-emit)
+- [Lib functions called](#lib-functions-called)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Selection / comment / decision-mini contract notes](#selection--comment--decision-mini-contract-notes)
+- [When to use this reference](#when-to-use-this-reference)
+- [Don'ts](#donts)
+- [Authoring rules — section titles](#authoring-rules--section-titles)
+- [Visual verification](#visual-verification)
+- [Numeral formats — what works on the ghost mark](#numeral-formats--what-works-on-the-ghost-mark)
+- [Section-divider density](#section-divider-density)
+- [Divider sequence patterns](#divider-sequence-patterns)
+- [Source provenance](#source-provenance)
+
 A section divider is architectural rhythm. It tells the audience "we're
 done with Act II — Act III starts now". The canonical pattern is the
 **ghost numeral**: an oversized translucent chapter number (`02`, `III`)

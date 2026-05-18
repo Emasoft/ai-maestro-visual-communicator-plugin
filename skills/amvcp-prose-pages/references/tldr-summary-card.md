@@ -1,5 +1,17 @@
 # TL;DR summary card
 
+## Table of Contents
+
+- [When to add a TL;DR](#when-to-add-a-tldr)
+- [Default scaffold (clay-border)](#default-scaffold-clay-border)
+- [Slate-bg variant (postmortem / security advisory)](#slate-bg-variant-postmortem--security-advisory)
+- [Word-count discipline](#word-count-discipline)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Composition](#composition)
+- [Selection / comment notes](#selection--comment-notes)
+- [Decision-mini hook](#decision-mini-hook)
+- [Anti-patterns](#anti-patterns)
+
 The leading paragraph that summarises everything below. Standard
 appearance: a clay-left-border `<aside>` directly under the document
 header, with a small mono-uppercase "TL;DR" eyebrow followed by 1-3

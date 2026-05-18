@@ -1,5 +1,16 @@
 # Hot-swap restyling — `window.__veDesignMd.hotSwap` (DM-25)
 
+## Table of Contents
+
+- [What it does](#what-it-does)
+- [When to use](#when-to-use)
+- [Scaffold to emit](#scaffold-to-emit)
+- [Lib functions used](#lib-functions-used)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Anti-slop interaction](#anti-slop-interaction)
+- [Selection / comment / decision-mini contract](#selection--comment--decision-mini-contract)
+- [Visual verification](#visual-verification)
+
 The runtime exposes `window.__veDesignMd.hotSwap(designMdText)` —
 swap a different DESIGN.md text and the WHOLE page re-themes live: no
 reload, no new mechanism. The mechanism is the engine's `parseDesignMd

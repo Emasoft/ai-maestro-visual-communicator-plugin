@@ -1,5 +1,23 @@
 # Language and locale — `<html lang>`, `lang` attribute, hyphenation
 
+## Table of Contents
+
+- [What it is](#what-it-is)
+- [The contract](#the-contract)
+- [Which typography features depend on language](#which-typography-features-depend-on-language)
+- [Scaffold — mixed-language content](#scaffold--mixed-language-content)
+- [The `dir` attribute — right-to-left scripts](#the-dir-attribute--right-to-left-scripts)
+- [CJK fonts and `lang="zh-Hans"` / `"zh-Hant"` / `"ja"` / `"ko"`](#cjk-fonts-and-langzh-hans--zh-hant--ja--ko)
+- [Why we don't use `<meta http-equiv="Content-Language">`](#why-we-dont-use-meta-http-equivcontent-language)
+- [The runtime's language declaration](#the-runtimes-language-declaration)
+- [Tokens consumed / extended](#tokens-consumed--extended)
+- [Light + dark — orthogonal](#light--dark--orthogonal)
+- [Selection-contract conformance](#selection-contract-conformance)
+- [The `:lang()` CSS selector](#the-lang-css-selector)
+- [When NOT to set `lang`](#when-not-to-set-lang)
+- [Verification](#verification)
+- [Cross-references](#cross-references)
+
 Typography is *language-aware* — the browser uses the document's
 language declaration to pick hyphenation dictionaries, word-break
 rules, quotation-mark glyphs, and rendering hints. If the language

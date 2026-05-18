@@ -1,5 +1,21 @@
 # Sub-technique D3 — Diff-aware twin-column gutter (old/new line numbers)
 
+## Table of Contents
+
+- [D3.1 What it does](#d31-what-it-does)
+- [D3.2 The markup](#d32-the-markup)
+- [D3.3 The CSS](#d33-the-css)
+- [D3.4 The runtime extension](#d34-the-runtime-extension)
+- [D3.5 Hunk header rendering in twin mode](#d35-hunk-header-rendering-in-twin-mode)
+- [D3.6 Collapsing hunks](#d36-collapsing-hunks)
+- [D3.7 Drag-paint selection across the twin gutter](#d37-drag-paint-selection-across-the-twin-gutter)
+- [D3.8 The copy behaviour](#d38-the-copy-behaviour)
+- [D3.9 Composition with split view](#d39-composition-with-split-view)
+- [D3.10 When to use](#d310-when-to-use)
+- [D3.11 Light + dark verification](#d311-light--dark-verification)
+- [D3.12 Tokens consumed](#d312-tokens-consumed)
+- [D3.13 Author rules](#d313-author-rules)
+
 A specialized gutter that shows TWO numbers per line — the line's
 position in the OLD file + the line's position in the NEW file. The
 GitHub-style diff gutter. Implements CB-01's C3 sub-technique

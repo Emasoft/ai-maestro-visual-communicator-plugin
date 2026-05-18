@@ -1,5 +1,20 @@
 # Concept-explainer shape — interactive demo + comparison + glossary
 
+## Table of Contents
+
+- [When to choose this shape](#when-to-choose-this-shape)
+- [Section order (fixed)](#section-order-fixed)
+- [Layout — main column + sticky right glossary](#layout--main-column--sticky-right-glossary)
+- [Markdown scaffold](#markdown-scaffold)
+- [The interactive demo — slider → recompute → re-render](#the-interactive-demo--slider--recompute--re-render)
+- [The hover-linked glossary](#the-hover-linked-glossary)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Composition with other skills](#composition-with-other-skills)
+- [Lib functions called](#lib-functions-called)
+- [Selection / comment notes](#selection--comment-notes)
+- [Decision-mini hook](#decision-mini-hook)
+- [Anti-patterns](#anti-patterns)
+
 The document that teaches a *single concept* (algorithm, data
 structure, design pattern) interactively. Canonical reference:
 `html-effectiveness` demo #15, "research-concept-explainer" — teaches

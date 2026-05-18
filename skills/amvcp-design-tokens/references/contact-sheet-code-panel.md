@@ -1,5 +1,16 @@
 # Contact-sheet code panel — syntax highlighting + 12-color legend
 
+## Table of Contents
+
+- [What it does](#what-it-does)
+- [Why a tiny built-in tokenizer](#why-a-tiny-built-in-tokenizer)
+- [Scaffold to emit](#scaffold-to-emit)
+- [Lib functions used](#lib-functions-used)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Anti-slop interaction](#anti-slop-interaction)
+- [Selection / comment / decision-mini contract](#selection--comment--decision-mini-contract)
+- [Visual verification](#visual-verification)
+
 The `code` panel of the token contact sheet renders a syntax-
 highlighted sample using a tiny built-in tokenizer + a 12-color
 legend (one chip per `--vc-code-*` token). The visual proof that the

@@ -1,5 +1,21 @@
 # 10 — KPI row (auto-fit small-card strip for at-a-glance metrics)
 
+## Table of Contents
+
+- [What this is](#what-this-is)
+- [Scaffold to emit](#scaffold-to-emit)
+- [The "warn" modifier pattern](#the-warn-modifier-pattern)
+- [Lib functions called](#lib-functions-called)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Selection / comment / decision-mini contract notes](#selection--comment--decision-mini-contract-notes)
+- [When to use this layout](#when-to-use-this-layout)
+- [Why `auto-fit` not `auto-fill`](#why-auto-fit-not-auto-fill)
+- [Visual verification](#visual-verification)
+- [Trend indicator conventions](#trend-indicator-conventions)
+- [The KPI value display](#the-kpi-value-display)
+- [Sparkline conventions](#sparkline-conventions)
+- [The compact vs expanded variants](#the-compact-vs-expanded-variants)
+
 A strip of small KPI / metric cards sized for the eye to scan in a
 single glance. Auto-fit grid sizing keeps cards uniformly wide while
 allowing the strip to gracefully reflow from 4-across on a desktop

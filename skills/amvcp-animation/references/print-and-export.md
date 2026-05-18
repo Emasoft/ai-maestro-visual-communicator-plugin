@@ -1,5 +1,23 @@
 # Print and export — animations under `@media print` and PDF export
 
+## Table of Contents
+
+- [The default print behavior](#the-default-print-behavior)
+- [The print stylesheet (proposed)](#the-print-stylesheet-proposed)
+- [Print-safe authoring](#print-safe-authoring)
+- [The `prefers-reduced-motion` interaction](#the-prefers-reduced-motion-interaction)
+- [PDF export](#pdf-export)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [When the skill's elements appear on paper](#when-the-skills-elements-appear-on-paper)
+- [Counter readability on print](#counter-readability-on-print)
+- [Reduced-motion substitute (for the print medium)](#reduced-motion-substitute-for-the-print-medium)
+- [Selection + comment + decision integration](#selection--comment--decision-integration)
+- [Page-break control](#page-break-control)
+- [Diagnostics](#diagnostics)
+- [Visual verification](#visual-verification)
+- [When NOT to add the print stylesheet](#when-not-to-add-the-print-stylesheet)
+- [Future runtime addition](#future-runtime-addition)
+
 Reports printed to paper or exported as PDFs need to render
 correctly without animations. The animation skill's behavior
 under `@media print` is: every animated element appears at its

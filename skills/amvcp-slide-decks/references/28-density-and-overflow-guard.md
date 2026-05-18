@@ -1,5 +1,16 @@
 # 28 — Density limits + the overflow guard
 
+## Table of Contents
+
+- [What this is](#what-this-is)
+- [Per-layout density limits](#per-layout-density-limits)
+- [Lib functions called](#lib-functions-called)
+- [When to use this reference](#when-to-use-this-reference)
+- [Splitting overflowing content](#splitting-overflowing-content)
+- [No-nested-scrollbars discipline](#no-nested-scrollbars-discipline)
+- [Visual verification](#visual-verification)
+- [Source provenance](#source-provenance)
+
 The renderer enforces TWO authoring-time density limits as soft
 warnings: `MAX_BULLETS = 6` bullets per slide; `MAX_BODY_WORDS = 40`
 total body words per slide (across all `text` blocks). Either limit

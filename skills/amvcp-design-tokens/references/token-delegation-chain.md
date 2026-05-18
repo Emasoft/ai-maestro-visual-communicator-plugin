@@ -1,5 +1,18 @@
 # Token delegation chain — fallback `var()` strategy
 
+## Table of Contents
+
+- [What it is](#what-it-is)
+- [Why both uses](#why-both-uses)
+- [When to use delegation](#when-to-use-delegation)
+- [When to use fallback](#when-to-use-fallback)
+- [Scaffold to emit](#scaffold-to-emit)
+- [Lib functions used](#lib-functions-used)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Anti-slop interaction](#anti-slop-interaction)
+- [Selection / comment / decision-mini contract](#selection--comment--decision-mini-contract)
+- [Visual verification](#visual-verification)
+
 A scaling strategy: let SECONDARY tokens *delegate* to PRIMARY ones
 via `var(--primary, fallback)`, rather than declaring every token
 explicitly. Reduces DESIGN.md surface area without losing override

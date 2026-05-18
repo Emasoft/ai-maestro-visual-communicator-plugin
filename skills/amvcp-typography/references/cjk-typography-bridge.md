@@ -1,5 +1,23 @@
 # CJK typography bridge — what this skill defers to `design-tokens` DT-25
 
+## Table of Contents
+
+- [What it is](#what-it-is)
+- [What the typography skill emits](#what-the-typography-skill-emits)
+- [What the typography skill DEFERS to DT-25](#what-the-typography-skill-defers-to-dt-25)
+- [Scaffold — a CJK-tagged page](#scaffold--a-cjk-tagged-page)
+- [Scaffold — mixed Latin / CJK content](#scaffold--mixed-latin--cjk-content)
+- [Tokens consumed / extended](#tokens-consumed--extended)
+- [Why this skill doesn't OWN the CJK contract](#why-this-skill-doesnt-own-the-cjk-contract)
+- [The bouten / kenten dot pattern](#the-bouten--kenten-dot-pattern)
+- [Why `#ff6600` (Claude orange)](#why-ff6600-claude-orange)
+- [CJK with `<html lang="zh-Hans">` vs `"zh-Hant">`](#cjk-with-html-langzh-hans-vs-zh-hant)
+- [Light + dark — correct for both](#light--dark--correct-for-both)
+- [Selection-contract conformance](#selection-contract-conformance)
+- [When NOT to use the CJK contract](#when-not-to-use-the-cjk-contract)
+- [Verification](#verification)
+- [Cross-references](#cross-references)
+
 CJK typography (Chinese, Japanese, Korean) is owned by the
 `design-tokens` skill's DT-25 entry — it is a *cross-cutting token
 concern* that lives in the engine's token tree, not in the typography

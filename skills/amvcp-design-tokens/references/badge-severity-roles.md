@@ -1,5 +1,16 @@
 # Badge severity role map — MUST / IMO / Q / FYI (DT-19)
 
+## Table of Contents
+
+- [What it does](#what-it-does)
+- [When to use](#when-to-use)
+- [Scaffold to emit](#scaffold-to-emit)
+- [Lib functions used](#lib-functions-used)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Anti-slop interaction](#anti-slop-interaction)
+- [Selection / comment / decision-mini contract](#selection--comment--decision-mini-contract)
+- [Visual verification](#visual-verification)
+
 A four-level severity convention for review comments and document
 findings, mapped onto the engine's four semantic-state roles so badges
 theme with the rest of the page. The smallest reusable role map (only

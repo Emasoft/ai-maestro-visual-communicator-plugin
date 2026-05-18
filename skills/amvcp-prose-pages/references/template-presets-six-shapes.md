@@ -1,5 +1,17 @@
 # The 6 template presets — `vc-doc--<name>` modifiers
 
+## Table of Contents
+
+- [When to pick which template](#when-to-pick-which-template)
+- [What each template adds](#what-each-template-adds)
+- [Picking the right template — decision tree](#picking-the-right-template--decision-tree)
+- [Template stacking](#template-stacking)
+- [Template + shape mapping](#template--shape-mapping)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Composition](#composition)
+- [Lib API](#lib-api)
+- [Anti-patterns](#anti-patterns)
+
 The 6 template names exposed by `amvcp-report-doc.js` as
 `TEMPLATES`: `executive-summary`, `technical-report`, `case-study`,
 `proposal`, `whitepaper`, `design-system-doc`. Each is a `.vc-doc--

@@ -1,5 +1,19 @@
 # Clip-reveal wipe — `data-va-reveal="clip"` left-to-right unmask
 
+## Table of Contents
+
+- [The contract](#the-contract)
+- [The CSS](#the-css)
+- [The `inset()` syntax](#the-inset-syntax)
+- [When to use clip-reveal](#when-to-use-clip-reveal)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Reduced-motion substitute](#reduced-motion-substitute)
+- [Counter targets are not clip targets](#counter-targets-are-not-clip-targets)
+- [Selection + comment + decision integration](#selection--comment--decision-integration)
+- [Performance](#performance)
+- [Diagnostics](#diagnostics)
+- [Visual verification](#visual-verification)
+
 A scroll-reveal variant that "wipes" the element in from left to
 right via `clip-path: inset()`. The content is FULLY rendered (no
 opacity:0); only the clip mask animates. Reads as "the page is

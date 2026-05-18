@@ -1,5 +1,16 @@
 # Wireframe grayscale palette — zero-hue, zero-radius (DT-24)
 
+## Table of Contents
+
+- [What it is](#what-it-is)
+- [When to pick](#when-to-pick)
+- [Scaffold to emit](#scaffold-to-emit)
+- [Lib functions used](#lib-functions-used)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Anti-slop interaction](#anti-slop-interaction)
+- [Selection / comment / decision-mini contract](#selection--comment--decision-mini-contract)
+- [Visual verification](#visual-verification)
+
 A pure-grayscale palette with all radii pinned to 0. The fidelity-lock
 preset: no color (so no visual association can leak in), zero radius
 (so no implied "polished" feel), no shadows (so no implied

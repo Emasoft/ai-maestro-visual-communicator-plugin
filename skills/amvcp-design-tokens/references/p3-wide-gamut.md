@@ -1,5 +1,16 @@
 # P3 wide-gamut accent token (DT-18)
 
+## Table of Contents
+
+- [What it does](#what-it-does)
+- [When to use](#when-to-use)
+- [Scaffold to emit](#scaffold-to-emit)
+- [Lib functions used](#lib-functions-used)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Anti-slop interaction](#anti-slop-interaction)
+- [Selection / comment / decision-mini contract](#selection--comment--decision-mini-contract)
+- [Visual verification](#visual-verification)
+
 CSS `@supports` progressive enhancement for P3 wide-gamut accents.
 Fallback sRGB value always present; P3 version uses
 `color(display-p3 r g b)` notation. Render the same accent at higher

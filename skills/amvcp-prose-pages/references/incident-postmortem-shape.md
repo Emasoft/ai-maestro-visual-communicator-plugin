@@ -1,5 +1,21 @@
 # Incident-postmortem shape — INC-id + TL;DR + timeline + impact + action items
 
+## Table of Contents
+
+- [When to choose this shape](#when-to-choose-this-shape)
+- [Section order (fixed)](#section-order-fixed)
+- [Markdown scaffold](#markdown-scaffold)
+- [The typed-dot timeline](#the-typed-dot-timeline)
+- [The key/value pill (`vc-pill-k` + `vc-pill-v`)](#the-keyvalue-pill-vc-pill-k--vc-pill-v)
+- [The slate TL;DR variant](#the-slate-tldr-variant)
+- [The fixed-right TOC](#the-fixed-right-toc)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Composition with other skills](#composition-with-other-skills)
+- [Lib functions called](#lib-functions-called)
+- [Selection / comment notes](#selection--comment-notes)
+- [Decision-mini hook](#decision-mini-hook)
+- [Anti-patterns](#anti-patterns)
+
 The structured postmortem document for any service incident or
 production outage. Canonical reference: `html-effectiveness` demo #12,
 "incident-report". This shape has been refined by every major operations

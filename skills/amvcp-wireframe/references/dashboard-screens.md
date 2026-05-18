@@ -1,5 +1,18 @@
 # Dashboard screens — analytics, admin, and monitoring patterns
 
+## Table of Contents
+
+- [Pattern 1 — KPI overview (stat band + chart + recent activity)](#pattern-1--kpi-overview-stat-band--chart--recent-activity)
+- [Pattern 2 — Data table (sortable list with filters + pagination)](#pattern-2--data-table-sortable-list-with-filters--pagination)
+- [Pattern 3 — Single record (header + tabs + detail panel)](#pattern-3--single-record-header--tabs--detail-panel)
+- [Pattern 4 — Settings (sectioned forms + save bar)](#pattern-4--settings-sectioned-forms--save-bar)
+- [Pattern 5 — Empty admin (onboarding wizard step)](#pattern-5--empty-admin-onboarding-wizard-step)
+- [Pattern 6 — Multi-column board (kanban / columns)](#pattern-6--multi-column-board-kanban--columns)
+- [The stat-band recipe — 4 KPI cards in a row](#the-stat-band-recipe--4-kpi-cards-in-a-row)
+- [The chart placeholder — `wf-image` substitute](#the-chart-placeholder--wf-image-substitute)
+- [Sidebar grouping with `wf-divider`](#sidebar-grouping-with-wf-divider)
+- [Dense data — when to break the 16px gap rule](#dense-data--when-to-break-the-16px-gap-rule)
+
 Six canonical dashboard-class shapes. All use `wf-archetype--app`
 (titlebar + sidebar + main + statusbar). The main content area is
 where the actual data viz happens; this file covers the SHELL plus

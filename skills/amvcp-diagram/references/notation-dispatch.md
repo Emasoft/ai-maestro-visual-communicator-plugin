@@ -1,5 +1,12 @@
 # Notation dispatch — which renderer?
 
+## Table of Contents
+
+- [The decision tree](#the-decision-tree)
+- [Why the scene-graph over hand-authored SVG](#why-the-scene-graph-over-hand-authored-svg)
+- [What this skill deliberately does NOT do](#what-this-skill-deliberately-does-not-do)
+- [Renderer ownership table](#renderer-ownership-table)
+
 Read this BEFORE generating any diagram. Each request routes to exactly
 one renderer. Picking the wrong one wastes effort and ships a worse
 result.

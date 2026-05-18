@@ -1,5 +1,18 @@
 # Sub-technique E6 — Architecture explainer with numbered callstack snippets
 
+## Table of Contents
+
+- [E6.1 The shape](#e61-the-shape)
+- [E6.2 The composition with collapsed-snippets-walkthrough](#e62-the-composition-with-collapsed-snippets-walkthrough)
+- [E6.3 The leading SVG diagram](#e63-the-leading-svg-diagram)
+- [E6.4 The hot-step modifier](#e64-the-hot-step-modifier)
+- [E6.5 The sticky right sidebar](#e65-the-sticky-right-sidebar)
+- [E6.6 Composition with the diagram skill](#e66-composition-with-the-diagram-skill)
+- [E6.7 Selection / commenting flow](#e67-selection--commenting-flow)
+- [E6.8 Light + dark verification](#e68-light--dark-verification)
+- [E6.9 Tokens consumed](#e69-tokens-consumed)
+- [E6.10 Mined source attribution](#e610-mined-source-attribution)
+
 The numbered callstack walkthrough — `[circular badge] [file:line
 range] [prose] [<details> source]` per step, with the hot/critical
 step using a clay-tinted badge. Mined from `04-code-understanding.html`

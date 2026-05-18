@@ -1,5 +1,20 @@
 # Retrospective shape — four-quadrant retro + action items
 
+## Table of Contents
+
+- [When to choose this shape](#when-to-choose-this-shape)
+- [Section order (fixed)](#section-order-fixed)
+- [Markdown scaffold](#markdown-scaffold)
+- [The four-quadrant grid](#the-four-quadrant-grid)
+- [The "extract action items from the quadrant" rule](#the-extract-action-items-from-the-quadrant-rule)
+- [The "follow-up to prior retro" section](#the-follow-up-to-prior-retro-section)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Composition with other skills](#composition-with-other-skills)
+- [Lib functions called](#lib-functions-called)
+- [Selection / comment notes](#selection--comment-notes)
+- [Decision-mini hook](#decision-mini-hook)
+- [Anti-patterns](#anti-patterns)
+
 The document a team writes after a project / sprint / quarter to capture
 what worked, what did not, and what should change. Canonical reference:
 master catalog RD-08 (ASCII retro grid evolved into the responsive

@@ -1,5 +1,20 @@
 # Sub-technique F3 — JSON editor with live validation + error highlight
 
+## Table of Contents
+
+- [F3.1 The pattern](#f31-the-pattern)
+- [F3.2 The validation pass](#f32-the-validation-pass)
+- [F3.3 The error highlight at a character position](#f33-the-error-highlight-at-a-character-position)
+- [F3.4 The Format (Prettify) button](#f34-the-format-prettify-button)
+- [F3.5 The Copy button](#f35-the-copy-button)
+- [F3.6 Schema-aware validation (optional)](#f36-schema-aware-validation-optional)
+- [F3.7 Integration with the runtime's gutter](#f37-integration-with-the-runtimes-gutter)
+- [F3.8 Selection / commenting](#f38-selection--commenting)
+- [F3.9 Compose with live-diff-sidebar](#f39-compose-with-live-diff-sidebar)
+- [F3.10 Light + dark verification](#f310-light--dark-verification)
+- [F3.11 Tokens consumed](#f311-tokens-consumed)
+- [F3.12 Author rules](#f312-author-rules)
+
 A JSON-editor variant of the contenteditable code editor. The user
 types JSON; the page parses on every change; parse errors are shown
 inline (highlighted character + tooltip) plus in a status bar.

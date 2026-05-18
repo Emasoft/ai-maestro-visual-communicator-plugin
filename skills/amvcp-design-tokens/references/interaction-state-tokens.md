@@ -1,5 +1,16 @@
 # Interaction-state opacity tokens (DT-03 + DT-21)
 
+## Table of Contents
+
+- [What it does](#what-it-does)
+- [When to use](#when-to-use)
+- [Scaffold to emit](#scaffold-to-emit)
+- [Lib functions used](#lib-functions-used)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Anti-slop interaction](#anti-slop-interaction)
+- [Selection / comment / decision-mini contract](#selection--comment--decision-mini-contract)
+- [Visual verification](#visual-verification)
+
 The MD3 canonical state-layer model + surface-pressed / selection-
 highlight / focus-ring extensions. ONE technique with five shipped
 opacities; ONE component (`.vc-state` on any element) makes every

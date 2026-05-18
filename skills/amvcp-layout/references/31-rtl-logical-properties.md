@@ -1,5 +1,19 @@
 # 31 — RTL logical properties (the cross-cutting authoring rule)
 
+## Table of Contents
+
+- [What this is](#what-this-is)
+- [The "documented exception" rule](#the-documented-exception-rule)
+- [How to enforce](#how-to-enforce)
+- [Why this matters for RTL languages](#why-this-matters-for-rtl-languages)
+- [The `text-align: start` nuance](#the-text-align-start-nuance)
+- [Scaffold to apply](#scaffold-to-apply)
+- [Lib functions called](#lib-functions-called)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Selection / comment / decision-mini contract notes](#selection--comment--decision-mini-contract-notes)
+- [When a physical property is unavoidable](#when-a-physical-property-is-unavoidable)
+- [Visual verification](#visual-verification)
+
 Every directional CSS property emitted by the layout technique
 MUST use the LOGICAL variant (`margin-inline-start`,
 `inset-block-start`, `inline-size`, …) instead of the physical one

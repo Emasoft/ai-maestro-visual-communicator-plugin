@@ -1,5 +1,15 @@
 # Viewport scaffold — pan + zoom + mini-map for dense diagrams
 
+## Table of Contents
+
+- [Why this exists (and why it's allowed)](#why-this-exists-and-why-its-allowed)
+- [How to enable](#how-to-enable)
+- [What you get](#what-you-get)
+- [Comment-handle adjustment](#comment-handle-adjustment)
+- [Theme-token usage](#theme-token-usage)
+- [When NOT to use viewport mode](#when-not-to-use-viewport-mode)
+- [Reference test cases](#reference-test-cases)
+
 When a diagram is too large or too dense to render comfortably inline,
 opt in to **viewport mode**: a fixed-height container with a draggable
 canvas, mouse-wheel zoom, a toolbar (top-right), and a draggable

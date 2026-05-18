@@ -1,5 +1,17 @@
 # 07 — Subgrid card row (titles / bodies / footers align across the row)
 
+## Table of Contents
+
+- [What this is](#what-this-is)
+- [Scaffold to emit](#scaffold-to-emit)
+- [The HARD contract on card internal markup](#the-hard-contract-on-card-internal-markup)
+- [Lib functions called](#lib-functions-called)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Selection / comment / decision-mini contract notes](#selection--comment--decision-mini-contract-notes)
+- [When to use this row vs the auto-fill card grid (ref 11)](#when-to-use-this-row-vs-the-auto-fill-card-grid-ref-11)
+- [Why subgrid, not `display:flex; flex-direction:column`](#why-subgrid-not-displayflex-flex-directioncolumn)
+- [Visual verification](#visual-verification)
+
 A row of cards where the titles, bodies, and footers align to a
 shared baseline across cards, even when one title wraps onto two
 lines while another is a single line. CSS subgrid was the missing

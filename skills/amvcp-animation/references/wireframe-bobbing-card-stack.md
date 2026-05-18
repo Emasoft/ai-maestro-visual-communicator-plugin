@@ -1,5 +1,20 @@
 # Wireframe bobbing card stack — `.va-float-y` + shadow-scale recipe
 
+## Table of Contents
+
+- [The visual](#the-visual)
+- [The recipe](#the-recipe)
+- [Why ::after for the shadow](#why-after-for-the-shadow)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Reduced-motion substitute](#reduced-motion-substitute)
+- [Loop-pause integration](#loop-pause-integration)
+- [Selection + comment + decision integration](#selection--comment--decision-integration)
+- [When to use the bobbing card stack](#when-to-use-the-bobbing-card-stack)
+- [Visual verification](#visual-verification)
+- [Pattern note: the wireframe-skill connection](#pattern-note-the-wireframe-skill-connection)
+- [Combining with hover lift](#combining-with-hover-lift)
+- [Custom shadow color](#custom-shadow-color)
+
 A wireframe-skill pattern from the html-effectiveness mining
 catalog (`02-exploration-visual-designs`): a "Playful" wireframe
 variant with a CSS-only bobbing card stack and a separately-keyed

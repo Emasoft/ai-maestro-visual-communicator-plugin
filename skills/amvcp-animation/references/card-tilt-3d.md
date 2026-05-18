@@ -1,5 +1,22 @@
 # 3D card tilt — `.va-tilt` perspective on hover
 
+## Table of Contents
+
+- [The contract](#the-contract)
+- [The CSS](#the-css)
+- [The JS](#the-js)
+- [The perspective formula](#the-perspective-formula)
+- [The 10° max angle](#the-10-max-angle)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [When to use](#when-to-use)
+- [Performance](#performance)
+- [Reduced-motion substitute](#reduced-motion-substitute)
+- [Combining with static hover](#combining-with-static-hover)
+- [Selection + comment + decision integration](#selection--comment--decision-integration)
+- [Dynamic insertion](#dynamic-insertion)
+- [Diagnostics](#diagnostics)
+- [Visual verification](#visual-verification)
+
 A subtle 3D tilt that follows the mouse pointer — gives cards a
 sense of physical depth without crossing into gimmick territory.
 Skipped entirely under `prefers-reduced-motion: reduce` (the

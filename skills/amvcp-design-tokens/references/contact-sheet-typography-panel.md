@@ -1,5 +1,16 @@
 # Contact-sheet typography panel — specimens + stacks
 
+## Table of Contents
+
+- [What it does](#what-it-does)
+- [Why one specimen text repeated](#why-one-specimen-text-repeated)
+- [Scaffold to emit](#scaffold-to-emit)
+- [Lib functions used](#lib-functions-used)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Anti-slop interaction](#anti-slop-interaction)
+- [Selection / comment / decision-mini contract](#selection--comment--decision-mini-contract)
+- [Visual verification](#visual-verification)
+
 The `typography` panel of the token contact sheet renders one
 specimen line per type-scale step at its TRUE pixel size + the three
 font stacks (heading / body / mono) shown as themselves. The

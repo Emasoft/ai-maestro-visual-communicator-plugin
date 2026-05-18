@@ -1,5 +1,18 @@
 # State & feedback patterns — loading, error, empty, success, offline
 
+## Table of Contents
+
+- [Pattern 1 — Loading skeleton (full-page placeholder)](#pattern-1--loading-skeleton-full-page-placeholder)
+- [Pattern 2 — Inline spinner (button + section loaders)](#pattern-2--inline-spinner-button--section-loaders)
+- [Pattern 3 — Error banner / error page](#pattern-3--error-banner--error-page)
+- [Pattern 4 — Offline state](#pattern-4--offline-state)
+- [Pattern 5 — Empty state variants](#pattern-5--empty-state-variants)
+- [Pattern 6 — Success / completion celebration](#pattern-6--success--completion-celebration)
+- [Progress bar (determinate vs indeterminate)](#progress-bar-determinate-vs-indeterminate)
+- [Optimistic update with revert](#optimistic-update-with-revert)
+- [Partial-failure state (some succeeded, some failed)](#partial-failure-state-some-succeeded-some-failed)
+- [Stale data warning](#stale-data-warning)
+
 Every screen has multiple states beyond "happy path". Six patterns:
 loading skeleton, inline spinner, error banner / page, offline state,
 empty state, success / completion.

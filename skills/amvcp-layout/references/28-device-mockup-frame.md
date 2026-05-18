@@ -1,5 +1,18 @@
 # 28 — Generalised device-mockup frame (`.la-device` + `--dev-*` CSS props)
 
+## Table of Contents
+
+- [What this is](#what-this-is)
+- [Scaffold to emit](#scaffold-to-emit)
+- [Why `box-sizing: border-box`](#why-box-sizing-border-box)
+- [The `transform: translateX(-50%)` exception](#the-transform-translatex-50-exception)
+- [The screen `overflow: hidden`](#the-screen-overflow-hidden)
+- [Lib functions called](#lib-functions-called)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Selection / comment / decision-mini contract notes](#selection--comment--decision-mini-contract-notes)
+- [Why the frame colour is `--vc-color-content`, not `#000`](#why-the-frame-colour-is---vc-color-content-not-000)
+- [Visual verification](#visual-verification)
+
 A parameterised CSS frame for screenshots, demos, and feature
 illustrations. Driven by 5 inline custom properties
 (`--dev-w`, `--dev-h`, `--dev-radius`, `--dev-notch-w`,

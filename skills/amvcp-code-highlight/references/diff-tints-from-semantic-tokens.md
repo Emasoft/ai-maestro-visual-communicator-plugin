@@ -1,5 +1,21 @@
 # Sub-technique D4 — Diff tints from semantic color tokens (never hardcoded)
 
+## Table of Contents
+
+- [D4.1 The four diff tint tokens](#d41-the-four-diff-tint-tokens)
+- [D4.2 Why color-mix, not just lower alpha](#d42-why-color-mix-not-just-lower-alpha)
+- [D4.3 Why these tokens, not hardcoded green/red](#d43-why-these-tokens-not-hardcoded-greenred)
+- [D4.4 The 22% / 60% / 16% / 70% calibration](#d44-the-22--60--16--70-calibration)
+- [D4.5 The full fallback chain](#d45-the-full-fallback-chain)
+- [D4.6 Adding the diff tints to DESIGN.md (optional)](#d46-adding-the-diff-tints-to-designmd-optional)
+- [D4.7 The color-mix syntax — browser support](#d47-the-color-mix-syntax--browser-support)
+- [D4.8 Selection tint over diff tint](#d48-selection-tint-over-diff-tint)
+- [D4.9 Print stylesheet](#d49-print-stylesheet)
+- [D4.10 What an author can override](#d410-what-an-author-can-override)
+- [D4.11 Author rules](#d411-author-rules)
+- [D4.12 Tokens consumed](#d412-tokens-consumed)
+- [D4.13 Cross-references](#d413-cross-references)
+
 Why the `--ve-code-diff-*` tints are built from `--vc-color-success` /
 `--vc-color-danger` via `color-mix`, NEVER from hardcoded `#9ece9e` /
 `#a84a32`. The theming discipline that lets a DESIGN.md change re-

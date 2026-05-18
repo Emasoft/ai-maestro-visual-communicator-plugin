@@ -1,5 +1,19 @@
 # Sub-technique B1 — The 3-state code-block visual model
 
+## Table of Contents
+
+- [B1.1 The four states](#b11-the-four-states)
+- [B1.2 Why `:has()` and not a JS class toggle](#b12-why-has-and-not-a-js-class-toggle)
+- [B1.3 The CSS-variable neutralization trick](#b13-the-css-variable-neutralization-trick)
+- [B1.4 The 1.5px backdrop-filter — why it's there](#b14-the-15px-backdrop-filter--why-its-there)
+- [B1.5 The `!important` rationale](#b15-the-important-rationale)
+- [B1.6 Why the outline + halo, not a bg fill](#b16-why-the-outline--halo-not-a-bg-fill)
+- [B1.7 The 4 states in dev-tools](#b17-the-4-states-in-dev-tools)
+- [B1.8 Per-line vs block-level visual responsibility](#b18-per-line-vs-block-level-visual-responsibility)
+- [B1.9 Multi-block pages](#b19-multi-block-pages)
+- [B1.10 Tokens consumed](#b110-tokens-consumed)
+- [B1.11 Don't override](#b111-dont-override)
+
 The wrapping `.ve-code-block`'s four visual states (normal / hover-
 unselected / selected / hover-over-selected) and the CSS `:has()`
 selector chain that drives them — without overriding the runtime's

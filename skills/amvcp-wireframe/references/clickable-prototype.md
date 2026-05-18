@@ -1,5 +1,19 @@
 # Clickable prototype — making a wireframe behave like an app
 
+## Table of Contents
+
+- [The clickable contract — what makes it "feel real"](#the-clickable-contract--what-makes-it-feel-real)
+- [Pattern 1 — Hub-and-spoke (one home, many sub-flows)](#pattern-1--hub-and-spoke-one-home-many-sub-flows)
+- [Pattern 2 — Linear flow (cart → payment → confirm)](#pattern-2--linear-flow-cart--payment--confirm)
+- [Pattern 3 — Branching flow (a yes/no decision splits paths)](#pattern-3--branching-flow-a-yesno-decision-splits-paths)
+- [Pattern 4 — Modal-over-screen (overlay pattern)](#pattern-4--modal-over-screen-overlay-pattern)
+- [Pattern 5 — Multi-step wizard with back-stop](#pattern-5--multi-step-wizard-with-back-stop)
+- [Pattern 6 — Stateful mocks (toggle, expand, filter)](#pattern-6--stateful-mocks-toggle-expand-filter)
+- [The "happy path + 1 error" rule](#the-happy-path--1-error-rule)
+- [Annotated callouts — show design rationale](#annotated-callouts--show-design-rationale)
+- [Open-questions panel — collect feedback inline](#open-questions-panel--collect-feedback-inline)
+- [Screen inventory — name every screen up front](#screen-inventory--name-every-screen-up-front)
+
 A wireframe BECOMES a clickable prototype when its screens link to
 each other and each screen MIMICS the real interactive behavior of
 the final app. No JS framework, no signed builds — just `<a href>`,

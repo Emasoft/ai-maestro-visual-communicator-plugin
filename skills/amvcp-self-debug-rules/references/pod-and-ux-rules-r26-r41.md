@@ -1,5 +1,24 @@
 # Pod, UX, and accessibility rules (R26-R41)
 
+## Table of Contents
+
+- [R27 — DESIGN.md style controller pod always MOUNTED (but hidden by default)](#r27--designmd-style-controller-pod-always-mounted-but-hidden-by-default)
+- [R28 — Pod library: save / rename / delete user presets](#r28--pod-library-save--rename--delete-user-presets)
+- [R29 — 3-state selection ALWAYS overrides DESIGN.md palette](#r29--3-state-selection-always-overrides-designmd-palette)
+- [R30 — Touch parity on mobile](#r30--touch-parity-on-mobile)
+- [R31 — Responsive at all common viewport widths](#r31--responsive-at-all-common-viewport-widths)
+- [R32 — Retina (2× / 3×) bitmap density](#r32--retina-2--3-bitmap-density)
+- [R33 — Corner action buttons always present (even in slides / animations / video)](#r33--corner-action-buttons-always-present-even-in-slides--animations--video)
+- [R34 — No overlap between scaffolded elements](#r34--no-overlap-between-scaffolded-elements)
+- [R35 — No text hidden or truncated at the viewport edge](#r35--no-text-hidden-or-truncated-at-the-viewport-edge)
+- [R36 — Diagrams: zoom / pan + draggable mini-map](#r36--diagrams-zoom--pan--draggable-mini-map)
+- [R37 — Font size readable (≥ 14 px body, ≥ 12 px chips)](#r37--font-size-readable--14-px-body--12-px-chips)
+- [R38 — Live-page overlay: select TRUE HTML elements](#r38--live-page-overlay-select-true-html-elements)
+- [R39 — Pod summon gesture (desktop key combo + mobile 3-finger tap)](#r39--pod-summon-gesture-desktop-key-combo--mobile-3-finger-tap)
+- [R26 — Skill discoverability — SKILL.md declares modes + composability](#r26--skill-discoverability--skillmd-declares-modes--composability)
+- [R40 — Accessibility primitives + clean print export](#r40--accessibility-primitives--clean-print-export)
+- [R41 — dev-browser NEVER runs in headless mode](#r41--dev-browser-never-runs-in-headless-mode)
+
 R26-R41 cover the DESIGN.md pod contract (always-mounted, save/rename/delete user presets, summon gesture), the universal-UX baseline (touch parity, responsive viewport matrix, retina density, corner buttons always-on-top, no overlap, no truncation, diagram zoom/pan, font-size minimums, live-page overlay), R26 skill-discoverability, R40 accessibility primitives + print export, and R41 dev-browser-never-headless. Each rule includes a dev-browser verify snippet.
 
 ### R27 — DESIGN.md style controller pod always MOUNTED (but hidden by default)

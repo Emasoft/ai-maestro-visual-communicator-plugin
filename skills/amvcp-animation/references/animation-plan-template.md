@@ -1,5 +1,21 @@
 # Animation plan template (OT-08)
 
+## Table of Contents
+
+- [1. Timing overview](#1-timing-overview)
+- [2. Element inventory](#2-element-inventory)
+- [3. Entrance sequence](#3-entrance-sequence)
+- [4. Idle / loop state](#4-idle--loop-state)
+- [5. Interaction responses](#5-interaction-responses)
+- [6. Exit sequence](#6-exit-sequence)
+- [7. Reduced-motion variants  ← MANDATORY](#7-reduced-motion-variants--mandatory)
+- [8. Performance budget  ← MANDATORY](#8-performance-budget--mandatory)
+- [9. Dependencies](#9-dependencies)
+- [10. Device notes](#10-device-notes)
+- [11. Test scenarios](#11-test-scenarios)
+- [12. Implementation order](#12-implementation-order)
+- [13. Review checkpoints](#13-review-checkpoints)
+
 A fill-in authoring checklist for planning a complex animation sequence
 BEFORE implementing it. Copy this file, fill every section, then build.
 Sections 7 and 8 are load-bearing — they turn "did you write the

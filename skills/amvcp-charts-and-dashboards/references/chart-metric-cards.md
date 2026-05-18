@@ -1,5 +1,18 @@
 # `chart:metric-cards@1` — KPI tile row
 
+## Table of Contents
+
+- [When to choose metric-cards](#when-to-choose-metric-cards)
+- [Authoring shape](#authoring-shape)
+- [Options](#options)
+- [Examples](#examples)
+- [What the runtime emits](#what-the-runtime-emits)
+- [Lib functions called](#lib-functions-called)
+- [DESIGN.md tokens](#designmd-tokens)
+- [Selection / atoms](#selection--atoms)
+- [Anti-patterns](#anti-patterns)
+- [Visual verification](#visual-verification)
+
 A grid of KPI cards: a label, a big number, optional unit, optional delta
 badge (up/down/flat with semantic color). The dashboard primitive that
 sits alongside a chart to give the reader the headline numbers. Every

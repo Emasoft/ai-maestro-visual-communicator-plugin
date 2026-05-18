@@ -1,5 +1,29 @@
 # Anti-patterns — what NOT to do, and why
 
+## Table of Contents
+
+- [1. `animation: none !important` on `prefers-reduced-motion: reduce`](#1-animation-none-important-on-prefers-reduced-motion-reduce)
+- [2. Animating layout-triggering properties](#2-animating-layout-triggering-properties)
+- [3. Missing `animation-fill-mode: both` on staggered entry](#3-missing-animation-fill-mode-both-on-staggered-entry)
+- [4. Setting `--va-index` via `:nth-child` selectors](#4-setting---va-index-via-nth-child-selectors)
+- [5. Forgetting `:focus-visible` on hover-driven animations](#5-forgetting-focus-visible-on-hover-driven-animations)
+- [6. Removing focus rings without replacement](#6-removing-focus-rings-without-replacement)
+- [7. `transform-origin: 0 0` on a centered element](#7-transform-origin-0-0-on-a-centered-element)
+- [8. Infinite loops without loop-pause](#8-infinite-loops-without-loop-pause)
+- [9. Mocking the runtime in tests instead of loading it](#9-mocking-the-runtime-in-tests-instead-of-loading-it)
+- [10. Calling `init()` multiple times without `refresh()`](#10-calling-init-multiple-times-without-refresh)
+- [11. Using SMIL instead of CSS for SVG animations](#11-using-smil-instead-of-css-for-svg-animations)
+- [12. Hardcoded durations / easings in CSS](#12-hardcoded-durations--easings-in-css)
+- [13. Using `text-decoration` for animated underlines](#13-using-text-decoration-for-animated-underlines)
+- [14. Mixing GSAP / anime.js / Lenis / etc.](#14-mixing-gsap--animejs--lenis--etc)
+- [15. Storing animation state in JS closures instead of CSS](#15-storing-animation-state-in-js-closures-instead-of-css)
+- [16. Adding `will-change` everywhere](#16-adding-will-change-everywhere)
+- [17. Animation duration in CSS, but JS reads a different value](#17-animation-duration-in-css-but-js-reads-a-different-value)
+- [18. Animating elements outside the viewport unnecessarily](#18-animating-elements-outside-the-viewport-unnecessarily)
+- [19. Static `box-shadow` for hover (no transition)](#19-static-box-shadow-for-hover-no-transition)
+- [20. Treating `prefers-reduced-motion` as binary on/off only](#20-treating-prefers-reduced-motion-as-binary-onoff-only)
+- [Quick reference table](#quick-reference-table)
+
 A curated list of mistakes that look reasonable but produce bugs,
 performance issues, or accessibility violations. Each entry is a
 "don't do this" with the diagnostic for catching it.

@@ -1,5 +1,19 @@
 # Logo block — arc-bite
 
+## Table of Contents
+
+- [What it renders](#what-it-renders)
+- [Scaffold](#scaffold)
+- [Geometry](#geometry)
+- [Why a `<path>`, not a mask?](#why-a-path-not-a-mask)
+- [Lib function](#lib-function)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [When to use](#when-to-use)
+- [When NOT to use](#when-not-to-use)
+- [Common authoring patterns](#common-authoring-patterns)
+- [What NOT to do](#what-not-to-do)
+- [Visual verification](#visual-verification)
+
 The `arc-bite` logo block is a single `<path>` that traces a
 rectangle and then carves a CRESCENT bite out of one corner using an
 `A` (arc) command with `fill-rule="evenodd"`. The result: an

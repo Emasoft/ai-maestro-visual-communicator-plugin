@@ -1,5 +1,19 @@
 # Reduced-motion gate — the substitute pattern, never `animation: none`
 
+## Table of Contents
+
+- [Why substitute (not disable)](#why-substitute-not-disable)
+- [The two categories — information-bearing vs decorative](#the-two-categories--information-bearing-vs-decorative)
+- [OS detection at runtime](#os-detection-at-runtime)
+- [Live OS-preference updates](#live-os-preference-updates)
+- [CSS pattern — every animation, twice](#css-pattern--every-animation-twice)
+- [JS pattern — read `REDUCED` once per call](#js-pattern--read-reduced-once-per-call)
+- [DESIGN.md `motion.scale: 0` is ORTHOGONAL, not equivalent](#designmd-motionscale-0-is-orthogonal-not-equivalent)
+- [The decision-tree for "what substitute do I write?"](#the-decision-tree-for-what-substitute-do-i-write)
+- [Diagnostics](#diagnostics)
+- [Visual verification](#visual-verification)
+- [Selection / decision integration](#selection--decision-integration)
+
 The single most important accessibility rule in the skill. Every
 animation ships TWO branches: full motion under
 `prefers-reduced-motion: no-preference`, and a MEANING-PRESERVING

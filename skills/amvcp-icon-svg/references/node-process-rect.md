@@ -1,5 +1,18 @@
 # Node primitive — process (rounded rect)
 
+## Table of Contents
+
+- [What it renders](#what-it-renders)
+- [Scaffold](#scaffold)
+- [Variants](#variants)
+- [Geometry — what `w` and `h` mean](#geometry--what-w-and-h-mean)
+- [Lib function (directly callable)](#lib-function-directly-callable)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Selection / comment / decision-mini](#selection--comment--decision-mini)
+- [Common authoring patterns](#common-authoring-patterns)
+- [What NOT to do](#what-not-to-do)
+- [Visual verification](#visual-verification)
+
 The `process` node is the workhorse of every authored scene: a rounded
 rectangle, hairline-stroked, no fill, with a centered label. Maps to
 "a step", "a stage", "a function", "a service", "a generic block" —

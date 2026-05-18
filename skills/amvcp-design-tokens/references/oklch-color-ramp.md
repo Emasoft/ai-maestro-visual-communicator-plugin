@@ -1,5 +1,16 @@
 # OKLCH perceptual color-ramp generator (DT-02 + DM-17)
 
+## Table of Contents
+
+- [What it does](#what-it-does)
+- [When to choose](#when-to-choose)
+- [Scaffold to emit](#scaffold-to-emit)
+- [Lib functions used](#lib-functions-used)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Anti-slop interaction](#anti-slop-interaction)
+- [Selection / comment / decision-mini contract](#selection--comment--decision-mini-contract)
+- [Visual verification](#visual-verification)
+
 A perceptually uniform color ramp. Hold the seed's hue and chroma
 constant; vary lightness across N stops. Result: equal-looking brightness
 steps to the human eye, no hue-shift artefacts. OKLCh interpolation is

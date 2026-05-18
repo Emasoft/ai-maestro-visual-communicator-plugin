@@ -1,5 +1,19 @@
 # Parallax tiers — `.va-parallax-1` through `.va-parallax-6`
 
+## Table of Contents
+
+- [The contract](#the-contract)
+- [Markup](#markup)
+- [The scroll listener — passive, rAF-coalesced](#the-scroll-listener--passive-raf-coalesced)
+- [Why parallax reads the DOCUMENT scroll axis only](#why-parallax-reads-the-document-scroll-axis-only)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Native scroll-driven animation (`animation-timeline: scroll()`)](#native-scroll-driven-animation-animation-timeline-scroll)
+- [Reduced-motion substitute](#reduced-motion-substitute)
+- [How many parallax layers is too many?](#how-many-parallax-layers-is-too-many)
+- [Selection + comment + decision integration](#selection--comment--decision-integration)
+- [Diagnostics](#diagnostics)
+- [Visual verification](#visual-verification)
+
 Six depth layers driven by a single `--va-scroll-y` CSS custom
 property. The page's own scroll axis is the trigger — never an
 inner overflow box. Use sparingly: 1-2 layers per page is usually

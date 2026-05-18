@@ -1,5 +1,21 @@
 # Skeleton shimmer — `.va-skeleton` placeholder for streamed content
 
+## Table of Contents
+
+- [The contract](#the-contract)
+- [The CSS](#the-css)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [When to use which modifier](#when-to-use-which-modifier)
+- [Markup recipes](#markup-recipes)
+- [Replacing the skeleton with real content](#replacing-the-skeleton-with-real-content)
+- [Performance — paused while off-screen](#performance--paused-while-off-screen)
+- [Reduced-motion substitute](#reduced-motion-substitute)
+- [Selection + comment + decision integration](#selection--comment--decision-integration)
+- [Color contrast — light vs dark](#color-contrast--light-vs-dark)
+- [Diagnostics](#diagnostics)
+- [Visual verification](#visual-verification)
+- [When NOT to use a skeleton](#when-not-to-use-a-skeleton)
+
 A sliding-gradient placeholder that occupies the visual space of
 content NOT YET ARRIVED. The gradient is built from two surface
 tokens (`--vc-color-surface-sunken` + `--vc-color-surface`) so the

@@ -1,5 +1,22 @@
 # `chart:bullet@1` — bullet chart
 
+## Table of Contents
+
+- [When to choose bullet](#when-to-choose-bullet)
+- [Authoring shape](#authoring-shape)
+- [Options](#options)
+- [Examples](#examples)
+- [What the runtime emits](#what-the-runtime-emits)
+- [Lib functions called](#lib-functions-called)
+- [DESIGN.md tokens](#designmd-tokens)
+- [Selection / atoms](#selection--atoms)
+- [Anti-patterns](#anti-patterns)
+- [Bullet vs alternatives](#bullet-vs-alternatives)
+- [The three layers explained](#the-three-layers-explained)
+- [When to set `range > target`](#when-to-set-range--target)
+- [Bullet for "lower is better" metrics](#bullet-for-lower-is-better-metrics)
+- [Visual verification](#visual-verification)
+
 A McKinsey-style KPI visualization. Each category band shows three layers:
 
 - A QUALITATIVE RANGE bar (the background — wide, low contrast).

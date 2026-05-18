@@ -1,5 +1,20 @@
 # Arrow markers and edge-semantics styling
 
+## Table of Contents
+
+- [The single-marker base case](#the-single-marker-base-case)
+- [Why scene-scoped marker ids matter](#why-scene-scoped-marker-ids-matter)
+- [Multi-marker edge semantics (3-marker pattern)](#multi-marker-edge-semantics-3-marker-pattern)
+- [When to extend the scheme](#when-to-extend-the-scheme)
+- [Marker geometry](#marker-geometry)
+- [Marker units and stroke-width scaling](#marker-units-and-stroke-width-scaling)
+- [`refX` / `refY` — where the marker anchors](#refx--refy--where-the-marker-anchors)
+- [Bidirectional edges](#bidirectional-edges)
+- [Animated arrowheads](#animated-arrowheads)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Anti-patterns](#anti-patterns)
+- [Visual verification](#visual-verification)
+
 How edge arrows are drawn, how multi-marker schemes encode edge
 semantics (gray default + olive success + rust failure), and the
 trade-offs around inline markers vs `<defs>` sharing.

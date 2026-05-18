@@ -1,5 +1,17 @@
 # Print stylesheet + back-to-top affordance
 
+## Table of Contents
+
+- [Why these matter](#why-these-matter)
+- [Print stylesheet (already shipped)](#print-stylesheet-already-shipped)
+- [Print: page numbering (optional)](#print-page-numbering-optional)
+- [Print: cover page (optional)](#print-cover-page-optional)
+- [Back-to-top affordance](#back-to-top-affordance)
+- [Back-to-top runtime](#back-to-top-runtime)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Composition](#composition)
+- [Anti-patterns](#anti-patterns)
+
 Two cross-cutting affordances every long document needs: an
 **`@media print`** stylesheet that flips the document to ink-on-paper
 when the reader hits Cmd-P, and a **back-to-top** anchor link that

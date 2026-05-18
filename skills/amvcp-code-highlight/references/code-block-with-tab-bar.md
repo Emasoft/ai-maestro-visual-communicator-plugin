@@ -1,5 +1,21 @@
 # Sub-technique B5 — Code block with tab-bar header
 
+## Table of Contents
+
+- [B5.1 What it does](#b51-what-it-does)
+- [B5.2 The canonical use cases](#b52-the-canonical-use-cases)
+- [B5.3 The markup](#b53-the-markup)
+- [B5.4 The 6-line JS handler](#b54-the-6-line-js-handler)
+- [B5.5 The CSS](#b55-the-css)
+- [B5.6 The active-tab indicator](#b56-the-active-tab-indicator)
+- [B5.7 Composing with file-path / language-icon](#b57-composing-with-file-path--language-icon)
+- [B5.8 Visual state during runtime selection](#b58-visual-state-during-runtime-selection)
+- [B5.9 The single-pane fallback (no JS)](#b59-the-single-pane-fallback-no-js)
+- [B5.10 The `data-ve-no-gutter` opt-out per tab](#b510-the-data-ve-no-gutter-opt-out-per-tab)
+- [B5.11 When NOT to use](#b511-when-not-to-use)
+- [B5.12 Tokens consumed](#b512-tokens-consumed)
+- [B5.13 Mined source: `14-research-feature-explainer.html`](#b513-mined-source-14-research-feature-explainerhtml)
+
 A tab-bar above a code block lets one container present multiple
 variants (multiple files for the same change, before/after, multiple
 languages). Mined from `14-research-feature-explainer.html` — the

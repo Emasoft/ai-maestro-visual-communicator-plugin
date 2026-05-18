@@ -1,5 +1,19 @@
 # 05 — Asymmetric grid (2fr : 1fr) — the canonical content + sidebar
 
+## Table of Contents
+
+- [What this is](#what-this-is)
+- [Scaffold to emit](#scaffold-to-emit)
+- [Lib functions called](#lib-functions-called)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Selection / comment / decision-mini contract notes](#selection--comment--decision-mini-contract-notes)
+- [When to use 2fr : 1fr vs 3fr : 1fr](#when-to-use-2fr--1fr-vs-3fr--1fr)
+- [When NOT to use this grid](#when-not-to-use-this-grid)
+- [Why `2fr : minmax(min(300px,100%), 1fr)` instead of `2fr : 1fr`](#why-2fr--minmaxmin300px100-1fr-instead-of-2fr--1fr)
+- [Visual verification](#visual-verification)
+- [Sidebar position: left vs right](#sidebar-position-left-vs-right)
+- [Combining with sticky page header](#combining-with-sticky-page-header)
+
 The most common 2-region page shape: a wide main content column and
 a narrower sidebar. The `.la-grid--2-1` preset is the standard
 recipe — `2fr : minmax(min(300px, 100%), 1fr)` columns, a one-line

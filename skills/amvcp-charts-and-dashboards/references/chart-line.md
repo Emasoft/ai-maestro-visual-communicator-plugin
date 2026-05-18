@@ -1,5 +1,18 @@
 # `chart:line@1` — line chart
 
+## Table of Contents
+
+- [When to choose line](#when-to-choose-line)
+- [Authoring shape](#authoring-shape)
+- [Options](#options)
+- [Examples](#examples)
+- [What the runtime emits](#what-the-runtime-emits)
+- [Lib functions called](#lib-functions-called)
+- [DESIGN.md tokens](#designmd-tokens)
+- [Selection / atoms](#selection--atoms)
+- [Anti-patterns](#anti-patterns)
+- [Visual verification](#visual-verification)
+
 A line chart with Catmull-Rom smoothing (cubic-Bezier spline through every
 data point, no overshoot). Multi-series overlays cleanly via golden-angle
 palette. Entry animation uses `getTotalLength()` + `stroke-dashoffset` to

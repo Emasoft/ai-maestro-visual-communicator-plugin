@@ -1,5 +1,16 @@
 # Hot-path tinting
 
+## Table of Contents
+
+- [When to choose this pattern](#when-to-choose-this-pattern)
+- [Implementation](#implementation)
+- [When to use "accent" vs "danger" vs "warning"](#when-to-use-accent-vs-danger-vs-warning)
+- [Hot-path edges](#hot-path-edges)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Selection atom](#selection-atom)
+- [Anti-patterns](#anti-patterns)
+- [Visual verification](#visual-verification)
+
 The visual technique for marking a "trust boundary", a "critical
 path", or a "code-review hotspot" in any diagram. Lifted from
 `04-code-understanding` in the html-effectiveness catalog. One

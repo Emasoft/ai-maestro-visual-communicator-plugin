@@ -1,5 +1,20 @@
 # Delta-time loop — `amvcpAnimation.createLoop(update, render)`
 
+## Table of Contents
+
+- [The public API](#the-public-api)
+- [The implementation](#the-implementation)
+- [The `start()` idempotency](#the-start-idempotency)
+- [The `stop()` cancel](#the-stop-cancel)
+- [Why ship a primitive nothing uses?](#why-ship-a-primitive-nothing-uses)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Reduced-motion interaction](#reduced-motion-interaction)
+- [Example consumer — a hypothetical chart entrance](#example-consumer--a-hypothetical-chart-entrance)
+- [Selection + comment + decision integration](#selection--comment--decision-integration)
+- [Diagnostics](#diagnostics)
+- [Visual verification](#visual-verification)
+- [When NOT to use this primitive](#when-not-to-use-this-primitive)
+
 The canonical canvas game-loop primitive. NOTHING in the
 animation skill itself calls it — it ships as a CORRECT primitive
 so any future canvas work (animated charts, particle

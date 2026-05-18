@@ -1,5 +1,18 @@
 # `chart:matrix@1` — labeled value matrix
 
+## Table of Contents
+
+- [When to choose matrix](#when-to-choose-matrix)
+- [Authoring shape](#authoring-shape)
+- [Options](#options)
+- [Examples](#examples)
+- [What the runtime emits](#what-the-runtime-emits)
+- [Lib functions called](#lib-functions-called)
+- [DESIGN.md tokens](#designmd-tokens)
+- [Selection / atoms](#selection--atoms)
+- [Anti-patterns](#anti-patterns)
+- [Visual verification](#visual-verification)
+
 A heatmap with the per-cell VALUE printed inside each cell. Same color-ramp
 encoding as `heatmap`, but the reader gets exact numbers without hovering.
 Best for small grids where every value matters.

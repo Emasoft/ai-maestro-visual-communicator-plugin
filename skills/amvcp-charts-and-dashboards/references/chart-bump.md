@@ -1,5 +1,22 @@
 # `chart:bump@1` — bump chart
 
+## Table of Contents
+
+- [When to choose bump](#when-to-choose-bump)
+- [Authoring shape](#authoring-shape)
+- [Options](#options)
+- [Examples](#examples)
+- [What the runtime emits](#what-the-runtime-emits)
+- [Lib functions called](#lib-functions-called)
+- [DESIGN.md tokens](#designmd-tokens)
+- [Selection / atoms](#selection--atoms)
+- [Anti-patterns](#anti-patterns)
+- [Bump vs alternatives](#bump-vs-alternatives)
+- [When the rank stays stable](#when-the-rank-stays-stable)
+- [Bump with magnitudes (alternative encoding)](#bump-with-magnitudes-alternative-encoding)
+- [Bump's downside — line tangle](#bumps-downside--line-tangle)
+- [Visual verification](#visual-verification)
+
 A line chart whose y-axis is a RANK (1, 2, 3, …) rather than a magnitude.
 Each series is one ranked thing; the line shows its rank position across
 the x-positions. Crossings between lines visually signal that two items

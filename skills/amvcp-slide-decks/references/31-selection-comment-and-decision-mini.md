@@ -1,5 +1,18 @@
 # 31 — Selection + comment + decision-mini contract (Phase 2.5 conformance)
 
+## Table of Contents
+
+- [What this is](#what-this-is)
+- [Scaffold to emit](#scaffold-to-emit)
+- [Lib functions called](#lib-functions-called)
+- [Selection-ring override (specific to slides)](#selection-ring-override-specific-to-slides)
+- [Hover-glow override (specific to slides)](#hover-glow-override-specific-to-slides)
+- [When to use this reference](#when-to-use-this-reference)
+- [Don'ts](#donts)
+- [Decision-mini attachment timing](#decision-mini-attachment-timing)
+- [Visual verification](#visual-verification)
+- [Source provenance](#source-provenance)
+
 Every `.vsd-slide` is a clickable, focusable, commentable ATOM. The
 runtime's universal click handler `toggleElementSelection` toggles
 `data-ve-selected="1"` on the slide; the runtime's hover / focus

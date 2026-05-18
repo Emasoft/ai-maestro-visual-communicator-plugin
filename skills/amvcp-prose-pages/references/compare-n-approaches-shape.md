@@ -1,5 +1,21 @@
 # Compare-N-approaches shape — prompt + N columns + Pro/Con + recommendation
 
+## Table of Contents
+
+- [When to choose this shape](#when-to-choose-this-shape)
+- [Section order (fixed)](#section-order-fixed)
+- [Markdown scaffold](#markdown-scaffold)
+- [The N-column grid](#the-n-column-grid)
+- [The Pro/Con sub-grid](#the-procon-sub-grid)
+- [The metric-chip strip](#the-metric-chip-strip)
+- [The recommendation card (clay left-border)](#the-recommendation-card-clay-left-border)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Composition with other skills](#composition-with-other-skills)
+- [Lib functions called](#lib-functions-called)
+- [Selection / comment notes](#selection--comment-notes)
+- [Decision-mini hook](#decision-mini-hook)
+- [Anti-patterns](#anti-patterns)
+
 The document that compares 2-4 ways of solving the same problem.
 Canonical reference: `html-effectiveness` demo #01,
 "exploration-code-approaches" — compares three implementations of

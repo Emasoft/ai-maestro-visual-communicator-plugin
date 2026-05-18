@@ -1,5 +1,19 @@
 # Count-up — the rAF stat counter wired to scroll reveal
 
+## Table of Contents
+
+- [Markup](#markup)
+- [Attributes](#attributes)
+- [The tick loop](#the-tick-loop)
+- [Formatting choices](#formatting-choices)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Reduced-motion substitute](#reduced-motion-substitute)
+- [Selection + comment + decision integration](#selection--comment--decision-integration)
+- [Hot-swap with DESIGN.md](#hot-swap-with-designmd)
+- [Chart skill consumer](#chart-skill-consumer)
+- [Diagnostics](#diagnostics)
+- [Visual verification](#visual-verification)
+
 `.va-counter[data-va-stat="N"]` rolls 0 → N with an `easeOutCubic`
 curve once the element scrolls into view. The count-up is the
 chart skill's KPI-card primitive — also exported as

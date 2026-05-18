@@ -1,5 +1,17 @@
 # 09 — 12-column dashboard (data-span placement on a 12-track grid)
 
+## Table of Contents
+
+- [What this is](#what-this-is)
+- [Scaffold to emit](#scaffold-to-emit)
+- [The allowed `data-span` values](#the-allowed-data-span-values)
+- [Lib functions called](#lib-functions-called)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Selection / comment / decision-mini contract notes](#selection--comment--decision-mini-contract-notes)
+- [When to use this layout](#when-to-use-this-layout)
+- [Why 12-column instead of CSS Grid named lines](#why-12-column-instead-of-css-grid-named-lines)
+- [Visual verification](#visual-verification)
+
 The flagship metrics-dashboard layout: a `repeat(12, 1fr)` grid where
 each child carries a `data-span="N"` attribute (N ∈ 1, 2, 3, 4, 6, 8, 12)
 to claim N of the 12 columns. The 12-column rhythm is the industry

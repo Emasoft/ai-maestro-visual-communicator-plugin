@@ -1,5 +1,21 @@
 # Architecture-explainer shape — SVG flow + numbered callstack walkthrough + sticky sidebar
 
+## Table of Contents
+
+- [When to choose this shape](#when-to-choose-this-shape)
+- [Section order (fixed)](#section-order-fixed)
+- [Layout — 2-column grid with sticky sidebar](#layout--2-column-grid-with-sticky-sidebar)
+- [Markdown scaffold](#markdown-scaffold)
+- [The hot-step modifier (`.vc-step--hot`)](#the-hot-step-modifier-vc-step--hot)
+- [The Gotchas panel (clay-bordered sidebar block)](#the-gotchas-panel-clay-bordered-sidebar-block)
+- [Mutually-exclusive `<details>` (optional)](#mutually-exclusive-details-optional)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Composition with other skills](#composition-with-other-skills)
+- [Lib functions called](#lib-functions-called)
+- [Selection / comment notes](#selection--comment-notes)
+- [Decision-mini hook](#decision-mini-hook)
+- [Anti-patterns](#anti-patterns)
+
 The document that explains how a codebase works to a reader who has
 never seen it. Canonical reference: `html-effectiveness` demo #04,
 "code-understanding". The shape exists because reading the code in

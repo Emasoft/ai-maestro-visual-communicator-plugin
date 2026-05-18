@@ -1,5 +1,18 @@
 # `chart:radar@1` — radar / spider chart
 
+## Table of Contents
+
+- [When to choose radar](#when-to-choose-radar)
+- [Authoring shape](#authoring-shape)
+- [Options](#options)
+- [Examples](#examples)
+- [What the runtime emits](#what-the-runtime-emits)
+- [Lib functions called](#lib-functions-called)
+- [DESIGN.md tokens](#designmd-tokens)
+- [Selection / atoms](#selection--atoms)
+- [Anti-patterns](#anti-patterns)
+- [Visual verification](#visual-verification)
+
 A multi-axis radar chart for comparing items across 3+ named criteria. The
 shape of each polygon IS the item's profile — a small polygon is a weak
 item; a large balanced polygon is a strong all-rounder; a spiky polygon is

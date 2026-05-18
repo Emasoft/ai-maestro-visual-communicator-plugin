@@ -1,5 +1,20 @@
 # Sub-technique G2 — Hover diagram / chart → code snippet panel
 
+## Table of Contents
+
+- [G2.1 The pattern](#g21-the-pattern)
+- [G2.2 The markup](#g22-the-markup)
+- [G2.3 The hover handler](#g23-the-hover-handler)
+- [G2.4 The sliders writing to CSS variables](#g24-the-sliders-writing-to-css-variables)
+- [G2.5 The snippet-template discipline](#g25-the-snippet-template-discipline)
+- [G2.6 What this pattern is good for](#g26-what-this-pattern-is-good-for)
+- [G2.7 What this pattern is NOT good for](#g27-what-this-pattern-is-not-good-for)
+- [G2.8 The mouseleave default](#g28-the-mouseleave-default)
+- [G2.9 Selection / commenting](#g29-selection--commenting)
+- [G2.10 Light + dark verification](#g210-light--dark-verification)
+- [G2.11 Tokens consumed](#g211-tokens-consumed)
+- [G2.12 Mined source attribution](#g212-mined-source-attribution)
+
 The lighter-weight cousin of [click-step-to-code-panel.md](./click-
 step-to-code-panel.md): HOVER any chart bar / diagram node → a
 JSX-shaped code snippet renders below the visual with live token

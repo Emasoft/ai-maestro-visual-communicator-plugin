@@ -1,5 +1,20 @@
 # Glossary + hover-linked terms
 
+## Table of Contents
+
+- [When to add a glossary](#when-to-add-a-glossary)
+- [Scaffold — body markup](#scaffold--body-markup)
+- [Scaffold — glossary block](#scaffold--glossary-block)
+- [CSS contract](#css-contract)
+- [The hover-link runtime](#the-hover-link-runtime)
+- [Click-to-jump variant](#click-to-jump-variant)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Composition](#composition)
+- [Selection / comment notes](#selection--comment-notes)
+- [Decision-mini hook](#decision-mini-hook)
+- [QA notes](#qa-notes)
+- [Anti-patterns](#anti-patterns)
+
 The terms-and-definitions block (`<dl>` of `<dt>`/`<dd>` pairs)
 plus the runtime that links body-prose terms to their glossary
 entries via mouseover. Lifted from `html-effectiveness` demo #15

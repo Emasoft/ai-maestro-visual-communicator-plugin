@@ -1,5 +1,20 @@
 # Tree / hierarchy diagram
 
+## Table of Contents
+
+- [When to choose this pattern](#when-to-choose-this-pattern)
+- [Scaffold (top-down org-chart style)](#scaffold-top-down-org-chart-style)
+- [Tree layout conventions](#tree-layout-conventions)
+- [Routing convention](#routing-convention)
+- [File-system tree variation](#file-system-tree-variation)
+- [Class hierarchy variation](#class-hierarchy-variation)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Selection atoms](#selection-atoms)
+- [Variations](#variations)
+- [Anti-patterns](#anti-patterns)
+- [Visual verification](#visual-verification)
+- [Cross-skill seam](#cross-skill-seam)
+
 A diagram of a tree — a root, branches, leaves. The canonical
 shape for an org chart, a file-system tree, a taxonomy, a class
 hierarchy. Each parent connects downward (or rightward) to its

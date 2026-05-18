@@ -1,5 +1,20 @@
 # `chart:stacked-bar@1` — stacked bar
 
+## Table of Contents
+
+- [When to choose stacked-bar](#when-to-choose-stacked-bar)
+- [Authoring shape](#authoring-shape)
+- [Options](#options)
+- [Example — 100% stacked bar (manual normalisation)](#example--100-stacked-bar-manual-normalisation)
+- [What the runtime emits](#what-the-runtime-emits)
+- [Lib functions called](#lib-functions-called)
+- [Selection / atoms](#selection--atoms)
+- [DESIGN.md tokens](#designmd-tokens)
+- [Stacked-bar variants](#stacked-bar-variants)
+- [Anti-patterns](#anti-patterns)
+- [How to read the stacked-bar visually](#how-to-read-the-stacked-bar-visually)
+- [Visual verification](#visual-verification)
+
 A vertical stacked bar where each category is decomposed into named parts.
 Each series contributes one stack layer; series order in the spec is the
 paint order (first = bottom).

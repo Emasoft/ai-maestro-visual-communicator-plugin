@@ -1,5 +1,16 @@
 # Sub-technique C — Variable-font token layer
 
+## Table of Contents
+
+- [C.1 What it does](#c1-what-it-does)
+- [C.2 The semantic weight tokens](#c2-the-semantic-weight-tokens)
+- [C.3 The optical-size tokens](#c3-the-optical-size-tokens)
+- [C.4 The variable-font axis layer](#c4-the-variable-font-axis-layer)
+- [C.5 The static-font fallback — fail-soft (TY-04 requirement)](#c5-the-static-font-fallback--fail-soft-ty-04-requirement)
+- [C.6 The JS feature-detect — diagnostic only](#c6-the-js-feature-detect--diagnostic-only)
+- [C.7 TY-10 — stylistic alternates](#c7-ty-10--stylistic-alternates)
+- [Tokens consumed / extended](#tokens-consumed--extended)
+
 The missing *semantic weight* tokens + the variable-font axis plumbing.
 Implements TY-04 (`wght` + `opsz` token system) and TY-10
 (`font-feature-settings` stylistic alternates).

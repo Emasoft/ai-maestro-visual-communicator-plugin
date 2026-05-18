@@ -1,5 +1,20 @@
 # 12 — Mobile collapse (the single 768px breakpoint)
 
+## Table of Contents
+
+- [What this is](#what-this-is)
+- [Scaffold to emit](#scaffold-to-emit)
+- [Lib functions called](#lib-functions-called)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Selection / comment / decision-mini contract notes](#selection--comment--decision-mini-contract-notes)
+- [Why a single hardcoded breakpoint instead of a tokenized scale](#why-a-single-hardcoded-breakpoint-instead-of-a-tokenized-scale)
+- [When to override](#when-to-override)
+- [Visual verification](#visual-verification)
+- [The 768px figure in context](#the-768px-figure-in-context)
+- [What "mobile collapse" means visually](#what-mobile-collapse-means-visually)
+- [The mobile-first vs desktop-first debate](#the-mobile-first-vs-desktop-first-debate)
+- [Beyond mobile collapse](#beyond-mobile-collapse)
+
 The layout technique uses exactly ONE mobile-breakpoint value: `768px`.
 Below this width, every multi-column grid collapses to a single
 column. Above, the grid's normal `template-columns` apply. The

@@ -1,5 +1,20 @@
 # 25 — A4 page rules (`@page` size + margin for print / PDF)
 
+## Table of Contents
+
+- [What this is](#what-this-is)
+- [Scaffold to emit](#scaffold-to-emit)
+- [Lib functions called](#lib-functions-called)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Selection / comment / decision-mini contract notes](#selection--comment--decision-mini-contract-notes)
+- [Why a hardcoded 16mm](#why-a-hardcoded-16mm)
+- [When to override the default](#when-to-override-the-default)
+- [Visual verification](#visual-verification)
+- [The print-vs-screen mental shift](#the-print-vs-screen-mental-shift)
+- [Common print pitfalls](#common-print-pitfalls)
+- [Browser-specific print quirks](#browser-specific-print-quirks)
+- [Generating PDFs programmatically](#generating-pdfs-programmatically)
+
 The `@page` CSS at-rule controls the page box for paged media
 (print, PDF export). The layout technique ships a single
 `@page { size: A4; margin: 16mm }` declaration in

@@ -1,5 +1,19 @@
 # 08 — Layout: `content` (heading + bullets, the default talk slide)
 
+## Table of Contents
+
+- [What this is](#what-this-is)
+- [Scaffold to emit](#scaffold-to-emit)
+- [Lib functions called](#lib-functions-called)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Content density limits](#content-density-limits)
+- [Selection / comment / decision-mini contract notes](#selection--comment--decision-mini-contract-notes)
+- [When to use this reference](#when-to-use-this-reference)
+- [Don'ts](#donts)
+- [Splitting overflowing content](#splitting-overflowing-content)
+- [Visual verification](#visual-verification)
+- [Source provenance](#source-provenance)
+
 The content slide is the workhorse — heading + 2-6 bullets. Most slides
 in any talk are content slides. The talk's *argument* lives in the
 manifesto + section dividers + statements + closing; the talk's

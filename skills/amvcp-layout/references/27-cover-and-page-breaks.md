@@ -1,5 +1,18 @@
 # 27 — Cover page + page break utilities (`.la-cover` + `.la-break-*`)
 
+## Table of Contents
+
+- [What this is](#what-this-is)
+- [Scaffold to emit](#scaffold-to-emit)
+- [The `.la-cover` design choices](#the-la-cover-design-choices)
+- [The `.la-break-after` on the cover](#the-la-break-after-on-the-cover)
+- [When to use each break utility](#when-to-use-each-break-utility)
+- [Lib functions called](#lib-functions-called)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Selection / comment / decision-mini contract notes](#selection--comment--decision-mini-contract-notes)
+- [The "force a break BEFORE my custom element" pattern](#the-force-a-break-before-my-custom-element-pattern)
+- [Visual verification](#visual-verification)
+
 A cover page (`.la-cover`) renders as a full-viewport centred page
 in screen view and a full A4 page on print. The page-break utility
 classes (`.la-break-before`, `.la-break-after`, `.la-break-inside-avoid`)

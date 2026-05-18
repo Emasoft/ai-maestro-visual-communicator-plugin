@@ -1,5 +1,18 @@
 # Metrics stat-band (`vc-metrics` / `vc-metric`)
 
+## Table of Contents
+
+- [When to use a stat-band](#when-to-use-a-stat-band)
+- [Scaffold](#scaffold)
+- [CSS (already injected by the runtime)](#css-already-injected-by-the-runtime)
+- [The `--warn` modifier](#the---warn-modifier)
+- [Number formatting discipline](#number-formatting-discipline)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Composition](#composition)
+- [Selection / comment notes](#selection--comment-notes)
+- [Decision-mini hook](#decision-mini-hook)
+- [Anti-patterns](#anti-patterns)
+
 The horizontal row of 3-5 stat cells that sits at the top of a status
 report, implementation plan, or executive summary. Each cell carries
 **ONE big number + ONE label + ONE optional delta**. The reader scans

@@ -1,5 +1,22 @@
 # `chart:mekko@1` — Marimekko (Mekko) chart
 
+## Table of Contents
+
+- [When to choose mekko](#when-to-choose-mekko)
+- [Authoring shape](#authoring-shape)
+- [Options](#options)
+- [Examples](#examples)
+- [What the runtime emits](#what-the-runtime-emits)
+- [Lib functions called](#lib-functions-called)
+- [DESIGN.md tokens](#designmd-tokens)
+- [Selection / atoms](#selection--atoms)
+- [Anti-patterns](#anti-patterns)
+- [Mekko vs alternatives — the two-encoding test](#mekko-vs-alternatives--the-two-encoding-test)
+- [How to read a mekko chart](#how-to-read-a-mekko-chart)
+- [Mekko design rule — sort by descending column total](#mekko-design-rule--sort-by-descending-column-total)
+- [Mekko with negative segments](#mekko-with-negative-segments)
+- [Visual verification](#visual-verification)
+
 A 100%-stacked bar where each COLUMN's width is also proportional to a
 variable (the column total). Two encodings at once: column width = total,
 column-internal stack = breakdown. The classic McKinsey "market share by

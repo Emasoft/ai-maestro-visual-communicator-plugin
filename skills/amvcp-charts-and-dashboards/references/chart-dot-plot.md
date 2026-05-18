@@ -1,5 +1,21 @@
 # `chart:dot-plot@1` — dot plot
 
+## Table of Contents
+
+- [When to choose dot-plot](#when-to-choose-dot-plot)
+- [Authoring shape](#authoring-shape)
+- [Options](#options)
+- [Examples](#examples)
+- [What the runtime emits](#what-the-runtime-emits)
+- [Lib functions called](#lib-functions-called)
+- [DESIGN.md tokens](#designmd-tokens)
+- [Selection / atoms](#selection--atoms)
+- [Dot-plot vs alternatives — comparison table](#dot-plot-vs-alternatives--comparison-table)
+- [When dot-plot wins over lollipop](#when-dot-plot-wins-over-lollipop)
+- [Grouping nuances — horizontal spread within a band](#grouping-nuances--horizontal-spread-within-a-band)
+- [Anti-patterns](#anti-patterns)
+- [Visual verification](#visual-verification)
+
 A bar chart with the bar entirely removed — just a dot at the y-value of
 each category. The lowest possible visual ink for a categorical magnitude
 comparison.

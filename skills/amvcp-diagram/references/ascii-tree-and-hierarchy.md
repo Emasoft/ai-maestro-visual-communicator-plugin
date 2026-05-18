@@ -1,5 +1,22 @@
 # ASCII tree and hierarchy
 
+## Table of Contents
+
+- [When to choose ASCII trees](#when-to-choose-ascii-trees)
+- [Authoring](#authoring)
+- [Glyph vocabulary](#glyph-vocabulary)
+- [Annotations](#annotations)
+- [Alternative glyph styles](#alternative-glyph-styles)
+- [Indentation depth](#indentation-depth)
+- [Folder vs file distinction](#folder-vs-file-distinction)
+- [Hot files / changed files highlighting](#hot-files--changed-files-highlighting)
+- [Authoring with the `tree` command](#authoring-with-the-tree-command)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Selection atoms](#selection-atoms)
+- [Variations](#variations)
+- [Anti-patterns](#anti-patterns)
+- [Visual verification](#visual-verification)
+
 The ASCII variant of `tree-hierarchy-diagram.md` — file-system
 trees, package hierarchies, taxonomies, drawn with monospace
 characters. Use when the audience reads in a terminal, in a code

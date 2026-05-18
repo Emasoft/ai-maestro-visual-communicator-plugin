@@ -1,5 +1,18 @@
 # Click-step + detail panel
 
+## Table of Contents
+
+- [When to choose this pattern](#when-to-choose-this-pattern)
+- [The shape](#the-shape)
+- [The wiring](#the-wiring)
+- [Active-node styling](#active-node-styling)
+- [Detail registration patterns](#detail-registration-patterns)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Selection atoms](#selection-atoms)
+- [Variations](#variations)
+- [Anti-patterns](#anti-patterns)
+- [Visual verification](#visual-verification)
+
 The most powerful diagram-interaction pattern in the catalog: each
 diagram node, when clicked, populates a sticky side panel with
 title + meta + body + code snippet. Lifted from

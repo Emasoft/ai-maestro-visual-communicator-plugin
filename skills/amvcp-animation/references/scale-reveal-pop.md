@@ -1,5 +1,21 @@
 # Scale reveal pop — `data-va-reveal="scale"` fade + scale-up
 
+## Table of Contents
+
+- [The contract](#the-contract)
+- [The CSS](#the-css)
+- [Why 0.94, not 0.85 or 0.97?](#why-094-not-085-or-097)
+- [When to use scale reveal](#when-to-use-scale-reveal)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [The transform-origin question](#the-transform-origin-question)
+- [Reduced-motion substitute](#reduced-motion-substitute)
+- [Combining with stagger](#combining-with-stagger)
+- [Selection + comment + decision integration](#selection--comment--decision-integration)
+- [Performance](#performance)
+- [Diagnostics](#diagnostics)
+- [Visual verification](#visual-verification)
+- [Comparison with spring overshoot](#comparison-with-spring-overshoot)
+
 A scroll-reveal variant that fades the element in WHILE scaling
 from 0.94 to 1.0 — reads as "the element just landed on the
 page". Use for cards, charts, and infographics that have a focal

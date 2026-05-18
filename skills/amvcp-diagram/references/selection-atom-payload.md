@@ -1,5 +1,22 @@
 # Selection atom payload
 
+## Table of Contents
+
+- [The DOM contract](#the-dom-contract)
+- [Payload schemas](#payload-schemas)
+- [ID generation](#id-generation)
+- [Why `nodeId` not `data-ve-id` is the stable identifier](#why-nodeid-not-data-ve-id-is-the-stable-identifier)
+- [Click POST payload](#click-post-payload)
+- [Hover treatment (in CSS, not the payload)](#hover-treatment-in-css-not-the-payload)
+- [Hit-area twins for thin edges](#hit-area-twins-for-thin-edges)
+- [Group label is also clickable](#group-label-is-also-clickable)
+- [Multi-select (Shift-click)](#multi-select-shift-click)
+- [Decision-mini attachment](#decision-mini-attachment)
+- [Comment threading](#comment-threading)
+- [DESIGN.md tokens consumed (by the selection CSS)](#designmd-tokens-consumed-by-the-selection-css)
+- [Anti-patterns](#anti-patterns)
+- [Visual verification](#visual-verification)
+
 Every rendered node, edge, and group is a click-to-select atom.
 This reference documents the EXACT contract for the `data-ve-id`
 and `data-ve-data` attributes the engine emits, so an agent

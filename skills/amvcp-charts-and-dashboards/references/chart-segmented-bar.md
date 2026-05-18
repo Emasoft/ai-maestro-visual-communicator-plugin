@@ -1,5 +1,18 @@
 # `chart:segmented-bar@1` — CSS-flex segmented bar
 
+## Table of Contents
+
+- [When to choose segmented-bar](#when-to-choose-segmented-bar)
+- [Authoring shape](#authoring-shape)
+- [Options](#options)
+- [Examples](#examples)
+- [What the runtime emits](#what-the-runtime-emits)
+- [Lib functions called](#lib-functions-called)
+- [DESIGN.md tokens](#designmd-tokens)
+- [Selection / atoms](#selection--atoms)
+- [Anti-patterns](#anti-patterns)
+- [Visual verification](#visual-verification)
+
 A horizontal bar where each part-of-a-whole renders as a flex segment whose
 `flex-grow` equals its value. No SVG — pure CSS Flexbox. The cheapest
 possible part-to-whole visualization in terms of DOM weight and code path.

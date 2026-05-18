@@ -1,5 +1,18 @@
 # Abstract + keywords block — formal-document opener
 
+## Table of Contents
+
+- [When to use which](#when-to-use-which)
+- [Scaffold](#scaffold)
+- [CSS contract](#css-contract)
+- [The IMRAD-like structure inside an abstract](#the-imrad-like-structure-inside-an-abstract)
+- [Word-count discipline](#word-count-discipline)
+- [Keyword discipline](#keyword-discipline)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Composition](#composition)
+- [Selection / comment notes](#selection--comment-notes)
+- [Anti-patterns](#anti-patterns)
+
 The structured opener that scientific papers, RFCs, and formal
 whitepapers use instead of (or alongside) a TL;DR card. An
 **Abstract** section presents the document's purpose, methodology,

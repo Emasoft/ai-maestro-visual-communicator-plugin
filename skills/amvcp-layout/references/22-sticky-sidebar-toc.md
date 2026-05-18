@@ -1,5 +1,19 @@
 # 22 — Sticky-sidebar TOC (the canonical "TOC in left/right column" pattern)
 
+## Table of Contents
+
+- [What this is](#what-this-is)
+- [Scaffold to emit](#scaffold-to-emit)
+- [The `align-self: start` requirement](#the-align-self-start-requirement)
+- [Lib functions called](#lib-functions-called)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Selection / comment / decision-mini contract notes](#selection--comment--decision-mini-contract-notes)
+- [The "TOC overflows the viewport" case](#the-toc-overflows-the-viewport-case)
+- [When to use this pattern](#when-to-use-this-pattern)
+- [Visual verification](#visual-verification)
+- [The "scroll-margin" coordination](#the-scroll-margin-coordination)
+- [The "hide TOC on print" coordination](#the-hide-toc-on-print-coordination)
+
 The most common TOC presentation: a `.la-toc` placed inside a
 sidebar (the second column of `.la-grid--2-1` or `.la-grid--3-1`)
 with `position: sticky; top: 24px; align-self: start`. The TOC

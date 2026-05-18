@@ -1,5 +1,17 @@
 # WCAG contrast — `contrastRatio` and the contact-sheet annotation
 
+## Table of Contents
+
+- [What it does](#what-it-does)
+- [The WCAG thresholds](#the-wcag-thresholds)
+- [When to call](#when-to-call)
+- [Scaffold to emit](#scaffold-to-emit)
+- [Lib functions used](#lib-functions-used)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Anti-slop interaction](#anti-slop-interaction)
+- [Selection / comment / decision-mini contract](#selection--comment--decision-mini-contract)
+- [Visual verification](#visual-verification)
+
 WCAG 2.x contrast ratio between two hex colors. The single function
 behind the contact-sheet's per-cell contrast annotation, the
 `data-vc-contrast-warn` flag on under-contrast text cells, and every

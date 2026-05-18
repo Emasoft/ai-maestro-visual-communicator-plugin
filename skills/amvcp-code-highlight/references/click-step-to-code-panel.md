@@ -1,5 +1,21 @@
 # Sub-technique G1 — Click SVG step → side-panel with code excerpt
 
+## Table of Contents
+
+- [G1.1 The pattern](#g11-the-pattern)
+- [G1.2 The detail map](#g12-the-detail-map)
+- [G1.3 The SVG markup](#g13-the-svg-markup)
+- [G1.4 The right panel markup](#g14-the-right-panel-markup)
+- [G1.5 The click handler](#g15-the-click-handler)
+- [G1.6 The `.active` SVG style](#g16-the-active-svg-style)
+- [G1.7 The 3-marker edge approach (diagram-side)](#g17-the-3-marker-edge-approach-diagram-side)
+- [G1.8 Selection / commenting on the right-panel code](#g18-selection--commenting-on-the-right-panel-code)
+- [G1.9 Default state (no node selected)](#g19-default-state-no-node-selected)
+- [G1.10 Light + dark verification](#g110-light--dark-verification)
+- [G1.11 Tokens consumed](#g111-tokens-consumed)
+- [G1.12 Author rules](#g112-author-rules)
+- [G1.13 Mined source attribution](#g113-mined-source-attribution)
+
 The diagram-adjacent code pattern: click any node in an SVG flowchart
 → populate a sticky right-side detail panel with title + meta + prose
 + `<pre>` code excerpt. Mined from `13-flowchart-diagram.html` (html-

@@ -1,5 +1,20 @@
 # 37 — Speaker notes + presenter mode (`?notes` window)
 
+## Table of Contents
+
+- [What this is](#what-this-is)
+- [Scaffold to emit](#scaffold-to-emit)
+- [Lib functions called](#lib-functions-called)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Selection / comment / decision-mini contract notes](#selection--comment--decision-mini-contract-notes)
+- [postMessage contract](#postmessage-contract)
+- [When to use this reference](#when-to-use-this-reference)
+- [When NOT to use notes](#when-not-to-use-notes)
+- [Authoring rules](#authoring-rules)
+- [Don'ts](#donts)
+- [Visual verification](#visual-verification)
+- [Source provenance](#source-provenance)
+
 The presenter mode is a separate window that mirrors the deck's
 position + displays the current slide's speaker notes. The user opens
 it via `window.open('?notes', '_blank')` (a custom UI / keyboard

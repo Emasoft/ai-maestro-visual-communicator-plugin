@@ -1,5 +1,17 @@
 # Fan-out / fan-in diagram
 
+## Table of Contents
+
+- [When to choose this pattern](#when-to-choose-this-pattern)
+- [Scaffold](#scaffold)
+- [Fan-out vs fan-in arrow style](#fan-out-vs-fan-in-arrow-style)
+- [Labels above the fan-out and fan-in arcs](#labels-above-the-fan-out-and-fan-in-arcs)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Selection atoms](#selection-atoms)
+- [Variations](#variations)
+- [Anti-patterns](#anti-patterns)
+- [Visual verification](#visual-verification)
+
 A specific topology — a single source node, several parallel
 branches, and a single sink node. Used to visualize sharding,
 parallel processing, parallel HTTP calls, map-reduce, or any

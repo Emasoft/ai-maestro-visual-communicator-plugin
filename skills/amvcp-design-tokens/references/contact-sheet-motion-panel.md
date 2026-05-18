@@ -1,5 +1,16 @@
 # Contact-sheet motion panel — feel the easings
 
+## Table of Contents
+
+- [What it does](#what-it-does)
+- [Why an animated demo (vs a static curve plot)](#why-an-animated-demo-vs-a-static-curve-plot)
+- [Scaffold to emit](#scaffold-to-emit)
+- [Lib functions used](#lib-functions-used)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Anti-slop interaction](#anti-slop-interaction)
+- [Selection / comment / decision-mini contract](#selection--comment--decision-mini-contract)
+- [Visual verification](#visual-verification)
+
 The `motion` panel of the token contact sheet renders one demo chip
 per easing — click a chip and a dot inside the chip traverses the
 chip's width using that easing curve. The teaching artifact for the

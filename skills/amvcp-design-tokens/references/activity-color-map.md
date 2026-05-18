@@ -1,5 +1,16 @@
 # Activity color map — 7-state productivity convention (DT-22)
 
+## Table of Contents
+
+- [What it does](#what-it-does)
+- [When to use](#when-to-use)
+- [Scaffold to emit](#scaffold-to-emit)
+- [Lib functions used](#lib-functions-used)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Anti-slop interaction](#anti-slop-interaction)
+- [Selection / comment / decision-mini contract](#selection--comment--decision-mini-contract)
+- [Visual verification](#visual-verification)
+
 A 7-role categorical color map for time-tracking / productivity /
 status visualisations: `working`, `meeting`, `break`, `idle`, `focus`,
 `review`, `blocked`. Seven roles can't map onto four semantic-state

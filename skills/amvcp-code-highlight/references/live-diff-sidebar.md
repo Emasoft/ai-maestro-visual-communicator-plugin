@@ -1,5 +1,20 @@
 # Sub-technique F2 — Live diff sidebar (always-visible, only changed lines)
 
+## Table of Contents
+
+- [F2.1 The pattern](#f21-the-pattern)
+- [F2.2 The page layout](#f22-the-page-layout)
+- [F2.3 The state model](#f23-the-state-model)
+- [F2.4 The diff renderer](#f24-the-diff-renderer)
+- [F2.5 The Copy / Reset actions](#f25-the-copy--reset-actions)
+- [F2.6 The "warning banner" pairing](#f26-the-warning-banner-pairing)
+- [F2.7 The "no changes yet" empty state](#f27-the-no-changes-yet-empty-state)
+- [F2.8 Selection / commenting](#f28-selection--commenting)
+- [F2.9 The "throwaway editor + export" framing](#f29-the-throwaway-editor--export-framing)
+- [F2.10 Tokens consumed](#f210-tokens-consumed)
+- [F2.11 Author rules](#f211-author-rules)
+- [F2.12 Mined source attribution](#f212-mined-source-attribution)
+
 A sidebar that continuously shows the diff between the current form
 state and the original state — only the changed lines, not the full
 file. Plus `Copy diff`, `Copy full`, `Reset` buttons. Mined from

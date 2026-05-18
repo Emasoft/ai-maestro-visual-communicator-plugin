@@ -1,5 +1,21 @@
 # Sub-technique D2 — Split-pane diff blocks
 
+## Table of Contents
+
+- [D2.1 What it does](#d21-what-it-does)
+- [D2.2 The markup](#d22-the-markup)
+- [D2.3 The CSS](#d23-the-css)
+- [D2.4 Where to put the diff tints](#d24-where-to-put-the-diff-tints)
+- [D2.5 Line-number alignment](#d25-line-number-alignment)
+- [D2.6 No shared scroll axis](#d26-no-shared-scroll-axis)
+- [D2.7 Copy behaviour per pane](#d27-copy-behaviour-per-pane)
+- [D2.8 Selection across panes](#d28-selection-across-panes)
+- [D2.9 Composing with file-path label](#d29-composing-with-file-path-label)
+- [D2.10 When to use split vs unified](#d210-when-to-use-split-vs-unified)
+- [D2.11 Light + dark verification](#d211-light--dark-verification)
+- [D2.12 Tokens consumed](#d212-tokens-consumed)
+- [D2.13 Author rules](#d213-author-rules)
+
 Two synced panes (before / after) sharing the page-level scroll axis.
 The split-view variant of CB-01 (reframed; PHASE2 backlog §12 C2). The
 runtime's `:has()` selector chain lets the two panes share state

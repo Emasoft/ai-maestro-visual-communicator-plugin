@@ -1,5 +1,22 @@
 # `chart:funnel@1` — funnel chart
 
+## Table of Contents
+
+- [When to choose funnel](#when-to-choose-funnel)
+- [Authoring shape](#authoring-shape)
+- [Options](#options)
+- [Examples](#examples)
+- [What the runtime emits](#what-the-runtime-emits)
+- [Lib functions called](#lib-functions-called)
+- [DESIGN.md tokens](#designmd-tokens)
+- [Selection / atoms](#selection--atoms)
+- [Anti-patterns](#anti-patterns)
+- [Funnel vs alternatives — comparison](#funnel-vs-alternatives--comparison)
+- [Funnel + drop-off pattern](#funnel--drop-off-pattern)
+- [Reverse funnel (amplification)](#reverse-funnel-amplification)
+- [Funnel with custom colors](#funnel-with-custom-colors)
+- [Visual verification](#visual-verification)
+
 A vertical pile of narrowing trapezoidal stages. The wide top tapers to a
 narrow bottom — exactly the shape of a conversion funnel. Drop-off
 percentage between consecutive stages prints between trapezoids.

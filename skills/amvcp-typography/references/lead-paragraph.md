@@ -1,5 +1,23 @@
 # Lead paragraph — the larger, looser opening body
 
+## Table of Contents
+
+- [What it is](#what-it-is)
+- [The contract](#the-contract)
+- [Scaffold](#scaffold)
+- [Tokens consumed / extended](#tokens-consumed--extended)
+- [Why size step 3, not step 4](#why-size-step-3-not-step-4)
+- [Why line-height 1.60 (looser than body's 1.55)](#why-line-height-160-looser-than-bodys-155)
+- [The first-letter drop cap — when to add it](#the-first-letter-drop-cap--when-to-add-it)
+- [The clay/colour left-border — TL;DR card variant](#the-claycolour-left-border--tldr-card-variant)
+- [Light + dark — correct for free](#light--dark--correct-for-free)
+- [Selection-contract conformance](#selection-contract-conformance)
+- [Why two aliases (`vc-type-lead` AND `vc-type-body-lg`)](#why-two-aliases-vc-type-lead-and-vc-type-body-lg)
+- [When NOT to use a lead](#when-not-to-use-a-lead)
+- [Lead + eyebrow + heading — the standard opener](#lead--eyebrow--heading--the-standard-opener)
+- [No nested scrollbars](#no-nested-scrollbars)
+- [Cross-references](#cross-references)
+
 The lead (a.k.a. *standfirst*, *dek*, *intro*) is the paragraph that
 introduces a section — set one body-step larger than ordinary body,
 slightly lighter weight, and slightly looser leading. The reader's eye

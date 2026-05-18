@@ -1,5 +1,18 @@
 # Swimlane diagram
 
+## Table of Contents
+
+- [When to choose this pattern](#when-to-choose-this-pattern)
+- [Scaffold (horizontal lanes, vertical flow)](#scaffold-horizontal-lanes-vertical-flow)
+- [Lane geometry conventions](#lane-geometry-conventions)
+- [Vertical lanes (horizontal flow)](#vertical-lanes-horizontal-flow)
+- [Cross-lane edge styling](#cross-lane-edge-styling)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Selection atoms](#selection-atoms)
+- [Anti-patterns](#anti-patterns)
+- [Variation: with timeline header](#variation-with-timeline-header)
+- [Visual verification](#visual-verification)
+
 A diagram split into parallel "lanes", each lane owned by a
 distinct actor or system. Nodes drop into a lane to indicate who
 performs the step. The classic shape for cross-functional

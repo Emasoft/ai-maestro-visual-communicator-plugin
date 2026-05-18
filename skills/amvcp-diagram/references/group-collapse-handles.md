@@ -1,5 +1,21 @@
 # Group collapse handles
 
+## Table of Contents
+
+- [When to choose this pattern](#when-to-choose-this-pattern)
+- [Implementation](#implementation)
+- [Collapsed-state geometry](#collapsed-state-geometry)
+- [Expanded state](#expanded-state)
+- [CSS for the handle](#css-for-the-handle)
+- [JS wiring](#js-wiring)
+- [Persistence](#persistence)
+- [Accessibility](#accessibility)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Selection atom](#selection-atom)
+- [Variations](#variations)
+- [Anti-patterns](#anti-patterns)
+- [Visual verification](#visual-verification)
+
 A small UI affordance — a drag-handle / chevron on a group
 rectangle — that lets the reader collapse a group to a single-
 line summary or expand it back to its full member view. Useful

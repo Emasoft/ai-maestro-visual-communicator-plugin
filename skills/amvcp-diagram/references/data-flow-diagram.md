@@ -1,5 +1,20 @@
 # Data-flow diagram (sync solid + async dashed)
 
+## Table of Contents
+
+- [The convention (the discipline)](#the-convention-the-discipline)
+- [Scaffold](#scaffold)
+- [Why this pattern works](#why-this-pattern-works)
+- [Composition with other techniques](#composition-with-other-techniques)
+- [Tinting the "hot path"](#tinting-the-hot-path)
+- [Convention: edge labels go above (horizontal) / left (vertical)](#convention-edge-labels-go-above-horizontal--left-vertical)
+- [Convention: every async edge is labelled](#convention-every-async-edge-is-labelled)
+- [Decision points](#decision-points)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Selection atoms](#selection-atoms)
+- [Anti-patterns](#anti-patterns)
+- [Visual verification](#visual-verification)
+
 Lifted from `16-implementation-plan` in the html-effectiveness
 catalog. A data-flow diagram visualizes **how data moves between
 components** — boxes for the components, arrows for the data

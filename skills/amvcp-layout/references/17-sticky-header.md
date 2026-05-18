@@ -1,5 +1,18 @@
 # 17 — Sticky page header (`.la-header` + scroll-state border)
 
+## Table of Contents
+
+- [What this is](#what-this-is)
+- [Scaffold to emit](#scaffold-to-emit)
+- [Why an IntersectionObserver on a sentinel and NOT a scroll-event listener](#why-an-intersectionobserver-on-a-sentinel-and-not-a-scroll-event-listener)
+- [Lib functions called](#lib-functions-called)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Selection / comment / decision-mini contract notes](#selection--comment--decision-mini-contract-notes)
+- [JS-off graceful degradation](#js-off-graceful-degradation)
+- [Why `transition` on `border-color` not `border-block-end`](#why-transition-on-border-color-not-border-block-end)
+- [When to use this header](#when-to-use-this-header)
+- [Visual verification](#visual-verification)
+
 A page-top header that sticks to the viewport via `position: sticky;
 inset-block-start: 0` and gets a hairline border once the page is
 scrolled. The sticky behaviour is pure CSS; the scroll-state border

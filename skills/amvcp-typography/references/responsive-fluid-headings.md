@@ -1,5 +1,23 @@
 # Responsive fluid headings — `clamp()` deep-dive and the slide-deck pattern
 
+## Table of Contents
+
+- [What it is](#what-it-is)
+- [The contract](#the-contract)
+- [Why each constant — the tuning](#why-each-constant--the-tuning)
+- [Scaffold](#scaffold)
+- [Tokens consumed / extended](#tokens-consumed--extended)
+- [The viewport-curve formula](#the-viewport-curve-formula)
+- [Why pure `vw` and not `rem + vw`](#why-pure-vw-and-not-rem--vw)
+- [Height breakpoints — compact viewports](#height-breakpoints--compact-viewports)
+- [Light + dark — orthogonal](#light--dark--orthogonal)
+- [The `clamp()` math when `vw` doesn't work — print and PDF](#the-clamp-math-when-vw-doesnt-work--print-and-pdf)
+- [Browser support](#browser-support)
+- [Selection-contract conformance](#selection-contract-conformance)
+- [When NOT to use fluid headings](#when-not-to-use-fluid-headings)
+- [Verification](#verification)
+- [Cross-references](#cross-references)
+
 The fluid type-scale engine ([type-scale-engine.md](./type-scale-engine.md))
 covers the **body** scale. Headings often want a *more aggressive*
 fluidity — a slide-deck title at `clamp(40px, 6vw, 64px)` reads

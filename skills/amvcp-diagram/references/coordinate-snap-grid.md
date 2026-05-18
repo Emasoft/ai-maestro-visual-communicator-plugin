@@ -1,5 +1,21 @@
 # Coordinate snap grid
 
+## Table of Contents
+
+- [The default 4-unit grid](#the-default-4-unit-grid)
+- [Overriding the grid step](#overriding-the-grid-step)
+- [The visible grid background](#the-visible-grid-background)
+- [When to show the grid vs hide it](#when-to-show-the-grid-vs-hide-it)
+- [How snapping interacts with auto-place](#how-snapping-interacts-with-auto-place)
+- [Sub-grid offsets (for centering text within nodes)](#sub-grid-offsets-for-centering-text-within-nodes)
+- [The grid is structural, not themed](#the-grid-is-structural-not-themed)
+- [DESIGN.md tokens consumed (by the visible grid)](#designmd-tokens-consumed-by-the-visible-grid)
+- [Snapping width and height (not just x and y)](#snapping-width-and-height-not-just-x-and-y)
+- [Grid coordinate vs CSS pixel](#grid-coordinate-vs-css-pixel)
+- [Snapping and re-render](#snapping-and-re-render)
+- [Anti-patterns](#anti-patterns)
+- [Visual verification](#visual-verification)
+
 The engine's 4-unit grid system: how coordinates snap, why, when
 to override the grid step, and how the grid integrates with the
 optional `background: "grid"` visual.

@@ -1,5 +1,27 @@
 # Print and paged media — `@page`, page breaks, print stylesheets
 
+## Table of Contents
+
+- [What it is](#what-it-is)
+- [The contract](#the-contract)
+- [Scaffold](#scaffold)
+- [Tokens consumed / extended](#tokens-consumed--extended)
+- [Why `11pt` body and not a `var(--vc-text-2)`](#why-11pt-body-and-not-a-var--vc-text-2)
+- [Why `1.5cm 1.5cm 2cm 1.5cm` margins](#why-15cm-15cm-2cm-15cm-margins)
+- [Why `break-after: avoid` on headings](#why-break-after-avoid-on-headings)
+- [Why show URLs for `<a href="http…">`](#why-show-urls-for-a-hrefhttp)
+- [The `.vc-no-print` and `.vc-only-print` utilities](#the-vc-no-print-and-vc-only-print-utilities)
+- [Forced page breaks](#forced-page-breaks)
+- [Disabling animation on print](#disabling-animation-on-print)
+- [Light + dark — N/A for print](#light--dark--na-for-print)
+- [Browser support](#browser-support)
+- [The runtime's print path](#the-runtimes-print-path)
+- [Forbidden — inner scrollbars on print](#forbidden--inner-scrollbars-on-print)
+- [Selection-contract conformance](#selection-contract-conformance)
+- [When NOT to ship print CSS](#when-not-to-ship-print-css)
+- [Verification](#verification)
+- [Cross-references](#cross-references)
+
 Pages destined for PDF export or paper printing need a separate
 typography contract — print-specific sizes, page-break rules,
 header/footer running content, no inner scrollbars, no animation.

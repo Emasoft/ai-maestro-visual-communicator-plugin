@@ -1,5 +1,19 @@
 # 36 — Named anti-slop presets (DESIGN.md as the preset format)
 
+## Table of Contents
+
+- [What this is](#what-this-is)
+- [Scaffold — example presets](#scaffold--example-presets)
+- [How presets ship](#how-presets-ship)
+- [Lib functions called](#lib-functions-called)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [When to use this reference](#when-to-use-this-reference)
+- [Picking a preset by tone](#picking-a-preset-by-tone)
+- [The "pick one and commit" rule](#the-pick-one-and-commit-rule)
+- [Don'ts](#donts)
+- [Visual verification](#visual-verification)
+- [Source provenance](#source-provenance)
+
 A preset is a DESIGN.md file. That's the consolidated decision:
 instead of inventing a slide-specific preset format, the slide skill
 uses DESIGN.md as the preset language. Switching presets means

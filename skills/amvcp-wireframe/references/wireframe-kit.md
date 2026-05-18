@@ -1,5 +1,17 @@
 # Wireframe kit — the 19 fidelity-locked CSS classes
 
+## Table of Contents
+
+- [The 19 classes — at a glance](#the-19-classes--at-a-glance)
+- [Authoring a `.wf-root`](#authoring-a-wf-root)
+- [Per-class HTML contract](#per-class-html-contract)
+- [The `--vc-*` token contract — what the wireframe consumes](#the---vc--token-contract--what-the-wireframe-consumes)
+- [The `--wf-*` geometry tokens](#the---wf--geometry-tokens)
+- [The grayscale rule — why no class hardcodes a hex](#the-grayscale-rule--why-no-class-hardcodes-a-hex)
+- [The fidelity-lock attribute mechanics](#the-fidelity-lock-attribute-mechanics)
+- [Avatar exception — why `.wf-avatar` stays round at every fidelity](#avatar-exception--why-wf-avatar-stays-round-at-every-fidelity)
+- [Selection contract — every block is a `data-ve-id` atom](#selection-contract--every-block-is-a-data-ve-id-atom)
+
 The semantic vocabulary every wireframe screen is built from. Each
 class is a labelled grey placeholder block; geometry is shared, color
 is driven through the desaturation engine. Author the markup below;

@@ -1,5 +1,22 @@
 # Troubleshooting & debugging — common wireframe bugs and fixes
 
+## Table of Contents
+
+- [Symptom: brand color leaks at fidelity=wireframe](#symptom-brand-color-leaks-at-fidelitywireframe)
+- [Symptom: the fidelity slider does nothing](#symptom-the-fidelity-slider-does-nothing)
+- [Symptom: the wireframe looks broken on dark theme](#symptom-the-wireframe-looks-broken-on-dark-theme)
+- [Symptom: an inner scrollbar appears in a device frame](#symptom-an-inner-scrollbar-appears-in-a-device-frame)
+- [Symptom: clicking a wireframe block does nothing (no selection)](#symptom-clicking-a-wireframe-block-does-nothing-no-selection)
+- [Symptom: nested wireframes paint wrong (undefined behavior)](#symptom-nested-wireframes-paint-wrong-undefined-behavior)
+- [Symptom: amvcpWireframe.init() throws](#symptom-amvcpwireframeinit-throws)
+- [Symptom: layout collapses unexpectedly on mobile](#symptom-layout-collapses-unexpectedly-on-mobile)
+- [Symptom: a chip / button paints in the wrong color](#symptom-a-chip--button-paints-in-the-wrong-color)
+- [Symptom: ramp's last column looks identical to the third](#symptom-ramps-last-column-looks-identical-to-the-third)
+- [Symptom: anchor click does nothing in paged mode](#symptom-anchor-click-does-nothing-in-paged-mode)
+- [Symptom: theme flip doesn't update the wireframe](#symptom-theme-flip-doesnt-update-the-wireframe)
+- [Visual verification — the screenshot-test rule](#visual-verification--the-screenshot-test-rule)
+- [Sanity checks before shipping a wireframe](#sanity-checks-before-shipping-a-wireframe)
+
 A guide to the most common wireframe authoring bugs, how to detect
 them, and the fix. Organized by symptom. Each section gives the
 SYMPTOM, the LIKELY CAUSE, and the FIX.

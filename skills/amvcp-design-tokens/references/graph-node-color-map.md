@@ -1,5 +1,17 @@
 # Graph-node color map — pipeline / DAG semantic colors (DT-16)
 
+## Table of Contents
+
+- [What it does](#what-it-does)
+- [When to use which role](#when-to-use-which-role)
+- [When NOT to use](#when-not-to-use)
+- [Scaffold to emit](#scaffold-to-emit)
+- [Lib functions used](#lib-functions-used)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Anti-slop interaction](#anti-slop-interaction)
+- [Selection / comment / decision-mini contract](#selection--comment--decision-mini-contract)
+- [Visual verification](#visual-verification)
+
 A 6-role categorical color map for diagrams, DAGs, pipeline graphs,
 data-flow graphs: `source`, `filter`, `transform`, `aggregate`,
 `final`, `target`. Authored in the design-tokens skill, CONSUMED by

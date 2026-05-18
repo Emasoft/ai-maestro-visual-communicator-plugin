@@ -1,5 +1,19 @@
 # Sankey flow diagram
 
+## Table of Contents
+
+- [When to choose this pattern](#when-to-choose-this-pattern)
+- [Scaffold](#scaffold)
+- [Encoding magnitude in band width](#encoding-magnitude-in-band-width)
+- [Coloring bands by source](#coloring-bands-by-source)
+- [Conservation check (the integrity rule)](#conservation-check-the-integrity-rule)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Selection atoms](#selection-atoms)
+- [Variations](#variations)
+- [Anti-patterns](#anti-patterns)
+- [Visual verification](#visual-verification)
+- [Cross-skill seam](#cross-skill-seam)
+
 A diagram of FLOWS where the width of each link represents the
 **magnitude** of what's flowing — energy distribution, budget
 allocation, user funnel, traffic split. Lifted from the

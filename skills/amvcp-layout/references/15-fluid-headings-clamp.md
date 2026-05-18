@@ -1,5 +1,22 @@
 # 15 — Fluid heading sizes (clamp() between min and max)
 
+## Table of Contents
+
+- [What this is](#what-this-is)
+- [When to use](#when-to-use)
+- [Scaffold to emit](#scaffold-to-emit)
+- [The math behind picking MIN, IDEAL, MAX](#the-math-behind-picking-min-ideal-max)
+- [Lib functions called](#lib-functions-called)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Selection / comment / decision-mini contract notes](#selection--comment--decision-mini-contract-notes)
+- [When the clamp values need adjustment](#when-the-clamp-values-need-adjustment)
+- [Visual verification](#visual-verification)
+- [The clamp() variants worth knowing](#the-clamp-variants-worth-knowing)
+- [The "fluid type scale" extension](#the-fluid-type-scale-extension)
+- [Browser support](#browser-support)
+- [Container-query alternative (advanced)](#container-query-alternative-advanced)
+- [When clamp() is the WRONG choice](#when-clamp-is-the-wrong-choice)
+
 A heading like `h1 { font-size: clamp(40px, 6vw, 64px) }` produces a
 heading that scales smoothly with the viewport: 40px on a phone, 64px
 on a desktop, and a smooth gradient in between. No media queries

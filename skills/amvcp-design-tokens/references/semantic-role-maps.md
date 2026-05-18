@@ -1,5 +1,12 @@
 # Semantic-role color maps
 
+## Table of Contents
+
+- [The generic shape](#the-generic-shape)
+- [The shipped maps](#the-shipped-maps)
+- [The golden-angle categorical generator](#the-golden-angle-categorical-generator)
+- [Seeding off the active accent](#seeding-off-the-active-accent)
+
 A role-color map is ONE mechanism — "a named map of semantic role →
 color, applied via a `data-*` attribute" — with several shipped
 instances. `amvcpTokens.ROLE_MAPS` holds the data;

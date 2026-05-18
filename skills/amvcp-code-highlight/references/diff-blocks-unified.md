@@ -1,5 +1,21 @@
 # Sub-technique D1 — Unified diff blocks
 
+## Table of Contents
+
+- [D1.1 What it does](#d11-what-it-does)
+- [D1.2 The author markup — preferred form](#d12-the-author-markup--preferred-form)
+- [D1.3 The author markup — explicit form (when needed)](#d13-the-author-markup--explicit-form-when-needed)
+- [D1.4 The CSS (diff tints)](#d14-the-css-diff-tints)
+- [D1.5 The tints come from semantic tokens — NEVER hardcoded](#d15-the-tints-come-from-semantic-tokens--never-hardcoded)
+- [D1.6 The line-through-on-del variant](#d16-the-line-through-on-del-variant)
+- [D1.7 The hunk header](#d17-the-hunk-header)
+- [D1.8 Collapsing context regions (CB-01 reframed §C2)](#d18-collapsing-context-regions-cb-01-reframed-c2)
+- [D1.9 Copy behaviour](#d19-copy-behaviour)
+- [D1.10 Selection + commenting](#d110-selection--commenting)
+- [D1.11 Light + dark verification](#d111-light--dark-verification)
+- [D1.12 Tokens consumed](#d112-tokens-consumed)
+- [D1.13 Author rules](#d113-author-rules)
+
 Per-line `data-ve-diff="add|del|ctx|hunk"` driving olive / rust tints
 from `--ve-code-diff-*` tokens. The unified-column variant of CB-01
 (reframed: the Shiki+Zustand implementation is rejected, the

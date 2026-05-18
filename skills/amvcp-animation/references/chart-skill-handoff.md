@@ -1,5 +1,20 @@
 # Chart skill handoff — counter primitive and entrance animations
 
+## Table of Contents
+
+- [`animateStat(el)` — the counter primitive](#animatestatel--the-counter-primitive)
+- [How the chart skill should call it](#how-the-chart-skill-should-call-it)
+- [Why the chart skill doesn't re-implement count-up](#why-the-chart-skill-doesnt-re-implement-count-up)
+- [Chart entrance animations](#chart-entrance-animations)
+- [Stat-card reveal pattern](#stat-card-reveal-pattern)
+- [Chart canvas + animation skill](#chart-canvas--animation-skill)
+- [DESIGN.md tokens shared](#designmd-tokens-shared)
+- [Reduced-motion substitute](#reduced-motion-substitute)
+- [Selection + comment + decision integration](#selection--comment--decision-integration)
+- [Diagnostics](#diagnostics)
+- [Visual verification](#visual-verification)
+- [Future chart-skill extensions](#future-chart-skill-extensions)
+
 The chart skill consumes two animation primitives from this
 skill: `animateStat(el)` for KPI-card counters, and the entrance
 animation patterns for chart reveal. This file documents the

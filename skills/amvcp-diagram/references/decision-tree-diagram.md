@@ -1,5 +1,20 @@
 # Decision tree diagram
 
+## Table of Contents
+
+- [When to choose this pattern](#when-to-choose-this-pattern)
+- [Scaffold](#scaffold)
+- [Tree geometry conventions](#tree-geometry-conventions)
+- [Decision node labels](#decision-node-labels)
+- [Outcome node convention](#outcome-node-convention)
+- [Edge labels (the answer to the question)](#edge-labels-the-answer-to-the-question)
+- [Routing convention](#routing-convention)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Selection atoms](#selection-atoms)
+- [Variations](#variations)
+- [Anti-patterns](#anti-patterns)
+- [Visual verification](#visual-verification)
+
 A tree of decisions and outcomes — the canonical shape for "how do
 I pick X?" content. Each interior node is a decision (`yes/no` or
 `A/B/C` branch); each leaf is an outcome. Use to visualize

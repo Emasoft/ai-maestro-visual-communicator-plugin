@@ -1,5 +1,18 @@
 # Appendix + References / bibliography
 
+## Table of Contents
+
+- [When to add each](#when-to-add-each)
+- [Appendix scaffold](#appendix-scaffold)
+- [CSS for appendices](#css-for-appendices)
+- [References scaffold](#references-scaffold)
+- [CSS for references](#css-for-references)
+- [Citation discipline](#citation-discipline)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Composition](#composition)
+- [Selection / comment notes](#selection--comment-notes)
+- [Anti-patterns](#anti-patterns)
+
 The two formal-document blocks that sit at the end of long-form
 documents: an **Appendix** holds material that would interrupt the
 main flow if inline (extended derivations, full-test-plan tables,

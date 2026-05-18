@@ -1,5 +1,16 @@
 # 34 — Content completeness (mapping a source document to slides)
 
+## Table of Contents
+
+- [What this is](#what-this-is)
+- [The completeness test](#the-completeness-test)
+- [Lib functions called](#lib-functions-called)
+- [When to use this reference](#when-to-use-this-reference)
+- [Don'ts](#donts)
+- [Anti-patterns](#anti-patterns)
+- [Visual verification](#visual-verification)
+- [Source provenance](#source-provenance)
+
 When converting a source document (a plan, a spec, a review, a
 postmortem, a status report) into a deck, the agent MUST cover every
 section, every decision, every data point, every collapsible detail

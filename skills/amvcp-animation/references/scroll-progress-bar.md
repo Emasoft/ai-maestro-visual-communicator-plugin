@@ -1,5 +1,21 @@
 # Scroll progress bar — fixed-top read-progress indicator
 
+## Table of Contents
+
+- [The contract](#the-contract)
+- [How the progress is computed](#how-the-progress-is-computed)
+- [When to use the progress bar](#when-to-use-the-progress-bar)
+- [Color and z-index](#color-and-z-index)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Why no transition?](#why-no-transition)
+- [Reduced-motion substitute](#reduced-motion-substitute)
+- [Selection + comment + decision integration](#selection--comment--decision-integration)
+- [Placement guidance](#placement-guidance)
+- [Multiple progress bars](#multiple-progress-bars)
+- [Diagnostics](#diagnostics)
+- [Visual verification](#visual-verification)
+- [When to combine with the parallax tier](#when-to-combine-with-the-parallax-tier)
+
 A 3px horizontal bar fixed at the top of the viewport, its width
 animated to match the user's fraction-scrolled through the
 document. Driven by the SAME scroll listener that feeds parallax,

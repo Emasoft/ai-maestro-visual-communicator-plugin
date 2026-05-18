@@ -1,5 +1,21 @@
 # Edge routing strategies
 
+## Table of Contents
+
+- [The four routes](#the-four-routes)
+- [`straight` — the bare line](#straight--the-bare-line)
+- [`ortho` — the workhorse](#ortho--the-workhorse)
+- [`bezier` — the curve](#bezier--the-curve)
+- [`loop` — the back-edge](#loop--the-back-edge)
+- [Edge anchors](#edge-anchors)
+- [Edge labels](#edge-labels)
+- [Edge styles](#edge-styles)
+- [Arrowheads](#arrowheads)
+- [The 14px hit-area twin](#the-14px-hit-area-twin)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Anti-patterns](#anti-patterns)
+- [Visual verification](#visual-verification)
+
 The four edge routing modes the engine ships — `straight`, `ortho`,
 `bezier`, `loop` — plus authoring guidance on when each is the
 right pick.

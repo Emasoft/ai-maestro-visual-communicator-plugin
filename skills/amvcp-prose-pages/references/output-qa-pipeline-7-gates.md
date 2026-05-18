@@ -1,5 +1,18 @@
 # Output QA pipeline — the 7 gates of `runGates`
 
+## Table of Contents
+
+- [When to run the QA pipeline](#when-to-run-the-qa-pipeline)
+- [The 7 gates](#the-7-gates)
+- [Calling the pipeline](#calling-the-pipeline)
+- [Gate output shape](#gate-output-shape)
+- [The loop-detection (failedTwice)](#the-loop-detection-failedtwice)
+- [DESIGN.md tokens consumed (by Gate 2)](#designmd-tokens-consumed-by-gate-2)
+- [Banned lists (Gates 6 + 7)](#banned-lists-gates-6--7)
+- [Lib API surface](#lib-api-surface)
+- [Visual verification](#visual-verification)
+- [Anti-patterns](#anti-patterns)
+
 The non-element capability that closes the plugin's "rules stated but
 never verified" loop. `amvcpReportDoc.runGates(document, pageId)`
 runs 7 checks against any rendered HTML page and returns a structured

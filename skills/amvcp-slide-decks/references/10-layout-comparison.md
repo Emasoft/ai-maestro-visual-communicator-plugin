@@ -1,5 +1,18 @@
 # 10 — Layout: `comparison` (left vs right contrast)
 
+## Table of Contents
+
+- [What this is](#what-this-is)
+- [Scaffold to emit](#scaffold-to-emit)
+- [Lib functions called](#lib-functions-called)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Selection / comment / decision-mini contract notes](#selection--comment--decision-mini-contract-notes)
+- [When to use this reference](#when-to-use-this-reference)
+- [Don'ts](#donts)
+- [Authoring rules — item alignment](#authoring-rules--item-alignment)
+- [Visual verification](#visual-verification)
+- [Source provenance](#source-provenance)
+
 The comparison slide is for opposition. Then vs now. Before vs after.
 Option A vs option B. The visual model is two side-by-side panes with
 matching titles + matching item lists; the eye reads them in parallel

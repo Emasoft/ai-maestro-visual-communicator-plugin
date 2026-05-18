@@ -1,5 +1,16 @@
 # Contact-sheet z-index panel — overlapping plates stack
 
+## Table of Contents
+
+- [What it does](#what-it-does)
+- [Why overlap (vs a single-column legend)](#why-overlap-vs-a-single-column-legend)
+- [Scaffold to emit](#scaffold-to-emit)
+- [Lib functions used](#lib-functions-used)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Anti-slop interaction](#anti-slop-interaction)
+- [Selection / comment / decision-mini contract](#selection--comment--decision-mini-contract)
+- [Visual verification](#visual-verification)
+
 The `z-index` panel of the token contact sheet renders nine overlapping
 plates positioned by `var(--vc-z-<level>)`. Each plate is a click-to-
 copy button that copies the literal z-index number. The teaching

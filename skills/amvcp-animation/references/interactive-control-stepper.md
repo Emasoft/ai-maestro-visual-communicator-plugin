@@ -1,5 +1,21 @@
 # Interactive-control stepper — spin keyframe for in-progress step
 
+## Table of Contents
+
+- [The stepper visual](#the-stepper-visual)
+- [The spin keyframe](#the-spin-keyframe)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Reduced-motion substitute](#reduced-motion-substitute)
+- [Loop-pause integration](#loop-pause-integration)
+- [Selection + comment + decision integration](#selection--comment--decision-integration)
+- [Composing with the progressive stepper's other states](#composing-with-the-progressive-steppers-other-states)
+- [DESIGN.md hot-swap](#designmd-hot-swap)
+- [Diagnostics](#diagnostics)
+- [Visual verification](#visual-verification)
+- [Pattern: "this is busy" indicators](#pattern-this-is-busy-indicators)
+- [Author extension: custom spinner shapes](#author-extension-custom-spinner-shapes)
+- [Why not `<animate>` SMIL on the SVG?](#why-not-animate-smil-on-the-svg)
+
 The interactive-controls skill ships a progressive stepper
 component (`step--done` / `step--active` / `step--pending`). The
 ACTIVE step has a spinning icon to indicate "this step is

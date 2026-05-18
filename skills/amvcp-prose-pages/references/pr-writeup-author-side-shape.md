@@ -1,5 +1,20 @@
 # PR-writeup (author-side) shape — TL;DR + before/after + file tour + rollout strip
 
+## Table of Contents
+
+- [When to choose this shape](#when-to-choose-this-shape)
+- [Section order (fixed)](#section-order-fixed)
+- [Markdown scaffold](#markdown-scaffold)
+- [The before/after panel pair](#the-beforeafter-panel-pair)
+- [The rollout strip (shared borders)](#the-rollout-strip-shared-borders)
+- [Reading-order file tour vs alphabetical](#reading-order-file-tour-vs-alphabetical)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Composition with other skills](#composition-with-other-skills)
+- [Lib functions called](#lib-functions-called)
+- [Selection / comment notes](#selection--comment-notes)
+- [Decision-mini hook](#decision-mini-hook)
+- [Anti-patterns](#anti-patterns)
+
 The author-facing companion to `pr-review-reviewer-side-shape.md`: the
 *author's writeup of their own PR*, distinct from the GitHub PR
 description (which is usually a brief paragraph). Canonical reference:

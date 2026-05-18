@@ -1,5 +1,23 @@
 # `chart:lollipop@1` — lollipop chart
 
+## Table of Contents
+
+- [When to choose lollipop](#when-to-choose-lollipop)
+- [Authoring shape](#authoring-shape)
+- [Options](#options)
+- [Examples](#examples)
+- [What the runtime emits](#what-the-runtime-emits)
+- [Lib functions called](#lib-functions-called)
+- [DESIGN.md tokens](#designmd-tokens)
+- [Selection / atoms](#selection--atoms)
+- [Anti-patterns](#anti-patterns)
+- [Lollipop vs alternatives](#lollipop-vs-alternatives)
+- [When lollipop beats bar](#when-lollipop-beats-bar)
+- [When lollipop loses to bar](#when-lollipop-loses-to-bar)
+- [Multi-series lollipop](#multi-series-lollipop)
+- [Stem styling overrides](#stem-styling-overrides)
+- [Visual verification](#visual-verification)
+
 A bar chart with the bar replaced by a thin "stem" line and a circular
 "head" at the value. Far less visual ink than `bar` for the same comparison.
 

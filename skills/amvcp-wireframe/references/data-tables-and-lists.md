@@ -1,5 +1,18 @@
 # Data tables & lists — every density and shape
 
+## Table of Contents
+
+- [Pattern 1 — Standard sortable table](#pattern-1--standard-sortable-table)
+- [Pattern 2 — Compact list (denser than table)](#pattern-2--compact-list-denser-than-table)
+- [Pattern 3 — Expandable rows (master-detail in one view)](#pattern-3--expandable-rows-master-detail-in-one-view)
+- [Pattern 4 — Inline editable cells](#pattern-4--inline-editable-cells)
+- [Pattern 5 — Drag-to-reorder (sortable list)](#pattern-5--drag-to-reorder-sortable-list)
+- [Pattern 6 — Virtualized big-data (10k+ rows)](#pattern-6--virtualized-big-data-10k-rows)
+- [Row selection — checkbox column + bulk action bar](#row-selection--checkbox-column--bulk-action-bar)
+- [Empty table state](#empty-table-state)
+- [Sticky header + sticky first column](#sticky-header--sticky-first-column)
+- [Cell type conventions (text, number, date, status, action)](#cell-type-conventions-text-number-date-status-action)
+
 Tables are 30%+ of every dashboard's surface area. Six list-shape
 patterns: standard sortable table, compact list, expandable rows,
 inline editable cells, drag-to-reorder, virtualized big-data.

@@ -1,5 +1,21 @@
 # Sub-technique E1 — Tabbed code panel (3 perspectives on the same change)
 
+## Table of Contents
+
+- [E1.1 The pattern](#e11-the-pattern)
+- [E1.2 The canonical perspective sets](#e12-the-canonical-perspective-sets)
+- [E1.3 Anti-patterns](#e13-anti-patterns)
+- [E1.4 The composition example: feature-explainer config sample](#e14-the-composition-example-feature-explainer-config-sample)
+- [E1.5 The 6-line JS handler](#e15-the-6-line-js-handler)
+- [E1.6 The "first tab is the canonical one" rule](#e16-the-first-tab-is-the-canonical-one-rule)
+- [E1.7 Tab labels — discipline](#e17-tab-labels--discipline)
+- [E1.8 The 2-pane variant (Before / After)](#e18-the-2-pane-variant-before--after)
+- [E1.9 Auto-collapse adjacent text content](#e19-auto-collapse-adjacent-text-content)
+- [E1.10 Selection / commenting across tabs](#e110-selection--commenting-across-tabs)
+- [E1.11 Pair with collapsed-snippets walkthrough](#e111-pair-with-collapsed-snippets-walkthrough)
+- [E1.12 Tokens consumed](#e112-tokens-consumed)
+- [E1.13 Author rules (composition-level)](#e113-author-rules-composition-level)
+
 The canonical "show the same change from N angles" composition. The
 catalog's #14 (`research-feature-explainer`) tabbed-code pattern, plus
 the authoring rules for choosing perspective sets.

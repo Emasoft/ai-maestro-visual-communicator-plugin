@@ -1,5 +1,22 @@
 # `chart:harvey-ball@1` — Harvey ball row
 
+## Table of Contents
+
+- [When to choose harvey-ball](#when-to-choose-harvey-ball)
+- [Authoring shape](#authoring-shape)
+- [Options](#options)
+- [Examples](#examples)
+- [What the runtime emits](#what-the-runtime-emits)
+- [Lib functions called](#lib-functions-called)
+- [DESIGN.md tokens](#designmd-tokens)
+- [Selection / atoms](#selection--atoms)
+- [Anti-patterns](#anti-patterns)
+- [Harvey-ball vs alternatives](#harvey-ball-vs-alternatives)
+- [The five canonical ball states](#the-five-canonical-ball-states)
+- [Multiple Harvey-ball rows (per-criterion comparison)](#multiple-harvey-ball-rows-per-criterion-comparison)
+- [Auto-detected fraction vs percentage](#auto-detected-fraction-vs-percentage)
+- [Visual verification](#visual-verification)
+
 The McKinsey "qualitative rating" glyph: a row of circles, each filled
 0/25/50/75/100% to denote a coarse rating. Originally pencil-drawn into
 Consumer Reports comparison tables; now the convention for quick qualitative

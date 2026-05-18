@@ -1,5 +1,20 @@
 # Floating presets — four decorative ambient loops
 
+## Table of Contents
+
+- [The four presets](#the-four-presets)
+- [The keyframes](#the-keyframes)
+- [The orbit math](#the-orbit-math)
+- [Markup](#markup)
+- [Performance: the loop-pause observer](#performance-the-loop-pause-observer)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Reduced-motion substitute — REMOVAL](#reduced-motion-substitute--removal)
+- [Selection + comment + decision integration](#selection--comment--decision-integration)
+- [When to use which preset](#when-to-use-which-preset)
+- [Bobbing card stack — the mined variant (`02-exploration-visual-designs`)](#bobbing-card-stack--the-mined-variant-02-exploration-visual-designs)
+- [Diagnostics](#diagnostics)
+- [Visual verification](#visual-verification)
+
 `va-float-y` / `va-breathe` / `va-orbit` / `va-rotate` — named CSS
 utility classes for decorative ornaments (hero accents, cover
 illustrations, mascot icons). All four are infinite loops; all

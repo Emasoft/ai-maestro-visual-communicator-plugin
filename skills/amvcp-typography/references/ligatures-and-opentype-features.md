@@ -1,5 +1,24 @@
 # Ligatures and OpenType features — `liga`, `dlig`, `frac`, `ordn`, `calt`
 
+## Table of Contents
+
+- [What it is](#what-it-is)
+- [The contract](#the-contract)
+- [Scaffold](#scaffold)
+- [Tokens consumed / extended](#tokens-consumed--extended)
+- [Why common-ligatures ON by default](#why-common-ligatures-on-by-default)
+- [Why discretionary-ligatures OFF by default](#why-discretionary-ligatures-off-by-default)
+- [Why kerning is explicitly set](#why-kerning-is-explicitly-set)
+- [Auto-fractions vs Unicode fractions](#auto-fractions-vs-unicode-fractions)
+- [Stylistic sets — `ss01` through `ss20`](#stylistic-sets--ss01-through-ss20)
+- [Light + dark — orthogonal](#light--dark--orthogonal)
+- [Browser support](#browser-support)
+- [When the font doesn't have a feature](#when-the-font-doesnt-have-a-feature)
+- [Selection-contract conformance](#selection-contract-conformance)
+- [When NOT to opt in](#when-not-to-opt-in)
+- [Verification](#verification)
+- [Cross-references](#cross-references)
+
 OpenType ligatures are special combined glyphs for letter pairs that
 collide at standard spacing — "fi", "fl", "ffl", "Th", "ct", "st".
 Modern fonts ship dozens of ligature classes; the browser exposes

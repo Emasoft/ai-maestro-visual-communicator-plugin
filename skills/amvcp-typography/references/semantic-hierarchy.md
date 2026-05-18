@@ -1,5 +1,15 @@
 # Sub-technique B — Semantic hierarchy contract
 
+## Table of Contents
+
+- [B.1 The contract table](#b1-the-contract-table)
+- [B.2 How it is delivered](#b2-how-it-is-delivered)
+- [B.3 Why the hierarchy is *strict*](#b3-why-the-hierarchy-is-strict)
+- [B.4 No-nested-scrollbars compliance](#b4-no-nested-scrollbars-compliance)
+- [B.5 Light + dark — correct for free](#b5-light--dark--correct-for-free)
+- [B.6 Runtime migration map (NOT this skill's build work)](#b6-runtime-migration-map-not-this-skills-build-work)
+- [Tokens consumed](#tokens-consumed)
+
 The role-to-token lookup is what makes the type scale *usable*: it tells
 the renderer and the page author which token every semantic element
 gets, so nobody ever writes a raw `font-size` again. Implements TY-09.

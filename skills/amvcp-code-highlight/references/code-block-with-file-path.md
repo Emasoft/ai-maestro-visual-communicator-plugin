@@ -1,5 +1,19 @@
 # Sub-technique B4 — Code block with file-path label
 
+## Table of Contents
+
+- [B4.1 What it does](#b41-what-it-does)
+- [B4.2 The markup](#b42-the-markup)
+- [B4.3 The CSS](#b43-the-css)
+- [B4.4 The file-type icon glyphs](#b44-the-file-type-icon-glyphs)
+- [B4.5 The line range](#b45-the-line-range)
+- [B4.6 Multi-language file paths](#b46-multi-language-file-paths)
+- [B4.7 The selection contract](#b47-the-selection-contract)
+- [B4.8 The provenance discipline](#b48-the-provenance-discipline)
+- [B4.9 Pair with code-block-with-tab-bar](#b49-pair-with-code-block-with-tab-bar)
+- [B4.10 Tokens consumed](#b410-tokens-consumed)
+- [B4.11 Author rules](#b411-author-rules)
+
 A mono-font header line inside a code block that names the file the
 code came from. Mined from `12-incident-report`, `16-implementation-
 plan`, `17-pr-writeup` — the provenance pattern used by every PR-

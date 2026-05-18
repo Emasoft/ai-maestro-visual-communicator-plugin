@@ -1,5 +1,17 @@
 # Section numbering — decimal-leading-zero via CSS counters
 
+## Table of Contents
+
+- [When to use leading-zero numbering](#when-to-use-leading-zero-numbering)
+- [The whitepaper template's auto-numbering](#the-whitepaper-templates-auto-numbering)
+- [Cross-referencing by name, not number](#cross-referencing-by-name-not-number)
+- [Multi-level numbering (sections + subsections)](#multi-level-numbering-sections--subsections)
+- [The standalone `vc-num` eyebrow (alternative)](#the-standalone-vc-num-eyebrow-alternative)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Composition](#composition)
+- [Selection / comment notes](#selection--comment-notes)
+- [Anti-patterns](#anti-patterns)
+
 The whitepaper / RFC convention of numbering top-level sections with
 `01`, `02`, `03` … rather than the more common `1`, `2`, `3`. The
 leading zero is a typographic detail that telegraphs the document is

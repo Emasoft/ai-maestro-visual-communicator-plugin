@@ -1,5 +1,19 @@
 # `@layer` architecture — primitive < semantic < component (DM-08)
 
+## Table of Contents
+
+- [What it does](#what-it-does)
+- [Why this order](#why-this-order)
+- [Why empty `ve-primitive`?](#why-empty-ve-primitive)
+- [Host-page interactions](#host-page-interactions)
+- [When to add things to which layer](#when-to-add-things-to-which-layer)
+- [Scaffold to emit](#scaffold-to-emit)
+- [Lib functions used](#lib-functions-used)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Anti-slop interaction](#anti-slop-interaction)
+- [Selection / comment / decision-mini contract](#selection--comment--decision-mini-contract)
+- [Visual verification](#visual-verification)
+
 The 3-tier CSS `@layer` cascade emitted HTML uses to keep component CSS
 from ever out-specifying the token tier. Documented separately from
 `token-vocabulary.md` because the layer model is its own subject — when

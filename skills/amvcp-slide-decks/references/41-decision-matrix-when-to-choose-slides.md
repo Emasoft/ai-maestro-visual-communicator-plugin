@@ -1,5 +1,20 @@
 # 41 — Decision matrix: when to choose slide-deck category vs others
 
+## Table of Contents
+
+- [What this is](#what-this-is)
+- [Decision flowchart](#decision-flowchart)
+- [When to pick `slide-decks`](#when-to-pick-slide-decks)
+- [When NOT to pick slide-decks](#when-not-to-pick-slide-decks)
+- [Boundary cases](#boundary-cases)
+- [Authoring-quality checklist before picking slide-decks](#authoring-quality-checklist-before-picking-slide-decks)
+- [Lib functions called](#lib-functions-called)
+- [When to use this reference](#when-to-use-this-reference)
+- [Common mis-dispatches](#common-mis-dispatches)
+- [Don'ts](#donts)
+- [Visual verification](#visual-verification)
+- [Source provenance](#source-provenance)
+
 The slide-decks skill is for ONE specific output format: a
 fixed-aspect, navigable, JSON-authored slide deck. This reference is
 the decision matrix that picks slide-decks vs other AMVCP categories.

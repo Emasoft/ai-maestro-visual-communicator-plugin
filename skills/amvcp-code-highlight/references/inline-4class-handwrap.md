@@ -1,5 +1,19 @@
 # Sub-technique C1 — Inline 4-class hand-wrapped highlighting
 
+## Table of Contents
+
+- [C1.1 What it does](#c11-what-it-does)
+- [C1.2 When to choose this over the JS tokenizer](#c12-when-to-choose-this-over-the-js-tokenizer)
+- [C1.3 The markup](#c13-the-markup)
+- [C1.4 The CSS (page-stylesheet)](#c14-the-css-page-stylesheet)
+- [C1.5 The 5-rule discipline](#c15-the-5-rule-discipline)
+- [C1.6 Example: a debounced-search hook explanation](#c16-example-a-debounced-search-hook-explanation)
+- [C1.7 Selection / copy / accessibility](#c17-selection--copy--accessibility)
+- [C1.8 The fallback when DESIGN.md isn't loaded](#c18-the-fallback-when-designmd-isnt-loaded)
+- [C1.9 Why this palette is "shared"](#c19-why-this-palette-is-shared)
+- [C1.10 The migration path to the JS tokenizer](#c110-the-migration-path-to-the-js-tokenizer)
+- [C1.11 Tokens consumed](#c111-tokens-consumed)
+
 The minimal-CSS, JS-free pattern for syntax-colour without invoking
 the full tokenizer. Mined from `01-exploration-code-approaches`,
 `04-code-understanding`, `14-research-feature-explainer`, `16-

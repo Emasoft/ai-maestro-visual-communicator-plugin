@@ -1,5 +1,16 @@
 # Z-index semantic scale (DT-14 + DM-07-zindex)
 
+## Table of Contents
+
+- [What it does](#what-it-does)
+- [When to use which level](#when-to-use-which-level)
+- [Scaffold to emit](#scaffold-to-emit)
+- [Lib functions used](#lib-functions-used)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Anti-slop interaction](#anti-slop-interaction)
+- [Selection / comment / decision-mini contract](#selection--comment--decision-mini-contract)
+- [Visual verification](#visual-verification)
+
 Nine named stacking levels. Eliminates z-index wars — every layer has a
 SEMANTIC name and a numeric value derived from a fixed exponential rung,
 so engineers reason about stacking via INTENT (a tooltip beats a modal

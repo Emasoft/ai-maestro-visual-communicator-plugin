@@ -1,5 +1,20 @@
 # Sub-technique E4 — PR writeup page composition (author-side)
 
+## Table of Contents
+
+- [E4.1 The shape](#e41-the-shape)
+- [E4.2 The TL;DR card](#e42-the-tldr-card)
+- [E4.3 The Why section — Before/After panels](#e43-the-why-section--beforeafter-panels)
+- [E4.4 The file-by-file tour — ordered FOR READING](#e44-the-file-by-file-tour--ordered-for-reading)
+- [E4.5 The badges](#e45-the-badges)
+- [E4.6 The "Where to focus" numbered cards](#e46-the-where-to-focus-numbered-cards)
+- [E4.7 The test plan checklist](#e47-the-test-plan-checklist)
+- [E4.8 The rollout strip](#e48-the-rollout-strip)
+- [E4.9 The narrow-viewport stack](#e49-the-narrow-viewport-stack)
+- [E4.10 Cross-references](#e410-cross-references)
+- [E4.11 Tokens consumed](#e411-tokens-consumed)
+- [E4.12 Mined source attribution](#e412-mined-source-attribution)
+
 The author-facing pull-request writeup page. Mined verbatim from
 `17-pr-writeup.html` (html-effectiveness catalog #17). The canonical
 author-side composition — the document the PR author writes to argue

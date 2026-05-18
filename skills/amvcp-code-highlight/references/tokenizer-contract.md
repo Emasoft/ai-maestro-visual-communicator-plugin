@@ -1,5 +1,21 @@
 # Sub-technique A1 — Tokenizer contract (`amvcp-code-highlight.js`)
 
+## Table of Contents
+
+- [A1.1 What it does](#a11-what-it-does)
+- [A1.2 Why it lives outside `amvcp-runtime.js`](#a12-why-it-lives-outside-amvcp-runtimejs)
+- [A1.3 Dual export](#a13-dual-export)
+- [A1.4 Public API](#a14-public-api)
+- [A1.5 The 12 token roles](#a15-the-12-token-roles)
+- [A1.6 The seven registered languages](#a16-the-seven-registered-languages)
+- [A1.7 The stash-and-restore precedence model](#a17-the-stash-and-restore-precedence-model)
+- [A1.8 The integrity probe — non-negotiable](#a18-the-integrity-probe--non-negotiable)
+- [A1.9 Carry state (multi-line constructs)](#a19-carry-state-multi-line-constructs)
+- [A1.10 Authoring rules consumers MUST follow](#a110-authoring-rules-consumers-must-follow)
+- [A1.11 The runtime wiring contract](#a111-the-runtime-wiring-contract)
+- [A1.12 Failure modes (all fail-soft)](#a112-failure-modes-all-fail-soft)
+- [A1.13 Tokens consumed / extended](#a113-tokens-consumed--extended)
+
 The dependency-free, ES5-safe, Node-require-able syntax-highlight
 engine the runtime calls from inside `initCodeGutter`. This reference
 documents the model, the API, and the **non-negotiable source-fidelity

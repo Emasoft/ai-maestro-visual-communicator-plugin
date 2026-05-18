@@ -1,5 +1,18 @@
 # Easing curves — the five canonical curves and when to use each
 
+## Table of Contents
+
+- [The five curves](#the-five-curves)
+- [Picking the curve by question](#picking-the-curve-by-question)
+- [Why decel on entrances (not standard)](#why-decel-on-entrances-not-standard)
+- [Spring overshoot — the one playful curve](#spring-overshoot--the-one-playful-curve)
+- [Reduced-motion: every easing collapses to `ease` 200ms](#reduced-motion-every-easing-collapses-to-ease-200ms)
+- [DESIGN.md authoring](#designmd-authoring)
+- [Easing-presets-swap-a-single-CSS-var (from html-effectiveness](#easing-presets-swap-a-single-css-var-from-html-effectiveness)
+- [Reduced-motion substitute (curve doesn't apply)](#reduced-motion-substitute-curve-doesnt-apply)
+- [Visual verification](#visual-verification)
+- [Selection / decision integration](#selection--decision-integration)
+
 Every easing in the animation skill is one of FIVE named cubic-bezier
 curves, exposed as `--vc-easing-*` tokens by the DESIGN.md engine.
 Mixing in a sixth curve is a smell — it almost always means the

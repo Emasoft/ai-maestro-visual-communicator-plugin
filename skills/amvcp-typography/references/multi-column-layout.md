@@ -1,5 +1,24 @@
 # Multi-column body layout — CSS Columns with widows / orphans
 
+## Table of Contents
+
+- [What it is](#what-it-is)
+- [The contract](#the-contract)
+- [Scaffold](#scaffold)
+- [Tokens consumed / extended](#tokens-consumed--extended)
+- [When to choose multi-column](#when-to-choose-multi-column)
+- [Why `column-width` AND `column-count`](#why-column-width-and-column-count)
+- [The widow/orphan tuning](#the-widoworphan-tuning)
+- [Heading fragmentation](#heading-fragmentation)
+- [Light + dark — fully covered](#light--dark--fully-covered)
+- [Browser support](#browser-support)
+- [A heading that spans all columns](#a-heading-that-spans-all-columns)
+- [When the multi-column collapses to 1](#when-the-multi-column-collapses-to-1)
+- [Selection-contract conformance](#selection-contract-conformance)
+- [When NOT to use multi-column](#when-not-to-use-multi-column)
+- [Forbidden — fixed-height multi-columns](#forbidden--fixed-height-multi-columns)
+- [Cross-references](#cross-references)
+
 Some deliverables (long-form prose reports, magazine-style features,
 slide-deck body slides) read better as **multi-column** body text
 rather than a single-column page. CSS Columns (`column-count`,

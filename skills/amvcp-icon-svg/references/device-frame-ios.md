@@ -1,5 +1,22 @@
 # Device frame — iOS
 
+## Table of Contents
+
+- [What it renders](#what-it-renders)
+- [Two authoring paths](#two-authoring-paths)
+- [Required parameters (JS path)](#required-parameters-js-path)
+- [Status bar glyphs](#status-bar-glyphs)
+- [The home indicator](#the-home-indicator)
+- [Dynamic Island](#dynamic-island)
+- [CSS-only path classes](#css-only-path-classes)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [The `.isvg-frame-content` overflow: auto carve-out](#the-isvg-frame-content-overflow-auto-carve-out)
+- [Selection / comment / decision-mini](#selection--comment--decision-mini)
+- [When to use](#when-to-use)
+- [When NOT to use](#when-not-to-use)
+- [What NOT to do](#what-not-to-do)
+- [Visual verification](#visual-verification)
+
 The `ios` device frame wraps content in a themed iPhone mockup —
 bezel + screen + Dynamic Island + status bar + home indicator. Built
 as plain DOM + CSS (no React, no JSX, no toolchain) so it composes

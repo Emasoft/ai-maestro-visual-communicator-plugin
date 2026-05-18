@@ -1,5 +1,20 @@
 # Visual-design exploration shape — toolbar + N artboards + rationale
 
+## Table of Contents
+
+- [When to choose this shape](#when-to-choose-this-shape)
+- [Section order (fixed)](#section-order-fixed)
+- [Markdown scaffold](#markdown-scaffold)
+- [The light/dark toolbar switcher](#the-lightdark-toolbar-switcher)
+- [The 2×2 artboard grid](#the-22-artboard-grid)
+- [The per-artboard "Risk:" line](#the-per-artboard-risk-line)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Composition with other skills](#composition-with-other-skills)
+- [Lib functions called](#lib-functions-called)
+- [Selection / comment notes](#selection--comment-notes)
+- [Decision-mini hook](#decision-mini-hook)
+- [Anti-patterns](#anti-patterns)
+
 The document that explores N visual treatments of the same UI surface
 side-by-side, with a light/dark switcher and per-artboard rationale.
 Canonical reference: `html-effectiveness` demo #02,

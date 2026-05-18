@@ -1,5 +1,21 @@
 # 20 — Page H1 fluid sizing (the cover / hero headline)
 
+## Table of Contents
+
+- [What this is](#what-this-is)
+- [Scaffold to emit](#scaffold-to-emit)
+- [The letter-spacing tweak](#the-letter-spacing-tweak)
+- [Line-height for display headings](#line-height-for-display-headings)
+- [Lib functions called](#lib-functions-called)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Selection / comment / decision-mini contract notes](#selection--comment--decision-mini-contract-notes)
+- [When to use this clamp on H1](#when-to-use-this-clamp-on-h1)
+- [Visual verification](#visual-verification)
+- [Picking the IDEAL value (the `Nvw`)](#picking-the-ideal-value-the-nvw)
+- [The fully-explicit clamp formula (advanced)](#the-fully-explicit-clamp-formula-advanced)
+- [When the H1 is multi-line](#when-the-h1-is-multi-line)
+- [The relationship to the cover (ref 27) and hero (ref 29)](#the-relationship-to-the-cover-ref-27-and-hero-ref-29)
+
 A specific application of the fluid heading clamp pattern (ref 15)
 to the page-level H1 — the title of the page itself, typically
 inside a cover (`.la-cover`) or hero (`.la-hero`) section. The

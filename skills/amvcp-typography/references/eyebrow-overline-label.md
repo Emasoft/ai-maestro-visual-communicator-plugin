@@ -1,5 +1,25 @@
 # Eyebrow / overline / label — the mono-tracked category strip
 
+## Table of Contents
+
+- [What it is](#what-it-is)
+- [The contract](#the-contract)
+- [Scaffold](#scaffold)
+- [Tokens consumed / extended](#tokens-consumed--extended)
+- [Visual variants](#visual-variants)
+- [Tracking — why exactly 0.08em](#tracking--why-exactly-008em)
+- [Sizing — why 11px and not 12px](#sizing--why-11px-and-not-12px)
+- [Light + dark — correct for free](#light--dark--correct-for-free)
+- [Selection-contract conformance](#selection-contract-conformance)
+- [Decision-mini-pill](#decision-mini-pill)
+- [Comment thread](#comment-thread)
+- [When to choose this technique](#when-to-choose-this-technique)
+- [When NOT to use it](#when-not-to-use-it)
+- [No nested scrollbars](#no-nested-scrollbars)
+- [Light/dark coverage check](#lightdark-coverage-check)
+- [Migration from runtime hard-codes](#migration-from-runtime-hard-codes)
+- [Cross-references](#cross-references)
+
 The single most-reused typographic micro-pattern across high-quality
 AMVCP outputs (the Anthropic-Claude reference corpus uses it on every
 one of 21 demos). A small monospace strip above a heading that

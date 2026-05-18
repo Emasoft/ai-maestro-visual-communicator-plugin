@@ -1,5 +1,20 @@
 # Design-system doc shape — the living one-pager of a project's DESIGN.md
 
+## Table of Contents
+
+- [When to choose this shape](#when-to-choose-this-shape)
+- [Section order (fixed)](#section-order-fixed)
+- [Markdown scaffold](#markdown-scaffold)
+- [The swatch grid](#the-swatch-grid)
+- [The type-scale row atom](#the-type-scale-row-atom)
+- [The spacing ruler atom](#the-spacing-ruler-atom)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Composition with other skills](#composition-with-other-skills)
+- [Lib functions called](#lib-functions-called)
+- [Selection / comment notes](#selection--comment-notes)
+- [Decision-mini hook](#decision-mini-hook)
+- [Anti-patterns](#anti-patterns)
+
 The document that *renders* a project's DESIGN.md token set as a
 visual reference. Canonical reference: `html-effectiveness` demo #05,
 "design-system" — one-page color swatches + type-scale rows + spacing

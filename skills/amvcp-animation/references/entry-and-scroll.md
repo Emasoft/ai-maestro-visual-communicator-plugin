@@ -1,5 +1,12 @@
 # Entry & scroll animation — Layers 2 + 3
 
+## Table of Contents
+
+- [Layer 2 — staggered entry (`.va-stagger`)](#layer-2--staggered-entry-va-stagger)
+- [Layer 3 — fire-once scroll reveal (`data-va-reveal`)](#layer-3--fire-once-scroll-reveal-data-va-reveal)
+- [Layer 3 — stat counter (`.va-counter`)](#layer-3--stat-counter-va-counter)
+- [Layer 3 — cinematic scroll-pattern catalog](#layer-3--cinematic-scroll-pattern-catalog)
+
 Staggered entry, fire-once scroll reveal, the cinematic scroll-pattern
 catalog, and the stat counter. All themed off `--vc-*`, all
 `prefers-reduced-motion` safe.

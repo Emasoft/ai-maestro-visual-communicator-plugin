@@ -1,5 +1,18 @@
 # Rationale & design notes — why the kit is shaped this way
 
+## Table of Contents
+
+- [The "prototype + rationale + open questions" three-panel shape](#the-prototype--rationale--open-questions-three-panel-shape)
+- [Inline design notes (the eyebrow panel)](#inline-design-notes-the-eyebrow-panel)
+- [Before/after comparison (two states side-by-side)](#beforeafter-comparison-two-states-side-by-side)
+- [Decision-card pattern (option A vs B vs C)](#decision-card-pattern-option-a-vs-b-vs-c)
+- [Pros / cons table per option](#pros--cons-table-per-option)
+- [Tradeoff matrix (cost × benefit per choice)](#tradeoff-matrix-cost--benefit-per-choice)
+- [Open-questions panel — formal review questions](#open-questions-panel--formal-review-questions)
+- [Risk register (per-screen risks + mitigations)](#risk-register-per-screen-risks--mitigations)
+- [Source / inspiration provenance](#source--inspiration-provenance)
+- [Reviewer worksheet](#reviewer-worksheet)
+
 A wireframe deliverable becomes a CONVERSATION when it includes
 WHY. Each design choice can be explained inline with rationale
 panels, open-questions lists, before/after comparisons. This file

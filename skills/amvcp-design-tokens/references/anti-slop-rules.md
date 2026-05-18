@@ -1,5 +1,14 @@
 # Anti-AI-slop token gate
 
+## Table of Contents
+
+- [API](#api)
+- [Banned colors](#banned-colors)
+- [Banned primary fonts](#banned-primary-fonts)
+- [Banned patterns](#banned-patterns)
+- [Output discipline — fail-fast, report-only](#output-discipline--fail-fast-report-only)
+- [Where it runs](#where-it-runs)
+
 ONE consolidated lint that runs over (a) a generated / authored token
 set AND (b) emitted HTML, flagging banned colors, banned primary fonts,
 and banned visual patterns. It protects every artifact the plugin emits.

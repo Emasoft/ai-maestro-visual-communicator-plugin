@@ -1,5 +1,14 @@
 # Theming presets
 
+## Table of Contents
+
+- [The `--vc-*` namespace](#the---vc--namespace)
+- [Tokens the diagram skill reads](#tokens-the-diagram-skill-reads)
+- [Two-color derivation](#two-color-derivation)
+- [Mermaid theming (the forwarding contract)](#mermaid-theming-the-forwarding-contract)
+- [The six named theme presets](#the-six-named-theme-presets)
+- [Anti-AI-slop](#anti-ai-slop)
+
 How a diagram is themed off DESIGN.md `--vc-*` tokens, and the six
 named theme presets.
 

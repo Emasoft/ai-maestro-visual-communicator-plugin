@@ -1,5 +1,20 @@
 # 20 — Layout: `code-focus` (heading + one centred code block)
 
+## Table of Contents
+
+- [What this is](#what-this-is)
+- [Scaffold to emit](#scaffold-to-emit)
+- [Lib functions called](#lib-functions-called)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Selection / comment / decision-mini contract notes](#selection--comment--decision-mini-contract-notes)
+- [When to use this reference](#when-to-use-this-reference)
+- [Don'ts](#donts)
+- [Authoring rules — snippet selection](#authoring-rules--snippet-selection)
+- [Visual verification](#visual-verification)
+- [Languages tested on `lang` field](#languages-tested-on-lang-field)
+- [Diff-style snippets](#diff-style-snippets)
+- [Source provenance](#source-provenance)
+
 The code-focus slide gives ONE code snippet the centre of attention. A
 heading at the top names the snippet's role; a code block (delegated to
 `amvcp-codeblock.js`) fills the rest of the stage with line-numbered

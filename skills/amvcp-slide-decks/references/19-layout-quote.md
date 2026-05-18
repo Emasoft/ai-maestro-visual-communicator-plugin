@@ -1,5 +1,21 @@
 # 19 — Layout: `quote` (oversized blockquote + attribution)
 
+## Table of Contents
+
+- [What this is](#what-this-is)
+- [Scaffold to emit](#scaffold-to-emit)
+- [Lib functions called](#lib-functions-called)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Selection / comment / decision-mini contract notes](#selection--comment--decision-mini-contract-notes)
+- [When to use this reference](#when-to-use-this-reference)
+- [Don'ts](#donts)
+- [Authoring rules — quote selection](#authoring-rules--quote-selection)
+- [Visual verification](#visual-verification)
+- [Quote categories (by source)](#quote-categories-by-source)
+- [Quote slide as deck punctuation](#quote-slide-as-deck-punctuation)
+- [Common quote-slide mistakes](#common-quote-slide-mistakes)
+- [Source provenance](#source-provenance)
+
 The quote slide gives a single line its own moment. 36-48 px italic
 serif, generous breathing room, oversized opening quotation mark as a
 decorative element. The attribution sits below in small caps mono.

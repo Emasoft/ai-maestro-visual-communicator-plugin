@@ -1,5 +1,17 @@
 # `chart:pie@1` — the pie guardrail
 
+## Table of Contents
+
+- [Why no pie charts](#why-no-pie-charts)
+- [What the runtime does](#what-the-runtime-does)
+- [Example](#example)
+- [When the author actually wants a circular form](#when-the-author-actually-wants-a-circular-form)
+- [Anti-patterns](#anti-patterns)
+- [Empirical evidence summary](#empirical-evidence-summary)
+- [What about lone Hyperframes-style guidance documents?](#what-about-lone-hyperframes-style-guidance-documents)
+- [See also](#see-also)
+- [Visual verification](#visual-verification)
+
 `pie` is the BANNED chart type. Any spec authored as `chart:pie@1` is
 intercepted by the runtime and silently REMAPPED to a sorted `chart:bar@1`
 (`options.sortDescending: true`). The chart still renders; the author gets

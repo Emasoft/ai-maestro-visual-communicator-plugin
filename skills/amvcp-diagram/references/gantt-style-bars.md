@@ -1,5 +1,19 @@
 # Gantt-style bars
 
+## Table of Contents
+
+- [When to choose this pattern](#when-to-choose-this-pattern)
+- [Scaffold](#scaffold)
+- [Authoring math (bar position and width)](#authoring-math-bar-position-and-width)
+- [Dependency edges](#dependency-edges)
+- [Bar role tinting](#bar-role-tinting)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Selection atoms](#selection-atoms)
+- [Variations](#variations)
+- [Anti-patterns](#anti-patterns)
+- [Visual verification](#visual-verification)
+- [Cross-skill seam](#cross-skill-seam)
+
 A diagram of tasks-as-bars on a time axis. Each task is a
 horizontal bar from its start date to its end date; tasks are
 stacked vertically; dependencies (optional) are arrows connecting

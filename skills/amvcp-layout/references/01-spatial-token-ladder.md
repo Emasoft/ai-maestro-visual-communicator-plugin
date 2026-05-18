@@ -1,5 +1,19 @@
 # 01 — Spatial token ladder (the 8px-grid foundation)
 
+## Table of Contents
+
+- [What this is](#what-this-is)
+- [Scaffold to emit](#scaffold-to-emit)
+- [Lib functions called](#lib-functions-called)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Selection / comment / decision-mini contract notes](#selection--comment--decision-mini-contract-notes)
+- [Why this is a HARD rule](#why-this-is-a-hard-rule)
+- [When to use this reference](#when-to-use-this-reference)
+- [Visual verification](#visual-verification)
+- [The 8px-grid rationale](#the-8px-grid-rationale)
+- [Variant scales and when to use them](#variant-scales-and-when-to-use-them)
+- [Cross-system consistency](#cross-system-consistency)
+
 The single most important contract in the layout technique: every length
 the layout CSS emits is a `var(--vc-space-N)` reference, not a hardcoded
 pixel value. The DESIGN.md engine (`amvcp-designmd.js`) owns the indexed

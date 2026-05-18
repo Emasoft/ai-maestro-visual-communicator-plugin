@@ -1,5 +1,20 @@
 # Group container rects
 
+## Table of Contents
+
+- [What a group is (and isn't)](#what-a-group-is-and-isnt)
+- [Group schema](#group-schema)
+- [Group rendering](#group-rendering)
+- [Group tint vs node tint](#group-tint-vs-node-tint)
+- [Use cases](#use-cases)
+- [Group containment](#group-containment)
+- [Nested groups](#nested-groups)
+- [Selection atoms](#selection-atoms)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Anti-patterns](#anti-patterns)
+- [Optional: the group-handle UI](#optional-the-group-handle-ui)
+- [Visual verification](#visual-verification)
+
 How `groups` work in the scene graph — the rectangles drawn behind
 nodes to encode layer, swimlane, namespace, or container
 membership.

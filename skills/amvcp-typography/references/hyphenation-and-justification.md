@@ -1,5 +1,24 @@
 # Hyphenation, justification, and the readability of narrow columns
 
+## Table of Contents
+
+- [What it is](#what-it-is)
+- [The contract](#the-contract)
+- [Scaffold](#scaffold)
+- [Tokens consumed / extended](#tokens-consumed--extended)
+- [When to opt in](#when-to-opt-in)
+- [Why `hyphens: auto` and not `hyphens: manual`](#why-hyphens-auto-and-not-hyphens-manual)
+- [The `.vc-no-hyphens` modifier](#the-vc-no-hyphens-modifier)
+- [The widow / orphan controls](#the-widow--orphan-controls)
+- [Light + dark — orthogonal](#light--dark--orthogonal)
+- [Browser support](#browser-support)
+- [The runtime's existing justification use](#the-runtimes-existing-justification-use)
+- [When NOT to use justification](#when-not-to-use-justification)
+- [Forbidden — `text-justify: distribute`](#forbidden--text-justify-distribute)
+- [CJK justification](#cjk-justification)
+- [Selection-contract conformance](#selection-contract-conformance)
+- [Cross-references](#cross-references)
+
 When a body paragraph renders in a narrow column (a slide-deck
 sidebar, a 3-column report grid, a mobile viewport), the default
 left-aligned ragged-right setting produces *gaping* end-of-line

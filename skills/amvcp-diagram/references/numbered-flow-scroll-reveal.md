@@ -1,5 +1,17 @@
 # Numbered flow with scroll-reveal
 
+## Table of Contents
+
+- [When to choose this pattern](#when-to-choose-this-pattern)
+- [Scaffold](#scaffold)
+- [Accessibility gate](#accessibility-gate)
+- [Hot-step modifier](#hot-step-modifier)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Selection atoms](#selection-atoms)
+- [Variations](#variations)
+- [Anti-patterns](#anti-patterns)
+- [Visual verification](#visual-verification)
+
 A vertical numbered flow whose connecting line draws on as the
 reader scrolls. Lifted from DG-15 in the visualizing-triage
 backlog. Each step is a card with a numeric badge; an

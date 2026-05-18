@@ -1,5 +1,18 @@
 # 40 — Fail-fast errors, soft warnings, debugging
 
+## Table of Contents
+
+- [What this is](#what-this-is)
+- [Scaffold — using the warnings programmatically](#scaffold--using-the-warnings-programmatically)
+- [Lib functions called](#lib-functions-called)
+- [When to use this reference](#when-to-use-this-reference)
+- [Debugging workflow](#debugging-workflow)
+- [Don'ts](#donts)
+- [Visual verification](#visual-verification)
+- [Programmatic linting](#programmatic-linting)
+- [Worked examples — fix-by-message](#worked-examples--fix-by-message)
+- [Source provenance](#source-provenance)
+
 The slide module follows the fail-fast principle: STRUCTURAL errors
 throw immediately with the offending JSON path; STYLISTIC issues
 collect as soft warnings. This reference catalogues every error /

@@ -1,5 +1,20 @@
 # Sub-technique B2 — The opt-in `ve-blueprint` graph-paper theme
 
+## Table of Contents
+
+- [B2.1 What it does](#b21-what-it-does)
+- [B2.2 The CSS](#b22-the-css)
+- [B2.3 Selector specifics](#b23-selector-specifics)
+- [B2.4 Light + dark behaviour](#b24-light--dark-behaviour)
+- [B2.5 Composing with the 3-state model](#b25-composing-with-the-3-state-model)
+- [B2.6 The 1.5px backdrop-filter under blueprint](#b26-the-15px-backdrop-filter-under-blueprint)
+- [B2.7 The wrap-marker stripe over blueprint](#b27-the-wrap-marker-stripe-over-blueprint)
+- [B2.8 Selection bg tints over blueprint](#b28-selection-bg-tints-over-blueprint)
+- [B2.9 When to use](#b29-when-to-use)
+- [B2.10 The cross-reference to the wireframe skill](#b210-the-cross-reference-to-the-wireframe-skill)
+- [B2.11 Tokens consumed](#b211-tokens-consumed)
+- [B2.12 Author rules](#b212-author-rules)
+
 The optional `ve-blueprint` class — graph-paper backdrop, gold grid
 lines, parchment background. Survives soft-wrap, composes with the
 3-state hover/select model, themes off DESIGN.md. From the runtime's

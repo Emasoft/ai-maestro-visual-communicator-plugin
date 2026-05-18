@@ -1,5 +1,19 @@
 # Sub-technique A5 — Floating copy-to-clipboard button
 
+## Table of Contents
+
+- [A5.1 What it does](#a51-what-it-does)
+- [A5.2 Where the byte-exact source comes from](#a52-where-the-byte-exact-source-comes-from)
+- [A5.3 The SVG glyphs](#a53-the-svg-glyphs)
+- [A5.4 The button markup the runtime injects](#a54-the-button-markup-the-runtime-injects)
+- [A5.5 The transport — clipboard API + textarea fallback](#a55-the-transport--clipboard-api--textarea-fallback)
+- [A5.6 The success swap](#a56-the-success-swap)
+- [A5.7 What the button does NOT do](#a57-what-the-button-does-not-do)
+- [A5.8 Diff-mode copy: opt for the resolved side](#a58-diff-mode-copy-opt-for-the-resolved-side)
+- [A5.9 The CSV / data-fence variant](#a59-the-csv--data-fence-variant)
+- [A5.10 What an author can override](#a510-what-an-author-can-override)
+- [A5.11 Tokens consumed](#a511-tokens-consumed)
+
 The top-right `.ve-code-copy-btn`, SVG clipboard glyph, `--success`
 state swap on click, byte-exact source payload, navigator-clipboard +
 textarea-fallback transport. Implements CB-05 (HAVE — runtime

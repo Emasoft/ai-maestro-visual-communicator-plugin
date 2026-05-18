@@ -1,5 +1,22 @@
 # 24 — Pre-filled static TOC (the JS-off graceful path)
 
+## Table of Contents
+
+- [What this is](#what-this-is)
+- [Scaffold to emit](#scaffold-to-emit)
+- [When to pre-fill the TOC](#when-to-pre-fill-the-toc)
+- [When NOT to pre-fill](#when-not-to-pre-fill)
+- [Lib functions called](#lib-functions-called)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Selection / comment / decision-mini contract notes](#selection--comment--decision-mini-contract-notes)
+- [The ID-collision case](#the-id-collision-case)
+- [Visual verification](#visual-verification)
+- [The hybrid approach: static template + live build](#the-hybrid-approach-static-template--live-build)
+- [The TOC entry text contract](#the-toc-entry-text-contract)
+- [The data-depth attribute](#the-data-depth-attribute)
+- [Ordering and grouping](#ordering-and-grouping)
+- [Sub-TOC for nested content](#sub-toc-for-nested-content)
+
 When the author pre-fills the `.la-toc__list` with hand-written
 `<li><a>` entries, `initTOC()` SKIPS the build step but still
 wires the live `.is-active` highlight. The result: with JS on, the

@@ -1,5 +1,19 @@
 # 35 — Compositional variety + deck pacing rhythm
 
+## Table of Contents
+
+- [What this is](#what-this-is)
+- [What this is NOT](#what-this-is-not)
+- [Scaffold to emit](#scaffold-to-emit)
+- [Pacing rules](#pacing-rules)
+- [Lib functions called](#lib-functions-called)
+- [When to use this reference](#when-to-use-this-reference)
+- [Pacing-test workflow](#pacing-test-workflow)
+- [Don'ts](#donts)
+- [Composition table (canonical map)](#composition-table-canonical-map)
+- [Visual verification](#visual-verification)
+- [Source provenance](#source-provenance)
+
 Three consecutive slides with the same spatial composition feel
 identical even when the content is different. The fix is layout
 variety — alternate centred slides with off-axis slides, dense

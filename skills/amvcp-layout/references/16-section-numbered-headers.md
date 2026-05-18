@@ -1,5 +1,17 @@
 # 16 — Section-numbered headers (the `<div class="sec-head">` pattern)
 
+## Table of Contents
+
+- [What this is](#what-this-is)
+- [Scaffold to emit](#scaffold-to-emit)
+- [Lib functions called](#lib-functions-called)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Selection / comment / decision-mini contract notes](#selection--comment--decision-mini-contract-notes)
+- [The fake-heading concern](#the-fake-heading-concern)
+- [When to use this pattern](#when-to-use-this-pattern)
+- [Why a numeric badge instead of an automatic counter in the title](#why-a-numeric-badge-instead-of-an-automatic-counter-in-the-title)
+- [Visual verification](#visual-verification)
+
 A visually striking section-header pattern: a small numeric badge
 (`01`, `02`, …) sits to the LEFT of the heading, plus an optional
 "count" / metadata chip on the right. Visually establishes a

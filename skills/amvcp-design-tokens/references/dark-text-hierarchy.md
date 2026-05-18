@@ -1,5 +1,17 @@
 # Dark text hierarchy — 3-tier on-surface set (DT-08)
 
+## Table of Contents
+
+- [What it does](#what-it-does)
+- [When to use which tier](#when-to-use-which-tier)
+- [When to use the on-surface family vs. the engine's content roles](#when-to-use-the-on-surface-family-vs-the-engines-content-roles)
+- [Scaffold to emit](#scaffold-to-emit)
+- [Lib functions used](#lib-functions-used)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Anti-slop interaction](#anti-slop-interaction)
+- [Selection / comment / decision-mini contract](#selection--comment--decision-mini-contract)
+- [Visual verification](#visual-verification)
+
 A three-tier text hierarchy derived from the engine's single `content`
 role via `color-mix` against the active surface. Works on ANY surface
 because the mix percentages compose: 100% content / 72% content / 48%

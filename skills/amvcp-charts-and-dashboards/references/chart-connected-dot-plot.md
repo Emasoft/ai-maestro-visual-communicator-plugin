@@ -1,5 +1,21 @@
 # `chart:connected-dot-plot@1` — connected dot plot
 
+## Table of Contents
+
+- [When to choose connected-dot-plot](#when-to-choose-connected-dot-plot)
+- [Authoring shape](#authoring-shape)
+- [Options](#options)
+- [Examples](#examples)
+- [What the runtime emits](#what-the-runtime-emits)
+- [Lib functions called](#lib-functions-called)
+- [DESIGN.md tokens](#designmd-tokens)
+- [Selection / atoms](#selection--atoms)
+- [Anti-patterns](#anti-patterns)
+- [Connected-dot-plot vs alternatives](#connected-dot-plot-vs-alternatives)
+- [Reading direction](#reading-direction)
+- [Connector + value-label combo](#connector--value-label-combo)
+- [Visual verification](#visual-verification)
+
 Two dots per category joined by a dashed connector. The McKinsey "before /
 after" visualization — far more legible than a grouped bar when the
 narrative is "how did each item shift?".

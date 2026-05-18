@@ -1,5 +1,13 @@
 # Performance & advanced loops — Layer 6
 
+## Table of Contents
+
+- [Off-screen loop pause (AN-11)](#off-screen-loop-pause-an-11)
+- [Idle-deferred init (AN-11)](#idle-deferred-init-an-11)
+- [Delta-time loop primitive (AN-12)](#delta-time-loop-primitive-an-12)
+- [Re-scanning dynamic content](#re-scanning-dynamic-content)
+- [Live reduced-motion changes](#live-reduced-motion-changes)
+
 Three perf mechanisms that keep motion cheap: off-screen loop pause,
 idle-deferred init, and a correct delta-time loop primitive.
 

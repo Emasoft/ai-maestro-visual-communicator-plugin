@@ -1,5 +1,21 @@
 # Logo block — mask-cutout
 
+## Table of Contents
+
+- [What it renders](#what-it-renders)
+- [Scaffold](#scaffold)
+- [Geometry](#geometry)
+- [C7 implications — accent + mask = explicit token only](#c7-implications--accent--mask--explicit-token-only)
+- [The mask `#fff` / `#000` lint exemption](#the-mask-fff--000-lint-exemption)
+- [Lib function](#lib-function)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Selection / comment / decision-mini](#selection--comment--decision-mini)
+- [When to use](#when-to-use)
+- [When NOT to use](#when-not-to-use)
+- [Common authoring patterns](#common-authoring-patterns)
+- [What NOT to do](#what-not-to-do)
+- [Visual verification](#visual-verification)
+
 The `mask-cutout` logo block is the canonical "shape subtracts from
 container" composition primitive. A `<defs><mask>` defines what to
 keep (white) and what to subtract (black); the outer accent-filled

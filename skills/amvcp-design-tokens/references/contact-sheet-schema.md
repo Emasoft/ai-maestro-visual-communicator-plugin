@@ -1,5 +1,15 @@
 # Token contact-sheet schema
 
+## Table of Contents
+
+- [API](#api)
+- [Page structure](#page-structure)
+- [Color cells — contrast annotation](#color-cells--contrast-annotation)
+- [Click-to-copy](#click-to-copy)
+- [Theme handling](#theme-handling)
+- [No nested scrollbars](#no-nested-scrollbars)
+- [Self-contained output](#self-contained-output)
+
 The token contact sheet is the headline design-tokens deliverable: a
 rendered, self-contained, DESIGN.md-themed HTML "living design page"
 that shows every token visually, click-to-copy.

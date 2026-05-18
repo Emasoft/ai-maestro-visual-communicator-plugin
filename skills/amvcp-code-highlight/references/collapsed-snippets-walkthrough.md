@@ -1,5 +1,20 @@
 # Sub-technique E2 — Collapsed-snippets step walkthrough
 
+## Table of Contents
+
+- [E2.1 The pattern](#e21-the-pattern)
+- [E2.2 The markup](#e22-the-markup)
+- [E2.3 The CSS](#e23-the-css)
+- [E2.4 The mutually-exclusive disclosure pattern](#e24-the-mutually-exclusive-disclosure-pattern)
+- [E2.5 The hot-step modifier](#e25-the-hot-step-modifier)
+- [E2.6 The composition with the runtime's code block](#e26-the-composition-with-the-runtimes-code-block)
+- [E2.7 The walkthrough's role in larger compositions](#e27-the-walkthroughs-role-in-larger-compositions)
+- [E2.8 Selection / commenting within an expanded step](#e28-selection--commenting-within-an-expanded-step)
+- [E2.9 Accessibility](#e29-accessibility)
+- [E2.10 The shape variation: numbered prose without `<details>`](#e210-the-shape-variation-numbered-prose-without-details)
+- [E2.11 Tokens consumed](#e211-tokens-consumed)
+- [E2.12 Author rules](#e212-author-rules)
+
 The numbered `<details>` walkthrough where each step is `[badge] [file:
 line] [prose] [<details> source]`. Mined from `04-code-understanding`
 (architecture explainer) — the canonical "explain a flow step by

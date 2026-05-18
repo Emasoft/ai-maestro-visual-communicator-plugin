@@ -1,5 +1,13 @@
 # Preset library — the named dual-theme token sets
 
+## Table of Contents
+
+- [The presets](#the-presets)
+- [Anti-slop note — `trust-indigo`](#anti-slop-note--trust-indigo)
+- [Personality deltas — `applyPersonalityDelta`](#personality-deltas--applypersonalitydelta)
+- [Hot-swap restyling](#hot-swap-restyling)
+- [Scoped theming with a preset](#scoped-theming-with-a-preset)
+
 `amvcpTokens.PRESETS` is a map of `{ name -> DESIGN.md frontmatter text }`.
 Each entry is a **complete dual-theme DESIGN.md** — all 15 `--vc-color-*`
 roles × light + dark, plus the typography / spacing / radius groups and

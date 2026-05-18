@@ -1,5 +1,19 @@
 # Sub-technique A8 — The source-fidelity integrity probe
 
+## Table of Contents
+
+- [A8.1 What it does](#a81-what-it-does)
+- [A8.2 Why this exists](#a82-why-this-exists)
+- [A8.3 The two probe implementations](#a83-the-two-probe-implementations)
+- [A8.4 The call sites](#a84-the-call-sites)
+- [A8.5 The failure-mode catalog (what the probe catches)](#a85-the-failure-mode-catalog-what-the-probe-catches)
+- [A8.6 What the probe does NOT catch](#a86-what-the-probe-does-not-catch)
+- [A8.7 The cascade — probe is the LAST line of defence](#a87-the-cascade--probe-is-the-last-line-of-defence)
+- [A8.8 Performance](#a88-performance)
+- [A8.9 What an author can do (basically nothing)](#a89-what-an-author-can-do-basically-nothing)
+- [A8.10 The test contract](#a810-the-test-contract)
+- [A8.11 No tokens consumed](#a811-no-tokens-consumed)
+
 The non-negotiable contract: every highlighted line's rendered HTML
 MUST decode back to a byte-exact copy of the source line, or the
 highlight is discarded and plain text is returned. This reference

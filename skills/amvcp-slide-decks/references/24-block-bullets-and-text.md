@@ -1,5 +1,19 @@
 # 24 — Blocks: `bullets` + `text` (the body family)
 
+## Table of Contents
+
+- [What this is](#what-this-is)
+- [Density limits](#density-limits)
+- [Scaffold to emit](#scaffold-to-emit)
+- [Lib functions called](#lib-functions-called)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Selection / comment / decision-mini contract notes](#selection--comment--decision-mini-contract-notes)
+- [When to use this reference](#when-to-use-this-reference)
+- [Bullets vs text](#bullets-vs-text)
+- [Don'ts](#donts)
+- [Visual verification](#visual-verification)
+- [Source provenance](#source-provenance)
+
 `bullets` is the bulleted-list block; `text` is the paragraph block.
 Together they form the body of any `content` or `two-column` slide.
 

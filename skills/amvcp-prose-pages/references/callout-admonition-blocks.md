@@ -1,5 +1,18 @@
 # Callout / admonition blocks (`vc-callout`)
 
+## Table of Contents
+
+- [When to use which variant](#when-to-use-which-variant)
+- [Scaffold (canonical)](#scaffold-canonical)
+- [CSS (already injected by the runtime)](#css-already-injected-by-the-runtime)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Special variants (extensions beyond the 5 builtins)](#special-variants-extensions-beyond-the-5-builtins)
+- [Composition with other skills](#composition-with-other-skills)
+- [Selection / comment notes](#selection--comment-notes)
+- [Decision-mini hook](#decision-mini-hook)
+- [QA notes](#qa-notes)
+- [Anti-patterns](#anti-patterns)
+
 The five callout variants exposed by `amvcp-report-doc.js`:
 `tip` / `warning` / `info` / `note` / `danger`. Each is a single
 `<aside>` block with a left-border accent, a geometric Unicode glyph,

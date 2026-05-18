@@ -1,5 +1,21 @@
 # Feature-explainer shape — sticky TOC + step-by-step + tabbed code + FAQ
 
+## Table of Contents
+
+- [When to choose this shape](#when-to-choose-this-shape)
+- [Section order (fixed)](#section-order-fixed)
+- [Markdown scaffold](#markdown-scaffold)
+- [The "Files read" sidebar block](#the-files-read-sidebar-block)
+- [The tabbed code panel](#the-tabbed-code-panel)
+- [The star callout](#the-star-callout)
+- [The FAQ `<dl>` block](#the-faq-dl-block)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Composition with other skills](#composition-with-other-skills)
+- [Lib functions called](#lib-functions-called)
+- [Selection / comment notes](#selection--comment-notes)
+- [Decision-mini hook](#decision-mini-hook)
+- [Anti-patterns](#anti-patterns)
+
 The document that answers "how does feature X work?" for engineers who
 want both the concept and the configuration knobs in one page.
 Canonical reference: `html-effectiveness` demo #14, "research-feature-

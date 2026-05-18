@@ -1,5 +1,23 @@
 # Drop caps and initial letters — the editorial opening flourish
 
+## Table of Contents
+
+- [What it is](#what-it-is)
+- [Scaffold](#scaffold)
+- [The contract — the alternative `vc-initial-large`](#the-contract--the-alternative-vc-initial-large)
+- [Tokens consumed / extended](#tokens-consumed--extended)
+- [Why the heading face for the first letter](#why-the-heading-face-for-the-first-letter)
+- [The `:first-of-type` qualifier — only the first paragraph](#the-first-of-type-qualifier--only-the-first-paragraph)
+- [The all-caps risk — `::first-letter` and `text-transform`](#the-all-caps-risk--first-letter-and-text-transform)
+- [Multilingual considerations](#multilingual-considerations)
+- [Light + dark — fully covered](#light--dark--fully-covered)
+- [Browser support](#browser-support)
+- [Selection-contract conformance](#selection-contract-conformance)
+- [When to use a drop cap](#when-to-use-a-drop-cap)
+- [When NOT to use a drop cap](#when-not-to-use-a-drop-cap)
+- [Verification](#verification)
+- [Cross-references](#cross-references)
+
 A *drop cap* is the first letter of a paragraph rendered very large
 (3-5 body lines tall), set into the paragraph so the body text wraps
 around it. It is the editorial signature that says "this paragraph

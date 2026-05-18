@@ -1,5 +1,20 @@
 # 06 — Asymmetric grid (3fr : 1fr) — the feature-article variant
 
+## Table of Contents
+
+- [What this is](#what-this-is)
+- [Scaffold to emit](#scaffold-to-emit)
+- [Lib functions called](#lib-functions-called)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Selection / comment / decision-mini contract notes](#selection--comment--decision-mini-contract-notes)
+- [When to use 3fr : 1fr instead of 2fr : 1fr](#when-to-use-3fr--1fr-instead-of-2fr--1fr)
+- [The sticky-sidebar caveat](#the-sticky-sidebar-caveat)
+- [Visual verification](#visual-verification)
+- [The visual ratio inspection](#the-visual-ratio-inspection)
+- [When to consider 4:1 (a future variant)](#when-to-consider-41-a-future-variant)
+- [Comparison with `.la-grid--2-1`](#comparison-with-la-grid--2-1)
+- [Combining with the article's reading measure](#combining-with-the-articles-reading-measure)
+
 The "more content, less sidebar" weighting. Where `.la-grid--2-1`
 (ref 05) treats the sidebar as a peer region, `.la-grid--3-1` treats
 it as a margin — a thin column of TOC anchors, page metadata, or a

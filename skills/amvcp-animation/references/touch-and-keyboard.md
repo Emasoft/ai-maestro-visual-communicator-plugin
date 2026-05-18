@@ -1,5 +1,20 @@
 # Touch and keyboard — affordances beyond mouse-only
 
+## Table of Contents
+
+- [The categories](#the-categories)
+- [Keyboard parity for hover](#keyboard-parity-for-hover)
+- [Touch device handling](#touch-device-handling)
+- [Why no `@media (hover: hover)` guard in the skill](#why-no-media-hover-hover-guard-in-the-skill)
+- [Pointer-events: none — when to disable hover entirely](#pointer-events-none--when-to-disable-hover-entirely)
+- [Reduced-motion + touch + keyboard](#reduced-motion--touch--keyboard)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Selection + comment + decision integration](#selection--comment--decision-integration)
+- [Diagnostics](#diagnostics)
+- [Visual verification](#visual-verification)
+- [Pattern note: focus rings](#pattern-note-focus-rings)
+- [Pattern: `:focus-visible` and `:focus-within`](#pattern-focus-visible-and-focus-within)
+
 Many animations in the skill assume mouse-based interaction
 (hover, mousemove). Touch users and keyboard users need
 equivalent or substitute affordances. This file enumerates

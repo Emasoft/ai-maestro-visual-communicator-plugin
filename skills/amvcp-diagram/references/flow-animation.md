@@ -1,5 +1,13 @@
 # Flow animation
 
+## Table of Contents
+
+- [Accessibility gate (mandatory)](#accessibility-gate-mandatory)
+- [Animated edges](#animated-edges)
+- [Scroll-reveal](#scroll-reveal)
+- [Motion-token consumption](#motion-token-consumption)
+- [Theme hot-swap](#theme-hot-swap)
+
 Animated SVG edges and scroll-reveal for scene graphs. Pure SVG / SMIL
 / CSS — zero dependencies.
 

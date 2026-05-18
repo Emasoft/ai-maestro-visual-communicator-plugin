@@ -1,5 +1,19 @@
 # Sub-technique A3 — Line-number gutter anatomy
 
+## Table of Contents
+
+- [A3.1 What it does](#a31-what-it-does)
+- [A3.2 Why per-line `<span>`s, not a sibling gutter `<div>`](#a32-why-per-line-spans-not-a-sibling-gutter-div)
+- [A3.3 The CSS counter](#a33-the-css-counter)
+- [A3.4 The absolute-positioned linenum cell](#a34-the-absolute-positioned-linenum-cell)
+- [A3.5 The per-line dynamic hanging indent](#a35-the-per-line-dynamic-hanging-indent)
+- [A3.6 The empty-line guard](#a36-the-empty-line-guard)
+- [A3.7 The wrap-marker stripe (anatomy)](#a37-the-wrap-marker-stripe-anatomy)
+- [A3.8 The pressed-state visual](#a38-the-pressed-state-visual)
+- [A3.9 Opt-out: `data-ve-no-gutter`](#a39-opt-out-data-ve-no-gutter)
+- [A3.10 What the author writes](#a310-what-the-author-writes)
+- [A3.11 Tokens consumed](#a311-tokens-consumed)
+
 The per-line `.ve-code-line` atom + the absolute-positioned
 `.ve-code-linenum` cell + the CSS-counter line-number machinery + the
 full-height bbox for drag-hit reliability. Implements CB-05 (HAVE —

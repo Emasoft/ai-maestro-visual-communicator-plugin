@@ -1,5 +1,22 @@
 # SVG animation — line-draw, fill-from-zero, path-morph patterns
 
+## Table of Contents
+
+- [Line draw (stroke-dashoffset)](#line-draw-stroke-dashoffset)
+- [Fill from zero (fill-opacity)](#fill-from-zero-fill-opacity)
+- [Polygon expand (radar/spider chart)](#polygon-expand-radarspider-chart)
+- [Animated arrow head](#animated-arrow-head)
+- [Path morph (d attribute interpolation)](#path-morph-d-attribute-interpolation)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Reduced-motion substitute](#reduced-motion-substitute)
+- [Selection + comment + decision integration](#selection--comment--decision-integration)
+- [Animating SVG with the `<use>` element](#animating-svg-with-the-use-element)
+- [Diagnostics](#diagnostics)
+- [Visual verification](#visual-verification)
+- [Browser support](#browser-support)
+- [Why CSS animation on SVG, not SMIL](#why-css-animation-on-svg-not-smil)
+- [Author extension: hand-drawn-feeling SVG](#author-extension-hand-drawn-feeling-svg)
+
 SVG elements animate the same way as HTML elements via CSS
 (transforms, opacity). Plus, SVG-specific properties
 (stroke-dashoffset, fill, path d-attribute) can be animated to

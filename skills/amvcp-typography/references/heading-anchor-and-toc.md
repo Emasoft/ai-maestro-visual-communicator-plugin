@@ -1,5 +1,26 @@
 # Heading anchors and table-of-contents typography
 
+## Table of Contents
+
+- [What it is](#what-it-is)
+- [The heading-anchor contract](#the-heading-anchor-contract)
+- [Scaffold — heading with anchor](#scaffold--heading-with-anchor)
+- [TOC contract](#toc-contract)
+- [Scaffold — TOC](#scaffold--toc)
+- [Tokens consumed / extended](#tokens-consumed--extended)
+- [Why mono for the anchor "#"](#why-mono-for-the-anchor-)
+- [Why the TOC uses `border-left` for hover state](#why-the-toc-uses-border-left-for-hover-state)
+- [Sticky TOC and `no-nested-scrollbars`](#sticky-toc-and-no-nested-scrollbars)
+- [TOC right-side variant — the fixed sidebar](#toc-right-side-variant--the-fixed-sidebar)
+- [Skip link integration](#skip-link-integration)
+- [Light + dark — fully covered](#light--dark--fully-covered)
+- [Accessibility — `aria-label` on `<nav>`](#accessibility--aria-label-on-nav)
+- [When NOT to add heading anchors](#when-not-to-add-heading-anchors)
+- [When NOT to add a TOC](#when-not-to-add-a-toc)
+- [Selection-contract conformance](#selection-contract-conformance)
+- [Verification](#verification)
+- [Cross-references](#cross-references)
+
 Every section heading on a long page should be deep-linkable — a
 URL with a `#fragment` jumps to that heading. The typography skill
 ships the `.vc-heading-anchor` modifier (a small "#" link that

@@ -1,5 +1,18 @@
 # Contact-sheet color panel — the headline deliverable
 
+## Table of Contents
+
+- [What it does](#what-it-does)
+- [Why both themes side-by-side](#why-both-themes-side-by-side)
+- [The contrast annotation](#the-contrast-annotation)
+- [The contrast formula](#the-contrast-formula)
+- [Scaffold to emit](#scaffold-to-emit)
+- [Lib functions used](#lib-functions-used)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Anti-slop interaction](#anti-slop-interaction)
+- [Selection / comment / decision-mini contract](#selection--comment--decision-mini-contract)
+- [Visual verification](#visual-verification)
+
 The `color` panel of the token contact sheet renders BOTH themes
 side-by-side, each as a 4-column CSS grid of swatches. Each swatch
 shows the role name, hex, and WCAG contrast ratio. Below-4.5:1 text

@@ -1,5 +1,21 @@
 # Dynamic content refresh — `refresh(root)` and `revealNow(el)`
 
+## Table of Contents
+
+- [`refresh(root)` — re-scan a subtree](#refreshroot--re-scan-a-subtree)
+- [Idempotency](#idempotency)
+- [When to call `refresh()`](#when-to-call-refresh)
+- [`revealNow(el)` — force-reveal one element immediately](#revealnowel--force-reveal-one-element-immediately)
+- [When to use `revealNow()` vs `refresh()`](#when-to-use-revealnow-vs-refresh)
+- [The reveal observer's `_revealCount` test hook](#the-reveal-observers-revealcount-test-hook)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Reduced-motion interaction](#reduced-motion-interaction)
+- [Selection + comment + decision integration](#selection--comment--decision-integration)
+- [Live OS-preference toggle](#live-os-preference-toggle)
+- [Diagnostics](#diagnostics)
+- [Visual verification](#visual-verification)
+- [When refresh fails silently](#when-refresh-fails-silently)
+
 The two API hooks for content inserted AFTER the initial `init()`.
 The runtime calls these whenever an interactive-control swaps a
 panel; authors call them when manually inserting content.

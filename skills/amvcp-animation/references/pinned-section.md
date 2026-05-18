@@ -1,5 +1,21 @@
 # Pinned section — `position: sticky` for full-viewport pinning
 
+## Table of Contents
+
+- [The recipe](#the-recipe)
+- [Why `position: sticky` works for this](#why-position-sticky-works-for-this)
+- [Combining with view() timeline (native scroll-driven)](#combining-with-view-timeline-native-scroll-driven)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [When to use a pinned section](#when-to-use-a-pinned-section)
+- [Reduced-motion substitute](#reduced-motion-substitute)
+- [Selection + comment + decision integration](#selection--comment--decision-integration)
+- [Performance](#performance)
+- [Diagnostics](#diagnostics)
+- [Visual verification](#visual-verification)
+- [Stacking variation](#stacking-variation)
+- [Comparison with the snap pattern](#comparison-with-the-snap-pattern)
+- [Author extension: the timeline-of-events pattern](#author-extension-the-timeline-of-events-pattern)
+
 A section that "pins" to the top of the viewport as the user
 scrolls past it. The user sees the section anchored while the
 surrounding content scrolls beneath it. Built on `position:

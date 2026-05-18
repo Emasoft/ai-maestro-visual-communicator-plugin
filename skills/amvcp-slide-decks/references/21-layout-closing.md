@@ -1,5 +1,21 @@
 # 21 — Layout: `closing` (wrap / call-to-action / next step)
 
+## Table of Contents
+
+- [What this is](#what-this-is)
+- [Scaffold to emit](#scaffold-to-emit)
+- [Lib functions called](#lib-functions-called)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Selection / comment / decision-mini contract notes](#selection--comment--decision-mini-contract-notes)
+- [When to use this reference](#when-to-use-this-reference)
+- [Don'ts](#donts)
+- [Authoring rules — closing types](#authoring-rules--closing-types)
+- [Visual verification](#visual-verification)
+- [Closing-slide examples by talk type](#closing-slide-examples-by-talk-type)
+- [Strong closing headlines](#strong-closing-headlines)
+- [Closing pairs (`manifesto` + `closing`)](#closing-pairs-manifesto--closing)
+- [Source provenance](#source-provenance)
+
 The closing slide is the deck's last slide. ONE sentence pointing
 forward. Either a wrap ("we shipped X, Y, Z"), a call-to-action
 ("approve the Q4 proposal"), or a next step ("read the RFC at the

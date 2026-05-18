@@ -1,5 +1,21 @@
 # Smart quotation marks, em-dashes, ellipses — the punctuation polish
 
+## Table of Contents
+
+- [What it is](#what-it-is)
+- [The `<q>` element default](#the-q-element-default)
+- [Editorial conventions — the four smart-punctuation rules](#editorial-conventions--the-four-smart-punctuation-rules)
+- [Typing the Unicode characters](#typing-the-unicode-characters)
+- [Why the agent should use the Unicode characters directly](#why-the-agent-should-use-the-unicode-characters-directly)
+- [Tokens consumed / extended](#tokens-consumed--extended)
+- [The `.vc-no-smart-quotes` utility](#the-vc-no-smart-quotes-utility)
+- [The hairspace and thinspace — the fine details](#the-hairspace-and-thinspace--the-fine-details)
+- [Light + dark — orthogonal](#light--dark--orthogonal)
+- [Selection-contract conformance](#selection-contract-conformance)
+- [When to ignore the conventions](#when-to-ignore-the-conventions)
+- [Verification](#verification)
+- [Cross-references](#cross-references)
+
 The difference between an amateur and a professional typographic page
 is the *punctuation*: straight quotes (`'`, `"`) vs curly quotes
 (`’`, `“ ”`); double hyphen (`--`) vs em-dash (`—`); three periods

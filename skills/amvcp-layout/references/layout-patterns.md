@@ -1,5 +1,17 @@
 # Layout — pattern catalog
 
+## Table of Contents
+
+- [Authoring gate — logical properties only (RTL)](#authoring-gate--logical-properties-only-rtl)
+- [No nested scrollbars](#no-nested-scrollbars)
+- [Group 1 — Spatial foundation](#group-1--spatial-foundation)
+- [Group 2 — Grid presets](#group-2--grid-presets)
+- [Group 3 — Reading container](#group-3--reading-container)
+- [Group 4 — Page chrome: sticky header](#group-4--page-chrome-sticky-header)
+- [Group 5 — In-page navigation: scroll-spy TOC](#group-5--in-page-navigation-scroll-spy-toc)
+- [Group 6 — Print / paged layout](#group-6--print--paged-layout)
+- [Group 7 — Decorative surfaces](#group-7--decorative-surfaces)
+
 The full HTML + CSS catalog for the layout technique. One section per
 group. The CSS lives in `scripts/amvcp-layout.css`; the JS in
 `scripts/amvcp-layout.js`. Link the CSS and (for groups 4/5/2c) the JS;

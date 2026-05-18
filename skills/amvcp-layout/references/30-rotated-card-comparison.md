@@ -1,5 +1,17 @@
 # 30 — Rotated card comparison (the "two paper" hero variant)
 
+## Table of Contents
+
+- [What this is](#what-this-is)
+- [Scaffold to emit](#scaffold-to-emit)
+- [The transform values are the gimmick](#the-transform-values-are-the-gimmick)
+- [The mobile-stack override](#the-mobile-stack-override)
+- [Lib functions called](#lib-functions-called)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Selection / comment / decision-mini contract notes](#selection--comment--decision-mini-contract-notes)
+- [When to use this pattern](#when-to-use-this-pattern)
+- [Visual verification](#visual-verification)
+
 A decorative pattern from `index.html` of the html-effectiveness
 demo set: two cards rotated at opposite angles (`-2.5deg` and
 `+1.5deg`) overlap visually to suggest "two pieces of paper on a

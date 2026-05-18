@@ -1,5 +1,19 @@
 # Mind map (radial)
 
+## Table of Contents
+
+- [When to choose this pattern](#when-to-choose-this-pattern)
+- [Scaffold](#scaffold)
+- [Radial layout math](#radial-layout-math)
+- [Branch coloring](#branch-coloring)
+- [Edges convention](#edges-convention)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Selection atoms](#selection-atoms)
+- [Variations](#variations)
+- [Anti-patterns](#anti-patterns)
+- [Visual verification](#visual-verification)
+- [Cross-skill seam](#cross-skill-seam)
+
 A diagram with a central topic and branches radiating outward.
 Used for brainstorms, topic maps, knowledge structures. The
 center is the "everything connects here" hub; each branch is a

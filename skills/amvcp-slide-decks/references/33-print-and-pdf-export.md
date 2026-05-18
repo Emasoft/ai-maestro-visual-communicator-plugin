@@ -1,5 +1,21 @@
 # 33 — Print + PDF export (native browser, one slide per page)
 
+## Table of Contents
+
+- [What this is](#what-this-is)
+- [Scaffold to emit](#scaffold-to-emit)
+- [Lib functions called](#lib-functions-called)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Selection / comment / decision-mini contract notes](#selection--comment--decision-mini-contract-notes)
+- [When to use this reference](#when-to-use-this-reference)
+- [Print-preview troubleshooting](#print-preview-troubleshooting)
+- [Browser quirks](#browser-quirks)
+- [Don'ts](#donts)
+- [Visual verification](#visual-verification)
+- [PDF vs PNG export comparison](#pdf-vs-png-export-comparison)
+- [Page-size tuning by aspect](#page-size-tuning-by-aspect)
+- [Source provenance](#source-provenance)
+
 The slide module ships a `@media print` block that does ONE specific
 job: when the user picks "Save as PDF" (or hits Cmd-P), every slide
 becomes one page. No nav chrome, no transitions, no letterbox bars

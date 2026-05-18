@@ -1,5 +1,19 @@
 # Sequence diagram (SVG, not Mermaid)
 
+## Table of Contents
+
+- [When to choose SVG over Mermaid](#when-to-choose-svg-over-mermaid)
+- [Scaffold](#scaffold)
+- [Message arrows](#message-arrows)
+- [Activation bars](#activation-bars)
+- [Notes / annotations](#notes--annotations)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Selection atoms](#selection-atoms)
+- [Variations](#variations)
+- [Anti-patterns](#anti-patterns)
+- [Visual verification](#visual-verification)
+- [When you should just use Mermaid](#when-you-should-just-use-mermaid)
+
 A native-SVG sequence diagram — actors as columns, time as a
 vertical axis, messages as horizontal arrows. The engine renders
 it from a `free`-preset scene graph. Use this when the diagram

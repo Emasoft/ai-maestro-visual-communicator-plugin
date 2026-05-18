@@ -1,5 +1,20 @@
 # Architecture-canvas preset
 
+## Table of Contents
+
+- [When to choose this preset](#when-to-choose-this-preset)
+- [Scaffold](#scaffold)
+- [Group geometry](#group-geometry)
+- [The grid background](#the-grid-background)
+- [Bezier edges across layers](#bezier-edges-across-layers)
+- [Async / sync visual distinction](#async--sync-visual-distinction)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Selection atoms](#selection-atoms)
+- [Anti-patterns](#anti-patterns)
+- [Variation: vertical orientation](#variation-vertical-orientation)
+- [Theme pairings](#theme-pairings)
+- [Visual verification](#visual-verification)
+
 The `architecture-canvas` preset draws a **layered system diagram** —
 a stack of horizontal layers (client / service / data / infra,
 typically), each layer a `group` rectangle, with services inside

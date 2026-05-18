@@ -1,5 +1,22 @@
 # `chart:donut@1` — donut chart
 
+## Table of Contents
+
+- [When to choose donut](#when-to-choose-donut)
+- [Authoring shape](#authoring-shape)
+- [Options](#options)
+- [Examples](#examples)
+- [What the runtime emits](#what-the-runtime-emits)
+- [Lib functions called](#lib-functions-called)
+- [DESIGN.md tokens](#designmd-tokens)
+- [Selection / atoms](#selection--atoms)
+- [Anti-patterns](#anti-patterns)
+- [Donut vs alternatives](#donut-vs-alternatives)
+- [Center text customisation](#center-text-customisation)
+- [Inner radius — why a hole](#inner-radius--why-a-hole)
+- [Slice order](#slice-order)
+- [Visual verification](#visual-verification)
+
 The SANCTIONED circular form for parts-of-a-whole — never `pie` (pie is
 banned; see `chart-pie-guardrail.md`). The center hole gives the chart a
 focal point (the TOTAL prints inside it) and removes the false-precision

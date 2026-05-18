@@ -1,5 +1,17 @@
 # Syntax-highlight code-theme tokens (DM-26 + DT-27 indirect)
 
+## Table of Contents
+
+- [The 12 tokens](#the-12-tokens)
+- [What it does](#what-it-does)
+- [When to use](#when-to-use)
+- [Scaffold to emit](#scaffold-to-emit)
+- [Lib functions used](#lib-functions-used)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Anti-slop interaction](#anti-slop-interaction)
+- [Selection / comment / decision-mini contract](#selection--comment--decision-mini-contract)
+- [Visual verification](#visual-verification)
+
 A 12-token vocabulary for syntax-highlighted code blocks: every
 DESIGN.md preset ships a `code:` group with one color per syntactic
 category. The contact-sheet's code panel uses these tokens; the

@@ -1,5 +1,18 @@
 # Teaching diagram (perturbable, slider-driven)
 
+## Table of Contents
+
+- [When to choose this pattern](#when-to-choose-this-pattern)
+- [The shape](#the-shape)
+- [Smooth transitions](#smooth-transitions)
+- [The stats panel](#the-stats-panel)
+- [Hover-linked glossary](#hover-linked-glossary)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Selection atoms](#selection-atoms)
+- [Variations](#variations)
+- [Anti-patterns](#anti-patterns)
+- [Visual verification](#visual-verification)
+
 The highest-leverage pattern for **teaching content**: a live
 diagram where the learner can perturb the parameters and
 immediately see both the visual change and the numerical

@@ -1,5 +1,18 @@
 # 25 — Blocks: `metric` + `callout` (the impact family)
 
+## Table of Contents
+
+- [What this is](#what-this-is)
+- [Scaffold to emit](#scaffold-to-emit)
+- [Lib functions called](#lib-functions-called)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Selection / comment / decision-mini contract notes](#selection--comment--decision-mini-contract-notes)
+- [When to use this reference](#when-to-use-this-reference)
+- [When to pick metric vs callout](#when-to-pick-metric-vs-callout)
+- [Don'ts](#donts)
+- [Visual verification](#visual-verification)
+- [Source provenance](#source-provenance)
+
 `metric` is the KPI card block — a big number + a small label +
 optional delta. `callout` is the bordered annotation block in one of
 four severity tints — info / tip / warning / danger.

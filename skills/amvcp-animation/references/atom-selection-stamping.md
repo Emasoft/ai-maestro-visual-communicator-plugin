@@ -1,5 +1,22 @@
 # Atom selection stamping — the unified contract integration
 
+## Table of Contents
+
+- [The atom kinds the skill stamps](#the-atom-kinds-the-skill-stamps)
+- [The stamper](#the-stamper)
+- [What "atoms" are in the contract](#what-atoms-are-in-the-contract)
+- [The decision mini-pill](#the-decision-mini-pill)
+- [Defensive deferral when the runtime isn't loaded yet](#defensive-deferral-when-the-runtime-isnt-loaded-yet)
+- [What is NOT stamped](#what-is-not-stamped)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Reduced-motion interaction](#reduced-motion-interaction)
+- [Re-stamping on refresh](#re-stamping-on-refresh)
+- [Atom ID stability across re-renders](#atom-id-stability-across-re-renders)
+- [Selection model integration](#selection-model-integration)
+- [Diagnostics](#diagnostics)
+- [Visual verification](#visual-verification)
+- [Why the skill stamps (not the runtime)](#why-the-skill-stamps-not-the-runtime)
+
 Every animated atom that the user might COMMENT ON or DECIDE
 ABOUT carries `data-ve-id` + `data-ve-type`. The animation skill
 runs a stamping pass at init (and again on each `refresh`) to

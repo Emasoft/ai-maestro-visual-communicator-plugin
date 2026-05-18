@@ -1,5 +1,18 @@
 # Dual-theme contract — EVERY artifact ships light AND dark (DM-11)
 
+## Table of Contents
+
+- [Why dual-theme is mandatory (not "nice to have")](#why-dual-theme-is-mandatory-not-nice-to-have)
+- [How the engine enforces it](#how-the-engine-enforces-it)
+- [How the theme flip works](#how-the-theme-flip-works)
+- [The mechanical tricks for dual-theme correctness](#the-mechanical-tricks-for-dual-theme-correctness)
+- [Scaffold to emit](#scaffold-to-emit)
+- [Lib functions used](#lib-functions-used)
+- [DESIGN.md tokens used](#designmd-tokens-used)
+- [Anti-slop interaction](#anti-slop-interaction)
+- [Selection / comment / decision-mini contract](#selection--comment--decision-mini-contract)
+- [Visual verification](#visual-verification)
+
 The engine REQUIRES both `colors.light` AND `colors.dark` for every
 DESIGN.md — `parseDesignMd` fails fast on a missing theme. Every other
 visual must theme correctly in BOTH themes. This document is the

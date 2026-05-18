@@ -1,5 +1,18 @@
 # Onboarding flows — wizards, tours, empty states, progress
 
+## Table of Contents
+
+- [Pattern 1 — Multi-step wizard (3-7 steps)](#pattern-1--multi-step-wizard-3-7-steps)
+- [Pattern 2 — In-product tour (coachmarks)](#pattern-2--in-product-tour-coachmarks)
+- [Pattern 3 — Empty state with CTA](#pattern-3--empty-state-with-cta)
+- [Pattern 4 — Progressive disclosure (expandable sections)](#pattern-4--progressive-disclosure-expandable-sections)
+- [Pattern 5 — Skeleton loaders (placeholder while fetching)](#pattern-5--skeleton-loaders-placeholder-while-fetching)
+- [Pattern 6 — Success celebration ("you're all set")](#pattern-6--success-celebration-youre-all-set)
+- [Progress indicators — bar, dots, stepper, checklist](#progress-indicators--bar-dots-stepper-checklist)
+- [The skip-this-step affordance](#the-skip-this-step-affordance)
+- [Conditional fields (show field B only if A is checked)](#conditional-fields-show-field-b-only-if-a-is-checked)
+- [Save-and-continue-later anchor](#save-and-continue-later-anchor)
+
 The 0-to-1 user experience. Six patterns: multi-step wizard,
 in-product tour (coachmarks), empty state → CTA, progressive
 disclosure, skeleton loaders, the "you're all set" celebration.
