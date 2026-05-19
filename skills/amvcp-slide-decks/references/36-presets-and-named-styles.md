@@ -223,7 +223,7 @@ paint.
 - `boot(doc)` in `amvcp-slide.js` — reads `#vsd-preset`, hands off
   to the engine.
 - `window.amvcpDesignMd.parseDesignMd(rawText)` — parses the YAML
-  + section structure.
+  with section structure.
 - `window.amvcpDesignMd.resolveTokens(tree, mode)` — flattens to a
   `Map<name, value>` for the active mode.
 - `window.amvcpDesignMd.applyTokens(map, doc.documentElement)` —

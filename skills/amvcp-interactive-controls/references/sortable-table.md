@@ -1,8 +1,8 @@
 # Sortable table — click-to-sort + numeric auto-detect
 
 A pure-JS sortable `<table>` with three-state cycle (asc / desc /
-unsorted-original-order), numeric-column auto-detection (right-align
-+ numeric compare), and a sort indicator chevron in the header. Zero
+unsorted-original-order), numeric-column auto-detection (right-align,
+numeric compare), and a sort indicator chevron in the header. Zero
 dependency, works with any DOM-authored or runtime-rendered table.
 
 ## What it is

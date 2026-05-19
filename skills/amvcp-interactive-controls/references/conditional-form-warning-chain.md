@@ -16,7 +16,7 @@ explode at submit time. This pattern provides **always-visible**
 warnings:
 
 1. **Row tint** — the offending row gets a clay-tinted background
-   + left-border accent.
+   with a left-border accent.
 2. **In-row chip** — the "Requires X" mini-tag turns clay, gains a
    warning glyph.
 3. **Top-of-form banner** — count of unmet prerequisites, with a

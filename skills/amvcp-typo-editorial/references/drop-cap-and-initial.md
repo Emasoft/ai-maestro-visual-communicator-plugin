@@ -56,7 +56,7 @@ The signature drop cap pattern:
 The values are tuned so the drop cap aligns with:
 
 - The top of the cap-height of the first body line (`line-height: 1`
-  + small `padding-top` adjusts).
+  with small `padding-top` adjustments).
 - The baseline of the third or fourth body line below (the `3.2em`
   size achieves this against a body `line-height: ~1.55`).
 - A tight wrap around the cap (the small `padding-right` and

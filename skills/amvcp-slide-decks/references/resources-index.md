@@ -129,7 +129,7 @@ index is the navigation surface, the per-ref pages are the manuals.
   one-slide-per-page native browser export.
 - [37-speaker-notes-presenter-mode](./37-speaker-notes-presenter-mode.md) — per-slide `notes` field
   > What this is · Scaffold to emit · Lib functions called · DESIGN.md tokens used · Selection / comment / decision-mini contract notes · postMessage contract · When to use this reference · When NOT to use notes · Authoring rules · Don'ts · Visual verification · Source provenance
-  + the `?notes` window via `postMessage`.
+  and the `?notes` window via `postMessage`.
 - [38-self-contained-export-and-deps](./38-self-contained-export-and-deps.md) — the deployment
   > What this is · Script load order · Why no CDN · Conditional script ordering — keeping the deck minimal · Lib functions called · DESIGN.md tokens used · `<noscript>` fallback · When to use this reference · Don'ts · Visual verification · Source provenance
   contract: one HTML file + 2 to 5 sibling scripts, no CDN.

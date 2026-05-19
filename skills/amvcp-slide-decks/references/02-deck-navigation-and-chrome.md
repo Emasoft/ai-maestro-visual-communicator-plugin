@@ -167,7 +167,7 @@ Open this ref when:
 ## Visual verification
 
 After every chrome-touching change, capture a screenshot at 1280×720 light
-+ dark via the dev-browser path in
+and dark via the dev-browser path in
 `skills/amvcp-self-debug-rules/SKILL.md`, then exercise:
 
 1. `→` key advances; `←` rewinds; `Home` jumps to slide 1; `End` jumps to

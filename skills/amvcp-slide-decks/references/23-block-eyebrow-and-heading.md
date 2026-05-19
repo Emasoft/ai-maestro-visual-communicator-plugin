@@ -100,7 +100,7 @@ H2 heading (canonical for `content` / `comparison` / `data-story` /
 ## Lib functions called
 
 - `renderBlock(doc, block, ctx)` — the dispatcher; routes `eyebrow`
-  + `heading` to their respective branches.
+  and `heading` to their respective branches.
 - `validateHeadline(text)` — the assertion-evidence soft check.
   Runs on EVERY `heading` block regardless of level. Failures
   stamp `data-vsd-headline-warn` and log a `console.warn`.

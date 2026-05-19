@@ -183,8 +183,8 @@ skill — icon-svg does not draw edges.)
 - Do NOT override the fill — the cylinder's `tint-quiet` fill is what
   makes it visually distinct from `process`. Overriding kills the
   semantic difference.
-- Do NOT set `h < 80` — the cylinder needs vertical room for the top
-  + body + bottom ellipses; a flat database reads as a coin.
+- Do NOT set `h < 80` — the cylinder needs vertical room for the top,
+  body, and bottom ellipses; a flat database reads as a coin.
 - Do NOT set `w > 1.5 * h` — a database wider than ~1.5x its height
   starts to read like a horizontal disk; use a vertical aspect for
   most uses.

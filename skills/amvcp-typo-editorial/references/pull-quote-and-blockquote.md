@@ -46,8 +46,8 @@ typography roots.
 
 The two shapes share the same typography contract — large size, body
 face, looser leading — but differ in their *framing* (blockquote has
-a left bar + cite; pull quote has a top + bottom rule + larger size
-+ optional italic).
+a left bar and cite; pull quote has top and bottom rules, larger size,
+and optional italic).
 
 ## The contract
 

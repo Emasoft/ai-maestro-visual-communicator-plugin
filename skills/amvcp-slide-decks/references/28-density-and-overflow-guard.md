@@ -95,7 +95,7 @@ numerically, but flagged in visual verification.
 ## Lib functions called
 
 - `renderSlide(doc, slide, i, deck)` — runs the density accumulator
-  + the post-render check.
+  and the post-render check.
 - `MAX_BULLETS` / `MAX_BODY_WORDS` — the two literal constants at
   the top of `amvcp-slide.js`.
 - `deck._ctx.densityWarnings` — the per-render array of `{slide,

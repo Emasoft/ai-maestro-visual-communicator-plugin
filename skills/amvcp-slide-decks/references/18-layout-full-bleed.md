@@ -141,8 +141,8 @@ The slide module accepts any `src` the browser can load:
 - `./relative/path.jpg` (works when the HTML is colocated with assets)
 
 For self-contained outputs, prefer base64 data-URIs. The `surf-cli`
-workflow (from `slide-patterns.md` lines 1148-1166) generates a JPEG
-+ base64-encodes it + inlines it into the deck — the whole deck
+workflow (from `slide-patterns.md` lines 1148-1166) generates a JPEG,
+base64-encodes it, and inlines it into the deck — the whole deck
 remains a single `.html` file.
 
 ## Visual verification

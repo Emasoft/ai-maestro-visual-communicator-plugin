@@ -327,8 +327,8 @@ Full composition contract + interaction patterns:
 
 ## Visual verification
 
-For visual verification (does the page actually look right in light
-+ dark + print?), see [amvcp-self-debug-rules](../amvcp-self-debug-rules/SKILL.md).
+For visual verification (does the page actually look right in light,
+dark, and print?), see [amvcp-self-debug-rules](../amvcp-self-debug-rules/SKILL.md).
 
 ## Modes
 

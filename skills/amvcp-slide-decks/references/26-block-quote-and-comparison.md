@@ -233,7 +233,7 @@ Open this ref when:
   a `statement`. Either attribute it or rewrite as a statement.
 - Don't make the comparison panes lopsided. The eye expects items
   at the same vertical position to correspond. 3 items on the left
-  + 6 on the right breaks the contrast.
+  vs 6 on the right breaks the contrast.
 - Don't use comparison for unrelated lists. The "side-by-side"
   visual model implies opposition; non-opposing content reads
   confused.

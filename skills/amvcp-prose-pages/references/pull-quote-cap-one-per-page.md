@@ -207,7 +207,7 @@ same chapter.
 - **Pull-quote in a postmortem / status report** — wrong register.
   Use the slate TL;DR or stat-band.
 - **Pull-quote with bold body text** (default variant) — the italic
-  + muted color is the contract. Bold reads as the title, not a
+  with muted color is the contract. Bold reads as the title, not a
   pulled quotation.
 - **Pull-quote longer than 30 words** — pull-quotes are punchlines.
   Long quotations are body prose; restate them as a paragraph.

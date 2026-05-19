@@ -115,7 +115,7 @@ Pro/Con variant:
   the wrapping `.vsd-comparison` div + two `.vsd-compare-pane`
   children.
 - `renderComparisonPane(doc, pane)` — internal; builds one pane (title
-  + bullet list).
+  with bullet list).
 - `renderBulletItem(doc, item)` — handles each item (string or
   `{text, sub}`).
 

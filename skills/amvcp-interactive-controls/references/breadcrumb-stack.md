@@ -183,4 +183,4 @@ console.assert(first.querySelector('a'), 'ancestor must be a link');
 ```
 
 Screenshot light + dark themes. Verify the current-crumb contrast
-+ separator visibility in both.
+plus separator visibility in both.
