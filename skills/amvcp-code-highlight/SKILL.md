@@ -1,6 +1,6 @@
 ---
 name: amvcp-code-highlight
-description: "Router skill for the code-display surface — dispatches to 4 focused sibling skills: code-syntax (tokenizer + theme + gutter), code-diff (unified/split diff + PR review + postmortem), code-snippets (walkthroughs + tabbed perspectives + click reveals + multi-file compare), code-fences (CSV/JSON data fences + opt-out + contenteditable editors). Use when scaffolding ANY code-display surface and you don't yet know which sub-surface fits. Trigger with 'code', 'code block', 'syntax highlight', 'diff', 'PR review', 'walkthrough', 'tabbed code', 'CSV data', 'JSON editor'."
+description: "Router skill for the code-display surface — dispatches to 4 sibling skills: code-syntax, code-diff, code-snippets, code-fences. Use when scaffolding ANY code-display surface and you don't yet know which sub-surface fits. Trigger with 'code', 'code block', 'syntax highlight', 'diff', 'PR review', 'walkthrough', 'tabbed code', 'CSV data', 'JSON editor'."
 license: MIT
 compatibility: "Any modern browser supporting CSS `:has()` (Chromium 105+, Safari 15.4+, Firefox 121+). Pure JS, no npm runtime dependency. Requires `scripts/amvcp-designmd.js` + `scripts/amvcp-runtime.js` + `scripts/amvcp-code-highlight.js` + `scripts/amvcp-code-highlight.css`."
 metadata:

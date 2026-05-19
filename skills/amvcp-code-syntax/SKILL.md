@@ -1,6 +1,6 @@
 ---
 name: amvcp-code-syntax
-description: "Syntax-highlight surface — dependency-free 7-language tokenizer, 12-token palette, per-line gutter, copy button, drag-paint selection, integrity probe, light + dark theme contract. Use when scaffolding a syntax-highlighted code block, configuring tokenizer / language detection, defining `--ve-code-*` theme tokens, or debugging gutter / copy / selection chrome. Trigger with 'syntax highlight', 'code block', 'tokenizer', 'line numbers', 'copy code button', 'gutter', 'token palette', 'language detect'."
+description: "Syntax-highlight surface — dependency-free tokenizer, 12-token palette, gutter, copy, light + dark themes. Use when scaffolding a syntax-highlighted code block, configuring tokenizer / language detection, defining `--ve-code-*` theme tokens, or debugging gutter / copy / selection chrome. Trigger with 'syntax highlight', 'code block', 'tokenizer', 'line numbers', 'copy code button', 'gutter', 'token palette', 'language detect'."
 license: MIT
 compatibility: "Any modern browser supporting CSS `:has()` (Chromium 105+, Safari 15.4+, Firefox 121+). Pure JS, no npm runtime dependency. Requires `scripts/amvcp-designmd.js` (token engine) + `scripts/amvcp-runtime.js` (gutter + selection chrome) + `scripts/amvcp-code-highlight.js` (tokenizer) + `scripts/amvcp-code-highlight.css` (12-token palette)."
 metadata:

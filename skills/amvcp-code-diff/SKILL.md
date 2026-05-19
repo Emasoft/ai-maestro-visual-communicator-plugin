@@ -1,6 +1,6 @@
 ---
 name: amvcp-code-diff
-description: "Code diff surface — unified + split diff blocks, twin-column gutter (old/new line numbers + @@ hunk headers), diff tints via `color-mix` over semantic tokens (never hardcoded red/green), PR review pages with comment bubbles anchored to lines, PR write-ups, postmortem code panels, always-visible live diff sidebar. Use when scaffolding a code diff, a side-by-side review, a PR / postmortem / changelog page. Trigger with 'diff', 'split diff', 'unified diff', 'PR review', 'code review', 'pull request', 'postmortem', 'hunk', 'line-diff'."
+description: "Code diff surface — unified + split diff blocks, twin-column gutter, semantic diff tints, PR review pages with line-anchored comments. Use when scaffolding a code diff, a side-by-side review, a PR / postmortem / changelog page. Trigger with 'diff', 'split diff', 'unified diff', 'PR review', 'code review', 'pull request', 'postmortem', 'hunk', 'line-diff'."
 license: MIT
 compatibility: "Any modern browser supporting CSS `:has()` (Chromium 105+, Safari 15.4+, Firefox 121+). Pure JS, no npm runtime dependency. Requires the same scripts as amvcp-code-syntax (`amvcp-designmd.js` + `amvcp-runtime.js` + `amvcp-code-highlight.js` + `.css`). Diff modes layer over the syntax substrate."
 metadata:
