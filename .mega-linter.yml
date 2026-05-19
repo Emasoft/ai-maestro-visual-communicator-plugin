@@ -1,3 +1,5 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/oxsecurity/megalinter/main/megalinter/descriptors/schemas/megalinter-configuration.jsonschema.json
+
 # Mega-Linter configuration
 # https://megalinter.io/latest/configuration/
 
@@ -46,9 +48,10 @@ MARKDOWN_MARKDOWNLINT_FILTER_REGEX_EXCLUDE: 'CHANGELOG\.md'
 # Spell check — single-quoted so the regex \. is read literally by yamllint.
 SPELL_CSPELL_FILTER_REGEX_EXCLUDE: '(uv\.lock|\.json)'
 
-# Disable reporters that create PR comments (we handle that ourselves).
-# Per Mega-Linter v8+ JSON schema, individual per-reporter flags
-# `<REPORTER>_DISABLED: true` are the supported form; the older
-# `DISABLE_REPORTERS:` block is no longer in the schema and trips IDE
-# yaml-schema validation (see step 8b commit note).
-GITHUB_COMMENT_REPORTER_DISABLED: true
+# Disable PR comments from Mega-Linter — we surface findings via the
+# lint-security job summary instead. Per the upstream Mega-Linter JSON
+# schema (megalinter-configuration.jsonschema.json), the schema-accepted
+# key is the boolean `GITHUB_COMMENT_REPORTER: false` (NOT
+# `DISABLE_REPORTERS:` which is deprecated, NOT `_DISABLED: true` suffix
+# which is also wrong — both trip yaml-schema validation).
+GITHUB_COMMENT_REPORTER: false
