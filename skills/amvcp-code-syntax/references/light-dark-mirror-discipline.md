@@ -2,19 +2,12 @@
 
 ## Table of Contents
 
-- [H4.1 The rule](#h41-the-rule)
-- [H4.2 The standard CSS shape](#h42-the-standard-css-shape)
-- [H4.3 The hue-family preservation rule](#h43-the-hue-family-preservation-rule)
-- [H4.4 The contrast requirement](#h44-the-contrast-requirement)
-- [H4.5 The diff-tint mirror](#h45-the-diff-tint-mirror)
-- [H4.6 The verification ritual](#h46-the-verification-ritual)
-- [H4.7 The screenshot-test integration](#h47-the-screenshot-test-integration)
-- [H4.8 The fail-soft fallback](#h48-the-fail-soft-fallback)
-- [H4.9 The "single-theme defect" examples](#h49-the-single-theme-defect-examples)
-- [H4.10 Adding new tokens](#h410-adding-new-tokens)
-- [H4.11 The DESIGN.md override flow](#h411-the-designmd-override-flow)
-- [H4.12 Tokens consumed](#h412-tokens-consumed)
-- [H4.13 Cross-references](#h413-cross-references)
+- [The rule and the canonical CSS shape](#the-rule-and-the-canonical-css-shape)
+- [Per-token defaults — hue family, contrast, diff tints](#per-token-defaults--hue-family-contrast-diff-tints)
+- [Verification ritual and screenshot tests](#verification-ritual-and-screenshot-tests)
+- [Fail-soft fallback and "single-theme defect" examples](#fail-soft-fallback-and-single-theme-defect-examples)
+- [Authoring workflow — adding tokens and the DESIGN.md override](#authoring-workflow--adding-tokens-and-the-designmd-override)
+- [Tokens consumed and cross-references](#tokens-consumed-and-cross-references)
 
 Every `--ve-code-*` MUST have both a `:root` (dark theme default) AND
 a `:root[data-ve-theme="light"]` mirror declaration. A single-theme
@@ -25,7 +18,7 @@ From the project memory rule: *"Always design light + dark themes —
 every visual must ship BOTH themes; single-theme = correctness
 defect."*
 
-## H4.1 The rule
+## The rule and the canonical CSS shape
 
 > For every CSS variable the code-highlight skill defines or
 > consumes, BOTH the dark default AND the light mirror MUST be
@@ -35,7 +28,7 @@ defect."*
 This is a HARD invariant for this skill, the runtime, and every
 composition reference.
 
-## H4.2 The standard CSS shape
+The standard CSS shape:
 
 ```css
 :root {
@@ -57,7 +50,9 @@ The two blocks define the SAME variables, with DIFFERENT defaults. The
 DESIGN.md engine's `--vc-code-*` overrides BOTH (if present); the
 fallback values are the per-theme defaults.
 
-## H4.3 The hue-family preservation rule
+## Per-token defaults — hue family, contrast, diff tints
+
+### Hue-family preservation
 
 When picking the dark-theme + light-theme values for a token, the two
 MUST share the same hue family. The light value is the dark value with
@@ -82,7 +77,7 @@ The "what is what colour" mental model TRANSFERS across themes — a
 reader who learns "purple = keyword" on dark sees the same purple
 family on light, just darker.
 
-## H4.4 The contrast requirement
+### Contrast requirement
 
 Both dark and light defaults MUST pass AA contrast against their
 expected background:
@@ -97,7 +92,7 @@ pass both. A custom DESIGN.md `colors.code-keyword` override MUST be
 similarly calibrated; the design-tokens skill's DT-12 contrast checker
 flags violations.
 
-## H4.5 The diff-tint mirror
+### Diff-tint mirror
 
 Diff tints use percent values that DIFFER between themes:
 
@@ -118,7 +113,7 @@ light theme's bright bg requires more saturation to maintain contrast.
 
 These are NOT arbitrary; they're calibrated for perceptual equivalence.
 
-## H4.6 The verification ritual
+## Verification ritual and screenshot tests
 
 Every fixture with code-highlight content MUST be verified in BOTH
 themes:
@@ -141,8 +136,6 @@ For composed pages (PR review, postmortem, explainer), repeat the
 above for EACH composition section — the prose readable, the
 sidebar readable, the code blocks readable, the diff tints readable.
 
-## H4.7 The screenshot-test integration
-
 The standard verification skill is
 [../amvcp-self-debug-rules/SKILL.md](../../amvcp-self-debug-rules/SKILL.md)
 — which codifies the dev-browser-driven screenshot loop. Every
@@ -157,7 +150,7 @@ fixture.html → dev-browser open
               → side-by-side diff → flag any single-theme regression
 ```
 
-## H4.8 The fail-soft fallback
+## Fail-soft fallback and "single-theme defect" examples
 
 Even with NO DESIGN.md loaded, NO `--vc-code-*` tokens emitted, the
 fallback chain renders correctly:
@@ -173,7 +166,8 @@ Plus the theme-toggle still works because BOTH `:root` and
 DIFFERENT fallback values. The theme toggle changes which block
 applies, the fallbacks differ, the visual changes.
 
-## H4.9 The "single-theme defect" examples
+When the discipline is violated, these are the production bugs you
+get:
 
 | What it would look like | Why it's a defect |
 |---|---|
@@ -186,7 +180,7 @@ applies, the fallbacks differ, the visual changes.
 Each of these would be a PRODUCTION BUG — the code-highlight category
 is unusable on the affected theme.
 
-## H4.10 Adding new tokens
+## Authoring workflow — adding tokens and the DESIGN.md override
 
 When the runtime / a future code-highlight reference adds a new
 variable:
@@ -201,8 +195,6 @@ NEVER add a token to only one block. If a reviewer sees a PR that adds
 a `:root { --ve-code-foo: ...; }` without a matching
 `:root[data-ve-theme="light"] { --ve-code-foo: ...; }`, the PR is
 rejected on this rule alone.
-
-## H4.11 The DESIGN.md override flow
 
 A page's DESIGN.md might emit:
 
@@ -228,12 +220,10 @@ theme-specific lightness inversion when the design DOESN'T override.
 Authors only override the HUE; the engine + bridge handle the
 lightness automatically.
 
-## H4.12 Tokens consumed
+## Tokens consumed and cross-references
 
-All of them — this discipline applies to every variable the skill
-defines or consumes.
-
-## H4.13 Cross-references
+All `--ve-code-*` and `--vc-code-*` tokens are consumed — this
+discipline applies to every variable the skill defines or consumes.
 
 - [token-roles-palette.md](./token-roles-palette.md) — the 12-token
   palette + the canonical light/dark default pairs

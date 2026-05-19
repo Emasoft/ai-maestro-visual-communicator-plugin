@@ -3,18 +3,11 @@
 ## Table of Contents
 
 - [When to choose this preset](#when-to-choose-this-preset)
-- [Scaffold](#scaffold)
-- [Card geometry](#card-geometry)
-- [Auto-placement (longest-path layering)](#auto-placement-longest-path-layering)
-- [Chain-highlight interaction](#chain-highlight-interaction)
-- [Edge styling under chain mode](#edge-styling-under-chain-mode)
-- [Cycles](#cycles)
-- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
-- [Selection atoms](#selection-atoms)
-- [Theming patterns](#theming-patterns)
-- [Anti-patterns](#anti-patterns)
-- [Composing with other patterns](#composing-with-other-patterns)
-- [Visual verification](#visual-verification)
+- [Scaffold and card geometry](#scaffold-and-card-geometry)
+- [Auto-placement, chain-highlight, and cycles](#auto-placement-chain-highlight-and-cycles)
+- [DESIGN.md tokens consumed and selection atoms](#designmd-tokens-consumed-and-selection-atoms)
+- [Theming patterns and anti-patterns](#theming-patterns-and-anti-patterns)
+- [Composing with other patterns and visual verification](#composing-with-other-patterns-and-visual-verification)
 
 The `phase-graph` preset draws a **plan with dependencies** — large
 `card` nodes carrying a heading + a single line of detail
@@ -46,7 +39,9 @@ Do NOT use `phase-graph` when:
 - The graph has 30+ nodes (the cards become tiny; switch to
   Graphviz with auto-layout).
 
-## Scaffold
+## Scaffold and card geometry
+
+The basic scaffold:
 
 ```html
 <div class="ve-scene-graph" data-ve-scene-preset="phase-graph">
@@ -87,8 +82,6 @@ Do NOT use `phase-graph` when:
 </div>
 ```
 
-## Card geometry
-
 A `card` node defaults to 200 x 120 — big enough to hold:
 
 - One title line (the `label`, in `--vc-text-2`).
@@ -99,7 +92,7 @@ card's `w` and `h` in the JSON; the engine respects them. Cards
 smaller than 160 x 80 look cramped; cards bigger than 320 x 180
 push the layout sideways and turn the diagram into a wall.
 
-## Auto-placement (longest-path layering)
+## Auto-placement, chain-highlight, and cycles
 
 `phase-graph` uses **longest-path layering**: each node is assigned
 a rank = length of the longest dependency path ending at that node.
@@ -118,9 +111,7 @@ If the graph contains a cycle the engine falls back to the standard
 auto-place (a row layout) and emits a console warning — phase
 graphs are DAGs by intent.
 
-## Chain-highlight interaction
-
-This is the headline feature. When the user clicks a card:
+**Chain-highlight interaction.** When the user clicks a card:
 
 1. The engine walks every outgoing edge from the clicked node,
    collecting nodes reachable via `from -> to` transitive closure.
@@ -138,9 +129,7 @@ The CSS is in the module's injected stylesheet — no per-page work
 needed. The chain state is purely a DOM attribute, so it survives
 zoom, copy-paste of HTML, and is observable by accessibility tools.
 
-## Edge styling under chain mode
-
-When a chain is active:
+**Edge styling under chain mode.** When a chain is active:
 
 - Edges **fully inside the chain** (both ends `data-ve-chain-active=
   "1"`) are drawn at full stroke.
@@ -151,10 +140,8 @@ When a chain is active:
 This makes the active chain *literally pop* — the eye follows the
 brightest path.
 
-## Cycles
-
-A `phase-graph` should be a DAG (directed acyclic graph). If you
-accidentally introduce a cycle (`a -> b -> c -> a`), the engine:
+**Cycles.** A `phase-graph` should be a DAG (directed acyclic graph).
+If you accidentally introduce a cycle (`a -> b -> c -> a`), the engine:
 
 1. Detects the cycle during longest-path layering.
 2. Falls back to ranking via DFS (no longest-path guarantee).
@@ -166,15 +153,15 @@ accidentally introduce a cycle (`a -> b -> c -> a`), the engine:
 If the cycle is intentional, switch presets — `free` with explicit
 coordinates, or `amvcp-graph-diagrams` Graphviz `circo` engine.
 
-## DESIGN.md tokens consumed
+## DESIGN.md tokens consumed and selection atoms
+
+The preset consumes these token groups:
 
 | Token group | Specifics |
 |---|---|
 | color | card fills (role-tinted), card stroke, edge stroke, dimmed-state alpha |
 | typography | `--vc-font-body`, `--vc-text-2` title + `--vc-text-1` detail |
 | radius | `--vc-radius-lg` for cards (cards are bigger than nodes; bigger radius reads better) |
-
-## Selection atoms
 
 Standard `diagram-node` / `diagram-edge` atoms. `data-ve-data` on a
 card carries the extra fields the chain logic depends on:
@@ -193,7 +180,9 @@ auto-placement; an agent that surfaces "this phase depends on X,
 blocks Y" can read them from the click payload without re-walking
 the graph.
 
-## Theming patterns
+## Theming patterns and anti-patterns
+
+**Theming patterns:**
 
 - `default` theme — brand palette, cards in surface fill with role
   tints.
@@ -207,7 +196,7 @@ inappropriate for a serious plan; pick them only when the diagram
 is itself a stylistic statement (a retro CRT redesign brief,
 a hand-drawn "Phase 0: napkin sketch").
 
-## Anti-patterns
+**Anti-patterns:**
 
 - Cards stuffed with paragraphs of text: the card is a teaser, not
   a brief. The full content lives in a side-panel that opens on
@@ -221,7 +210,7 @@ a hand-drawn "Phase 0: napkin sketch").
   produce confused click responses. Either delete them or move
   them to a separate `groups` callout.
 
-## Composing with other patterns
+## Composing with other patterns and visual verification
 
 - A `phase-graph` followed by a **detail panel** (per
   `click-step-detail-panel.md`) is the canonical pattern for an
@@ -234,11 +223,9 @@ a hand-drawn "Phase 0: napkin sketch").
   group rects; cards stay in their swimlane vertically while the
   edges still cross.
 
-## Visual verification
-
-Per `skills/amvcp-self-debug-rules/SKILL.md`: dev-browser
-screenshot light + dark, plus a third screenshot AFTER clicking
-one of the middle cards (verify the chain highlight visibly works
-and the dimmed nodes are readable but clearly dimmed). The
-post-click screenshot is the bug-catching one — chain logic
-breaks silently if a CSS rule shadows the opacity transition.
+**Visual verification.** Per `skills/amvcp-self-debug-rules/SKILL.md`:
+dev-browser screenshot light + dark, plus a third screenshot AFTER
+clicking one of the middle cards (verify the chain highlight visibly
+works and the dimmed nodes are readable but clearly dimmed). The
+post-click screenshot is the bug-catching one — chain logic breaks
+silently if a CSS rule shadows the opacity transition.

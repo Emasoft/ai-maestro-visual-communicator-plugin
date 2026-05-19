@@ -57,6 +57,9 @@ Self-contained HTML: the diagram CSS is injected by `amvcp-diagram.js` on boot, 
 | Diagram not selectable | `amvcp-runtime.js` not loaded; the module injects its own hover/select CSS so a standalone page still shows the affordance, but the click-to-POST wiring needs the runtime. |
 | Diagram graph too dense | Try the `data-ve-scene-viewport` mode (pan + zoom + mini-map). See `viewport-scaffold` in parent router. |
 
+The cross-skill `phase-graph-preset` reference above covers:
+> When to choose this preset · Scaffold and card geometry · Auto-placement, chain-highlight, and cycles · DESIGN.md tokens consumed and selection atoms · Theming patterns and anti-patterns · Composing with other patterns and visual verification
+
 ## Examples
 
 **Input:** "show our user-acquisition funnel as a sankey — top-of-funnel split across 3 channels, two conversion stages."

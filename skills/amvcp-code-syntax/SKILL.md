@@ -61,7 +61,7 @@ skill *consumes* `--ve-code-*` and documents per-role usage).
 5. **Selection + commenting.** Every `.ve-code-line` IS a selectable atom. See [code-atom-selection](references/code-atom-selection.md) for the 9-level multi-click ladder.
   > A6.1 What the runtime ships · A6.2 The 9-level multi-click ladder (code variant) · A6.3 The drag-paint contract · A6.4 The selection payload (the comment-pill format) · A6.5 The comment pill · A6.6 The hover hint (preview state) · A6.7 The yield rule (CRITICAL — re-stated) · A6.8 Author rules · A6.9 The accessibility surface · A6.10 Tokens consumed (selection-specific)
 6. **Theme tokens.** Every `--ve-code-*` MUST have both `:root` and `:root[data-ve-theme="light"]` definitions — single-theme = correctness defect. See [light-dark-mirror-discipline](references/light-dark-mirror-discipline.md) and [token-roles-palette](references/token-roles-palette.md).
-  > H4.1 The rule · H4.2 The standard CSS shape · H4.3 The hue-family preservation rule · H4.4 The contrast requirement · H4.5 The diff-tint mirror · H4.6 The verification ritual · H4.7 The screenshot-test integration · H4.8 The fail-soft fallback · H4.9 The "single-theme defect" examples · H4.10 Adding new tokens · H4.11 The DESIGN.md override flow · H4.12 Tokens consumed · H4.13 Cross-references
+  > The rule and the canonical CSS shape · Per-token defaults — hue family, contrast, diff tints · Verification ritual and screenshot tests · Fail-soft fallback and "single-theme defect" examples · Authoring workflow — adding tokens and the DESIGN.md override · Tokens consumed and cross-references
 
 Copy this checklist and track your progress:
 
@@ -88,7 +88,7 @@ cells, no per-block CSS.
 | Source byte-altered (a character lost) | A custom hand-wrap defeated the integrity probe. NEVER hand-author `<span class="ve-tok-*">`; let the tokenizer do it |
 | Gutter or copy button absent | `initCodeGutter` skips a `<pre>` whose `<code>` already has child elements. Plain text only at author time |
 | Horizontal scrollbar on a `<pre>` | A CSS rule set `overflow-x:auto` — remove it. The page expands; wide code wraps. See [wrap-and-no-inner-scroll](references/wrap-and-no-inner-scroll.md) |
-| Colors wrong on light theme | `:root[data-ve-theme="light"]` mirror is missing for one or more `--ve-code-*` tokens. See [light-dark-mirror-discipline](references/light-dark-mirror-discipline.md) |
+| Colors wrong on light theme | `:root[data-ve-theme="light"]` mirror is missing for one or more `--ve-code-*` tokens. See `light-dark-mirror-discipline` in Resources below. |
 | `_block` selection markers don't yield to token color | Confirm `data-ve-code-sel` / `data-ve-pressed="1"` rules from `scripts/amvcp-code-highlight.css` are loaded — they set `color: inherit` on every `.ve-tok-*` span |
 
 ## Examples
@@ -196,4 +196,4 @@ overlay-runtime (R24).
 - [author-vs-runtime-boundary](references/author-vs-runtime-boundary.md) — what the author writes vs what the runtime injects; integrity-probe-friendly authoring rules.
   > H1.1 The principle · H1.2 The author's input contract · H1.3 The runtime's output contract · H1.4 The contract enforces fail-soft · H1.5 The integrity-probe-friendly authoring rules · H1.6 The runtime's responsibility surface · H1.7 What the author CAN customise · H1.8 What the author CANNOT customise · H1.9 The "post-render injection" escape hatch · H1.10 The architectural reason for this discipline · H1.11 The author's authoring checklist · H1.12 No tokens consumed (this is a discipline reference) · H1.13 Cross-references
 - [light-dark-mirror-discipline](references/light-dark-mirror-discipline.md) — every `--ve-code-*` MUST have both `:root` and `:root[data-ve-theme="light"]` definitions; verification checklist.
-  > H4.1 The rule · H4.2 The standard CSS shape · H4.3 The hue-family preservation rule · H4.4 The contrast requirement · H4.5 The diff-tint mirror · H4.6 The verification ritual · H4.7 The screenshot-test integration · H4.8 The fail-soft fallback · H4.9 The "single-theme defect" examples · H4.10 Adding new tokens · H4.11 The DESIGN.md override flow · H4.12 Tokens consumed · H4.13 Cross-references
+  > The rule and the canonical CSS shape · Per-token defaults — hue family, contrast, diff tints · Verification ritual and screenshot tests · Fail-soft fallback and "single-theme defect" examples · Authoring workflow — adding tokens and the DESIGN.md override · Tokens consumed and cross-references
