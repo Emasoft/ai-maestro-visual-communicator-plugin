@@ -290,9 +290,9 @@ If the engine emits a link colour that produces <7:1 contrast, the
 gate fails and the agent must pick a different accent. The typography
 skill does not work around insufficient contrast — fail-fast.
 
-The underline thickness + offset doesn't carry contrast (the underline
+The underline thickness and offset don't carry contrast (the underline
 is the same colour as the text). The accessibility comes from colour
-+ underline, both visible together.
+plus underline, both visible together.
 
 ## Selection-contract conformance
 

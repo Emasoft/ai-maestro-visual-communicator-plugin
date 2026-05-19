@@ -119,7 +119,7 @@ immediately BEFORE the `.la-header` in the DOM:
 The IO observes the sentinel:
 - When the sentinel is intersecting the viewport (page is at top),
   `is-scrolled` is removed.
-- When the sentinel scrolls out of view (page has scrolled), 
+- When the sentinel scrolls out of view (page has scrolled),
   `is-scrolled` is added.
 
 This produces a reliable on/off toggle that is robust to programmatic

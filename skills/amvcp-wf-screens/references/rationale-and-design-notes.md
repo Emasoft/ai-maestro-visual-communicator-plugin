@@ -332,8 +332,8 @@ option as a card with its title + preview + pros/cons.
 
 ### Notes
 
-- Each option has: letter chip + name + preview image + description
-  + pro/con.
+- Each option has: letter chip, name, preview image, description,
+  and pro/con.
 - The RECOMMENDED option has an accent outline + RECOMMENDED chip
   in the header.
 - For 2 options, use `grid-template-columns: 1fr 1fr`. For 4,

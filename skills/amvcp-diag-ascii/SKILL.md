@@ -46,7 +46,7 @@ A themed `<pre class="ve-ascii-diagram">` block. Page-expands horizontally (the 
 |---|---|
 | Columns misaligned in a terminal | Re-run the alignment validator — double-width characters (CJK, emoji) break monospace columns. See [ascii-diagrams](references/ascii-diagrams.md). |
 | `<pre>` shows an inner horizontal scrollbar | Remove any `overflow-x: auto` rule on the block. Per [`no-nested-scrollbars`](../amvcp-self-debug-rules/SKILL.md) the document MUST scroll, not the `<pre>`. |
-| Box-drawing characters render as boxes/tofu | Font lacks Unicode box-drawing glyphs. Switch to ASCII-only style (`+`, `-`, `|`) — see the glyph table in [ascii-diagrams](references/ascii-diagrams.md). |
+| Box-drawing characters render as boxes/tofu | Font lacks Unicode box-drawing glyphs. Switch to ASCII-only style (`+`, `-`, `\|`) — see the glyph table in [ascii-diagrams](references/ascii-diagrams.md). |
 | State transitions ambiguous | Use the explicit `[event]/[guard]` notation from [ascii-state-machine](references/ascii-state-machine.md); never mix arrow styles. |
 
 ## Examples

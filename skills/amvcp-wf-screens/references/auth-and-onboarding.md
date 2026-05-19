@@ -472,7 +472,7 @@ each labeled with the provider name.
 ### Notes
 
 - Left-aligned content (`justify-content: flex-start`) so the icon
-  + label read left-to-right.
+  and label read left-to-right.
 - Provider icons are small (20×20) colored squares — in production
   these are the brand SVGs. At wireframe they're solid color
   placeholders (the COLOR is the brand signal).

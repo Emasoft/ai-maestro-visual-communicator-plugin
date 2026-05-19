@@ -533,7 +533,7 @@ if the operation actually fails.
 ```
 
 For a wireframe showing the optimistic UI, render the SUCCESS state
-+ annotate "(actual save happens in background; revert on failure)".
+and annotate "(actual save happens in background; revert on failure)".
 
 ---
 

@@ -115,8 +115,8 @@ section's form on the right.
   sidebar, the destructive section signals.
 - Right column (main) has the SECTION header + description above
   the form card.
-- The avatar uploader is the classic 3-element row: image + upload
-  + remove buttons.
+- The avatar uploader is the classic 3-element row: image with
+  upload and remove buttons.
 
 ---
 

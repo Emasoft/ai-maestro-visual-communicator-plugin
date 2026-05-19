@@ -145,7 +145,7 @@ theme variant when the media query matches:
 
 The typography skill ships the `--vc-weight-*` overrides; the engine
 ships the `--vc-color-*` overrides. Both compose: high-contrast theme
-+ heavier weights = maximum-readability rendering.
+plus heavier weights equals maximum-readability rendering.
 
 The user's `prefers-contrast` setting flows through the engine's
 theme resolver — the runtime detects the media query and asks the

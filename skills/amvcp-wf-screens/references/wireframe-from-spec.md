@@ -123,7 +123,7 @@ For each screen, list which kit blocks it needs:
 ### Payment failure
 
 - `wf-overlay` + `wf-modal` (over the payment form) — error message
-  + Try again button
+  and Try again button
 
 This is the rough skeleton. Now write the HTML.
 

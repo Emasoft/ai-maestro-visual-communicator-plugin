@@ -228,7 +228,7 @@ contract does NOT add a `max-height + overflow: auto` to
 - Or: the TOC is rendered NOT sticky; it sits at the top of the
   document, scrolling with the page.
 - Or: the TOC uses a CSS `position: fixed` with `max-height: 100vh`
-  + no scroll (the bottom entries are clipped at the viewport edge).
+  and no scroll (the bottom entries are clipped at the viewport edge).
 
 The cost of inner scrollers (broken find-in-page, broken keyboard
 nav, broken screen-reader announcement) is higher than the cost of a

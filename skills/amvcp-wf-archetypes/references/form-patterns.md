@@ -21,8 +21,8 @@
 
 The full form authoring vocabulary for wireframes: single-column
 layouts, two-column layouts, field groups, error states, success
-states, the multi-step wizard. All driven by `wf-input` + `wf-label`
-+ `wf-button` from the kit.
+states, the multi-step wizard. All driven by `wf-input`, `wf-label`,
+and `wf-button` from the kit.
 
 ## Table of contents
 
@@ -40,15 +40,13 @@ states, the multi-step wizard. All driven by `wf-input` + `wf-label`
 - [Search form (single input + filter row)](#search-form-single-input--filter-row)
 - [Action bar — sticky save / cancel at the bottom](#action-bar--sticky-save--cancel-at-the-bottom)
 
-## Overview
-
 ---
 
 ## Single-column form (the default)
 
 The standard form layout — one label per row, one input per row.
 Use this 90% of the time. The card scopes the form; the wf-label
-+ wf-input pairs stack vertically.
+and wf-input pairs stack vertically.
 
 ```html
 <article class="wf-card" data-ve-id="form-signup"

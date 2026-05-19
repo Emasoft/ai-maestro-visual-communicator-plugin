@@ -70,8 +70,8 @@ Two examples of the rule applied:
 
 ## Scaffold to emit
 
-Each layout's full scaffold lives in its own per-layout reference (#05 through
-#21). Here's the minimum: pick the `layout` enum, add the required blocks.
+Each layout's full scaffold lives in its own per-layout reference (numbers 05
+through 21). Here's the minimum: pick the `layout` enum, add the required blocks.
 
 ```jsonc
 { "layout": "manifesto",

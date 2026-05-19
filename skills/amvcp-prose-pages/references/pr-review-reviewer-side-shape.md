@@ -17,7 +17,7 @@
 The reviewer-facing document for a pull-request review: not the PR
 description, not the patch itself, but the *reviewer's writeup* of what
 they think about it. Canonical reference: `html-effectiveness` demo
-#03, "code-review-pr".
+number 03, "code-review-pr".
 
 This is a structured deliverable distinct from a normal GitHub PR
 review (which is a list of inline comments) — it stands on its own

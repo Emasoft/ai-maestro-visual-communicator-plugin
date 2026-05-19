@@ -169,7 +169,7 @@ Stat-bands embed inside almost every report-doc shape:
 | `incident-postmortem-shape` | rarely embedded | Use the impact table instead |
 | `feature-explainer-shape` | 3 | "Throughput / Latency / Memory" |
 | `whitepaper-shape` | 3-5 | Executive summary band |
-| `compare-n-approaches-shape` | embed PER-COLUMN as chip strip, not a band |
+| `compare-n-approaches-shape` | varies | Embed PER-COLUMN as chip strip, not a band |
 
 A stat-band is **never** in the middle of a long prose section — it
 breaks the reading flow. Always at the top of a section or document.

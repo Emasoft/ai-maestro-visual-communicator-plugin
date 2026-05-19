@@ -269,7 +269,7 @@ sectioned content area below.
   default 40px) — profile headers want big avatars.
 - Stats grid uses `grid-template-columns: repeat(3, 1fr)` for
   three equal columns. Each cell is a tiny `wf-card` with a number
-  + label.
+  and label.
 - The Follow button is full-width below the stats — primary CTA
   position.
 
