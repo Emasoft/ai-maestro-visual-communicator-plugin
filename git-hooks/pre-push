@@ -1,31 +1,56 @@
 #!/usr/bin/env python3
 """Pre-push hook for ai-maestro-visual-communicator.
 
-Thin delegator to ``scripts/publish.py --gate``. The gate logic lives in
-``publish.py`` so the pre-push hook, the publish-mode S2-S4 stages, and any
-ad-hoc CI invocation all share **one** source of truth.
+Delegator to ``scripts/publish.py --gate`` with two CRITICAL hardening
+layers borrowed from the canonical CPV-self hook at
+~/.claude/plugins/cache/emasoft-plugins/claude-plugins-validation/2.94.0/git-hooks/pre-push
+(see canonical-pipeline-migration step 9, doctor report D6-003):
+
+1. **Process-ancestry verification** — walks the process tree via `ps`
+   to confirm that ``scripts/publish.py`` from THIS repo is an ancestor
+   of the ``git push`` call. Env vars are trivially spoofable
+   (``CPV_PUBLISH_PIPELINE=1 git push`` bypasses); process ancestry is
+   not. Direct ``git push`` is rejected with a loud error pointing the
+   user at the right entry point.
+
+2. **Tag-vs-version validation for tag-only pushes** — when the user
+   pushes only a tag (``git push origin v1.2.3``), the canonical gate
+   logic (G1 in publish.py) compares local plugin.json version vs
+   latest remote tag, which is meaningless for a tag-only push (the
+   tag IS the thing being created). Instead, verify ``tag_name ==
+   "v" + local_version`` so the tag and the manifest stay in lockstep.
+
+The 4 quality gates still run in order after these two checks pass; any
+failure blocks the push:
+
+  G1  Version-bump check (local plugin.json vs latest remote tag)
+  G2  Lint (`ruff check scripts/`)
+  G3  Validate plugin (cpv-remote-validate plugin . --strict)
+  G4  Dev-browser test suite (soft-pass on missing CLI)
 
 To install (idempotent — safe to re-run):
   uv run python scripts/publish.py --install-hook
 
 Or, to wire it manually:
-  git config core.hooksPath .githooks
-
-The 4 gates run in order; any failure blocks the push:
-  G1  Version-bump check (local plugin.json vs latest remote tag)
-  G2  Lint (`ruff check scripts/`)
-  G3  Validate plugin (cpv-remote-validate plugin . --strict)
-  G4  Dev-browser test suite (soft-pass on missing CLI)
+  git config core.hooksPath git-hooks
 
 Bypass (only for emergency hotfixes — leaves a forensic trail):
   git push --no-verify
 """
 from __future__ import annotations
 
+import json
 import os
 import subprocess
 import sys
 from pathlib import Path
+
+# git pre-push hook stdin format: LOCAL_REF LOCAL_SHA REMOTE_REF REMOTE_SHA
+# The all-zeros SHA indicates branch/tag deletion in git hooks.
+ZERO_SHA = "0000000000000000000000000000000000000000"
+
+
+# ─── Helpers ─────────────────────────────────────────────────────────────────
 
 
 def _repo_root() -> Path:
@@ -39,11 +64,168 @@ def _repo_root() -> Path:
     return Path(result.stdout.strip())
 
 
+def _has_uv() -> bool:
+    """Return True iff ``uv`` is on PATH."""
+    from shutil import which
+
+    return which("uv") is not None
+
+
+def _get_process_ancestry(max_depth: int = 30) -> list[tuple[int, str]]:
+    """Walk the process tree from this process up to PID 1.
+
+    Returns a list of (pid, command_line) tuples from closest ancestor
+    to root. Uses ``ps`` which is available on macOS, Linux, and BSD.
+    Returns an empty list if the walk fails (caller treats as fail-closed).
+    """
+    ancestry: list[tuple[int, str]] = []
+    pid = os.getpid()
+    seen: set[int] = set()
+    for _ in range(max_depth):
+        if pid in seen or pid <= 0:
+            break
+        seen.add(pid)
+        try:
+            result = subprocess.run(
+                ["ps", "-p", str(pid), "-o", "ppid=,args="],
+                capture_output=True,
+                text=True,
+                timeout=5,
+            )
+        except (OSError, subprocess.SubprocessError):
+            return []
+        if result.returncode != 0:
+            break
+        line = result.stdout.strip()
+        if not line:
+            break
+        parts = line.split(None, 1)
+        if not parts:
+            break
+        try:
+            ppid = int(parts[0])
+        except ValueError:
+            break
+        cmdline = parts[1] if len(parts) > 1 else ""
+        ancestry.append((pid, cmdline))
+        if ppid <= 1:
+            break
+        pid = ppid
+    return ancestry
+
+
+def _called_by_publish_py(repo_root: Path) -> bool:
+    """Check if any ancestor process is the publish.py script from this repo.
+
+    Uses process ancestry (not env vars) — env vars are trivially
+    spoofable, process ancestry is not. Walks the process tree via ``ps``
+    and verifies that ``scripts/publish.py`` from THIS repository is an
+    ancestor of the current hook invocation.
+
+    The expected chain is::
+
+        publish.py → git push → git (pre-push hook)
+    """
+    ancestry = _get_process_ancestry()
+    if not ancestry:
+        return False
+
+    expected_path = str((repo_root / "scripts" / "publish.py").resolve())
+    expected_basename = "scripts/publish.py"
+
+    for _pid, cmdline in ancestry:
+        if "publish.py" not in cmdline:
+            continue
+        # Strict match: the absolute path of THIS repo's publish.py must be
+        # in the command line, OR the path component "scripts/publish.py"
+        # must be present (cwd-relative invocation pattern).
+        if expected_path in cmdline or expected_basename in cmdline:
+            return True
+    return False
+
+
+def _extract_local_version(repo_root: Path) -> str | None:
+    """Return the ``version`` field from .claude-plugin/plugin.json, or None."""
+    plugin_json = repo_root / ".claude-plugin" / "plugin.json"
+    try:
+        data = json.loads(plugin_json.read_text(encoding="utf-8"))
+        version = data.get("version")
+        return version if isinstance(version, str) else None
+    except (FileNotFoundError, json.JSONDecodeError, OSError):
+        return None
+
+
+def _classify_push_refs() -> tuple[list[str], list[str]]:
+    """Split stdin push refs into (branch_refs, tag_refs).
+
+    git pre-push hook stdin is one line per pushed ref:
+        LOCAL_REF LOCAL_SHA REMOTE_REF REMOTE_SHA
+    """
+    branch_refs: list[str] = []
+    tag_refs: list[str] = []
+    stdin_lines = sys.stdin.read().strip().splitlines()
+    for line in stdin_lines:
+        parts = line.split()
+        if len(parts) < 4:
+            continue
+        local_ref = parts[0]
+        if local_ref.startswith("refs/tags/"):
+            tag_refs.append(local_ref[len("refs/tags/"):])
+        elif local_ref.startswith("refs/heads/"):
+            branch_refs.append(local_ref[len("refs/heads/"):])
+    return branch_refs, tag_refs
+
+
+# ─── Main ────────────────────────────────────────────────────────────────────
+
+
 def main() -> int:
-    """Cd to repo root, then exec ``publish.py --gate``."""
+    """Verify the push is canonical (publish.py + tag-vs-version), then gate."""
     root = _repo_root()
     os.chdir(root)
 
+    # ── Pipeline enforcement: only publish.py may push ──
+    # Uses PROCESS ANCESTRY, not env vars. Env vars are trivially spoofable
+    # (e.g. CPV_PUBLISH_PIPELINE=1 git push); process ancestry is not. The
+    # hook walks its parent chain up to PID 1 via `ps` and requires that
+    # scripts/publish.py from THIS repo is an ancestor of the push.
+    if not _called_by_publish_py(root):
+        print("=" * 40, file=sys.stderr)
+        print("  BLOCKED: Direct push not allowed", file=sys.stderr)
+        print("  This hook only accepts pushes initiated by", file=sys.stderr)
+        print("  scripts/publish.py (verified via process ancestry).", file=sys.stderr)
+        print("  Use: uv run python scripts/publish.py --patch --push", file=sys.stderr)
+        print("=" * 40, file=sys.stderr)
+        return 1
+
+    # ── Tag-vs-version validation for tag-only pushes ──
+    # publish.py pushes branch first, then tag (--atomic). At tag-push time
+    # the remote master is already at the new version, so G1's "strictly
+    # greater" rule would fail. Verify tag name == "v" + local_version.
+    branch_refs, tag_refs = _classify_push_refs()
+    tag_only_push = bool(tag_refs) and not branch_refs
+
+    if tag_only_push:
+        local_version = _extract_local_version(root)
+        if local_version is not None:
+            expected_tag = f"v{local_version}"
+            mismatched = [t for t in tag_refs if t != expected_tag]
+            if mismatched:
+                print("=" * 40, file=sys.stderr)
+                print("  BLOCKED: Tag name does not match plugin version!", file=sys.stderr)
+                print(f"  Pushed tag(s): {', '.join(mismatched)}", file=sys.stderr)
+                print(f"  Expected: {expected_tag}", file=sys.stderr)
+                print("  Run: uv run python scripts/publish.py --patch", file=sys.stderr)
+                print("=" * 40, file=sys.stderr)
+                return 1
+            print(f"[pre-push] Tag matches local version: {expected_tag}", flush=True)
+        else:
+            print(
+                "[pre-push] WARNING: cannot extract local version — skipping tag check",
+                file=sys.stderr,
+            )
+
+    # ── Delegate to publish.py --gate (G1-G4) ──
     publish = root / "scripts" / "publish.py"
     if not publish.is_file():
         # Fail safe — without publish.py we cannot enforce the canonical
@@ -51,7 +233,7 @@ def main() -> int:
         print("[pre-push] FATAL: scripts/publish.py is missing", file=sys.stderr)
         return 1
 
-    # We delegate via the same interpreter that runs the hook. ``uv run``
+    # Delegate via the same interpreter that runs the hook. ``uv run``
     # is preferred when available (matches CI); otherwise fall back to the
     # current interpreter so the hook remains usable in vanilla Python
     # environments (e.g. fresh clone with no uv installed).
@@ -62,13 +244,6 @@ def main() -> int:
         cmd = [sys.executable, str(publish), "--gate"]
 
     return subprocess.run(cmd, check=False).returncode
-
-
-def _has_uv() -> bool:
-    """Return True iff ``uv`` is on PATH."""
-    from shutil import which
-
-    return which("uv") is not None
 
 
 if __name__ == "__main__":

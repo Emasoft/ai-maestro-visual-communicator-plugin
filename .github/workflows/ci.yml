@@ -72,7 +72,7 @@ jobs:
           # `ignore_paths: vendor` to belt-and-braces exclude vendored
           # third-party shell code.
           scandir: './scripts'
-          additional_files: 'tests/server.py .githooks/pre-push'
+          additional_files: 'tests/server.py git-hooks/pre-push'
           ignore_paths: vendor
         env:
           # The dev-browser test wrapper relies on bash arrays; we only
@@ -122,7 +122,7 @@ jobs:
     # run on stock GitHub runners: it needs the `dev-browser` CLI which
     # depends on a real Chrome instance and persistent state, neither of
     # which are available in headless ubuntu-latest. The suite is enforced
-    # locally via the .githooks/pre-push hook before any push to origin.
+    # locally via the git-hooks/pre-push hook before any push to origin.
     #
     # This job is intentionally a CI smoke-check that the test runner is
     # syntactically valid Python — it parses run-all-tests.py, run-tests.py,
@@ -164,7 +164,7 @@ jobs:
             echo "## Test job — note"
             echo
             echo "The full 46-test dev-browser suite cannot run on stock GitHub"
-            echo "runners. It is enforced locally via the .githooks/pre-push hook."
+            echo "runners. It is enforced locally via the git-hooks/pre-push hook."
             echo
             echo "This job verified that the test runner Python sources parse"
             echo "without syntax errors."

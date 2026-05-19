@@ -21,11 +21,11 @@ Modes
      G4  Tests — runs `tests/run-all-tests.py`. Soft-passes when
          `dev-browser` is missing on PATH so a fresh clone is not blocked.
 
-   Used by `.githooks/pre-push` and by stages S2-S4 of publish mode.
+   Used by `git-hooks/pre-push` and by stages S2-S4 of publish mode.
 
 2. `--install-hook` (idempotent)
-   Copies `.githooks/pre-push` -> `.git/hooks/pre-push` AND sets
-   `core.hooksPath .githooks`. Both operations are no-ops when already in
+   Copies `git-hooks/pre-push` -> `.git/hooks/pre-push` AND sets
+   `core.hooksPath git-hooks`. Both operations are no-ops when already in
    place. Re-running is always safe.
 
 3. Publish mode (`--patch` / `--minor` / `--major` [+ `--push`])
@@ -66,7 +66,7 @@ PYPROJECT = REPO_ROOT / "pyproject.toml"
 PACKAGE_JSON = REPO_ROOT / "package.json"
 CHANGELOG = REPO_ROOT / "CHANGELOG.md"
 UV_LOCK = REPO_ROOT / "uv.lock"
-HOOK_SOURCE = REPO_ROOT / ".githooks" / "pre-push"
+HOOK_SOURCE = REPO_ROOT / "git-hooks" / "pre-push"
 
 
 # ---------------------------------------------------------------------------
@@ -301,11 +301,11 @@ def _run_gate_mode() -> int:
 # ---------------------------------------------------------------------------
 
 def _run_install_hook() -> int:
-    """Copy .githooks/pre-push -> .git/hooks/pre-push and set core.hooksPath.
+    """Copy git-hooks/pre-push -> .git/hooks/pre-push and set core.hooksPath.
 
     Both operations are idempotent — re-running only updates the file when
     its content actually changed, and only sets core.hooksPath when it
-    differs from `.githooks`.
+    differs from `git-hooks`.
     """
     if not HOOK_SOURCE.is_file():
         sys.exit(f"missing source hook: {HOOK_SOURCE}")
@@ -316,11 +316,11 @@ def _run_install_hook() -> int:
         check=False,
         capture=True,
     ).stdout.strip()
-    if current == ".githooks":
-        _log("core.hooksPath already = .githooks")
+    if current == "git-hooks":
+        _log("core.hooksPath already = git-hooks")
     else:
-        _log(f"setting core.hooksPath: {current!r} -> .githooks")
-        _run(["git", "config", "--local", "core.hooksPath", ".githooks"])
+        _log(f"setting core.hooksPath: {current!r} -> git-hooks")
+        _run(["git", "config", "--local", "core.hooksPath", "git-hooks"])
 
     # Step 2 — copy into .git/hooks/pre-push for git installs that don't
     # respect core.hooksPath (older git, GUI clients with their own hook
@@ -340,7 +340,7 @@ def _run_install_hook() -> int:
     if legacy_hook.is_file() and legacy_hook.read_bytes() == source_bytes:
         _log(f"{legacy_hook} already up-to-date")
     else:
-        _log(f"copying .githooks/pre-push -> {legacy_hook}")
+        _log(f"copying git-hooks/pre-push -> {legacy_hook}")
         legacy_hook.write_bytes(source_bytes)
 
     # Always make sure both copies are executable. chmod is a no-op if the
@@ -670,8 +670,8 @@ def _build_parser() -> argparse.ArgumentParser:
         "--install-hook",
         action="store_true",
         help=(
-            "copy .githooks/pre-push -> .git/hooks/pre-push and set "
-            "core.hooksPath .githooks (idempotent)"
+            "copy git-hooks/pre-push -> .git/hooks/pre-push and set "
+            "core.hooksPath git-hooks (idempotent)"
         ),
     )
     mode.add_argument("--patch", action="store_true", help="bump patch version")
