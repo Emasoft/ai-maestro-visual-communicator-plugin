@@ -1,6 +1,6 @@
 ---
 name: amvcp-diag-flow
-description: "Process and flow diagrams — process-flow with numbered steps and decision branching, swimlanes (parallel actor lanes), decision trees, step-strip, scroll-reveal flow, fan-out/fan-in, data-flow (sync solid + async dashed), FIFO queue, animated edges. JSON scene-graph engine; every node/edge a click-to-select atom. Use when scaffolding any step-by-step process, journey map, or decision pathway. Trigger with 'flowchart', 'process flow', 'swimlane', 'decision tree', 'journey map', 'fan-out', 'data flow'."
+description: "Process and flow diagrams — process-flow, swimlanes, decision trees, step-strip, scroll-reveal, fan-out/fan-in, data-flow, FIFO queue, animated edges. JSON scene-graph engine; click-to-select atoms. Use when scaffolding any step-by-step process, journey map, or decision pathway. Trigger with 'flowchart', 'process flow', 'swimlane', 'decision tree', 'journey map', 'fan-out', 'data flow'."
 license: MIT
 compatibility: "Browser (SVG + IntersectionObserver). Python 3.12+ renderer ships amvcp-diagram.js + amvcp-designmd.js beside the HTML."
 metadata:

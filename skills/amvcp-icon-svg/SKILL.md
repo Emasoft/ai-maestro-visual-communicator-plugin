@@ -1,6 +1,6 @@
 ---
 name: amvcp-icon-svg
-description: "Author themed, lint-clean, selectable inline SVG icons, logos, device frames, geometric shapes, and image hotspots from a JSON scene-graph. 1000x1000 coordinate space, hairline strokes, 4-color cap, DESIGN.md tokens. Every primitive a click-to-select atom. Use when the user asks for an icon, logo mark, device mockup, hotspot, or geometric shape. Trigger with 'icon', 'logo', 'svg icon', 'device frame', 'iphone mockup', 'browser mockup', 'hotspot', 'annotated image', 'scene graph svg', 'cloud icon', 'hexagon'."
+description: "Author themed inline SVG icons, logos, device frames, shapes, and image hotspots from a JSON scene-graph. 1000x1000 coordinate space, hairline strokes, DESIGN.md tokens, click-to-select atoms. Use when the user asks for an icon, logo mark, device mockup, hotspot, or geometric shape. Trigger with 'icon', 'logo', 'svg icon', 'device frame', 'iphone mockup', 'browser mockup', 'hotspot', 'annotated image', 'scene graph svg', 'cloud icon', 'hexagon'."
 license: MIT
 compatibility: "Browser (inline SVG + CSS custom properties + color-mix). Node 18+ for the pure helpers (buildSceneSvg, lintSvg, snap). No build step, no XML parser, no fontkit, no Playwright."
 metadata:

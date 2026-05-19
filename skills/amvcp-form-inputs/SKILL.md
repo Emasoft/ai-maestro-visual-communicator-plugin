@@ -1,6 +1,6 @@
 ---
 name: amvcp-form-inputs
-description: "Structured-response widgets for conversational agent reports — radio, multi-select, numeric, date, color, rank-list, file-picker, tag-input, slider, toggle. Each emits ve-form-change event, persists to localStorage, themes via DESIGN.md tokens, fails fast on malformed JSON. Use when an agent's question has a finite structured answer instead of free-text prose. Trigger with 'multiple choice', 'radio buttons', 'checkbox list', 'date picker', 'color picker', 'rank list', 'rating widget', 'tier list', 'tag input', 'structured response', 'form input', 'survey question'."
+description: "Structured-response widgets for conversational agent reports — radio, multi-select, numeric, date, color, rank-list, file/tag/slider/toggle. Persists to localStorage, DESIGN.md tokens. Use when an agent's question has a finite structured answer instead of free-text prose. Trigger with 'multiple choice', 'radio buttons', 'checkbox list', 'date picker', 'color picker', 'rank list', 'rating widget', 'tier list', 'tag input', 'structured response', 'form input', 'survey question'."
 ---
 
 # Form-input widgets

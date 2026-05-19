@@ -1,6 +1,6 @@
 ---
 name: amvcp-interactive-controls
-description: "Self-contained interactive HTML widgets — tabs, accordion, modal, filter pills, stepper, virtualized list, sortable table, Kanban, before/after slider, live editor, checklist, theme toggle, sticky TOC, scroll-spy, search filter, range/tag picker, tooltip, popover, lightbox. DESIGN.md-themed, persists to localStorage. Use when the user wants any interactive widget. Trigger with 'tabs', 'accordion', 'filter pills', 'stepper', 'sortable table', 'kanban', 'before/after', 'live editor', 'checklist', 'theme switcher', 'TOC', 'search box', 'tooltip', 'modal', 'popover', 'lightbox'."
+description: "Self-contained interactive HTML widgets — tabs, accordion, modal, filter pills, stepper, sortable table, Kanban, slider, theme toggle, TOC, tooltip, popover, lightbox. DESIGN.md-themed, persists to localStorage. Use when the user wants any interactive widget. Trigger with 'tabs', 'accordion', 'filter pills', 'stepper', 'sortable table', 'kanban', 'before/after', 'live editor', 'checklist', 'theme switcher', 'TOC', 'search box', 'tooltip', 'modal', 'popover', 'lightbox'."
 license: MIT
 metadata:
   author: Emasoft
@@ -249,6 +249,40 @@ Kanban also exports its state as Markdown (`##` columns, `- [ ]` cards).
   `sticky-table-of-contents.md`.
 - *"Add `?` keyboard help overlay."* → `keyboard-shortcuts.md` +
   `popover-and-dialog.md`.
+
+### Concrete scaffold — filter pills + sortable table
+
+```html
+<script type="application/json" id="ic-data">
+{
+  "rows": [
+    {"id": "f1", "severity": "high",   "title": "Stale credential"},
+    {"id": "f2", "severity": "medium", "title": "Slow query"},
+    {"id": "f3", "severity": "low",    "title": "Lint warning"}
+  ]
+}
+</script>
+
+<link rel="stylesheet" href="amvcp-interactive.css">
+<script src="amvcp-designmd.js"></script>
+<script src="amvcp-interactive.js"></script>
+
+<fieldset class="ic-filter-pills" data-target="#rows">
+  <input type="radio" id="f-all"  name="sev" value=""       checked>
+  <label for="f-all">All</label>
+  <input type="radio" id="f-high" name="sev" value="high">
+  <label for="f-high">High</label>
+</fieldset>
+
+<table class="ic-sortable" id="rows">
+  <thead><tr><th data-sort="title">Title</th><th data-sort="severity">Severity</th></tr></thead>
+  <tbody><!-- rows hydrated from #ic-data --></tbody>
+</table>
+```
+
+The page listens for `ic:filter-change` and `ic:sort-change` if a host
+needs to react; otherwise the widgets self-manage state and persist to
+localStorage.
 
 ## Modes
 

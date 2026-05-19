@@ -1,6 +1,6 @@
 ---
 name: amvcp-visual-communication
-description: "UMBRELLA skill — auto-routes between 13 category skills (design tokens, layout, typography, animation, controls, tables, code, charts, diagrams, icons, wireframes, slide decks, prose). Use when the user wants ANY visual added to a document: chart, dashboard, diagram, table, code block, math, slide deck, wireframe, icon, design system, report. Trigger with 'add a chart/diagram/table', 'visualize', 'make a dashboard', 'turn into slides', 'wireframe this', 'render code', 'design tokens', 'restyle', 'render report as HTML', '/amvcp-generate-web-diagram'."
+description: "UMBRELLA skill — auto-routes between 13 category skills covering visuals from tokens through diagrams, slides, and prose. Use when the user wants ANY visual added to a document: chart, dashboard, diagram, table, code block, math, slide deck, wireframe, icon, design system, report. Trigger with 'add a chart/diagram/table', 'visualize', 'make a dashboard', 'turn into slides', 'wireframe this', 'render code', 'design tokens', 'restyle', 'render report as HTML', '/amvcp-generate-web-diagram'."
 license: MIT
 compatibility: "Chromium browser recommended; Python 3.12+ for amvcp-select.py; runtime + designmd + per-category JS libs auto-copied next to each HTML."
 metadata:
