@@ -1,6 +1,6 @@
 ---
 name: amvcp-layout-grids
-description: "Foundation grids + spatial tokens — token ladder, --la-* aliases, named gaps, ch reading measures, 2-1/3-1 sidebar grids, subgrid card row, auto-fill gallery, article 3-col + wide/bleed, RTL logical properties, no-nested-scrollbars contract, selection atoms. Use for grids, content+sidebar pages, galleries, article bodies, RTL. Trigger with 'grid', 'columns', 'sidebar', 'gallery', 'cards', 'article', 'reading measure', 'RTL', 'spatial tokens', 'gap'."
+description: "Foundation grids + spatial tokens — token ladder, --la-* aliases, named gaps, ch reading measures, 2-1/3-1 sidebar grids, subgrid card row, auto-fill gallery, article 3-col + wide/bleed, RTL logical props, no-nested-scrollbars, selection atoms. Use when the user asks for a grid, content+sidebar, gallery, article body, or RTL layout. Trigger with 'grid', 'columns', 'sidebar', 'gallery', 'cards', 'article', 'reading measure', 'RTL', 'spatial tokens', 'gap'."
 license: MIT
 compatibility: "Browser (CSS Grid, subgrid, logical properties, color-mix, ch units, dvh units). Themes off the DESIGN.md engine (amvcp-designmd.js). Python 3.12+ via amvcp-select.py."
 metadata:
@@ -26,30 +26,32 @@ The foundation skill of the layout family. Hosts the spatial-token ladder (`--vc
 
 | Request shape | Refs | Scaffold class |
 |---|---|---|
-| spatial / spacing tokens (the foundation) | [01](references/01-spatial-token-ladder.md), [02](references/02-derived-aliases.md), [03](references/03-named-gaps-semantics.md) | `var(--vc-space-N)` + `var(--la-*)` |
-| reading measure (ch-based) | [04](references/04-reading-measure-ch-based.md) | `ch` unit on text container |
-| content + sidebar | [05](references/05-asymmetric-grid-2-1.md), [06](references/06-asymmetric-grid-3-1.md) | `.la-grid--2-1` / `.la-grid--3-1` |
-| row of equal cards, aligned title/body/footer | [07](references/07-subgrid-card-row.md) | `.la-cardrow` + `.la-card` |
-| gallery / index / tile grid | [11](references/11-card-grid-autofill.md) | custom `auto-fill` grid |
-| mobile responsive collapse | [12](references/12-mobile-collapse-breakpoint.md) | `@media (max-width: 768px)` |
-| long article / report body | [13](references/13-article-three-column-grid.md), [14](references/14-article-wide-bleed.md) | `.la-article` + `.la-article__wide` / `__bleed` |
-| RTL-correct layout (Arabic, Hebrew, …) | [31](references/31-rtl-logical-properties.md) | `dir="rtl"` on root |
-| no-nested-scrollbars rule | [32](references/32-no-nested-scrollbars-pattern.md) | `overflow: visible` / `clip` |
-| selection-atoms contract | [33](references/33-selection-atoms.md) | `markLayoutAtoms()` |
-| group-1 alias block + token contract | [layout-tokens](references/layout-tokens.md) | `:root { --la-* }` block |
-| full HTML+CSS catalog (one section per group) | [layout-patterns](references/layout-patterns.md) | (catalog) |
+| spatial / spacing tokens (the foundation) | refs 01, 02, 03 | `var(--vc-space-N)` + `var(--la-*)` |
+| reading measure (ch-based) | ref 04 | `ch` unit on text container |
+| content + sidebar | refs 05, 06 | `.la-grid--2-1` / `.la-grid--3-1` |
+| row of equal cards, aligned title/body/footer | ref 07 | `.la-cardrow` + `.la-card` |
+| gallery / index / tile grid | ref 11 | custom `auto-fill` grid |
+| mobile responsive collapse | ref 12 | `@media (max-width: 768px)` |
+| long article / report body | refs 13, 14 | `.la-article` + `.la-article__wide` / `__bleed` |
+| RTL-correct layout (Arabic, Hebrew, …) | ref 31 | `dir="rtl"` on root |
+| no-nested-scrollbars rule | ref 32 | `overflow: visible` / `clip` |
+| selection-atoms contract | ref 33 | `markLayoutAtoms()` |
+| group-1 alias block + token contract | layout-tokens | `:root { --la-* }` block |
+| full HTML+CSS catalog (one section per group) | layout-patterns | (catalog) |
+
+Each ref linked in the Resources section below with its full TOC embedded.
 
 ## Authoring rules (HARD invariants — apply to every ref above AND to every sibling layout skill)
 
-- **Spacing tokens only.** Every length is `var(--vc-space-N)`, `var(--la-*)`, or `ch` (reading measures only). NO literal pixel values for layout sizing. Documented exceptions: `768px` (the single mobile breakpoint — see [12](references/12-mobile-collapse-breakpoint.md)), `16mm` (the print page margin — owned by sibling [amvcp-layout-print-hero](../amvcp-layout-print-hero/SKILL.md)).
+- **Spacing tokens only.** Every length is `var(--vc-space-N)`, `var(--la-*)`, or `ch` (reading measures only). NO literal pixel values for layout sizing. Documented exceptions: `768px` (the single mobile breakpoint — see ref 12), `16mm` (the print page margin — owned by sibling amvcp-layout-print-hero).
 - **Engine tokens only for colour.** Every colour is a `--vc-color-*` engine token. Light + dark fall out for free.
-- **Logical properties only.** Every directional declaration is logical (`margin-inline`, `inset-block-start`, `inline-size`). `dir="rtl"` mirrors everything with zero extra CSS. See [31](references/31-rtl-logical-properties.md).
-- **No nested scrollbars.** No primitive ships `overflow:auto` / `overflow:scroll`. Wide content widens the document via `.la-article__wide` / `__bleed`. Decorative clips use `overflow: clip` (not `hidden`). See [32](references/32-no-nested-scrollbars-pattern.md).
+- **Logical properties only.** Every directional declaration is logical (`margin-inline`, `inset-block-start`, `inline-size`). `dir="rtl"` mirrors everything with zero extra CSS. See ref 31.
+- **No nested scrollbars.** No primitive ships `overflow:auto` / `overflow:scroll`. Wide content widens the document via `.la-article__wide` / `__bleed`. Decorative clips use `overflow: clip` (not `hidden`). See ref 32.
 - **`min-width: 0` on every grid child.** Without this, wide content (table, code block) inside a grid cell forces the WHOLE GRID past the viewport. The shipped presets already do this; custom grids must too.
-- **Selection contract.** Every layout-shaped element is a selectable atom via `markLayoutAtoms()` ([33](references/33-selection-atoms.md)). The 3-segment decision-mini pill (`✘` ﹅ `✔︎`) attaches to each.
-- **Alias layer, not duplicate token ladder.** Define `--la-*` aliases over `--vc-space-N` — never a parallel `--space-*` scale. See [02](references/02-derived-aliases.md).
-- **Named gaps over arbitrary spacing.** Use the named-gap map ([03](references/03-named-gaps-semantics.md)) to pick the right `--la-gap*` for the context (cardrow vs sidebar vs section vs page).
-- **Reading measure in `ch`, not `px`.** A text container's `max-inline-size` is `68ch` (canonical) or `92ch` (wide variant) — never a pixel value. See [04](references/04-reading-measure-ch-based.md).
+- **Selection contract.** Every layout-shaped element is a selectable atom via `markLayoutAtoms()` (ref 33). The 3-segment decision-mini pill (`✘` ﹅ `✔︎`) attaches to each.
+- **Alias layer, not duplicate token ladder.** Define `--la-*` aliases over `--vc-space-N` — never a parallel `--space-*` scale. See ref 02.
+- **Named gaps over arbitrary spacing.** Use the named-gap map (ref 03) to pick the right `--la-gap*` for the context (cardrow vs sidebar vs section vs page).
+- **Reading measure in `ch`, not `px`.** A text container's `max-inline-size` is `68ch` (canonical) or `92ch` (wide variant) — never a pixel value. See ref 04.
 
 ## Instructions
 
@@ -79,13 +81,13 @@ Self-contained HTML: one `<style>` (or `<link href="amvcp-layout.css">`) carryin
 
 | Symptom | Fix |
 |---|---|
-| Reading measure ignored | `.la-article` was put on `<main>` — the runtime forces `main { max-width:none !important }`. Use a `<div>`/`<article>` (see [13](references/13-article-three-column-grid.md)). |
+| Reading measure ignored | `.la-article` was put on `<main>` — the runtime forces `main { max-width:none !important }`. Use a `<div>`/`<article>` (see ref 13). |
 | Wide table/code forces the whole grid past the viewport | Add `min-width:0` to the grid child (the presets already do this — check custom children). |
-| Card row title/body/footer don't align | Missing `subgrid` on the inner card — see [07](references/07-subgrid-card-row.md) for the HARD card-internal contract. |
-| Gallery card width drifts on resize | Wrong `minmax()` — use `minmax(min(316px, 100%), 1fr)` (see [11](references/11-card-grid-autofill.md)). |
-| RTL layout broken | A physical property (`margin-left`, `left`, `width`) leaked in — replace with logical equivalent (`margin-inline-start`, `inset-inline-start`, `inline-size`) ([31](references/31-rtl-logical-properties.md)). |
-| Inner scrollbar appeared | Forbidden — wide content must widen the document via `.la-article__wide` / `__bleed` ([14](references/14-article-wide-bleed.md), [32](references/32-no-nested-scrollbars-pattern.md)). |
-| Mobile layout doesn't collapse | The `@media (max-width: 768px)` block is missing — see [12](references/12-mobile-collapse-breakpoint.md). |
+| Card row title/body/footer don't align | Missing `subgrid` on the inner card — see ref 07 for the HARD card-internal contract. |
+| Gallery card width drifts on resize | Wrong `minmax()` — use `minmax(min(316px, 100%), 1fr)` (see ref 11). |
+| RTL layout broken | A physical property (`margin-left`, `left`, `width`) leaked in — replace with logical equivalent (`margin-inline-start`, `inset-inline-start`, `inline-size`) — see ref 31. |
+| Inner scrollbar appeared | Forbidden — wide content must widen the document via `.la-article__wide` / `__bleed` — see refs 14, 32. |
+| Mobile layout doesn't collapse | The `@media (max-width: 768px)` block is missing — see ref 12. |
 
 ## Examples
 
