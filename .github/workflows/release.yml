@@ -13,8 +13,11 @@ on:
     tags:
       - 'v*'
 
-permissions:
-  contents: write   # required: gh release create writes a Release object
+# Top-level permissions: minimal — the job overrides with `contents: write`
+# where the release-write step actually needs it. Finer-grained scope per
+# gh-actions.md best practice (canon uses `permissions: {}` at the workflow
+# level; we keep the explicit empty block here too for clarity).
+permissions: {}
 
 concurrency:
   group: release-${{ github.ref }}
@@ -24,13 +27,72 @@ jobs:
   release:
     name: GitHub Release
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    # B5 (canonical-pipeline-migration step 6) — bumped from 5 → 15 minutes
+    # because we now run validate + lint + mypy + smoke-tests inside the
+    # release job. The validate-on-tag gate is a defensive safety net:
+    # if someone pushes a tag separately (`git push origin v1.2.3` after
+    # the branch already shipped), the local pre-push hook's gate is
+    # bypassed; the release.yml gate catches that case.
+    timeout-minutes: 15
+    permissions:
+      # Job-level permissions (finer-grained than the workflow-level
+      # `contents: write` block — keeps the principle of least privilege).
+      contents: write
     steps:
       - uses: actions/checkout@v6
         with:
           # Need full history so the tag's commit is reachable when we
           # extract notes / check for prior tags.
           fetch-depth: 0
+
+      - name: install uv
+        uses: astral-sh/setup-uv@v8.1.0
+        with:
+          enable-cache: true
+
+      - name: run full plugin validation (strict — same gate as pre-push)
+        # B5 — pre-release safety net. If the tag points at a commit that
+        # doesn't pass strict validation, refuse the release rather than
+        # ship a broken plugin. Mirrors canon's pre-release gate.
+        run: |
+          set +e
+          uvx --from git+https://github.com/Emasoft/claude-plugins-validation \
+            --with pyyaml cpv-remote-validate plugin . --strict
+          exit_code=$?
+          set -e
+          # Exit codes 1-4 = CRITICAL/MAJOR/MINOR/NIT (block release).
+          # Exit codes ≥5 = WARNING-only (advisory, don't block).
+          if [ $exit_code -ge 1 ] && [ $exit_code -le 4 ]; then
+            echo "::error::Validation failed with exit code $exit_code (CRITICAL/MAJOR/MINOR/NIT found)"
+            exit $exit_code
+          fi
+
+      - name: ruff lint scripts/
+        # B5 — block release on ruff failures. Local pre-push runs the
+        # same gate via publish.py G2; CI redundancy catches any drift
+        # where the tag commit somehow has lint errors.
+        run: |
+          uv tool install ruff
+          ruff check scripts/
+
+      - name: mypy type-check scripts/
+        # B5 — additional type-safety gate. --ignore-missing-imports
+        # matches canon's invocation and avoids failing on third-party
+        # libs without stubs.
+        run: |
+          uv tool install mypy
+          mypy scripts/ --ignore-missing-imports
+
+      - name: smoke-test the test runner
+        # The full 360-test dev-browser suite can't run on stock GitHub
+        # runners (no dev-browser CLI, no Chrome). Smoke-check that the
+        # runner sources parse — catches Python syntax breakage at the
+        # release boundary without needing the full browser stack.
+        run: |
+          uv run --python 3.12 python -m py_compile \
+            tests/run-all-tests.py \
+            tests/run-tests.py \
+            tests/server.py
 
       - name: extract changelog section for this tag
         id: notes
