@@ -46,6 +46,9 @@ MARKDOWN_MARKDOWNLINT_FILTER_REGEX_EXCLUDE: 'CHANGELOG\.md'
 # Spell check — single-quoted so the regex \. is read literally by yamllint.
 SPELL_CSPELL_FILTER_REGEX_EXCLUDE: '(uv\.lock|\.json)'
 
-# Disable reporters that create PR comments (we handle that ourselves)
-DISABLE_REPORTERS:
-  - GITHUB_COMMENT_REPORTER
+# Disable reporters that create PR comments (we handle that ourselves).
+# Per Mega-Linter v8+ JSON schema, individual per-reporter flags
+# `<REPORTER>_DISABLED: true` are the supported form; the older
+# `DISABLE_REPORTERS:` block is no longer in the schema and trips IDE
+# yaml-schema validation (see step 8b commit note).
+GITHUB_COMMENT_REPORTER_DISABLED: true
