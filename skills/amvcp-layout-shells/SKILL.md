@@ -67,6 +67,23 @@ Self-contained HTML: one `<style>` (or `<link href="amvcp-layout.css">`) carryin
 
 ## Examples
 
+Input: user asks for a VS-Code-style 3-panel page (file tree on the left, editor in the middle, inspector on the right).
+Output: a `.la-ide` shell with `data-la-sidebar="open"` on mount and a `[data-la-toggle]` button:
+
+```html
+<div class="la-ide" data-la-sidebar="open" data-ve-id="ide">
+  <aside data-ve-id="files" data-la-pane="sidebar">
+    <button data-la-toggle aria-label="Toggle file tree">≡</button>
+    <ul>…</ul>
+  </aside>
+  <main data-ve-id="editor" data-la-pane="main">…</main>
+  <aside data-ve-id="inspector" data-la-pane="inspector">…</aside>
+</div>
+<script src="amvcp-layout.js"></script>
+```
+
+More examples:
+
 - A VS-Code-style editor page: `.la-ide` with file-tree sidebar (collapsible) + main editor canvas + inspector panel for terminal/output.
 - An admin dashboard shell: `.la-ide` with navigation sidebar (collapsible) + main report area + right-rail filters.
 - A documentation reader: `.la-ide` with TOC sidebar (collapsible on mobile) + main article + right-rail callout panel.

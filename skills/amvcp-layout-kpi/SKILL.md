@@ -73,6 +73,24 @@ Self-contained HTML: one `<style>` (or `<link href="amvcp-layout.css">`) carryin
 
 ## Examples
 
+Input: user asks for an executive dashboard with a top KPI strip and two below-fold charts side-by-side.
+Output: a `.la-dashboard` 12-col grid with the KPI strip at `data-span="12"` and two charts at `data-span="6"` each:
+
+```html
+<section class="la-dashboard" data-ve-id="dash">
+  <div class="la-kpi-row" data-span="12" data-ve-id="kpi-strip">
+    <div class="la-kpi" data-ve-id="kpi-revenue"><span class="la-kpi__label">Revenue</span><span class="la-kpi__value">$12.4M</span><span class="la-kpi__trend la-kpi__trend--up">+8.2%</span></div>
+    <div class="la-kpi" data-ve-id="kpi-users"><span class="la-kpi__label">Users</span><span class="la-kpi__value">48.7K</span><span class="la-kpi__trend la-kpi__trend--up">+12%</span></div>
+    <div class="la-kpi" data-ve-id="kpi-churn"><span class="la-kpi__label">Churn</span><span class="la-kpi__value">2.1%</span><span class="la-kpi__trend la-kpi__trend--down">-0.4%</span></div>
+    <div class="la-kpi" data-ve-id="kpi-nps"><span class="la-kpi__label">NPS</span><span class="la-kpi__value">64</span><span class="la-kpi__trend la-kpi__trend--up">+5</span></div>
+  </div>
+  <div data-span="6" data-ve-id="chart-revenue">…</div>
+  <div data-span="6" data-ve-id="chart-users">…</div>
+</section>
+```
+
+More examples:
+
 - A 4-tile KPI strip above a report: `.la-kpi-row` with 4 cards, each containing a label + big number + trend indicator.
 - A 12-column executive dashboard: `.la-dashboard` with a `data-span="12"` KPI strip on top, then `data-span="6"` + `data-span="6"` for two charts, then `data-span="4"` * 3 for three callout cards.
 - A metrics summary inside a print report: `.la-kpi-row` at the page top, then the rest of the body in standard reading layout.

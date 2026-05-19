@@ -79,6 +79,28 @@ Self-contained HTML: one `<style>` (or `<link href="amvcp-layout.css">`) carryin
 
 ## Examples
 
+Input: user asks for a printable audit report (A4) with a cover page + page-break-managed body + a hero band at the top of page 1.
+Output: A4 `@page` rules + `.la-cover` (with `.la-break-after`) on page 1, then the body on page 2:
+
+```html
+<style>
+  @page { size: A4; margin: 16mm; }
+  @media print { .no-print { display: none !important; } }
+</style>
+<main>
+  <section class="la-cover la-break-after" data-ve-id="cover">
+    <h1 style="font-size: clamp(48px, 6vw, 96px)">Q4 Audit Report</h1>
+    <p>Prepared by Acme Co · 2026-05-18</p>
+  </section>
+  <section class="la-hero" data-ghost="Q4" data-ve-id="hero">
+    <h2>Executive summary</h2>
+  </section>
+  <article class="la-article" data-ve-id="body">…</article>
+</main>
+```
+
+More examples:
+
 - A printed audit report: `.la-cover` (with title + date + author) → `.la-break-after` → KPI summary → body → appendix with `.la-break-before`.
 - A SaaS landing page: `.la-hero` band at the top with the product name as `data-ghost` watermark + 4 radial glows + headline + CTA.
 - A device-gallery showcase: a row of `.la-device` frames, each with `--dev-width` / `--dev-aspect` / `--dev-bezel` set to iPhone / iPad / Pixel.
