@@ -46,9 +46,22 @@ The ONE consolidated lint that runs over (a) a generated/authored token set, (b)
 
 ## Examples
 
-- *"Check this report for AI-slop colors."* → `amvcpTokens.lintHtml(html)` (step 2). Report violations. Fix the raw hexes / gradient backgrounds at source. Re-run.
-- *"Audit my new preset."* → `amvcpTokens.lintTokenSet(presetText)` (step 1). If `ok === false`, shift the offending color / font in the preset's frontmatter, re-run, ship only when `ok`.
-- *"Show me which elements are slop on this live page."* → `amvcpTokens.lintLiveDocument(document.body)` (step 3). Open DevTools, look for `data-vc-slop-alert` attributes, fix in source CSS / HTML.
+```
+Input:  "Check this report for AI-slop colors."
+Output: step 2 → amvcpTokens.lintHtml(html)
+        Returns { ok: false, violations: [...] }; fix raw hexes /
+        gradient backgrounds at source, re-run until ok: true.
+
+Input:  "Audit my new preset."
+Output: step 1 → amvcpTokens.lintTokenSet(presetText)
+        If ok === false, shift the offending color/font in the
+        preset's frontmatter, re-run, ship only when ok: true.
+
+Input:  "Show me which elements are slop on this live page."
+Output: step 3 → amvcpTokens.lintLiveDocument(document.body)
+        Stamps data-vc-slop-alert="<reason>" on offender elements.
+        Open DevTools, locate alerts, fix source CSS / HTML.
+```
 
 ## Modes
 

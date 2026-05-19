@@ -53,9 +53,24 @@ The headline design-tokens deliverable: a rendered, self-contained, DESIGN.md-th
 
 ## Examples
 
-- *"Render the token contact sheet for the heritage preset."* → load `heritage` (sibling `amvcp-tokens-presets`), parse, `mountContactSheet(parsed.designmd, document.querySelector('#sheet'))`, lintHtml on emitted page.
-- *"Show me a click-to-copy color grid for this DESIGN.md."* → parse, then only the color panel: `amvcpTokenSheet.renderContactSheet(parsed.designmd, { panels: ['color'] })`.
-- *"Build a style guide page from this designmd."* → step 2 (full mount). The page IS the style guide. Theme-toggle in the header strip restyles live.
+```
+Input:  "Render the token contact sheet for the heritage preset."
+Output: load the heritage preset (sibling amvcp-tokens-presets):
+        const parsed = amvcpDesignMd.parseDesignMd(
+                          amvcpTokens.PRESETS['heritage'].text);
+        amvcpTokenSheet.mountContactSheet(parsed.designmd,
+                          document.querySelector('#sheet'));
+        amvcpTokens.lintHtml(document.documentElement.outerHTML);
+
+Input:  "Show me a click-to-copy color grid for this DESIGN.md."
+Output: const parsed = amvcpDesignMd.parseDesignMd(designmdText);
+        amvcpTokenSheet.renderContactSheet(parsed.designmd,
+                          { panels: ['color'] });
+
+Input:  "Build a style guide page from this designmd."
+Output: step 2 → full mount. The page IS the style guide. Theme
+        toggle in the header strip hot-swaps the active theme.
+```
 
 ## Modes
 
