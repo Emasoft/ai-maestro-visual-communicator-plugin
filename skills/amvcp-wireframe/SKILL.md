@@ -42,9 +42,13 @@ A typical wireframe loads more than one sibling because the layers compose:
 
 ## Instructions
 
-Pick the right sibling skill from the table above, then follow its `Instructions` section. This router does not author wireframes itself — its only job is routing.
+1. Match the user's task verb (pick fidelity, wrap in bezel, wire screens, pick archetype) to a row in the sibling table above.
+2. Load the matched sibling SKILL.md.
+3. Follow that sibling's `Instructions` section.
+4. If the task spans multiple layers (typical), compose with additional siblings per "How to combine the siblings" above.
+5. Verify per [amvcp-self-debug-rules](../amvcp-self-debug-rules/SKILL.md) — dev-browser visible-mode screenshots in BOTH themes (R41).
 
-Checklist:
+Copy this checklist and track your progress:
 
 - [ ] Identified which sibling skill matches the task
 - [ ] Read that sibling's `Instructions` section

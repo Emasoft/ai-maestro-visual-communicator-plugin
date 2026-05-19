@@ -1,6 +1,6 @@
 ---
 name: amvcp-code-snippets
-description: "Multi-perspective code composition surface — collapsed walkthroughs (`<details>` per step, mutually-exclusive disclosure), code snippet on diagram hover, architecture-explainer callstack, feature-explainer tabbed config samples, click-step-to-code side panel, tabbed multi-perspective panel, 2-col implementation-plan code grid, N-column compare-approaches layout. Use when scaffolding a code walkthrough, explainer, tutorial, or click-driven code reveal. Trigger with 'walkthrough', 'tabbed code', 'click reveal code', 'snippet', 'explainer', 'tutorial steps', 'compare approaches'."
+description: "Multi-perspective code composition surface — collapsed walkthroughs (details element per step, mutually-exclusive disclosure), code snippet on diagram hover, architecture-explainer callstack, feature-explainer tabbed config samples, click-step-to-code side panel, tabbed multi-perspective panel, 2-col implementation-plan code grid, N-column compare-approaches layout. Use when scaffolding a code walkthrough, explainer, tutorial, or click-driven code reveal. Trigger with 'walkthrough', 'tabbed code', 'click reveal code', 'snippet', 'explainer', 'tutorial steps', 'compare approaches'."
 license: MIT
 compatibility: "Any modern browser supporting CSS `:has()` (Chromium 105+, Safari 15.4+, Firefox 121+). Pure JS, no npm runtime dependency. Requires the same scripts as amvcp-code-syntax (`amvcp-designmd.js` + `amvcp-runtime.js` + `amvcp-code-highlight.js` + `.css`)."
 metadata:

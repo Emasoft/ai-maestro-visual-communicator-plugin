@@ -1,6 +1,6 @@
 ---
 name: amvcp-diag-ascii
-description: "ASCII / Unicode plaintext diagrams — process flow, state machine, tree/hierarchy. No-JS, copy-pasteable themed `<pre>` blocks that page-expand. Build-time alignment validator. Use when the output must survive without JS, paste into a terminal or comment, or be a 3-second inline sketch. Trigger with 'ASCII diagram', 'plaintext flow', 'terminal diagram', 'ASCII state machine', 'ASCII tree', 'monospace diagram'."
+description: "ASCII / Unicode plaintext diagrams — process flow, state machine, tree/hierarchy. No-JS, copy-pasteable themed pre blocks that page-expand. Build-time alignment validator. Use when the output must survive without JS, paste into a terminal or comment, or be a 3-second inline sketch. Trigger with 'ASCII diagram', 'plaintext flow', 'terminal diagram', 'ASCII state machine', 'ASCII tree', 'monospace diagram'."
 license: MIT
 compatibility: "Any monospace renderer — terminal, browser `<pre>`, code comments. No JS dependency. Build-time alignment validator (NEVER shipped to the page)."
 metadata:

@@ -1,6 +1,6 @@
 ---
 name: amvcp-diag-time
-description: "Time-axis diagrams — sequence (actors + message arrows + activation bars), state machine (states + guarded transitions + self-loops), timeline (horizontal milestones or vertical history), Gantt bars (tasks + dependencies + today line). JSON scene-graph engine, themed off DESIGN.md `--vc-*`. Use for anything that varies along a time or state axis. Trigger with 'sequence diagram', 'state machine', 'state diagram', 'timeline', 'Gantt', 'schedule', 'roadmap'."
+description: "Time-axis diagrams — sequence (actors + message arrows + activation bars), state machine (states + guarded transitions + self-loops), timeline (horizontal milestones or vertical history), Gantt bars (tasks + dependencies + today line). JSON scene-graph engine, themed off DESIGN.md `--vc-*`. Use when scaffolding anything that varies along a time or state axis. Trigger with 'sequence diagram', 'state machine', 'state diagram', 'timeline', 'Gantt', 'schedule', 'roadmap'."
 license: MIT
 compatibility: "Browser (SVG). Python 3.12+ renderer ships amvcp-diagram.js + amvcp-designmd.js beside the HTML."
 metadata:

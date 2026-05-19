@@ -89,6 +89,26 @@ explicitly names it. The four siblings have non-overlapping
 ownership — every reference file in this category sits in exactly one
 sibling.
 
+## Examples
+
+```
+Input:  "show a code block with line numbers and copy button"
+Output: load amvcp-code-syntax → wrap source in <pre><code class="language-X">,
+        runtime auto-adds gutter + copy button.
+
+Input:  "render this PR diff in split view"
+Output: load amvcp-code-syntax (substrate) + amvcp-code-diff → emit
+        <pre class="ve-code-diff ve-diff-split"> with twin-gutter markup.
+
+Input:  "build a tabbed walkthrough with 4 perspectives on this auth flow"
+Output: load amvcp-code-syntax (substrate) + amvcp-code-snippets → use
+        the tabbed-code-panel composition.
+
+Input:  "let the user edit this JSON with live validation"
+Output: load amvcp-code-syntax (substrate) + amvcp-code-fences → use
+        contenteditable + JSON live-validate composition.
+```
+
 ## Modes
 
 This router has no modes — see each sibling's "Modes" section.
