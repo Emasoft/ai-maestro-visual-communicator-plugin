@@ -7,7 +7,15 @@ name: Notify Marketplace
 
 on:
   push:
-    branches: [main]
+    # B5 (canonical-pipeline-migration step 4) — include `master` for
+    # rename-safe future-proofing. The plugin uses `main` exclusively, but
+    # canon ships [main, master] so a rename to `master` (or a fresh-clone
+    # script that uses git's pre-2.28 default) keeps the workflow firing.
+    branches: [main, master]
+    # Local trigger paths match THIS plugin's actual layout (templates/,
+    # references/, SKILL.md, commands/, scripts/). Canon's defaults are
+    # broader (hooks/**, agents/**, skills/**) — we union those in too so
+    # the workflow still fires if/when we add those component dirs later.
     paths:
       - '.claude-plugin/plugin.json'
       - 'commands/**'
@@ -15,6 +23,9 @@ on:
       - 'templates/**'
       - 'references/**'
       - 'SKILL.md'
+      - 'hooks/**'
+      - 'agents/**'
+      - 'skills/**'
 
 permissions:
   contents: read
