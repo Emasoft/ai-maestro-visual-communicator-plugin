@@ -172,7 +172,7 @@ percent.
 ## Sample — anti-pattern → fix (the readability bundled set)
 
 The plugin ships [sample-readability-dataset.md](
-./sample-readability-dataset.md) — a 15-row paste-in for prose
+../../amvcp-tables-primitives/references/sample-readability-dataset.md) — a 15-row paste-in for prose
 readability anti-patterns. Excerpt:
 
 ```html
@@ -292,8 +292,8 @@ The pill state persists to localStorage keyed on the row's
 ## DESIGN.md tokens consumed
 
 Inherited from [comparison-emphasis-column.md](
-./comparison-emphasis-column.md) and
-[icon-headers-unicode.md](./icon-headers-unicode.md):
+../../amvcp-tables-matrix-compare/references/comparison-emphasis-column.md) and
+[icon-headers-unicode.md](../../amvcp-tables-cells-badges/references/icon-headers-unicode.md):
 
 | Token | Used by |
 |---|---|
@@ -307,7 +307,7 @@ Inherited from [comparison-emphasis-column.md](
 - Each body `<td>` is an element-kind atom — "comment on this
   specific value". The dual contract is the same as 3-column
   compare (see [comparison-emphasis-column.md](
-  ./comparison-emphasis-column.md)).
+  ../../amvcp-tables-matrix-compare/references/comparison-emphasis-column.md)).
 - Header `<th>` cells are not atoms.
 - The decision-mini pill attaches to rows and cells.
 

@@ -10,7 +10,7 @@ table inherits BEFORE the mode-specific module enhancement runs.
 - [What the baseline gives you](#what-the-baseline-gives-you)
 - [The 1px cell border](#the-1px-cell-border)
 - [The 2px `<thead>` divider](#the-2px-thead-divider)
-- [Zebra striping — 6% tint on even rows](#zebra-striping--6-tint-on-even-rows)
+- [Zebra striping — 6% tint on even body rows](#zebra-striping--6-tint-on-even-body-rows)
 - [`<tr>`-as-selectable-atom](#tr-as-selectable-atom)
 - [`overflow-wrap: anywhere` on cells](#overflow-wrap-anywhere-on-cells)
 - [`display: table; overflow: visible` — the no-nested-scrollbars guard](#display-table-overflow-visible--the-no-nested-scrollbars-guard)
@@ -116,15 +116,15 @@ contract:
 
 The module's enhancements PRESERVE this contract:
 - A sort moves the `<tr>` (see [row-move-not-clone.md](
-  ./row-move-not-clone.md)); the pressed state rides along.
+  ../../amvcp-tables-special/references/row-move-not-clone.md)); the pressed state rides along.
 - The matrix mode adds a per-cell `data-ve-id`; the per-row contract
   still works for any row whose body cells aren't themselves the
   primary atoms.
 - The compare mode dual-stamps row AND cell — both contracts are
   active.
 
-See [matrix-glyph-injection.md](./matrix-glyph-injection.md),
-[comparison-emphasis-column.md](./comparison-emphasis-column.md), and
+See [matrix-glyph-injection.md](../../amvcp-tables-matrix-compare/references/matrix-glyph-injection.md),
+[comparison-emphasis-column.md](../../amvcp-tables-matrix-compare/references/comparison-emphasis-column.md), and
 the runtime documentation for the full atom-contract spec.
 
 ## `overflow-wrap: anywhere` on cells
@@ -187,7 +187,7 @@ extend slightly beyond the cell bounds.
 The CSV-export wrap (`.ve-table-csv-wrap`, added by the module)
 nests INSIDE the runtime wrapper or wraps the table directly — the
 two layouts coexist. See [csv-export-rfc4180.md](
-./csv-export-rfc4180.md) for the CSV wrap shape.
+../../amvcp-tables-sort-virt/references/csv-export-rfc4180.md) for the CSV wrap shape.
 
 ## What the baseline does NOT do
 

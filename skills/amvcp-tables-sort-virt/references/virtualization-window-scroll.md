@@ -336,7 +336,7 @@ frozen lane ends.
 ## Selection / comment / decision-mini notes
 
 The visible window rebuilds via `appendChild` (a move, not a clone —
-see [row-move-not-clone.md](./row-move-not-clone.md)). Selection
+see [row-move-not-clone.md](../../amvcp-tables-special/references/row-move-not-clone.md)). Selection
 state on a row that scrolls off-screen is preserved on the JS-array
 node; it reactivates instantly when the row scrolls back into view
 because the same node is re-attached.

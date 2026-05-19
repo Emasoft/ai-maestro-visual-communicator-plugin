@@ -94,7 +94,7 @@ The `none` state in the cycle then re-appends the rows in that
 snapshot order — exactly the original layout, with all
 `data-ve-id`/`data-ve-comment-id`/`data-ve-pressed` attributes intact
 (re-appending an attached node moves it, never clones it — see
-[row-move-not-clone.md](./row-move-not-clone.md)).
+[row-move-not-clone.md](../../amvcp-tables-special/references/row-move-not-clone.md)).
 
 A re-init (a second `init()` call) does NOT re-snapshot — the
 original-order array, once captured, is the canonical "authored"

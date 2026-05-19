@@ -63,7 +63,7 @@ document's horizontal scroll.
 ## The grid-aware column lookup
 
 `applyFrozenColumns(table, freezeCols)` uses the cell-grid (see
-[spanning-cell-grid.md](./spanning-cell-grid.md)) to find every
+[spanning-cell-grid.md](../../amvcp-tables-special/references/spanning-cell-grid.md)) to find every
 origin cell in the first N columns:
 
 ```js

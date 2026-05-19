@@ -131,7 +131,7 @@ function applyCompareEmphasis(table, headerColIndex) {
 }
 ```
 
-The grid walk (see [spanning-cell-grid.md](./spanning-cell-grid.md))
+The grid walk (see [spanning-cell-grid.md](../../amvcp-tables-special/references/spanning-cell-grid.md))
 finds every origin cell in the emphasised grid column. Spanning-safe
 — a row whose body cell `colspan="2"` covers columns 1 and 2 would
 be picked up correctly if either column 1 OR column 2 is emphasised
@@ -207,7 +207,7 @@ is solid accent (loud, says "this is the option").
 Use distinct glyphs for non-emphasised vs emphasised columns to
 reinforce the rank — `○` (open circle) for the alternatives, `◆`
 (filled diamond) for the recommended one. See
-[icon-headers-unicode.md](./icon-headers-unicode.md) for the
+[icon-headers-unicode.md](../../amvcp-tables-cells-badges/references/icon-headers-unicode.md) for the
 canonical icon set.
 
 ## The 2-column anti-pattern → fix variant
@@ -231,7 +231,7 @@ the N=2 case of `compare`. No new mode, no code branch:
 
 The "Fixed" column gets emphasis. Same tint, same border lane, same
 icon recolor. See [sample-readability-dataset.md](
-./sample-readability-dataset.md) for a ready 15-row paste-in.
+../../amvcp-tables-primitives/references/sample-readability-dataset.md) for a ready 15-row paste-in.
 
 The 2-column case is so common that it has its own bundled sample,
 but it has no separate mode — keeping the API surface small.

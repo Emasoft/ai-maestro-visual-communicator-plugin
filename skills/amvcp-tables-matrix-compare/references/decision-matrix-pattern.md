@@ -275,7 +275,7 @@ column-by-column to identify retriable cases. The text format
     <tr>
       <th scope="row">Numeric column, both 0</th>
       <td>Original DOM order</td>
-      <td>Stable sort property — see [sort-cycle-3-state.md](./sort-cycle-3-state.md) |</td>
+      <td>Stable sort property — see [sort-cycle-3-state.md](../../amvcp-tables-sort-virt/references/sort-cycle-3-state.md) |</td>
     </tr>
     <tr>
       <th scope="row">String column, both equal under <code>localeCompare</code> base sensitivity</th>

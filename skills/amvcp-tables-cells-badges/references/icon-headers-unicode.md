@@ -33,7 +33,7 @@ peripheral-vision anchor: even without re-reading the column label
 The icon also encodes a **rank**: open shapes (`○`, `◇`) for
 neutral / alternative options, filled shapes (`●`, `◆`) for the
 recommended one. Combined with the [comparison-emphasis-column](
-./comparison-emphasis-column.md) accent lane, the rank is doubly
+../../amvcp-tables-matrix-compare/references/comparison-emphasis-column.md) accent lane, the rank is doubly
 signalled — once by the filled glyph, once by the lane.
 
 ## The hard rule — Unicode geometric marks only
@@ -47,7 +47,7 @@ signalled — once by the filled glyph, once by the lane.
 ```
 
 Emoji are forbidden for the same reasons they're forbidden as matrix
-glyphs (see [matrix-glyph-injection.md](./matrix-glyph-injection.md)):
+glyphs (see [matrix-glyph-injection.md](../../amvcp-tables-matrix-compare/references/matrix-glyph-injection.md)):
 
 1. **Cross-platform rendering inconsistency** — `🚀` is a chunky
    colored rocket on macOS, a wireframe rocket on Windows, a beige

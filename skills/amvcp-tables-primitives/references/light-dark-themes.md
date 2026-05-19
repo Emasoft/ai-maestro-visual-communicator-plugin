@@ -157,7 +157,7 @@ should look like the light-theme version, not "default unspecified".
 The dark theme requires the engine to be active.
 
 This is documented in [matrix-glyph-injection.md](
-./matrix-glyph-injection.md) and elsewhere; the pattern is consistent.
+../../amvcp-tables-matrix-compare/references/matrix-glyph-injection.md) and elsewhere; the pattern is consistent.
 
 ## What the theme toggle re-paints
 

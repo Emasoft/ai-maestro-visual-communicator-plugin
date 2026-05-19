@@ -119,7 +119,7 @@ For chess pieces, use Unicode chess characters (U+2654..U+265F):
 For other game boards, use whatever Unicode geometric or symbolic
 character matches — `●` for go stones, `X` and `O` for tic-tac-toe,
 digit characters for sudoku. NOT emoji (see [matrix-glyph-injection
-.md](./matrix-glyph-injection.md) for why).
+.md](../../amvcp-tables-matrix-compare/references/matrix-glyph-injection.md) for why).
 
 ## Fixed table-layout for uniform cells
 

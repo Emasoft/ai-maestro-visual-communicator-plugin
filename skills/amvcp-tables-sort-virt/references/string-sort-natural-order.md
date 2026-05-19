@@ -145,7 +145,7 @@ Wait — the tie-break is `a.index - b.index`, NOT multiplied by
 `sign`. That means in BOTH `asc` and `desc`, ties keep the authored
 order. The reader sees `ACME, Acme, acme` in both directions if
 those are the only three. That is correct stable-sort behaviour;
-see [row-move-not-clone.md](./row-move-not-clone.md) for the
+see [row-move-not-clone.md](../../amvcp-tables-special/references/row-move-not-clone.md) for the
 decorate-sort-undecorate technique.
 
 ## Empty strings sort first in `asc`
@@ -286,7 +286,7 @@ column) consume tokens; see [numeric-cell-parser.md](
 
 A string sort moves rows just like a numeric sort. Selection,
 comments, and the decision-mini pill all ride along with the
-`<tr>` nodes. See [row-move-not-clone.md](./row-move-not-clone.md).
+`<tr>` nodes. See [row-move-not-clone.md](../../amvcp-tables-special/references/row-move-not-clone.md).
 
 ## CSV-export contract
 

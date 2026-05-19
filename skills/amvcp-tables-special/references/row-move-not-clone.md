@@ -141,7 +141,7 @@ sort / undecorate is a guarantee, not a hope.
 ## Spacing rows under virtualization
 
 The virtualization mode (see [virtualization-window-scroll.md](
-./virtualization-window-scroll.md)) keeps two **spacer rows** in the
+../../amvcp-tables-sort-virt/references/virtualization-window-scroll.md)) keeps two **spacer rows** in the
 live `<tbody>` to reserve the off-screen height. Spacers carry
 `data-ve-table-spacer="1"` and `aria-hidden="true"`. The sort + the
 selection scan both skip them:

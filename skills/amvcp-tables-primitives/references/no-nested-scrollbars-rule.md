@@ -94,7 +94,7 @@ A table with 12 columns of varying widths might be 1800px wide on a
   table's).
 - The reader scrolls right to see the right-hand columns.
 - The frozen-columns affordance (see [frozen-columns-sticky.md](
-  ./frozen-columns-sticky.md)) keeps the row identifier visible.
+  ../../amvcp-tables-sort-virt/references/frozen-columns-sticky.md)) keeps the row identifier visible.
 
 The horizontal scroll is the document's; there is exactly one
 horizontal scrollbar on the page.
@@ -150,7 +150,7 @@ The table extends the full virtual height via two empty spacer rows.
 The page scrollbar reflects the full virtual height. As the **page**
 scrolls, the module updates which rows live in the visible window.
 No inner scrollbar — see [virtualization-window-scroll.md](
-./virtualization-window-scroll.md) for the full algorithm.
+../../amvcp-tables-sort-virt/references/virtualization-window-scroll.md) for the full algorithm.
 
 ## How frozen columns respect this
 
@@ -165,7 +165,7 @@ the nearest scrollable ancestor, which can be the `<html>` element
 (the document viewport). The frozen cells stick within the
 document's horizontal scroll — no inner scrollbox required.
 
-See [frozen-columns-sticky.md](./frozen-columns-sticky.md) for the
+See [frozen-columns-sticky.md](../../amvcp-tables-sort-virt/references/frozen-columns-sticky.md) for the
 full sticky-positioning implementation.
 
 ## The text-wrap exception (and why it doesn't apply to tables)
@@ -276,6 +276,6 @@ reappear when the row scrolls back in.
 ## CSV-export contract
 
 CSV export reads the full data set, not just the visible window
-(see [csv-export-rfc4180.md](./csv-export-rfc4180.md)). The
+(see [csv-export-rfc4180.md](../../amvcp-tables-sort-virt/references/csv-export-rfc4180.md)). The
 no-nested-scrollbars rule doesn't affect the export — the export is a
 data operation, not a rendering operation.

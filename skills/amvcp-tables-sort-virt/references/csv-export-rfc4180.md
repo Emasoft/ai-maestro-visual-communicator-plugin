@@ -72,7 +72,7 @@ Excel / Google Sheets / pandas all parse this correctly.
 ## `tableToCsv()` — the grid walk
 
 The export walks the **grid map** (see [spanning-cell-grid.md](
-./spanning-cell-grid.md)) so spans are exported correctly:
+../../amvcp-tables-special/references/spanning-cell-grid.md)) so spans are exported correctly:
 
 ```js
 function tableToCsv(table) {
