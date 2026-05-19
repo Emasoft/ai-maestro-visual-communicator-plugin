@@ -26,6 +26,7 @@ For shared engine fundamentals (scene-graph schema, node-type library, edge rout
 ## Instructions
 
 1. **Pick the preset.** Layered system / C4 diagram → `architecture-canvas` ([architecture-canvas-preset](references/architecture-canvas-preset.md)). Plan with phase dependencies → `phase-graph` ([phase-graph-preset](references/phase-graph-preset.md)).
+    > phase-graph-preset: When to choose this preset · Scaffold and card geometry · Auto-placement, chain-highlight, and cycles · DESIGN.md tokens consumed and selection atoms · Theming patterns and anti-patterns · Composing with other patterns and visual verification
 2. **Emit the scene graph** — one `<div class="ve-scene-graph" data-ve-scene-preset="architecture-canvas">` (or `phase-graph`) with an embedded JSON scene-graph carrying `nodes`, `edges`, and `groups`.
 3. **Group nodes into layers/tiers** — use the `groups` array. For `architecture-canvas`, each group is a horizontal (or vertical) layer; the preset stacks them. For `phase-graph`, groups become visual containers around related phases.
 4. **Tag node roles** — `role: "client" | "service" | "data" | "infra" | "external" | "accent"` semantically tints a node off the `--vc-*` palette.
@@ -52,7 +53,7 @@ Self-contained HTML: the diagram CSS is injected by `amvcp-diagram.js` on boot, 
 | Symptom | Fix |
 |---|---|
 | Layers overlap | Group geometry overflowed — increase `width`/`height` on the wrapper, or reduce nodes per layer. See [architecture-canvas-preset](references/architecture-canvas-preset.md). |
-| Phase-graph nodes pile in one column | Longest-path layering needs at least one edge per pair to differentiate phases; add the missing dependencies. See [phase-graph-preset](references/phase-graph-preset.md). |
+| Phase-graph nodes pile in one column | Longest-path layering needs at least one edge per pair to differentiate phases; add the missing dependencies. See `phase-graph-preset` in Resources below. |
 | Chain-highlight doesn't fire on click | `amvcp-runtime.js` not loaded; the module still highlights but click-to-POST needs the runtime. |
 | Blueprint theme bleeds onto other elements | The theme override is scoped to the `.ve-scene-graph` wrapper, not the page. Confirm `data-ve-scene-theme` is on the wrapper only. |
 | Cycles in phase-graph break layering | The validator flags cycles. Either remove the cycle, or express the cyclic pair as a single composite phase. |
@@ -67,7 +68,7 @@ See [architecture-canvas-preset](references/architecture-canvas-preset.md) for t
 
 **Input:** "show our quarterly plan as a phase graph — discovery through release."
 
-**Output:** a `<div class="ve-scene-graph" data-ve-scene-preset="phase-graph">` with `card` nodes for each phase carrying title + duration, bezier dependency edges, and the automatic chain-highlight interaction. See [phase-graph-preset](references/phase-graph-preset.md) + [dependency-chain-highlight](references/dependency-chain-highlight.md).
+**Output:** a `<div class="ve-scene-graph" data-ve-scene-preset="phase-graph">` with `card` nodes for each phase carrying title + duration, bezier dependency edges, and the automatic chain-highlight interaction. See `phase-graph-preset` and `dependency-chain-highlight` in Resources below.
 
 ## Visual verification
 
@@ -86,7 +87,7 @@ Composes with every other amvcp-* skill on the same page (R22). The only exclusi
 - [architecture-canvas-preset](references/architecture-canvas-preset.md) — layered system, groups as layers, bezier cross-layer edges.
   > When to choose this preset · Scaffold · Group geometry · The grid background · Bezier edges across layers · Async / sync visual distinction · DESIGN.md tokens consumed · Selection atoms · Anti-patterns · Variation: vertical orientation · Theme pairings · Visual verification
 - [phase-graph-preset](references/phase-graph-preset.md) — cards + bezier dependencies, longest-path layering, chain interaction.
-  > When to choose this preset · Scaffold · Card geometry · Auto-placement (longest-path layering) · Chain-highlight interaction · Edge styling under chain mode · Cycles · DESIGN.md tokens consumed · Selection atoms · Theming patterns · Anti-patterns · Composing with other patterns · Visual verification
+  > When to choose this preset · Scaffold and card geometry · Auto-placement, chain-highlight, and cycles · DESIGN.md tokens consumed and selection atoms · Theming patterns and anti-patterns · Composing with other patterns and visual verification
 - [dependency-chain-highlight](references/dependency-chain-highlight.md) — phase-graph's click-to-highlight-a-chain logic, with accessibility and performance notes.
   > When the chain-highlight interaction shines · The chain walk · Visual treatment · Edge treatment · Clearing the chain · Accessibility · Performance · DESIGN.md tokens consumed · Selection atoms · Variations · Anti-patterns · Visual verification
 - [blueprint-grid-style](references/blueprint-grid-style.md) — the cyan-on-navy engineering preset, paired with `background: "grid"`.
