@@ -1,6 +1,6 @@
 ---
 name: amvcp-dashboards
-description: "KPI dashboards plus the cross-cutting infrastructure every amvcp-charts-* sibling depends on: metric-cards, sparklines, dashboard recipes, fence protocol, palette engine, selection contract, animations, tooltip, error degradation, design tokens, public API. Load this skill for any dashboard composition, KPI grid, or when you need the chart-renderer's contracts. Trigger with 'dashboard', 'KPI grid', 'metric card', 'sparkline', 'chart fence', 'chart palette', 'chart selection'."
+description: "KPI dashboards plus the cross-cutting infrastructure every amvcp-charts-* sibling depends on: metric-cards, sparklines, dashboard recipes, fence protocol, palette engine, selection contract, animations, tooltip, error degradation, design tokens, public API. Use when composing dashboards, KPI grids, or needing chart-renderer contracts. Trigger with 'dashboard', 'KPI grid', 'metric card', 'sparkline', 'chart fence', 'chart palette', 'chart selection'."
 license: MIT
 compatibility: "Browser, Node 16+ for tests. Zero CDN. Loads alongside amvcp-designmd.js + amvcp-runtime.js. Standalone-safe (internal selection list)."
 metadata:

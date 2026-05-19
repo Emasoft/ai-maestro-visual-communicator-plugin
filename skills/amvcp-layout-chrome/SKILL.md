@@ -1,6 +1,6 @@
 ---
 name: amvcp-layout-chrome
-description: "Persistent page chrome — sticky header (opaque + glass), section-numbered headers, fluid clamp() headings, sticky toolbar, scroll-spy + sticky-sidebar + right-margin + prefilled TOC variants. Use for sticky header, persistent navigation, TOC, scroll-spy, breadcrumbs, toolbar, fluid heading sizing. Trigger with 'sticky header', 'glassmorphism', 'toolbar', 'TOC', 'scroll-spy', 'sticky sidebar', 'breadcrumbs', 'fluid heading', 'section header'."
+description: "Persistent page chrome — sticky header (opaque + glass), section-numbered headers, fluid clamp() headings, sticky toolbar, scroll-spy + sticky-sidebar + right-margin + prefilled TOC variants. Use when the user asks for a sticky header, persistent navigation, TOC, scroll-spy, breadcrumbs, toolbar, or fluid heading. Trigger with 'sticky header', 'glassmorphism', 'toolbar', 'TOC', 'scroll-spy', 'sticky sidebar', 'breadcrumbs', 'fluid heading'."
 license: MIT
 compatibility: "Browser (position:sticky, IntersectionObserver, color-mix, backdrop-filter, clamp()). Requires scripts/amvcp-layout.css for chrome presets and scripts/amvcp-layout.js for sticky-header + TOC scroll-spy wiring."
 metadata:
@@ -27,11 +27,13 @@ Persistent page chrome: sticky page header (opaque + glass), sticky in-page tool
 
 | Request shape | Refs | Scaffold class |
 |---|---|---|
-| fluid clamp() heading on cover / hero | [15](references/15-fluid-headings-clamp.md), [20](references/20-fluid-h1-headings.md) | `clamp(MIN, IDEAL, MAX)` |
-| section header with `01` badge + meta chip | [16](references/16-section-numbered-headers.md) | `.la-sec-head` |
-| persistent page header | [17](references/17-sticky-header.md), [18](references/18-glassmorphism-header.md) | `.la-header` (+ `--glass`) |
-| sticky controls bar above a section | [19](references/19-toolbar-sticky-bar.md) | custom sticky toolbar |
-| jump-to-section nav (auto-built or static) | [21](references/21-scroll-spy-toc.md), [22](references/22-sticky-sidebar-toc.md), [23](references/23-right-margin-toc.md), [24](references/24-prefilled-static-toc.md) | `.la-toc` |
+| fluid clamp() heading on cover / hero | refs 15, 20 | `clamp(MIN, IDEAL, MAX)` |
+| section header with `01` badge + meta chip | ref 16 | `.la-sec-head` |
+| persistent page header | refs 17, 18 | `.la-header` (+ `--glass`) |
+| sticky controls bar above a section | ref 19 | custom sticky toolbar |
+| jump-to-section nav (auto-built or static) | refs 21, 22, 23, 24 | `.la-toc` |
+
+Each ref linked in the Resources section below with its full TOC embedded.
 
 ## Authoring rules (HARD invariants)
 
@@ -76,9 +78,9 @@ Self-contained HTML: one `<style>` (or `<link href="amvcp-layout.css">`) carryin
 | Symptom | Fix |
 |---|---|
 | Sticky header doesn't get the scrolled-state border | `amvcp-layout.js` not loaded — IO sentinel never fires. |
-| Sticky sidebar TOC doesn't stick | `align-self: start` missing on the TOC ([22](references/22-sticky-sidebar-toc.md)). |
+| Sticky sidebar TOC doesn't stick | `align-self: start` missing on the TOC (see ref 22). |
 | TOC active section never highlights | Scroll-spy needs `amvcp-layout.js` loaded AND each section must have an `id` matching a TOC anchor href. |
-| TOC links go to wrong heading | Pre-filled TOC with stale headings — either auto-build (empty `<ol>`) or sync hrefs to heading ids ([24](references/24-prefilled-static-toc.md)). |
+| TOC links go to wrong heading | Pre-filled TOC with stale headings — either auto-build (empty `<ol>`) or sync hrefs to heading ids (see ref 24). |
 | Header fades to white in dark mode | Hardcoded `rgba(255,255,255,0.6)` instead of `color-mix(in oklch, var(--vc-color-surface), transparent 40%)`. |
 | Glass header looks opaque in Firefox | `backdrop-filter` fallback missing — provide a solid `--vc-color-surface` fallback. Firefox supports `backdrop-filter` in recent stable releases; older browsers fall through to the solid token. |
 | Sticky toolbar overlaps header | Wrong z-index ordering — toolbar should be `calc(var(--vc-z-sticky) - 1)` so the page header still wins. |
