@@ -85,8 +85,13 @@ Composes with every other amvcp-* skill on the same page (R22). Multiple flow di
   > When to choose this pattern · Scaffold · Tree geometry conventions · Decision node labels · Outcome node convention · Edge labels (the answer to the question) · Routing convention · DESIGN.md tokens consumed · Selection atoms · Variations · Anti-patterns · Visual verification
 - [step-strip-pattern](references/step-strip-pattern.md) — compact shared-border horizontal pipeline for linear 3-6 step processes.
   > When to choose this pattern · Scaffold (HTML + CSS, not the scene-graph) · Variant: with arrow chevrons · Authoring contract · DESIGN.md tokens consumed · Responsive behavior · Variant: numbered prefix instead of "01 02 03" · When to upgrade to the full process-flow preset · Anti-patterns · Visual verification
-- [numbered-flow-scroll-reveal](../amvcp-diagram/references/numbered-flow-scroll-reveal.md) — vertical numbered flow that draws its connectors as you scroll. (To be moved to this skill in batch 5b.)
-- [fan-out-fan-in](../amvcp-diagram/references/fan-out-fan-in.md) — parallel processing topology: source -> shards -> merge. (To be moved to this skill in batch 5b.)
-- [data-flow-diagram](../amvcp-diagram/references/data-flow-diagram.md) — sync solid + async dashed, hot-path tinting, conservation discipline. (To be moved to this skill in batch 5b.)
-- [queue-diagram-fifo](../amvcp-diagram/references/queue-diagram-fifo.md) — FIFO queue snapshot with head highlight and direction indicator. (To be moved to this skill in batch 5b.)
-- [flow-animation](../amvcp-diagram/references/flow-animation.md) — animated edges (`flow` / `particle` / `pulse`) + scroll-reveal, with `prefers-reduced-motion` substitutes. (To be moved to this skill in batch 5b.)
+- [numbered-flow-scroll-reveal](references/numbered-flow-scroll-reveal.md) — vertical numbered flow that draws its connectors as you scroll.
+  > When to choose this pattern · Scaffold · Accessibility gate · Hot-step modifier · DESIGN.md tokens consumed · Selection atoms · Variations · Anti-patterns · Visual verification
+- [fan-out-fan-in](references/fan-out-fan-in.md) — parallel processing topology: source -> shards -> merge.
+  > When to choose this pattern · Scaffold · Fan-out vs fan-in arrow style · Labels above the fan-out and fan-in arcs · DESIGN.md tokens consumed · Selection atoms · Variations · Anti-patterns · Visual verification
+- [data-flow-diagram](references/data-flow-diagram.md) — sync solid + async dashed, hot-path tinting, conservation discipline.
+  > The convention (the discipline) · Scaffold · Why this pattern works · Composition with other techniques · Tinting the "hot path" · Convention: edge labels go above (horizontal) / left (vertical) · Convention: every async edge is labelled · Decision points · DESIGN.md tokens consumed · Selection atoms · Anti-patterns · Visual verification
+- [queue-diagram-fifo](references/queue-diagram-fifo.md) — FIFO queue snapshot with head highlight and direction indicator.
+  > When to choose this pattern · Scaffold · Direction indicator · Variants · DESIGN.md tokens consumed · Selection atoms · Anti-patterns · Visual verification
+- [flow-animation](references/flow-animation.md) — animated edges (`flow` / `particle` / `pulse`) + scroll-reveal, with `prefers-reduced-motion` substitutes.
+  > Accessibility gate (mandatory) · Animated edges · Scroll-reveal · Motion-token consumption · Theme hot-swap
