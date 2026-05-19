@@ -53,10 +53,28 @@ The algorithmic scale generators (phi spacing, MD3 + cinematic elevation, 8×8 m
 
 ## Examples
 
-- *"Generate a φ-spaced spacing scale starting from 4px."* → `generatePhiSpacing({ base: 4, count: 10 })` (step 1). Apply via `applyTokens`. Verify in the contact-sheet's spacing panel.
-- *"Set up the MD3 elevation tokens."* → `generateElevationScale({ system: 'md3' })` (step 2). Populates `elevation.0`..`elevation.5`.
-- *"Establish the `@layer` cascade for a new page."* → step 5 — emit `@layer ve-primitive, ve-semantic, ve-component;` at the top of the stylesheet, then declare each layer's rules inside `@layer <name> { ... }`.
-- *"Use `var()` fallbacks for a component-scoped accent."* → step 7 — `color: var(--my-component-accent, var(--vc-color-accent, oklch(0.6 0.15 230)));` — three-level chain, last token is a literal.
+```
+Input:  "Generate a φ-spaced spacing scale starting from 4px."
+Output: generatePhiSpacing({ base: 4, count: 10 }) (step 1) → 10 stops
+        4, 6.5, 10.5, 17, 27.5, 44.5, 72, 116.5, 188.5, 305 (φ ≈ 1.618).
+        Apply via applyTokens. Verify in contact-sheet's spacing panel.
+
+Input:  "Set up the MD3 elevation tokens."
+Output: generateElevationScale({ system: 'md3' }) (step 2) → elevation.0
+        through elevation.5, each a box-shadow with MD3-tuned blur and
+        offset for material elevation levels 0–5.
+
+Input:  "Establish the @layer cascade for a new page."
+Output: step 5 — emit at the top of the stylesheet:
+        @layer ve-primitive, ve-semantic, ve-component;
+        then declare each layer's rules inside @layer <name> { ... }.
+
+Input:  "Use var() fallbacks for a component-scoped accent."
+Output: step 7 — three-level chain, last token a literal:
+        color: var(--my-component-accent,
+                   var(--vc-color-accent,
+                       oklch(0.6 0.15 230)));
+```
 
 ## Modes
 

@@ -55,11 +55,30 @@ The named-preset layer of the token system. Ships ~13 dual-theme presets (herita
 
 ## Examples
 
-- *"Apply the heritage warm theme."* → `window.__veDesignMd.hotSwap(amvcpTokens.PRESETS['heritage'])` (step 4) — the page re-themes live.
-- *"Make this page warmer + more playful."* → `let m = amvcpTokens.PRESETS['corporate'].text; m = applyPersonalityDelta(m, 'warmer'); m = applyPersonalityDelta(m, 'playful'); hotSwap(m)` (step 3).
-- *"Wireframe this design first."* → `hotSwap(amvcpTokens.PRESETS['wireframe'])` (step 2 + 4) — zero hue, zero radius.
-- *"Co-brand this page with brand A's color + brand B's typography."* → `mixDesignMds(presetA, presetB, { color: 'A', typography: 'B' })` (step 6).
-- *"Add a live tuner so I can adjust the accent."* → mount [live-token-playground](./references/live-token-playground.md) (step 5).
+```
+Input:  "Apply the heritage warm theme."
+Output: step 4 → window.__veDesignMd.hotSwap(amvcpTokens.PRESETS['heritage'])
+        The page re-themes live, no reload.
+
+Input:  "Make this page warmer + more playful."
+Output: step 3 (compose two deltas):
+        let m = amvcpTokens.PRESETS['corporate'].text;
+        m = applyPersonalityDelta(m, 'warmer');
+        m = applyPersonalityDelta(m, 'playful');
+        window.__veDesignMd.hotSwap(m);
+
+Input:  "Wireframe this design first."
+Output: steps 2 + 4 → hotSwap(amvcpTokens.PRESETS['wireframe'])
+        Zero hue, zero radius — pure structural draft.
+
+Input:  "Co-brand this page with brand A color + brand B typography."
+Output: step 6 → mixDesignMds(presetA, presetB,
+                              { color: 'A', typography: 'B' })
+
+Input:  "Add a live tuner so I can adjust the accent."
+Output: step 5 → mount the live-token-playground reference into the
+        page; sliders write directly to --vc-* variables.
+```
 
 ## Modes
 
