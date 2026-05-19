@@ -8,7 +8,15 @@
   //
   // Vendored upstream READMEs are kept verbatim for attribution and must
   // not be touched (per the v1.0.0 publish contract — see THIRD_PARTY_NOTICES.md).
+  //
+  // The trashcan/reports/reports_dev paths mirror the canonical CPV
+  // .markdownlintignore — they're gitignored but markdownlint-cli2 may be
+  // invoked at repo root before gitignore rules apply, so we belt-and-braces
+  // exclude them here too.
   "ignores": [
-    "**/vendor/**"
+    "**/vendor/**",
+    ".trashcan/**",
+    "reports/**",
+    "reports_dev/**"
   ]
 }
