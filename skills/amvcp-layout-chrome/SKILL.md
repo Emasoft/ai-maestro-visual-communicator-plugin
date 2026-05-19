@@ -1,6 +1,6 @@
 ---
 name: amvcp-layout-chrome
-description: "Persistent page chrome — sticky header (opaque + glassmorphism), section-numbered headers, fluid clamp() headings, sticky toolbar, scroll-spy + sticky-sidebar + right-margin + prefilled TOC variants. Use when the user asks for a sticky header, persistent navigation, TOC, scroll-spy, breadcrumbs, toolbar bar, glass header, or fluid heading sizing. Trigger with 'sticky header', 'glassmorphism', 'toolbar', 'TOC', 'scroll-spy', 'sticky sidebar', 'breadcrumbs', 'fluid heading', 'clamp() heading', 'section header', 'numbered headers'."
+description: "Persistent page chrome — sticky header (opaque + glass), section-numbered headers, fluid clamp() headings, sticky toolbar, scroll-spy + sticky-sidebar + right-margin + prefilled TOC variants. Use for sticky header, persistent navigation, TOC, scroll-spy, breadcrumbs, toolbar, fluid heading sizing. Trigger with 'sticky header', 'glassmorphism', 'toolbar', 'TOC', 'scroll-spy', 'sticky sidebar', 'breadcrumbs', 'fluid heading', 'section header'."
 license: MIT
 compatibility: "Browser (position:sticky, IntersectionObserver, color-mix, backdrop-filter, clamp()). Requires scripts/amvcp-layout.css for chrome presets and scripts/amvcp-layout.js for sticky-header + TOC scroll-spy wiring."
 metadata:
@@ -80,12 +80,34 @@ Self-contained HTML: one `<style>` (or `<link href="amvcp-layout.css">`) carryin
 | TOC active section never highlights | Scroll-spy needs `amvcp-layout.js` loaded AND each section must have an `id` matching a TOC anchor href. |
 | TOC links go to wrong heading | Pre-filled TOC with stale headings — either auto-build (empty `<ol>`) or sync hrefs to heading ids ([24](references/24-prefilled-static-toc.md)). |
 | Header fades to white in dark mode | Hardcoded `rgba(255,255,255,0.6)` instead of `color-mix(in oklch, var(--vc-color-surface), transparent 40%)`. |
-| Glass header looks opaque in Firefox | `backdrop-filter` fallback missing — provide a solid `--vc-color-surface` fallback (Firefox supports `backdrop-filter` since 2024 but older browsers fall through). |
+| Glass header looks opaque in Firefox | `backdrop-filter` fallback missing — provide a solid `--vc-color-surface` fallback. Firefox supports `backdrop-filter` in recent stable releases; older browsers fall through to the solid token. |
 | Sticky toolbar overlaps header | Wrong z-index ordering — toolbar should be `calc(var(--vc-z-sticky) - 1)` so the page header still wins. |
 | Heading too small on mobile (or too big on 4K) | `clamp()` MIN/IDEAL/MAX values need adjustment — see [15](references/15-fluid-headings-clamp.md) for the math. |
 | RTL layout broken | A physical property leaked in — replace with the logical equivalent. |
 
 ## Examples
+
+Input: user asks for a documentation page with sticky header + auto-built sticky-sidebar TOC.
+Output: a `.la-header` above a 2-col grid; the sidebar holds an auto-build TOC that `amvcp-layout.js` fills:
+
+```html
+<header class="la-header" data-ve-id="header" style="position: sticky; inset-block-start: 0; z-index: var(--vc-z-sticky);">
+  <div class="la-header__brand">My Docs</div>
+  <nav class="la-header__nav">…</nav>
+</header>
+<div class="la-grid--2-1" data-ve-id="page-body">
+  <main data-ve-id="article">
+    <h2 id="intro">Intro</h2><p>…</p>
+    <h2 id="usage">Usage</h2><p>…</p>
+  </main>
+  <aside style="align-self: start;">
+    <nav class="la-toc" data-ve-id="toc"><ol></ol></nav>
+  </aside>
+</div>
+<script src="amvcp-layout.js"></script>
+```
+
+More examples:
 
 - A documentation reader: `.la-header` (opaque) + 12-column grid with `.la-grid--3-1` (article + sticky `.la-toc` sidebar with scroll-spy).
 - A SaaS marketing page: `.la-header` (glass) over a hero band + below-fold sections + section-numbered headers + scroll-spy in the right margin.

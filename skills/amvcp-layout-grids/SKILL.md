@@ -1,6 +1,6 @@
 ---
 name: amvcp-layout-grids
-description: "Foundation grids + spatial tokens for visual-communicator pages — spatial token ladder, --la-* aliases, named gaps, reading measures, 2-1 + 3-1 asymmetric grids, subgrid card row, auto-fill card grid, mobile breakpoint, three-column article grid, wide-bleed escape hatches, RTL logical props, no-nested-scrollbars rule, selection-atoms contract. Use when the user asks for a grid, content+sidebar layout, gallery, article body, RTL layout, or the underlying spatial-token foundation. Trigger with 'grid', 'columns', 'sidebar', 'gallery', 'cards', 'article', 'reading measure', 'RTL', 'spatial tokens', 'gap'."
+description: "Foundation grids + spatial tokens — token ladder, --la-* aliases, named gaps, ch reading measures, 2-1/3-1 sidebar grids, subgrid card row, auto-fill gallery, article 3-col + wide/bleed, RTL logical properties, no-nested-scrollbars contract, selection atoms. Use for grids, content+sidebar pages, galleries, article bodies, RTL. Trigger with 'grid', 'columns', 'sidebar', 'gallery', 'cards', 'article', 'reading measure', 'RTL', 'spatial tokens', 'gap'."
 license: MIT
 compatibility: "Browser (CSS Grid, subgrid, logical properties, color-mix, ch units, dvh units). Themes off the DESIGN.md engine (amvcp-designmd.js). Python 3.12+ via amvcp-select.py."
 metadata:
@@ -89,7 +89,26 @@ Self-contained HTML: one `<style>` (or `<link href="amvcp-layout.css">`) carryin
 
 ## Examples
 
-- A content+sidebar report: `.la-grid--2-1` wrapping a `.la-article` main region + a sticky sidebar (sidebar chrome from sibling [amvcp-layout-chrome](../amvcp-layout-chrome/SKILL.md)).
+Input: user asks for a content+sidebar article page with a sticky sidebar TOC.
+Output: a `.la-grid--2-1` wrapping the `.la-article` body + a sticky sidebar:
+
+```html
+<div class="la-grid--2-1" data-ve-id="page">
+  <article class="la-article" data-ve-id="body">
+    <h1>Title</h1>
+    <p>The lead paragraph…</p>
+    <figure class="la-article__wide" data-ve-id="chart">
+      <img src="chart.png" alt="…">
+    </figure>
+  </article>
+  <aside data-ve-id="sidebar" style="align-self: start; position: sticky; inset-block-start: var(--la-space-3);">
+    <nav class="la-toc">…</nav>
+  </aside>
+</div>
+```
+
+More examples:
+
 - A long-form article: `.la-article` (3-col grid) with `.la-article__wide` for a chart and `.la-article__bleed` for a full-bleed hero image.
 - A magazine cardrow: `.la-cardrow` of 3 `.la-card`s using subgrid to align titles, bodies, and footers across cards.
 - A gallery: `auto-fill` grid with `minmax(min(316px, 100%), 1fr)` — reflows naturally from many-across to one-across on phones.
