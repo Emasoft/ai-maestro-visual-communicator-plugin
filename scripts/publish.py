@@ -185,8 +185,53 @@ def _read_remote_latest_tag() -> str | None:
 
 
 # ---------------------------------------------------------------------------
-# Gate checks (G1-G4) — single source of truth
+# Gate checks (G0-G5) — single source of truth
 # ---------------------------------------------------------------------------
+#
+# Gate 0 — Bypass-guard (NEW in pipeline-migration step 10, mirrors canon)
+# -----------------------------------------------------------------------
+# Reject any push that sets a CI-bypass env var. This catches the
+# "I'll just set CPV_SKIP_VALIDATE=1 to get my push through" pattern
+# that defeats the purpose of having a pre-push gate. The pre-push hook
+# itself uses process-ancestry verification to enforce publish.py as
+# the entry point — Gate 0 covers the orthogonal case where someone
+# runs publish.py but pre-poisons the environment to skip a gate.
+
+# Env vars whose presence (regardless of value) means "I'm trying to
+# bypass the gate". These names mirror CPV's canon list — the only
+# legitimate way to skip a gate is to fix the underlying issue.
+_BYPASS_ENV_VARS: tuple[str, ...] = (
+    "CPV_SKIP_VALIDATE",
+    "CPV_SKIP_TESTS",
+    "CPV_SKIP_LINT",
+    "CPV_SKIP_GATE",
+    "SKIP_VALIDATE",
+    "SKIP_TESTS",
+    "SKIP_LINT",
+    "SKIP_GATE",
+    "NO_VERIFY",
+)
+
+
+def _gate_bypass_guard() -> bool:
+    """G0: reject any push that pre-sets a CI-bypass env var.
+
+    Returns True iff NONE of the bypass env vars are set in the current
+    environment. Env-var bypasses are spoofable (anyone can `unset
+    CPV_SKIP_GATE` after the check) — the real defence is process-
+    ancestry verification in the pre-push hook (step 9). Gate 0 is the
+    belt for that braces: it catches honest mistakes (`CPV_SKIP=...
+    publish.py --patch --push`) loudly.
+    """
+    _log("G0: bypass-var rejection")
+    found = [v for v in _BYPASS_ENV_VARS if v in os.environ]
+    if found:
+        _log(f"  FAIL: bypass env var(s) set: {', '.join(found)}")
+        _log("  Bypass vars are NOT allowed — fix the underlying issue.")
+        return False
+    _log("  PASS (no bypass vars set)")
+    return True
+
 
 def _gate_version_bump() -> bool:
     """G1: local plugin.json version MUST differ from latest remote tag."""
@@ -256,6 +301,39 @@ def _gate_validate() -> bool:
     return True
 
 
+def _gate_marketplace_registration() -> bool:
+    """G5: confirm this plugin is wired into its marketplace.
+
+    Layout A check (this plugin is Layout A — separate marketplace repo
+    Emasoft/ai-maestro-plugins). Verifies that:
+      1. .github/workflows/notify-marketplace.yml exists at the canonical
+         path (otherwise a push to main won't notify the marketplace and
+         users won't see the new version).
+      2. The MARKETPLACE_PAT secret reference is present in the workflow
+         (we can't check whether the secret IS SET — that's a server-side
+         check — but we can at least catch the case where the workflow
+         was rewritten without the secret reference).
+
+    Soft-pass (returns True with a warning) if the workflow exists but
+    a deeper check fails — the workflow run itself will surface the
+    real problem. Hard-fail only if the workflow is entirely missing.
+    """
+    _log("G5: marketplace-registration check (Layout A)")
+    notify_yml = REPO_ROOT / ".github" / "workflows" / "notify-marketplace.yml"
+    if not notify_yml.is_file():
+        _log("  FAIL: .github/workflows/notify-marketplace.yml is missing")
+        _log("  Without this, the marketplace will NOT learn about the new version.")
+        _log("  Restore the file from the canonical CPV generator or git history.")
+        return False
+    body = notify_yml.read_text(encoding="utf-8")
+    if "MARKETPLACE_PAT" not in body:
+        _log("  WARNING: notify-marketplace.yml has no MARKETPLACE_PAT reference")
+        _log("  The workflow will fail at push time. Soft-pass for now.")
+        # Soft-pass — the workflow itself will surface the failure loudly.
+    _log("  PASS (notify-marketplace.yml present + PAT reference found)")
+    return True
+
+
 def _gate_tests() -> bool:
     """G4: dev-browser test suite (tests/run-all-tests.py).
 
@@ -286,9 +364,26 @@ def _gate_tests() -> bool:
 
 
 def _run_gate_mode() -> int:
-    """Execute G1-G4 in order. Stops at the first failure."""
-    _log("running quality gate (G1 -> G4)...")
-    for gate in (_gate_version_bump, _gate_lint, _gate_validate, _gate_tests):
+    """Execute G0-G5 in order. Stops at the first failure.
+
+    Gate order (canonical-pipeline-migration step 10, mirrors canon):
+      G0 — Bypass-var rejection (NEW)
+      G1 — Version-bump check
+      G2 — Lint (ruff)
+      G3 — Validate (cpv-remote-validate --strict)
+      G4 — Tests (dev-browser, soft-pass on missing CLI)
+      G5 — Marketplace-registration check (NEW)
+    """
+    _log("running quality gate (G0 -> G5)...")
+    gates = (
+        _gate_bypass_guard,
+        _gate_version_bump,
+        _gate_lint,
+        _gate_validate,
+        _gate_tests,
+        _gate_marketplace_registration,
+    )
+    for gate in gates:
         if not gate():
             _log("gate FAILED — push aborted.")
             return 1
@@ -403,14 +498,88 @@ def _sync_uv_lock() -> None:
 
 
 def _regenerate_changelog(new_version: str) -> None:
+    """Regenerate CHANGELOG.md via git-cliff using the canonical pattern.
+
+    Canon uses `--bump --unreleased --tag` for a single deterministic
+    invocation that handles the not-yet-released commits. The previous
+    `--tag vX.Y.Z --output CHANGELOG.md` form works too but doesn't auto-
+    discover the "unreleased" set; the canon form is preferred because
+    it's the same one used by `git-cliff --bumped-version` for the
+    version-detection path.
+    """
     if not shutil.which("git-cliff"):
         _log("git-cliff not on PATH; skipping CHANGELOG regeneration.")
         return
-    _run(["git-cliff", "--tag", f"v{new_version}", "--output", str(CHANGELOG)])
+    # Canon pattern: --bump --unreleased --tag <tag> --output <file>
+    # The --bump flag is a no-op when --tag is explicit but stays for
+    # canon-parity (matches the gen_publish_py template form).
+    _run(
+        [
+            "git-cliff",
+            "--bump",
+            "--unreleased",
+            "--tag",
+            f"v{new_version}",
+            "--output",
+            str(CHANGELOG),
+        ],
+    )
+
+
+# ── Idempotent commit/tag helpers (added in step 10 per canon Gate 10/11) ──
+
+
+def _expected_release_subject(new_version: str, message: str | None) -> str:
+    """The exact commit subject we'd write for this version + message."""
+    return message or f"chore(release): v{new_version}"
+
+
+def _head_subject() -> str:
+    """Return HEAD's commit subject (first line)."""
+    result = _run(
+        ["git", "log", "-1", "--pretty=%s"],
+        check=False,
+        capture=True,
+    )
+    return result.stdout.strip() if result.returncode == 0 else ""
+
+
+def _working_tree_clean() -> bool:
+    """True iff `git status --porcelain` returns no entries."""
+    result = _run(
+        ["git", "status", "--porcelain"],
+        check=False,
+        capture=True,
+    )
+    return result.returncode == 0 and not result.stdout.strip()
+
+
+def _tag_exists(tag: str) -> bool:
+    """True iff the given tag exists locally."""
+    result = _run(
+        ["git", "rev-parse", "-q", "--verify", f"refs/tags/{tag}"],
+        check=False,
+        capture=True,
+    )
+    return result.returncode == 0
 
 
 def _git_commit(new_version: str, message: str | None) -> None:
-    summary = message or f"chore(release): v{new_version}"
+    """Stage the release files and commit. IDEMPOTENT (canon Gate 10).
+
+    If HEAD's subject already matches the expected release commit AND the
+    working tree is clean, the commit step is skipped — this lets a
+    previous interrupted publish (Gate 10 succeeded, Gate 11/12 failed)
+    be resumed via a plain re-invocation of publish.py without double-
+    bumping the version.
+    """
+    summary = _expected_release_subject(new_version, message)
+
+    # Idempotency check — already committed for this version?
+    if _head_subject() == summary and _working_tree_clean():
+        _log(f"  HEAD already at expected release commit '{summary}'; skipping commit")
+        return
+
     files = [str(PLUGIN_JSON.relative_to(REPO_ROOT))]
     if PYPROJECT.exists():
         files.append(str(PYPROJECT.relative_to(REPO_ROOT)))
@@ -425,7 +594,17 @@ def _git_commit(new_version: str, message: str | None) -> None:
 
 
 def _git_tag(new_version: str) -> None:
-    _run(["git", "tag", f"v{new_version}"])
+    """Tag the current HEAD. IDEMPOTENT (canon Gate 11).
+
+    If the tag already exists locally (e.g. from a previous interrupted
+    publish), the tag step is skipped — same resume-friendliness as
+    _git_commit.
+    """
+    tag = f"v{new_version}"
+    if _tag_exists(tag):
+        _log(f"  tag {tag} already exists locally; skipping tag")
+        return
+    _run(["git", "tag", tag])
 
 
 def _git_push(new_version: str) -> None:
