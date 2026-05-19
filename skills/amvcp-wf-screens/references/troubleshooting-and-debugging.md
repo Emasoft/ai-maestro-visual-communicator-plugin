@@ -129,7 +129,7 @@ disappears, contrast is wrong, colors are washed out.
 3. An SVG glyph using `fill="#1f1a14"` instead of
    `fill="currentColor"`.
 
-**Fix**: See [`theme-and-dark-mode.md`](theme-and-dark-mode.md) §
+**Fix**: See [`theme-and-dark-mode.md`](../../amvcp-wf-fidelity/references/theme-and-dark-mode.md) §
 "Common theme bugs and fixes" for the full list.
 
 Quick check — flip the theme in DevTools console:

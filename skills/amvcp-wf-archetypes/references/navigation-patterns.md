@@ -150,7 +150,7 @@ make sure the main content area's width adjusts (the grid
 
 ## Pattern 3 — Bottom tabs (mobile only)
 
-Already covered in [`mobile-screens.md`](mobile-screens.md). Recap:
+Already covered in [`mobile-screens.md`](../../amvcp-wf-screens/references/mobile-screens.md). Recap:
 
 ```html
 <nav class="wf-nav">
@@ -540,7 +540,7 @@ For a COUNT badge instead of a dot:
 ## Mobile drawer (hamburger menu)
 
 A side drawer that slides in from the left when the user taps the
-☰ icon. Already covered in [`mobile-screens.md`](mobile-screens.md).
+☰ icon. Already covered in [`mobile-screens.md`](../../amvcp-wf-screens/references/mobile-screens.md).
 
 Recap:
 

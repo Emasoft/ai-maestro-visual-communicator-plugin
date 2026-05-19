@@ -188,7 +188,7 @@ wireframe self-sufficient.
 The fidelity slider in the wireframe ramp IS an interactive
 control. Currently the wireframe ships its OWN slider
 implementation (`wf-fidelity-slider`) — see
-[`fidelity-ramp.md`](fidelity-ramp.md).
+[`fidelity-ramp.md`](../../amvcp-wf-fidelity/references/fidelity-ramp.md).
 
 ### What the wireframe slider does
 

@@ -421,7 +421,7 @@ about WHAT happened.
 
 After a major task completes — onboarding done, project published,
 purchase made. Already covered in
-[`onboarding-flows.md`](onboarding-flows.md).
+[`onboarding-flows.md`](../../amvcp-wf-screens/references/onboarding-flows.md).
 
 Recap:
 

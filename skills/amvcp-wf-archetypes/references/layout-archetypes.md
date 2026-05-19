@@ -252,7 +252,7 @@ bottom (the tab bar, with `justify-content: space-around`).
 - A mobile-first web design where the desktop is a later concern.
 - Pair with a device frame (`wf-frame--ios` or `wf-frame--android`)
   to render the app on hardware bezels — see
-  [`device-frames.md`](device-frames.md).
+  [`device-frames.md`](../../amvcp-wf-devices/references/device-frames.md).
 
 ### Variants
 

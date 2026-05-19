@@ -162,7 +162,7 @@ isn't here at all, or something failed?"
 
 ### Product list
 
-- Loading: skeleton grid (see [`state-and-feedback-patterns.md`](state-and-feedback-patterns.md))
+- Loading: skeleton grid (see [`state-and-feedback-patterns.md`](../../amvcp-wf-archetypes/references/state-and-feedback-patterns.md))
 - Empty: "No products yet" with "Browse all" CTA
 - Error: "Couldn't load products" with Retry
 

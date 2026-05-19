@@ -564,7 +564,7 @@ The checkout form. Single column on mobile, two-column on desktop
 - The form is the 2-column main; the order summary is in a sticky
   sidebar (always visible while scrolling).
 - Form structure mirrors the address pattern from
-  [`form-patterns.md`](form-patterns.md).
+  [`form-patterns.md`](../../amvcp-wf-archetypes/references/form-patterns.md).
 
 ---
 

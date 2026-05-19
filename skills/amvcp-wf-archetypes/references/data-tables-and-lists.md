@@ -567,7 +567,7 @@ When the table has no rows:
 ### Notes
 
 - Centered content with icon + headline + body + CTA.
-- See [`onboarding-flows.md`](onboarding-flows.md) for the full
+- See [`onboarding-flows.md`](../../amvcp-wf-screens/references/onboarding-flows.md) for the full
   empty-state pattern.
 
 ---

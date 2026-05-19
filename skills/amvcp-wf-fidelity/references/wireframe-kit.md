@@ -93,7 +93,7 @@ is the boundary of the navigation engine.
   Missing attribute defaults to `wireframe` (the safe default — a
   bare `.wf-root` is a wireframe).
 - `data-wf-nav` is `scroll` (default) or `paged`. See
-  [`multi-screen-navigation.md`](multi-screen-navigation.md) for the
+  [`multi-screen-navigation.md`](../../amvcp-wf-screens/references/multi-screen-navigation.md) for the
   difference.
 - `data-ve-id` + `data-ve-type` on each screen and block makes it a
   selectable atom — the runtime auto-stamps `data-ve-comment-id` and
@@ -387,7 +387,7 @@ rewrites `--vc-color-*` custom properties, not literal hex in rule
 bodies) and leaks brand color into a fidelity=wireframe block. The
 ONE sanctioned non-token value is the device-frame dark bezel — a
 real device is dark in every OS theme; see
-[`device-frames.md`](device-frames.md).
+[`device-frames.md`](../../amvcp-wf-devices/references/device-frames.md).
 
 ---
 

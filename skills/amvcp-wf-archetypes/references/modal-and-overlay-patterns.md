@@ -221,7 +221,7 @@ details preview, settings without leaving the current page.
 - The drawer has a SUBTLE box-shadow on its left edge (depth signal
   for "this is floating over the rest").
 - For mobile, the drawer slides from BOTTOM (bottom-sheet pattern)
-  — see [`mobile-screens.md`](mobile-screens.md).
+  — see [`mobile-screens.md`](../../amvcp-wf-screens/references/mobile-screens.md).
 
 ---
 
