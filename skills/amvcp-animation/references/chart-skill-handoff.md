@@ -284,7 +284,7 @@ When the chart skill adds:
 - **Animated chart transitions** (e.g. data updates causing
   bars to re-grow), use `createLoop` for the canvas path.
 - **Radial / arc charts** (pie, donut), use SVG `stroke-dasharray`
-  + `stroke-dashoffset` animations with the same token
+  and `stroke-dashoffset` animations with the same token
   contract.
 - **Particle / scatter charts**, use `createLoop` with per-
   particle update logic.

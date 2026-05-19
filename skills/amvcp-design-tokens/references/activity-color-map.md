@@ -120,8 +120,8 @@ itself has been linted via `lintTokenSet` on the preset), and the
 golden-angle rotation moves successive hues far away from any single
 banned hue's OKLab radius.
 
-If a CONSUMER hardcodes `[data-vc-role="working"] { background:
-#22C55E; }` instead of letting the role-map CSS theme it — that's
+If a CONSUMER hardcodes `[data-vc-role="working"] { background: #22C55E; }`
+instead of letting the role-map CSS theme it — that's
 slop. The structural fix is to delete the hardcoded override and let
 the role-map CSS win (it ships in `ve-component`, so the override
 must intentionally beat it).

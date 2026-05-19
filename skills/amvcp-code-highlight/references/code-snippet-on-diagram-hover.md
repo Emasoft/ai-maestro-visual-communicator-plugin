@@ -206,7 +206,7 @@ Catalog quote, source `06-component-variants.html`:
 > hover→snippet binding reads `card.dataset.snippet` (a JSX-shaped
 > string with PAD and BORDER placeholders) and `.replace(/PAD/g,
 > pad.value)` injects the current values."*
-
+>
 > *"DESIGN.md-priority. This is the exact pattern for our future
 > 'design-token live editor' panel: sliders/radios writing to CSS
 > custom properties on `:root`, and downstream blocks instantly re-

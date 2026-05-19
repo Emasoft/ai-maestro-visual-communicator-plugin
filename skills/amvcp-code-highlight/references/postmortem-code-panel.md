@@ -123,7 +123,7 @@ was this never type-checked?". The agent receiving the comment knows:
 - It's inside a `.ve-code-panel-slate` panel
 - The file path is `src/api/retry.ts`
 - The line number in the OLD file is 45 (parsed from the hunk header
-  + position in the diff)
+  and position in the diff)
 
 The agent can respond with type-check policy context, propose a test,
 or escalate.

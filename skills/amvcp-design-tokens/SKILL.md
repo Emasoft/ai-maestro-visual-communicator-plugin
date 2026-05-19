@@ -245,7 +245,7 @@ This skill is composed by EVERY other amvcp-* skill on the page (R22) — it is 
 - [derived-state-color-split.md](./references/derived-state-color-split.md)
   — fg/bg/border/icon split derived per semantic role.
 - [wcag-contrast.md](./references/wcag-contrast.md) — `contrastRatio`
-  + the contact-sheet's per-cell annotation.
+  and the contact-sheet's per-cell annotation.
 
 ### Presets and personality
 

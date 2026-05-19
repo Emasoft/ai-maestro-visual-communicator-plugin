@@ -51,7 +51,7 @@ the attribute is documentation for the agent.
 |---|---|---|
 | `detailed` | Unicode boxes `┌─┐│└┘` + connector labels | the default — clearest |
 | `unicode` | Unicode boxes, no connector labels | compact, still pretty |
-| `classic` | pure ASCII `+ - |` | maximum compatibility (old terminals) |
+| `classic` | pure ASCII `+ - \|` | maximum compatibility (old terminals) |
 | `compact` | a single line `A → B → C` | a quick inline flow |
 
 ## Alignment validator (build-time, NEVER shipped)

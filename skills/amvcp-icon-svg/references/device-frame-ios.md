@@ -41,7 +41,7 @@ screenshot `<img>`, an inline `<svg>`, or a wireframe placeholder.
 Dimensions:
 
 - Bezel (`.isvg-frame--ios`): 390 x 844 (the canonical iPhone width
-  + auto height for the screen).
+  with auto height for the screen).
 - Screen (`.isvg-frame-screen`): 820 tall (after the 12px bezel
   inset), rounded 45px corners.
 - Dynamic Island: 122 x 34, centered, ink-colored, rounded

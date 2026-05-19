@@ -117,8 +117,8 @@ Authoring style:
 })();
 ```
 
-The IIFE wrapper + `'use strict'` + var-only + function declarations
-+ dual export is the consistent pattern. Adding a new amvcp-*.js
+The IIFE wrapper, `'use strict'`, var-only, function declarations,
+and dual export form the consistent pattern. Adding a new amvcp-*.js
 module that breaks this is a style review failure.
 
 ## What changes if the runtime EVER needs a dep

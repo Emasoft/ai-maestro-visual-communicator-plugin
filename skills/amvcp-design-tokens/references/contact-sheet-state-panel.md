@@ -17,7 +17,7 @@
 The `state` panel of the token contact sheet renders interaction-
 state demos: idle / hover / focus / pressed / disabled, side-by-
 side, statically forced via the `.vc-state-demo-*` modifier classes
-+ a LIVE instance the reader can actually interact with. The teaching
+plus a LIVE instance the reader can actually interact with. The teaching
 artifact for the MD3 state-layer model.
 
 ## What it does

@@ -21,7 +21,7 @@
 
 The diagram-adjacent code pattern: click any node in an SVG flowchart
 → populate a sticky right-side detail panel with title + meta + prose
-+ `<pre>` code excerpt. Mined from `13-flowchart-diagram.html` (html-
+and `<pre>` code excerpt. Mined from `13-flowchart-diagram.html` (html-
 effectiveness catalog #13).
 
 Mined catalog quote: *"The 'click SVG node → detail panel + code

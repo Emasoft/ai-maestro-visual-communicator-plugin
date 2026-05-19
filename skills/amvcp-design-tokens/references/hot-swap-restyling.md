@@ -17,7 +17,7 @@
 The runtime exposes `window.__veDesignMd.hotSwap(designMdText)` —
 swap a different DESIGN.md text and the WHOLE page re-themes live: no
 reload, no new mechanism. The mechanism is the engine's `parseDesignMd
-+ resolveTokens + applyTokens` pipeline driven from a fresh source.
+→ resolveTokens → applyTokens` pipeline driven from a fresh source.
 This document covers what `hotSwap` does, when to use it, and how to
 combine it with presets and personality deltas.
 

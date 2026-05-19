@@ -136,7 +136,7 @@ contract); the sparkline inside it is decorative.
 
 The `metric-cards` chart doesn't natively combine with a sparkline — but
 the dashboard recipe (see [chart-dashboard-recipes.md §2 Single-KPI hero
-+ trend](./chart-dashboard-recipes.md#recipe-2--single-kpi-hero--trend))
+and trend](./chart-dashboard-recipes.md#recipe-2--single-kpi-hero--trend))
 puts a metric-cards figure ABOVE a line figure, achieving the same intent
 without nesting.
 

@@ -184,7 +184,7 @@ count-up triggers separately via the counter selector hit.
 ## Selection + comment + decision integration
 
 `[data-va-reveal="clip"]` elements are stamped with `data-ve-id`
-+ `data-ve-type="card"` — same as any reveal target. The clip
+and `data-ve-type="card"` — same as any reveal target. The clip
 variant doesn't change the atom contract.
 
 ## Performance

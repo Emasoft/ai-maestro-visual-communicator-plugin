@@ -95,7 +95,7 @@ var CSS_TEXT = CSS_LINES.join('\n');
 
 Building the CSS as an array (not a template literal) is ES5-safe
 — the entire animation runtime targets ES5 to match the runtime
-+ designmd modules. No template literals, no arrow functions, no
+and designmd modules. No template literals, no arrow functions, no
 classes; just `var` + function declarations + the CSS array.
 
 Why ES5-safe? Three reasons:

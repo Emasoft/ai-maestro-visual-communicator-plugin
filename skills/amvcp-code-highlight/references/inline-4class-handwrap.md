@@ -34,9 +34,9 @@ spans in 4 classes:
 
 Optional fifth class for "the thing the reader should look at":
 
-| Class | Role | Color |
+| Class | Role | Color (token) |
 |---|---|---|
-| `hl`  | Highlight | full accent gold | `--ve-accent` |
+| `hl`  | Highlight | full accent gold (`--ve-accent`) |
 
 **Five colors total.** No `number`, `type`, `operator`, `punctuation`,
 `tag`, `attribute`. Inline highlighting is INTENTIONALLY less rich than

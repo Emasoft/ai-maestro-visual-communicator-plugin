@@ -220,8 +220,8 @@ In both light AND dark, confirm:
 
 - Hotspots are positioned proportionally on the image (resize the
   page — they should stay anchored).
-- Hotspot text is readable (accent background + on-accent foreground
-  + surface-colored knockout ring).
+- Hotspot text is readable (accent background, on-accent foreground,
+  and surface-colored knockout ring).
 - Hover state works (scale OR static ring, per
   prefers-reduced-motion).
 - Clicking a hotspot makes it the selected atom (the runtime adds

@@ -87,8 +87,8 @@ COLOR carries the semantic.
 
 ## When to extend the scheme
 
-A typical diagram should ship at most 3 marker variants — default
-+ success + failure. More variants dilute the semantic. If you
+A typical diagram should ship at most 3 marker variants — default,
+success, and failure. More variants dilute the semantic. If you
 need:
 
 - A 4th color = primary/highlight = add `vc-arrow-12-primary`

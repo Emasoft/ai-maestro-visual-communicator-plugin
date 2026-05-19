@@ -28,8 +28,8 @@ Six sections, top to bottom:
 2. **Why** (before/after panels side-by-side with bullet lists; "Pro"-
    dotted bullets vs olive-bordered "after").
 3. **File-by-file tour** (ordered "for reading, not alphabetically" —
-   worker → call-site → plumbing). Each file `<details>` has a chevron
-   + path + badge + +N/−N stat in the summary.
+   worker → call-site → plumbing). Each file `<details>` has a chevron,
+   path, badge, and +N/−N stat in the summary.
 4. **Where to focus** (numbered cards highlighting the 2-3 sections
    reviewers should pay attention to).
 5. **Test plan checklist** (test cases as `<input type="checkbox">`

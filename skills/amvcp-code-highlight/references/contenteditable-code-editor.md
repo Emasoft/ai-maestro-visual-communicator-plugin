@@ -26,7 +26,7 @@ the prompt-template `{{slot}}` editor mined from `20-editor-prompt-
 tuner.html` (html-effectiveness catalog #20).
 
 Mined catalog quote: *"The contenteditable + caret-offset save/restore
-+ RAF-debounced re-highlight pattern is gold for any live-edit-with-
+plus RAF-debounced re-highlight pattern is gold for any live-edit-with-
 highlighting UX."* — adopted as a first-class code-highlight technique.
 
 ## F1.1 The pattern

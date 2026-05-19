@@ -133,8 +133,8 @@ instead.
   `slug(svg.dataset.veLabel || svg.dataset.veId) + '.svg'`
 - Include a timestamp for versioning:
   `slug(label) + '-' + Date.now() + '.svg'`
-- Suggest the kind: `'icon-' + label + '.svg'` for an icon, `'logo-'
-  + label + '.svg'` for a logo.
+- Suggest the kind: `'icon-' + label + '.svg'` for an icon, `'logo-' +
+  label + '.svg'` for a logo.
 
 ## What NOT to do
 

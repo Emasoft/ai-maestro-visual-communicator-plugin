@@ -254,7 +254,7 @@ per drawn shape inside the canvas.
   seeing `dt = 0.1` (the max). Your `update` should advance by
   0.1s, not panic.
 - **Loop is choppy (uneven frame timing)** → check that `update`
-  + `render` complete in < 16ms. Profile with DevTools
+  and `render` complete in < 16ms. Profile with DevTools
   Performance.
 
 ## Visual verification

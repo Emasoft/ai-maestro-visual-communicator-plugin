@@ -113,7 +113,7 @@ scannable.
 |---|---|---|
 | `detailed` (default) | `├──`, `└──`, `│  ` | the standard Unix tree |
 | `unicode` | same, no annotations | compact |
-| `classic` | `|+--`, `|--`, `|  ` | ASCII-only (pre-Unicode terminals) |
+| `classic` | `\|+--`, `\|--`, `\|  ` | ASCII-only (pre-Unicode terminals) |
 | `compact` | `parent/child/grandchild` | path-style, one node per line |
 
 The `classic` style:

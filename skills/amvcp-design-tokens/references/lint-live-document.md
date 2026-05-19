@@ -140,8 +140,8 @@ is `outline`, not `border`, so it doesn't shift layout.
 ## Visual verification
 
 Per `skills/amvcp-self-debug-rules/SKILL.md` — author a known-slop
-page (a card with `background: linear-gradient(135deg, #6366F1,
-#3B82F6)` and `font-family: "Inter, system-ui"`), open it under
+page (a card with `background: linear-gradient(135deg, #6366F1, #3B82F6)`
+and `font-family: "Inter, system-ui"`), open it under
 `dev-browser`, run:
 
 ```js

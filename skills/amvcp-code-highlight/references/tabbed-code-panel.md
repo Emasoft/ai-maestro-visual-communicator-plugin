@@ -209,8 +209,8 @@ For longer feature explainers, combine tabbed-code-panel WITH
 [collapsed-snippets-walkthrough.md](./collapsed-snippets-walkthrough.md):
 
 - Each step in the walkthrough is a `<details>` with file:line summary.
-- Inside the `<details>`, a tabbed-code-panel shows the relevant source
-  + the test + the docs.
+- Inside the `<details>`, a tabbed-code-panel shows the relevant source,
+  the test, and the docs.
 
 The two compositions stack naturally — tabs inside details is a
 read-on-demand-then-pick-your-angle UX.

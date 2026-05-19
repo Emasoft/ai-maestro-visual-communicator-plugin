@@ -151,7 +151,7 @@ launcher, never amvcp-select.py directly.
 - `scripts/amvcp-iterm2-pane.py` (NEW) — split-pane preview
 - `skills/amvcp-show/SKILL.md` (NEW) — the router skill
 - `skills/amvcp-show/scripts/dispatch.py` (NEW) — input-type detection
-  + routing logic
+  and routing logic
 - `scripts/render-interactive-report.py` — add 3-state controls per finding
 
 ## Verification
@@ -165,7 +165,7 @@ For each fix:
    - Every paragraph / table / list from the source markdown is
      present verbatim
    - Each `## section` has the 3-state accept/reject/comment radio
-     + textarea
+     and textarea
    - Corner-button row is visible at bottom-right
    - Hover on any atom shows the drop-shadow glow
    - Theme reads as polished, not corporate-templated

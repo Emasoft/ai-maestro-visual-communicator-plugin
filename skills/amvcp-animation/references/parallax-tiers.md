@@ -78,7 +78,7 @@ The parallax element MUST be `position: absolute` (or `fixed`) so
 its `transform` does not push the surrounding content around. The
 CSS rule overrides only `transform`; any `transform: translateX(-50%)`
 authored inline gets overwritten — author centering via `left: 50%`
-+ `margin-left: -<halfWidth>` instead, or accept the loss of the
+with `margin-left: -<halfWidth>` instead, or accept the loss of the
 inline transform.
 
 ## The scroll listener — passive, rAF-coalesced

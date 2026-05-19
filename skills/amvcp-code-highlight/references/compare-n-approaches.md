@@ -283,6 +283,6 @@ Catalog quote from §3 prose-mining + §3.7 code-highlight, source
 
 Plus the catalog's §3.13 listing: *"Compare-N-approaches shape — Prompt
 box + 3 columns (each with numbered title + code panel + Pro/Con table
-+ metric chips) + clay-left-border recommendation card."*
+plus metric chips) + clay-left-border recommendation card."*
 
 Adopted as the canonical "compare N implementations" composition.

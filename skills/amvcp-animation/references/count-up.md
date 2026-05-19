@@ -164,7 +164,7 @@ branch fires. The counter is never broken.
 ## Selection + comment + decision integration
 
 `.va-counter[data-va-stat]` elements are stamped with `data-ve-id`
-+ `data-ve-type="counter"` (distinct from `card` for the stagger
+and `data-ve-type="counter"` (distinct from `card` for the stagger
 items and the reveal sections — so a payload reader can downstream-
 route by type). The decision mini-pill is attached too.
 

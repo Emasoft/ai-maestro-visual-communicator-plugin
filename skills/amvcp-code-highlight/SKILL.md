@@ -284,7 +284,7 @@ the implementation. The library is grouped:
  > H3.1 The "is this code or data?" question · H3.2 JSON (data, but typically declared as `language-json`) · H3.3 YAML (data, often declared as `language-yaml`) · H3.4 CSV / · …
 - [light-dark-mirror-discipline.md](./references/light-dark-mirror-discipline.md) — every `--ve-code-*` MUST have both `:root` and `:root[data-ve-theme="light"]` definitions; the verification checklist.
  > H4.1 The rule · H4.2 The standard CSS shape · H4.3 The hue-family preservation rule · H4.4 The contrast requirement · H4.5 The diff-tint mirror · H4.6 The verification · …
-
+>
 > **Out of scope for this skill.** Shiki / Highlight.js / Prism runtime
 > deps (the tokenizer is dependency-free by design — see CB-01 SKIP in
 > the PHASE2 backlog). Matplotlib server-side rendering (→ `charts-and-

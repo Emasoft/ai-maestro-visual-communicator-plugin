@@ -65,7 +65,7 @@ Everything else has a sane `var(--vc-…, fallback)`:
 - 15 color roles: `canvas, surface, surface-raised, surface-sunken,
   content, content-muted, content-subtle, border, border-strong,
   accent, on-accent, success, warning, danger, info`.
-- + the 9 `--vc-z-*` levels (optional group; emit them in real
+- Plus the 9 `--vc-z-*` levels (optional group; emit them in real
   artifacts, or `var(--vc-z-modal, 400)` with a fallback).
 - a fixed radius scale + a fixed type scale round out the leanest
   scaffold.

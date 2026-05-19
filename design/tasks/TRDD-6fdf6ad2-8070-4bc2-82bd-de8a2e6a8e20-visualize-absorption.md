@@ -154,7 +154,7 @@ internal sections. This new requirement decouples the two:
   - Dark slot → `midnight` (likewise verify default).
   Subsequent runs read both keys from localStorage.
 - **Mix-and-match works.** e.g. user can select `blueprint` for light
-  + `product-dashboard` for dark. Toggling theme switches both the
+  and `product-dashboard` for dark. Toggling theme switches both the
   `data-ve-theme` attribute AND the active preset.
 - **Hot-swap discipline preserved.** Existing `veDesignMdHotSwap()`
   still fires `vc:themechange`; every skill re-themes from `--vc-*`
@@ -176,7 +176,7 @@ internal sections. This new requirement decouples the two:
 
 **Verification**:
 - `window.amvcpDesignMd.setActivePresetForTheme('light', 'blueprint')`
-  + `setActivePresetForTheme('dark', 'product-dashboard')` → toggling
+  and `setActivePresetForTheme('dark', 'product-dashboard')` → toggling
   theme button alternates the two presets visually.
 - Library pills render correctly: exactly one filled per column.
 - localStorage round-trips both keys across page reload.
