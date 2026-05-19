@@ -84,7 +84,7 @@ Self-contained HTML: one `<style>` (or `<link href="amvcp-layout.css">`) carryin
 | Header fades to white in dark mode | Hardcoded `rgba(255,255,255,0.6)` instead of `color-mix(in oklch, var(--vc-color-surface), transparent 40%)`. |
 | Glass header looks opaque in Firefox | `backdrop-filter` fallback missing — provide a solid `--vc-color-surface` fallback. Firefox supports `backdrop-filter` in recent stable releases; older browsers fall through to the solid token. |
 | Sticky toolbar overlaps header | Wrong z-index ordering — toolbar should be `calc(var(--vc-z-sticky) - 1)` so the page header still wins. |
-| Heading too small on mobile (or too big on 4K) | `clamp()` MIN/IDEAL/MAX values need adjustment — see [15](references/15-fluid-headings-clamp.md) for the math. |
+| Heading too small on mobile (or too big on 4K) | `clamp()` MIN/IDEAL/MAX values need adjustment — see ref 15 for the math. |
 | RTL layout broken | A physical property leaked in — replace with the logical equivalent. |
 
 ## Examples

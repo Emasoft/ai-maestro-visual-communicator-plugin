@@ -27,7 +27,9 @@ Application-shell layouts: persistent page chrome around a flexible workspace. C
 
 | Request shape | Ref | Scaffold class |
 |---|---|---|
-| IDE / 3-panel tool UI with collapsible sidebar | [08](references/08-ide-3-panel.md) | `.la-ide` + `[data-la-toggle]` |
+| IDE / 3-panel tool UI with collapsible sidebar | ref 08 | `.la-ide` + `[data-la-toggle]` |
+
+Each ref linked in the Resources section below with its full TOC embedded.
 
 ## Authoring rules (HARD invariants)
 

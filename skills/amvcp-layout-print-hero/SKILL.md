@@ -27,10 +27,12 @@ Print layouts and decorative hero surfaces. The print side covers `@page` size +
 
 | Request shape | Refs | Scaffold class |
 |---|---|---|
-| output will be printed / PDF'd | [25](references/25-a4-page-rules.md), [26](references/26-print-reset.md), [27](references/27-cover-and-page-breaks.md) | `@page` + `.la-break-*` + `.la-cover` + `.no-print` |
-| device screenshot frame | [28](references/28-device-mockup-frame.md) | `.la-device` (set `--dev-*` props) |
-| decorative hero band | [29](references/29-hero-with-radial-glows.md) | `.la-hero` + `data-ghost` |
-| two-paper rotated comparison | [30](references/30-rotated-card-comparison.md) | custom rotated cards |
+| output will be printed / PDF'd | refs 25, 26, 27 | `@page` + `.la-break-*` + `.la-cover` + `.no-print` |
+| device screenshot frame | ref 28 | `.la-device` (set `--dev-*` props) |
+| decorative hero band | ref 29 | `.la-hero` + `data-ghost` |
+| two-paper rotated comparison | ref 30 | custom rotated cards |
+
+Each ref linked in the Resources section below with its full TOC embedded.
 
 ## Authoring rules (HARD invariants)
 
@@ -70,11 +72,11 @@ Self-contained HTML: one `<style>` (or `<link href="amvcp-layout.css">`) carryin
 
 | Symptom | Fix |
 |---|---|
-| Print drops token background tints | The `@media print` block needs `print-color-adjust:exact` (shipped in `amvcp-layout.css` — see [26](references/26-print-reset.md)). Browser may also need user-side "Background graphics" toggle. |
-| Page breaks happen mid-heading | Add `break-after: avoid` to the heading or wrap the section in `.la-break-avoid` (see [27](references/27-cover-and-page-breaks.md)). |
+| Print drops token background tints | The `@media print` block needs `print-color-adjust:exact` (shipped in `amvcp-layout.css` — see ref 26). Browser may also need user-side "Background graphics" toggle. |
+| Page breaks happen mid-heading | Add `break-after: avoid` to the heading or wrap the section in `.la-break-avoid` (see ref 27). |
 | Cover page bleeds onto page 2 | Add `.la-break-after` to the cover. |
-| Hero glows leak past the section | The hero needs `overflow: clip` (NOT `hidden`, NOT `auto`) — see [29](references/29-hero-with-radial-glows.md). |
-| Device frame too narrow / wide | Override `--dev-width` / `--dev-aspect` on the `.la-device` instance — see [28](references/28-device-mockup-frame.md). |
+| Hero glows leak past the section | The hero needs `overflow: clip` (NOT `hidden`, NOT `auto`) — see ref 29. |
+| Device frame too narrow / wide | Override `--dev-width` / `--dev-aspect` on the `.la-device` instance — see ref 28. |
 | Hero colour wrong in dark mode | Hardcoded `rgba()` instead of `color-mix(in oklch, var(--vc-color-*), transparent X%)` — replace. |
 
 ## Examples

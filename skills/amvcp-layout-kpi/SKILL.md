@@ -27,8 +27,10 @@ Metric-focused layouts: the auto-fit KPI / stat / metric strip and the 12-column
 
 | Request shape | Ref | Scaffold class |
 |---|---|---|
-| at-a-glance KPI / metric strip | [10](references/10-kpi-row.md) | `.la-kpi-row` |
-| metrics dashboard (12-col placement) | [09](references/09-twelve-column-dashboard.md) | `.la-dashboard` + `data-span` |
+| at-a-glance KPI / metric strip | ref 10 | `.la-kpi-row` |
+| metrics dashboard (12-col placement) | ref 09 | `.la-dashboard` + `data-span` |
+
+Each ref linked in the Resources section below with its full TOC embedded.
 
 ## Authoring rules (HARD invariants)
 
