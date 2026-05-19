@@ -221,5 +221,5 @@ post-render highlight that needs to match the chart's palette).
 ## See also
 
 - [chart-design-tokens.md](./chart-design-tokens.md) — the full `--vc-*` token table.
-- [chart-heatmap.md](./chart-heatmap.md) — uses the ramp for cell fills.
-- [chart-bar.md](./chart-bar.md) — uses the palette for multi-series fills.
+- [chart-heatmap.md](../../amvcp-charts-multi-dim/references/chart-heatmap.md) — uses the ramp for cell fills.
+- [chart-bar.md](../../amvcp-charts-bar/references/chart-bar.md) — uses the palette for multi-series fills.

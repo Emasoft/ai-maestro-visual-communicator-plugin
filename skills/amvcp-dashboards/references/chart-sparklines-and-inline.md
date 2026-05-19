@@ -171,8 +171,8 @@ above + a separate `area` below.)
 
 ## See also
 
-- [chart-line.md](./chart-line.md) — the underlying line renderer.
-- [chart-area.md](./chart-area.md) — the underlying area renderer.
+- [chart-line.md](../../amvcp-charts-line-area/references/chart-line.md) — the underlying line renderer.
+- [chart-area.md](../../amvcp-charts-line-area/references/chart-area.md) — the underlying area renderer.
 - [chart-dashboard-recipes.md](./chart-dashboard-recipes.md) — composing
   metric-cards + line / area for the same intent without inlining.
 - The `amvcp-tables` skill — for the table-cell sparkline pattern with

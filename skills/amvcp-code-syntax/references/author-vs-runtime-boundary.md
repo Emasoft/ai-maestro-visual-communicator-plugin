@@ -248,5 +248,5 @@ of its own.
 - [gutter-anatomy.md](./gutter-anatomy.md) — what the gutter looks like
 - [integrity-probe.md](./integrity-probe.md) — the source-fidelity
   guarantee
-- [opting-out-pre.md](./opting-out-pre.md) — when to escape the
+- [opting-out-pre.md](../../amvcp-code-fences/references/opting-out-pre.md) — when to escape the
   runtime entirely

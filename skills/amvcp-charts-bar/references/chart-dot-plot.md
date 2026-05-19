@@ -172,7 +172,7 @@ per-series perception.
 ## Anti-patterns
 
 - **Single-datum dot-plot.** A single dot at a value, no comparison — not a chart, use a `metric-cards` KPI tile instead.
-- **Plotting categorical data on the y-axis.** dot-plot here is ALWAYS x-categorical, y-numeric. If you want categorical-y, you want a horizontal dot plot which is not a registered type — use the [chart-dashboard-recipes.md](./chart-dashboard-recipes.md) pattern instead.
+- **Plotting categorical data on the y-axis.** dot-plot here is ALWAYS x-categorical, y-numeric. If you want categorical-y, you want a horizontal dot plot which is not a registered type — use the [chart-dashboard-recipes.md](../../amvcp-dashboards/references/chart-dashboard-recipes.md) pattern instead.
 - **Using dot-plot for two-series before/after.** Use `connected-dot-plot` — the connector makes the delta direction obvious.
 - **Setting `valueLabels: true`.** Silently ignored — the dot already marks the value.
 - **Using dot-plot for time-series.** Dot-plot has discrete categorical x positions. For a continuous time axis (DAU over days), use `line` — the line's interpolation between points is meaningful where dots-only would imply discrete observations.

@@ -224,7 +224,7 @@ attribute) skips `initCodeGutter`. Use cases:
 - The regex graph (`.ve-regex` — has its own renderer)
 - Tooltips that show a one-line code fragment in the bubble
 
-See [opting-out-pre.md](./opting-out-pre.md) for the canonical opt-out
+See [opting-out-pre.md](../../amvcp-code-fences/references/opting-out-pre.md) for the canonical opt-out
 list.
 
 ## A3.10 What the author writes

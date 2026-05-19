@@ -127,7 +127,7 @@ Authors SHOULD instead:
 | Right approach | Why correct |
 |---|---|
 | Just author `<pre><code class="language-x">…</code></pre>` | Runtime applies `white-space:pre-wrap` automatically. |
-| Set `data-ve-no-gutter` if you have a special case | Opt-out, see [opting-out-pre.md](./opting-out-pre.md). |
+| Set `data-ve-no-gutter` if you have a special case | Opt-out, see [opting-out-pre.md](../../amvcp-code-fences/references/opting-out-pre.md). |
 | Manually re-wrap a long string literal in the source | The visual will still wrap, but at the author-chosen break — better readability. |
 
 ## A4.7 Wrap correctness with token spans
@@ -158,7 +158,7 @@ that's the vertical version of the forbidden horizontal pattern.
 
 If a code block is genuinely too long for casual reading, the right
 solution is a `<details>` wrapper (see
-[collapsed-snippets-walkthrough.md](./collapsed-snippets-walkthrough.md))
+[collapsed-snippets-walkthrough.md](../../amvcp-code-snippets/references/collapsed-snippets-walkthrough.md))
 — the reader chooses to expand it, and once expanded the full block
 participates in the page's scroll. NOT a nested scroll box.
 

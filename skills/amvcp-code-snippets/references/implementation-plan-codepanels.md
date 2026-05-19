@@ -132,7 +132,7 @@ Typical pairs:
 - **Test + fixture** (the test + the fixture it consumes)
 - **Old + new** (the deprecated function + its replacement)
 
-For a Old-vs-New pair, [diff-blocks-split.md](./diff-blocks-split.md)
+For a Old-vs-New pair, [diff-blocks-split.md](../../amvcp-code-diff/references/diff-blocks-split.md)
 might be a better fit — split view IS a 2-column visual specifically
 for change comparisons. The 2-col code-panel is for INDEPENDENT pieces
 of code that work together, not for before/after.
@@ -210,9 +210,9 @@ agent receiving the comment can:
 
 ## E8.9 Cross-references
 
-- [code-block-with-file-path.md](./code-block-with-file-path.md) —
+- [code-block-with-file-path.md](../../amvcp-code-syntax/references/code-block-with-file-path.md) —
   every column has a file-path label
-- [diff-blocks-split.md](./diff-blocks-split.md) — alternative for
+- [diff-blocks-split.md](../../amvcp-code-diff/references/diff-blocks-split.md) — alternative for
   before/after pairs (not the "independent pieces" pattern)
 - `amvcp-tables` `comparison` mode — for the risk table
 
@@ -225,7 +225,7 @@ agent receiving the comment can:
 
 ## E8.11 Tokens consumed
 
-- All from [code-block-with-file-path.md](./code-block-with-file-path.md)
+- All from [code-block-with-file-path.md](../../amvcp-code-syntax/references/code-block-with-file-path.md)
 - `--vc-space-3` (gap between columns)
 
 ## E8.12 Mined source attribution

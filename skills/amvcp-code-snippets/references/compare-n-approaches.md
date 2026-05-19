@@ -235,7 +235,7 @@ of context.
 
 ## E9.9 Cross-references
 
-- [slate-bg-code-panel.md](./slate-bg-code-panel.md) — the code-panel
+- [slate-bg-code-panel.md](../../amvcp-code-syntax/references/slate-bg-code-panel.md) — the code-panel
   visual
 - `amvcp-tables` `compare` mode — the Pro/Con sub-table is a small-
   scale compare-mode table
@@ -262,7 +262,7 @@ of context.
 
 ## E9.12 Tokens consumed
 
-- All from [slate-bg-code-panel.md](./slate-bg-code-panel.md)
+- All from [slate-bg-code-panel.md](../../amvcp-code-syntax/references/slate-bg-code-panel.md)
 - `--vc-color-success` (Pro dot) / `--ve-accent` (Con dot,
   recommendation)
 - `--vc-color-neutral-100` / `-700` / `-900` (chip neutrals)

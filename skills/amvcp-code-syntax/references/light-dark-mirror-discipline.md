@@ -237,7 +237,7 @@ defines or consumes.
 
 - [token-roles-palette.md](./token-roles-palette.md) — the 12-token
   palette + the canonical light/dark default pairs
-- [diff-tints-from-semantic-tokens.md](./diff-tints-from-semantic-tokens.md)
+- [diff-tints-from-semantic-tokens.md](../../amvcp-code-diff/references/diff-tints-from-semantic-tokens.md)
   — the diff tint percent calibrations
 - [../../amvcp-self-debug-rules/SKILL.md](../../amvcp-self-debug-rules/SKILL.md)
   — the screenshot verification loop

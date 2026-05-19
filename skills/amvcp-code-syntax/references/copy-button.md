@@ -205,7 +205,7 @@ A unified diff's copy button copies the byte-exact source as written
 (including `+ ` / `- ` / leading `  ` markers — that IS the source
 of a diff). A split diff copies the side the button lives on (the
 "after" pane by default, the "before" pane on the before block). See
-[diff-blocks-split.md](./diff-blocks-split.md) for the per-pane wiring.
+[diff-blocks-split.md](../../amvcp-code-diff/references/diff-blocks-split.md) for the per-pane wiring.
 
 If the author wants "copy the resolved version" (post-add, pre-del
 lines only) the right pattern is a separate `<pre>` rendered next to
@@ -216,7 +216,7 @@ shown.
 
 A `<pre>` whose content is comma-separated data (CSV) or JSON-as-text
 still gets a copy button — the source IS the artefact. No special
-attribute needed. See [csv-and-data-fences.md](./csv-and-data-fences.md)
+attribute needed. See [csv-and-data-fences.md](../../amvcp-code-fences/references/csv-and-data-fences.md)
 for the data-vs-code distinction the author still has to make for
 language detection.
 

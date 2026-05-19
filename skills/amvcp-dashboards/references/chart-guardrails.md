@@ -206,7 +206,7 @@ OS preference.
 
 ## See also
 
-- [chart-pie-guardrail.md](./chart-pie-guardrail.md) — the pie remap in detail.
+- [chart-pie-guardrail.md](../../amvcp-charts-part-of-whole/references/chart-pie-guardrail.md) — the pie remap in detail.
 - [chart-palette-engine.md](./chart-palette-engine.md) — the no-per-datum-colors policy.
 - [chart-animations-and-motion.md](./chart-animations-and-motion.md) — the entry-animation system.
 - [chart-design-tokens.md](./chart-design-tokens.md) — the full token reference.

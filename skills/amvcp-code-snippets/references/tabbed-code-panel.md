@@ -21,7 +21,7 @@ catalog's #14 (`research-feature-explainer`) tabbed-code pattern, plus
 the authoring rules for choosing perspective sets.
 
 This reference is the COMPOSITION-level guide; for the tab-bar markup
-itself, see [code-block-with-tab-bar.md](./code-block-with-tab-bar.md).
+itself, see [code-block-with-tab-bar.md](../../amvcp-code-syntax/references/code-block-with-tab-bar.md).
 
 ## E1.1 The pattern
 
@@ -103,7 +103,7 @@ angles, one feature.
 
 ## E1.5 The 6-line JS handler
 
-See [code-block-with-tab-bar.md](./code-block-with-tab-bar.md) §B5.4
+See [code-block-with-tab-bar.md](../../amvcp-code-syntax/references/code-block-with-tab-bar.md) §B5.4
 for the full handler. Repeated here for ease of reference:
 
 ```js
@@ -168,7 +168,7 @@ For the simplest case — Before / After — the tab pattern works:
 
 But for many readers, SIDE-BY-SIDE is better than tabs for before/after
 (the visual comparison is immediate). Consider
-[diff-blocks-split.md](./diff-blocks-split.md) instead when the change
+[diff-blocks-split.md](../../amvcp-code-diff/references/diff-blocks-split.md) instead when the change
 is visual / structural; use the tab variant when the change is in
 content (e.g. a config value) and the reader cares about ONE side at
 a time.
@@ -217,7 +217,7 @@ read-on-demand-then-pick-your-angle UX.
 
 ## E1.12 Tokens consumed
 
-All from [code-block-with-tab-bar.md](./code-block-with-tab-bar.md).
+All from [code-block-with-tab-bar.md](../../amvcp-code-syntax/references/code-block-with-tab-bar.md).
 
 ## E1.13 Author rules (composition-level)
 

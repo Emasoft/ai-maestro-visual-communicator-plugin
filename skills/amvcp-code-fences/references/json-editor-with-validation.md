@@ -239,7 +239,7 @@ see the diff" UX. The diff sidebar shows the original vs current
 JSON (not on every keystroke — on every successful parse, debounced
 to 500ms).
 
-See [live-diff-sidebar.md](./live-diff-sidebar.md) for the sidebar
+See [live-diff-sidebar.md](../../amvcp-code-diff/references/live-diff-sidebar.md) for the sidebar
 machinery; the JSON-specific tweak is that the diff is recomputed
 only when the parse succeeds (invalid JSON shows the "no changes
 since last valid state" state, not a corrupted diff).

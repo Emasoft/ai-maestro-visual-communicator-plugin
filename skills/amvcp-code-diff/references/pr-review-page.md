@@ -238,9 +238,9 @@ This composition consumes:
   tints
 - [diff-gutter-old-new.md](./diff-gutter-old-new.md) — twin gutter for
   the per-file cards
-- [code-block-with-file-path.md](./code-block-with-file-path.md) — the
+- [code-block-with-file-path.md](../../amvcp-code-syntax/references/code-block-with-file-path.md) — the
   file-path label on each card
-- [collapsed-snippets-walkthrough.md](./collapsed-snippets-walkthrough.md)
+- [collapsed-snippets-walkthrough.md](../../amvcp-code-snippets/references/collapsed-snippets-walkthrough.md)
   — if a file card hides additional context behind `<details>`
 
 ## E3.10 Light + dark verification

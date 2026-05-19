@@ -210,7 +210,7 @@ No JS needed for the basic case.
 
 For a 1.4s outline pulse on landing (as in `03-code-review-pr`'s
 chip pattern), add the same JS as in
-[keyword-arrow-highlight.md](./keyword-arrow-highlight.md) §C3.4.
+[keyword-arrow-highlight.md](../../amvcp-code-syntax/references/keyword-arrow-highlight.md) §C3.4.
 
 ## E7.7 The Gotchas / FAQ sections
 
@@ -243,8 +243,8 @@ this specific code in this specific section" interaction.
 
 - All from [collapsed-snippets-walkthrough.md](./collapsed-snippets-walkthrough.md)
 - All from [tabbed-code-panel.md](./tabbed-code-panel.md)
-- All from [code-block-with-tab-bar.md](./code-block-with-tab-bar.md)
-- All from [inline-code-chip.md](./inline-code-chip.md)
+- All from [code-block-with-tab-bar.md](../../amvcp-code-syntax/references/code-block-with-tab-bar.md)
+- All from [inline-code-chip.md](../../amvcp-code-syntax/references/inline-code-chip.md)
 - `--vc-color-neutral-500` / `-700` — TOC neutrals
 - `--ve-accent` — TOC hover, TL;DR border
 

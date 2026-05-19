@@ -204,4 +204,4 @@ scratch. This is what `__veChartRedraw` invokes on theme change.
 
 - [chart-fence-protocol.md](./chart-fence-protocol.md#choosing-the-right-type--the-decision-matrix)
 - [chart-design-tokens.md](./chart-design-tokens.md) — tokens the Canvas backend reads at render time.
-- [chart-bar.md](./chart-bar.md), [chart-line.md](./chart-line.md), [chart-area.md](./chart-area.md), [chart-dot-plot.md](./chart-dot-plot.md) — the four Canvas-capable types.
+- [chart-bar.md](../../amvcp-charts-bar/references/chart-bar.md), [chart-line.md](../../amvcp-charts-line-area/references/chart-line.md), [chart-area.md](../../amvcp-charts-line-area/references/chart-area.md), [chart-dot-plot.md](../../amvcp-charts-bar/references/chart-dot-plot.md) — the four Canvas-capable types.

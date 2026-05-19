@@ -182,10 +182,10 @@ shape every chart this skill produces.
 ## See also
 
 - [chart-donut.md](./chart-donut.md) — the sanctioned circular form.
-- [chart-segmented-bar.md](./chart-segmented-bar.md) — the inline alternative.
-- [chart-guardrails.md](./chart-guardrails.md) — the full list of enforced design guardrails (sparse gridlines, no-pie, no-D3, no-heavy-libs).
-- [chart-decision-matrix.md](./chart-decision-matrix.md) — picks `donut` / `segmented-bar` / `mekko` / `bar` for the parts-of-a-whole question, depending on context.
-- [chart-bar.md](./chart-bar.md) — what the pie spec is silently remapped to.
+- [chart-segmented-bar.md](../../amvcp-charts-bar/references/chart-segmented-bar.md) — the inline alternative.
+- [chart-guardrails.md](../../amvcp-dashboards/references/chart-guardrails.md) — the full list of enforced design guardrails (sparse gridlines, no-pie, no-D3, no-heavy-libs).
+- [chart-decision-matrix.md](../../amvcp-dashboards/references/chart-decision-matrix.md) — picks `donut` / `segmented-bar` / `mekko` / `bar` for the parts-of-a-whole question, depending on context.
+- [chart-bar.md](../../amvcp-charts-bar/references/chart-bar.md) — what the pie spec is silently remapped to.
 
 ## Visual verification
 
