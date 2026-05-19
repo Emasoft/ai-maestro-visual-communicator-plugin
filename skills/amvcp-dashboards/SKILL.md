@@ -38,12 +38,12 @@ Self-contained HTML: each fenced `<pre>` becomes a `<figure class="ve-chart" dat
 
 ## Error Handling
 
-- **Malformed JSON / missing title / missing series / unknown type / version too new** → degrades to a VISIBLE error block (danger banner with reason + original JSON kept verbatim). Never silent. See [chart-error-degradation.md](./references/chart-error-degradation.md).
+- **Malformed JSON / missing title / missing series / unknown type / version too new** → degrades to a VISIBLE error block (danger banner with reason + original JSON kept verbatim). Never silent. See the chart-error-degradation reference for the full failure-mode list.
 - **Chart overflows the viewport** → forbidden inner scrollers. Every `.ve-chart`, `.ve-chart-svg`, `.ve-chart-canvas` is `overflow: visible`. Wide charts extend the page; the document's own scrollbar handles it.
 - **Hover halo grey / palette feels wrong** → DESIGN.md is missing `--vc-color-accent` (or the dark variant). Fix the token, not the spec.
-- **>100 marks** → auto-switches to Canvas backend for `bar`/`line`/`area`/`dot-plot`. See [chart-canvas-backend.md](./references/chart-canvas-backend.md).
+- **>100 marks** → auto-switches to Canvas backend for `bar`/`line`/`area`/`dot-plot`. See the chart-canvas-backend reference.
 - **Theme swap leaves Canvas stale** → call `amvcpChart.scan(document)` after the theme change; the scanner re-runs each Canvas's `__veChartRedraw()`.
-- **Animation triggers vestibular distress** → all entry animations gate on `prefers-reduced-motion: reduce`. See [chart-animations-and-motion.md](./references/chart-animations-and-motion.md).
+- **Animation triggers vestibular distress** → all entry animations gate on `prefers-reduced-motion: reduce`. See the chart-animations-and-motion reference.
 
 ## Examples
 
@@ -96,17 +96,17 @@ Composes with every other amvcp-* skill on the same page (R22). Multiple charts/
 - [chart-palette-engine.md](./references/chart-palette-engine.md) — golden-angle palette + OKLCH sequential/diverging ramps
   > Categorical: the golden-angle palette · Sequential / diverging: OKLCH ramps · Accent extraction — `_accentLCH()` · Why no per-datum colors · Light + dark · Public API · See also
 - [chart-guardrails.md](./references/chart-guardrails.md) — enforced design rules
-  > Guardrail 1 — No pie charts · Guardrail 2 — Sparse horizontal gridlines only · Guardrail 3 — No vertical gridlines, ever · Guardrail 4 — No D3, no Plotly, no Chart.js · Guardrail 5 — Every chart needs an insight title · Guardrail 6 — No inner scrollbars · Guardrail 7 — Fail-fast, fail-visible · Guardrail 8 — Theme-driven colors, no hardcoded literals · Guardrail 9 — Motion respects `prefers-reduced-motion` · See also
+  > Guardrail 1 — No pie charts · Guardrail 2 — Sparse horizontal gridlines only (≤ 4) · Guardrail 3 — No vertical gridlines, ever · Guardrail 4 — No D3, no Plotly, no Chart.js · Guardrail 5 — Every chart needs an insight title · Guardrail 6 — No inner scrollbars · Guardrail 7 — Fail-fast, fail-visible · Guardrail 8 — Theme-driven colors, no hardcoded literals · Guardrail 9 — Motion respects `prefers-reduced-motion`
 - [chart-canvas-backend.md](./references/chart-canvas-backend.md) — the >100-mark auto-switch + Canvas hit-testing + a11y fallback list
   > When the switch fires · Which types are Canvas-capable · What changes for the user · Hit-testing · Accessibility — the hidden a11y list · Theme hot-swap on Canvas · Drawing model · Anti-patterns · See also
 - [chart-selection-and-comments.md](./references/chart-selection-and-comments.md) — the `chart-point` atom contract
   > What a chart-point atom is · The selection payload shape · The DOM contract — `data-ve-*` attributes · The pointer + keyboard wiring · Selected-state styling · The per-figure group comment-handle · The 3-radio Skip/Approve/Deny decision-mini pill · The defensive standalone-mode fallback · `veWireChart` — the legacy Chart.js bridge · See also
 - [chart-animations-and-motion.md](./references/chart-animations-and-motion.md) — entry animations + `prefers-reduced-motion`
-  > Overview · The fire-once IntersectionObserver · The motion gate — `prefers-reduced-motion` · Per-type entry animations · Cross-cutting tokens · Test hooks · See also
+  > The fire-once IntersectionObserver · The motion gate — `prefers-reduced-motion` · Per-type entry animations · Bar growUp (CSS keyframe) · Line / area draw-on (stroke-dashoffset) · Donut arc sweep (RAF) · Gauge arc sweep (RAF) · Radar polygon inflate (RAF) · Cross-cutting tokens · Test hooks · Overview
 - [chart-tooltip-and-hover.md](./references/chart-tooltip-and-hover.md) — singleton tooltip + hover-bridge anti-flicker
   > The singleton tooltip · The hover-bridge anti-flicker pattern · Click-to-lock · Positioning + viewport clamp · Native SVG `<title>` fallback · Canvas-side hover · Tooltip body shape · See also
 - [chart-error-degradation.md](./references/chart-error-degradation.md) — every failure mode + the visible error block
-  > Overview · The degrade function · Failure modes · What the error block looks like · Accessing the error reason programmatically · See also
+  > The degrade function · Failure modes · 1. Malformed JSON · 2. Missing `title` · 3. Missing `series` / empty `series` · [4. Bad `series[i].data` shape](#4-bad-seriesidata-shape) · 5. Unknown chart type · 6. Version too new · 7. Renderer throws · What the error block looks like · Accessing the error reason programmatically · Overview
 - [chart-design-tokens.md](./references/chart-design-tokens.md) — complete `--vc-*` token reference
   > Color tokens · Type-scale tokens · Font-family tokens · Weight tokens · Spacing tokens · Radius tokens · Shadow tokens · Motion tokens · Z-index tokens · How DESIGN.md should populate these · See also
 - [chart-public-api.md](./references/chart-public-api.md) — `window.amvcpChart` surface
