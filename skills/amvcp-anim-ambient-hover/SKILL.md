@@ -1,6 +1,6 @@
 ---
 name: amvcp-anim-ambient-hover
-description: "Ambient + hover polish + loading states — four floating presets (float-y, breathe, orbit, rotate), animated link underline, 3D card tilt, hover lift on cards, spring overshoot easing, wireframe bobbing card stack, pulse-ring loading dot, shimmer skeleton placeholder. Layer 4 + 5 of the animation contract. Trigger with 'float', 'bobbing', 'breathe', 'orbit', 'spin', 'link underline', '3D card tilt', 'hover lift', 'spring', 'pulse', 'skeleton', 'shimmer'."
+description: "Ambient + hover polish + loading states — four floating presets (float-y, breathe, orbit, rotate), animated link underline, 3D card tilt, hover lift, spring overshoot, bobbing card stack, pulse-ring loading dot, shimmer skeleton. Layer 4 + 5 of the animation contract. Use when adding ambient motion, hover polish, or loading placeholders. Trigger with 'float', 'bobbing', 'orbit', '3D card tilt', 'hover lift', 'pulse', 'skeleton', 'shimmer'."
 license: MIT
 compatibility: "Browser (IntersectionObserver). amvcp-animation.js + amvcp-designmd.js colocated with the HTML."
 metadata:

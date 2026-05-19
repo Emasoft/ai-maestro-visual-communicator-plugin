@@ -1,6 +1,6 @@
 ---
 name: amvcp-anim-entry-scroll
-description: "Entry + scroll-triggered animation — staggered cascade, fire-once IntersectionObserver reveal (4 variants), stat counter, parallax tiers, scroll progress bar, scroll-snap, pinned section, native scroll-driven timelines, clip wipe, scale pop, SVG line draw. Layer 2 + 3 of the animation contract. Trigger with 'stagger', 'scroll reveal', 'count up', 'parallax', 'scroll snap', 'pinned section', 'clip wipe', 'SVG line draw', 'progress bar'."
+description: "Entry + scroll-triggered animation — staggered cascade, fire-once IO reveal (4 variants), stat counter, parallax tiers, scroll progress bar, scroll-snap, pinned section, native scroll-driven timelines, clip wipe, scale pop, SVG line draw. Layer 2 + 3 of the animation contract. Use when adding entrance cascades or scroll-driven reveals. Trigger with 'stagger', 'scroll reveal', 'count up', 'parallax', 'pinned section', 'clip wipe', 'SVG line draw'."
 license: MIT
 compatibility: "Browser (IntersectionObserver). amvcp-animation.js + amvcp-designmd.js colocated with the HTML."
 metadata:
@@ -35,14 +35,14 @@ Layer 2 (entry stagger) + Layer 3 (scroll-triggered) of the animation surface. S
 
 ## Output
 
-Self-contained HTML with entry stagger and scroll-triggered animations. Every animation has a `reduce` substitute. Every animated atom is stamped per [atom-selection-stamping](../amvcp-anim-foundation/references/atom-selection-stamping.md).
+Self-contained HTML with entry stagger and scroll-triggered animations. Every animation has a `reduce` substitute. Every animated atom is stamped per the foundation's `atom-selection-stamping` reference (see `amvcp-anim-foundation`).
 
 ## Error Handling
 
 | Symptom | Fix |
 |---|---|
 | Content stuck invisible | `data-va-reveal` present but `amvcp-animation.js` not loaded — check the `<script>` tag. |
-| Stagger items flash then animate | Missing `animation-fill-mode: both` — see [animation-fill-mode](../amvcp-anim-foundation/references/animation-fill-mode.md). |
+| Stagger items flash then animate | Missing `animation-fill-mode: both` — see foundation `animation-fill-mode` reference. |
 | Counter shows `NaN` | `data-va-stat` is not a number. |
 | Parallax janky | Too many `.va-parallax-*` layers — reduce the count. |
 | Snap not snapping | `.va-snap-root` was placed on an inner box — must be at the document root. |

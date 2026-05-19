@@ -1,6 +1,6 @@
 ---
 name: amvcp-anim-foundation
-description: "Foundation animation contract — motion tokens, easing curves, reduced-motion gate, decorative-vs-informational binary, animation-fill-mode, transition-properties, keyframe catalog, CSS injection bootstrap, atom selection stamping, dynamic refresh APIs, anti-patterns, OT-08 13-section authoring plan. Tier-1 substrate every other animation sub-skill builds on. Trigger with 'motion tokens', 'easing', 'reduced motion', 'animation contract', 'keyframe', 'animation plan'."
+description: "Foundation animation contract — motion tokens, easing curves, reduced-motion gate, decorative-vs-informational binary, fill-mode, keyframe catalog, CSS injection bootstrap, atom stamping, dynamic refresh APIs, anti-patterns, OT-08 plan template. Tier-1 substrate every other animation sub-skill builds on. Use when authoring or fixing any amvcp animation surface. Trigger with 'motion tokens', 'easing', 'reduced motion', 'animation contract', 'keyframe'."
 license: MIT
 compatibility: "Browser (IntersectionObserver). amvcp-animation.js + amvcp-designmd.js colocated with the HTML."
 metadata:

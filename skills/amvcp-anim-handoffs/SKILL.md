@@ -1,6 +1,6 @@
 ---
 name: amvcp-anim-handoffs
-description: "Cross-skill animation handoffs + cross-cutting concerns — chart skill entrance + counter primitive, diagram skill flow-edge reveal, interactive-control stepper spin, slide-deck entrance moods + inter-slide transitions, print + PDF export stylesheet, touch + keyboard parity. Trigger with 'chart entrance', 'KPI counter card', 'flow diagram reveal', 'stepper spinner', 'slide transitions', 'print', 'PDF export', 'page break', 'focus visible', 'touch parity'."
+description: "Cross-skill animation handoffs + cross-cutting concerns — chart skill entrance + counter primitive, diagram skill flow-edge reveal, interactive-control stepper spin, slide-deck entrance moods + inter-slide transitions, print + PDF export stylesheet, touch + keyboard parity. Use when wiring animation into another amvcp skill or handling print/touch. Trigger with 'chart entrance', 'flow diagram reveal', 'slide transitions', 'print', 'PDF export', 'touch parity'."
 license: MIT
 compatibility: "Browser (IntersectionObserver). amvcp-animation.js + amvcp-designmd.js colocated with the HTML."
 metadata:

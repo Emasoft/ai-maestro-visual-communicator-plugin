@@ -1,6 +1,6 @@
 ---
 name: amvcp-anim-perf
-description: "Performance + advanced animation primitives — off-screen loop pause (AN-11), idle-deferred initialization two-tier contract (AN-11), delta-time rAF loop primitive (AN-12), re-scanning dynamic content, live reduced-motion-preference toggles. Layer 6 of the animation contract. Trigger with 'loop pause', 'idle defer', 'rAF loop', 'requestAnimationFrame loop', 'delta time', 'pause off-screen', 'requestIdleCallback'."
+description: "Performance + advanced animation primitives — off-screen loop pause (AN-11), idle-deferred initialization two-tier contract (AN-11), delta-time rAF loop primitive (AN-12), re-scanning dynamic content, live reduced-motion-preference toggles. Layer 6 of the animation contract. Use when budgeting animation CPU or wiring custom rAF loops. Trigger with 'loop pause', 'idle defer', 'rAF loop', 'delta time', 'pause off-screen'."
 license: MIT
 compatibility: "Browser (IntersectionObserver, requestAnimationFrame, requestIdleCallback with setTimeout fallback). amvcp-animation.js."
 metadata:
@@ -25,7 +25,7 @@ Layer 6 of the animation surface — performance + advanced primitives. The off-
 1. **Loop-pause** is automatic for ships-with selectors — see [loop-pause-observer](references/loop-pause-observer.md). Custom loops MUST attach their own IO or join `LOOP_SELECTOR`.
 2. **Idle defer** — for any non-Tier-1 wiring, hand the work to the deferred queue. See [idle-deferred-init](references/idle-deferred-init.md).
 3. **Custom canvas / game loop** → `createLoop(update, render)` primitive. See [delta-time-loop](references/delta-time-loop.md).
-4. **After dynamic insertion** → call `refresh(root)` (see foundation's [dynamic-content-refresh](../amvcp-anim-foundation/references/dynamic-content-refresh.md)).
+4. **After dynamic insertion** → call `refresh(root)` (see foundation's `dynamic-content-refresh` reference).
 5. **Verify perf budget** per [performance](references/performance.md).
 
 ## Output
