@@ -195,3 +195,48 @@ jobs:
           # parse commit history into the changelog, so a commit that
           # passes here will produce a clean CHANGELOG entry.
           configFile: ${{ github.workspace }}/.commitlintrc.json
+
+  lint-security:
+    # B6 (canonical-pipeline-migration step 8) — Mega-Linter security
+    # scanners (Bandit + Checkov + Gitleaks + Trivy + Cspell + JSCPD)
+    # plus a second pass of ruff/mypy/shellcheck/shfmt/json/yaml/markdown
+    # lint. Configured via .mega-linter.yml. The existing `lint` job
+    # above still runs ruff + actionlint + shellcheck inline as a fast
+    # gate — this job is the heavier supply-chain-security pass.
+    #
+    # Timeout: 15 min — Mega-Linter is slow on first run (downloads
+    # ~5 GB of linter images); cached subsequent runs take ~3-5 min.
+    # continue-on-error: true intentionally — the security scanners
+    # may flag pre-existing findings that need triage; this job
+    # surfaces them as advisory notices without blocking the build
+    # until that triage is complete. Promote to fail-on-error in a
+    # future PR once the initial findings are addressed.
+    name: Lint-Security
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          # Need full history so Gitleaks can scan all commits, not
+          # just the latest one.
+          fetch-depth: 0
+
+      - name: Mega-Linter (security scanners + repo lint)
+        # Pinned to commit SHA per the project gh-actions.md rule.
+        uses: oxsecurity/megalinter@0e3ce9b9c8c10effb9b269509cc47ca17cae31c7 # v9.5.0
+        env:
+          VALIDATE_ALL_CODEBASE: false
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: archive mega-linter reports
+        # Always archive even on failure so the developer can download
+        # the per-linter sub-reports for triage.
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: mega-linter-reports
+          path: |
+            megalinter-reports
+            mega-linter.log
+          retention-days: 14

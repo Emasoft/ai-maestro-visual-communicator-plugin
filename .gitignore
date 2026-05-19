@@ -45,6 +45,13 @@ env/
 /.tldr/
 /.tldrignore
 
+# Mega-Linter runtime artefacts — produced by the lint-security CI job
+# (.github/workflows/ci.yml) and locally by `mega-linter-runner`. The
+# reports dir is large (per-linter sub-reports + html dashboard) and
+# never useful in git.
+megalinter-reports/
+mega-linter.log
+
 # Vendored library build artefacts — node_modules is huge, dist is
 # regenerable via `npm run build` in the vendor dir. Vendored source
 # lives under top-level vendor/<lib>/src/ (TRACKED, but not part of
