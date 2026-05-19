@@ -21,6 +21,8 @@
 - [R18 — Dispatched-event vs real-mouse-path](#r18--dispatched-event-vs-real-mouse-path)
 - [R17 — Mini decision chip is responsive](#r17--mini-decision-chip-is-responsive)
 
+## Rules
+
 Universal CSS, layout, and direct-interaction rules every visualization MUST satisfy. Each rule includes the why, the contract, and a dev-browser snippet you can paste into `page.evaluate(...)` to verify conformance.
 
 ### R1 — Light + dark themes

@@ -19,6 +19,8 @@
 - [R40 — Accessibility primitives + clean print export](#r40--accessibility-primitives--clean-print-export)
 - [R41 — dev-browser NEVER runs in headless mode](#r41--dev-browser-never-runs-in-headless-mode)
 
+## Rules
+
 R26-R41 cover the DESIGN.md pod contract (always-mounted, save/rename/delete user presets, summon gesture), the universal-UX baseline (touch parity, responsive viewport matrix, retina density, corner buttons always-on-top, no overlap, no truncation, diagram zoom/pan, font-size minimums, live-page overlay), R26 skill-discoverability, R40 accessibility primitives + print export, and R41 dev-browser-never-headless. Each rule includes a dev-browser verify snippet.
 
 ### R27 — DESIGN.md style controller pod always MOUNTED (but hidden by default)
