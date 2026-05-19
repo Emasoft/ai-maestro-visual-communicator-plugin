@@ -43,7 +43,13 @@ The runtime auto-loads KaTeX with mhchem on first ve-math element and lazy-loads
 
 ## Modes
 
-This skill supports `data-ve-mode="readonly"` only. KaTeX / TikZ output is mathematical/scientific visualization — symbols and sub-elements (cells, indices, bounds, terms, operators) are selectable for comment via the `\vecell` / `\veidx` / `\vebound` / `\veterm` / `\veop` macros, but the per-element 3-state decision pill (R20-R23) does NOT apply. For "pick one formula from N candidates" wrap the formulas in `amvcp-choice-tables` with this skill rendering each row's content.
+This skill supports `data-ve-mode="readonly"` only. KaTeX / TikZ output is mathematical/scientific visualization — symbols and sub-elements (cells, indices, bounds, terms, operators) are selectable for comment via the macros listed below, but the per-element 3-state decision pill (R20-R23) does NOT apply. For "pick one formula from N candidates" wrap the formulas in `amvcp-choice-tables` with this skill rendering each row's content.
+
+Comment-anchor macros (LaTeX command names used inside `.ve-math` / `.ve-tikz` source):
+
+```latex
+\vecell  \veidx  \vebound  \veterm  \veop
+```
 
 ## Composability
 

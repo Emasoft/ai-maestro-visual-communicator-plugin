@@ -208,8 +208,7 @@ the recommendation.
 
 ## E9.7 The "code panel per column" discipline
 
-Each column uses the SLATE-BG code panel (see [slate-bg-code-panel.md](
-./slate-bg-code-panel.md)). The dark panels read as load-bearing
+Each column uses the SLATE-BG code panel (see [slate-bg-code-panel.md](../../amvcp-code-syntax/references/slate-bg-code-panel.md)). The dark panels read as load-bearing
 content; the prose / chips around them are supporting.
 
 The 3 code blocks should be ROUGHLY SAME-HEIGHT — pick implementations
