@@ -25,17 +25,21 @@ The fidelity engine. Four ordinal stages — `wireframe` / `low` / `mid` / `hi` 
 ## Instructions
 
 1. **Pick a fidelity stage** via the audience × phase matrix in [`fidelity-decision-guide.md`](references/fidelity-decision-guide.md).
+  > The 4 stages — recap · Decision matrix: audience × phase → fidelity · When to use `wireframe` fidelity · When to use `low` fidelity · When to use `mid` fidelity · When to use `hi` fidelity · When to ship a fidelity RAMP (multiple side-by-side) · When to ship a fidelity SLIDER (interactive) · The "promote to next fidelity" workflow · Anti-patterns to avoid
 2. **Set `data-wf-fidelity`** on the `.wf-root` to one of `wireframe` / `low` / `mid` / `hi`. Invalid values throw (fail-fast).
 3. **Author kit blocks** per [`wireframe-kit.md`](references/wireframe-kit.md) — never hardcode a hex; every color reads `var(--vc-color-*)` so desaturation works.
   > The 19 classes — at a glance · Authoring a `.wf-root` · Per-class HTML contract · The `--vc-*` token contract — what the wireframe consumes · The `--wf-*` geometry tokens · The grayscale rule — why no class hardcodes a hex · The fidelity-lock attribute mechanics · Avatar exception — why `.wf-avatar` stays round at every fidelity · Selection contract — every block is a `data-ve-id` atom
 4. **For a ramp** — wrap four `.wf-root` copies in a `.wf-ramp`, one per stage. See [`fidelity-ramp.md`](references/fidelity-ramp.md).
+  > The 4 stages — definitions · The desaturation algorithm — `k`-factor + lightness preservation · Per-stage chroma table · Why accent gets its own `k` ramp · Authoring a side-by-side `.wf-ramp` · Authoring a `.wf-fidelity-slider` · Programmatic fidelity changes — `applyFidelity(rootEl, fidelity)` · Theme-flip re-desaturation · The fail-fast contract — invalid fidelity throws · Common ramp pitfalls
 5. **For a slider** — add a `.wf-fidelity-slider` that drives `applyFidelity(rootEl, fidelity)` on its target.
 6. **Verify theme correctness** — flip the theme; chroma must stay zero at fidelity=wireframe in BOTH themes. See [`theme-and-dark-mode.md`](references/theme-and-dark-mode.md).
+  > The two-theme guarantee · How light + dark are derived from the DESIGN.md · Theme flip — the `ve:themechange` event · Lightness preservation — why both themes work · Per-theme spot illustrations · The device-frame exception (fixed dark bezel) · Per-screen theme override (the "dark mode preview") · Theme-toggle wireframe pattern · Common theme bugs and fixes · The "screenshot in both themes" rule
 7. **Write realistic placeholder copy** — never lorem ipsum. See [`copy-conventions.md`](references/copy-conventions.md).
+  > The "no lorem" rule · Realistic placeholders by field type · Button labels — verb + object · Empty-state copy formulas · Error message conventions · Success / confirmation messages · Heading hierarchy and tone · Microcopy length budgets · Internationalization considerations · Sample data realism
 8. **Respect the spacing/type scale** — every gap is a `--vc-space-*`, every text size a `--vc-text-*`. See [`spacing-and-typography.md`](references/spacing-and-typography.md).
   > The `--vc-space-*` scale · The `--vc-text-*` scale · Spacing application rules · Vertical rhythm — the consistent gap pattern · Heading hierarchy · Text utility classes (wf-text + custom) · Font family contract — serif / sans / mono · Line length (measure) — 65-75 characters · Letter spacing for tracked uppercase · Numerals — tabular vs proportional · Common spacing + type bugs
 
-Checklist:
+Copy this checklist and track your progress:
 
 - [ ] `data-wf-fidelity` set to a valid stage
 - [ ] Every color reads `var(--vc-color-*)` (no raw hex)
@@ -81,10 +85,14 @@ Composes with every sibling wireframe skill (devices, screens, archetypes) and e
 ## Resources
 
 - [fidelity-ramp.md](references/fidelity-ramp.md) — 4-stage desaturation, `k`-factor table, ramp + slider authoring.
+  > The 4 stages — definitions · The desaturation algorithm — `k`-factor + lightness preservation · Per-stage chroma table · Why accent gets its own `k` ramp · Authoring a side-by-side `.wf-ramp` · Authoring a `.wf-fidelity-slider` · Programmatic fidelity changes — `applyFidelity(rootEl, fidelity)` · Theme-flip re-desaturation · The fail-fast contract — invalid fidelity throws · Common ramp pitfalls
 - [fidelity-decision-guide.md](references/fidelity-decision-guide.md) — audience × phase → fidelity matrix.
+  > The 4 stages — recap · Decision matrix: audience × phase → fidelity · When to use `wireframe` fidelity · When to use `low` fidelity · When to use `mid` fidelity · When to use `hi` fidelity · When to ship a fidelity RAMP (multiple side-by-side) · When to ship a fidelity SLIDER (interactive) · The "promote to next fidelity" workflow · Anti-patterns to avoid
 - [wireframe-kit.md](references/wireframe-kit.md) — 19 fidelity-locked classes, per-class HTML contract, token table.
   > The 19 classes — at a glance · Authoring a `.wf-root` · Per-class HTML contract · The `--vc-*` token contract — what the wireframe consumes · The `--wf-*` geometry tokens · The grayscale rule — why no class hardcodes a hex · The fidelity-lock attribute mechanics · Avatar exception — why `.wf-avatar` stays round at every fidelity · Selection contract — every block is a `data-ve-id` atom
 - [theme-and-dark-mode.md](references/theme-and-dark-mode.md) — two-theme guarantee, lightness preservation, theme-flip event.
+  > The two-theme guarantee · How light + dark are derived from the DESIGN.md · Theme flip — the `ve:themechange` event · Lightness preservation — why both themes work · Per-theme spot illustrations · The device-frame exception (fixed dark bezel) · Per-screen theme override (the "dark mode preview") · Theme-toggle wireframe pattern · Common theme bugs and fixes · The "screenshot in both themes" rule
 - [spacing-and-typography.md](references/spacing-and-typography.md) — `--vc-space-*` + `--vc-text-*` scales, vertical rhythm.
   > The `--vc-space-*` scale · The `--vc-text-*` scale · Spacing application rules · Vertical rhythm — the consistent gap pattern · Heading hierarchy · Text utility classes (wf-text + custom) · Font family contract — serif / sans / mono · Line length (measure) — 65-75 characters · Letter spacing for tracked uppercase · Numerals — tabular vs proportional · Common spacing + type bugs
 - [copy-conventions.md](references/copy-conventions.md) — no-lorem rule, realistic placeholders, microcopy budgets.
+  > The "no lorem" rule · Realistic placeholders by field type · Button labels — verb + object · Empty-state copy formulas · Error message conventions · Success / confirmation messages · Heading hierarchy and tone · Microcopy length budgets · Internationalization considerations · Sample data realism

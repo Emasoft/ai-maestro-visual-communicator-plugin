@@ -24,6 +24,7 @@ Wrap a wireframe in a CSS-only device bezel. Four hardware frames ship — `wf-f
 ## Instructions
 
 1. **Pick a frame** by device class — see the device table in [`device-frames.md`](references/device-frames.md).
+  > The 4 frames — pick by device class · Frame geometry — the size, radius, border budget · Frame 1 — `wf-frame--ios` (iPhone 15 Pro) · Frame 2 — `wf-frame--android` (Pixel-class) · Frame 3 — `wf-frame--macbook` · Frame 4 — `wf-frame--browser` (desktop window chrome) · The fixed-dark-bezel exception — why it's not themed · Status-bar glyph styling — light glyphs on dark theme · No nested scrollbars — `wf-frame__content` invariant · Responsive degradation — frames narrower than 460px · Customisation — overriding the per-frame geometry
 2. **Wrap your screen** — `<div class="wf-frame wf-frame--ios"><div class="wf-frame__content">… your `.wf-archetype--mobile` here …</div></div>`.
 3. **Author the screen content** as a normal `.wf-root` (composes with [amvcp-wf-fidelity](../amvcp-wf-fidelity/SKILL.md) and [amvcp-wf-archetypes](../amvcp-wf-archetypes/SKILL.md)).
 4. **Never set `overflow` on `.wf-frame__content`** — the no-nested-scrollbars invariant.
@@ -31,7 +32,7 @@ Wrap a wireframe in a CSS-only device bezel. Four hardware frames ship — `wf-f
   > The standard breakpoint set · Mobile-first vs desktop-first authoring · The 3-viewport screenshot test · Responsive grid patterns · Container queries — the modern alternative · Show / hide per viewport · Touch target sizes (44 × 44 minimum) · Fluid typography (clamp + vw) · Hover-on-touch fallbacks · Orientation (portrait / landscape) handling · Common responsive bugs in wireframes
 6. **Customise geometry** via the per-frame `--wf-frame-*` tokens if you need a non-default size.
 
-Checklist:
+Copy this checklist and track your progress:
 
 - [ ] Frame wraps a `.wf-frame__content`, which wraps the screen
 - [ ] `.wf-frame__content` has no `overflow` override
@@ -76,5 +77,6 @@ Composes with every sibling wireframe skill (fidelity, screens, archetypes) and 
 ## Resources
 
 - [device-frames.md](references/device-frames.md) — 4 frames, geometry table, fixed-dark-bezel exception, no-nested-scrollbars invariant.
+  > The 4 frames — pick by device class · Frame geometry — the size, radius, border budget · Frame 1 — `wf-frame--ios` (iPhone 15 Pro) · Frame 2 — `wf-frame--android` (Pixel-class) · Frame 3 — `wf-frame--macbook` · Frame 4 — `wf-frame--browser` (desktop window chrome) · The fixed-dark-bezel exception — why it's not themed · Status-bar glyph styling — light glyphs on dark theme · No nested scrollbars — `wf-frame__content` invariant · Responsive degradation — frames narrower than 460px · Customisation — overriding the per-frame geometry
 - [responsive-and-breakpoints.md](references/responsive-and-breakpoints.md) — breakpoints, grid patterns, touch targets, fluid type, frame-aware sizing.
   > The standard breakpoint set · Mobile-first vs desktop-first authoring · The 3-viewport screenshot test · Responsive grid patterns · Container queries — the modern alternative · Show / hide per viewport · Touch target sizes (44 × 44 minimum) · Fluid typography (clamp + vw) · Hover-on-touch fallbacks · Orientation (portrait / landscape) handling · Common responsive bugs in wireframes

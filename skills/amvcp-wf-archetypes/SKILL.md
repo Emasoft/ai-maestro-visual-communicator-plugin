@@ -24,6 +24,7 @@ The page-skeleton shapes that organise the kit's 19 blocks into the most common 
 ## Instructions
 
 1. **Pick an archetype** for each `.wf-screen` — see [`layout-archetypes.md`](references/layout-archetypes.md).
+  > The 4 archetypes — when to choose which · Archetype 1 — `wf-archetype--app` (desktop app chrome) · Archetype 2 — `wf-archetype--web` (standard web page) · Archetype 3 — `wf-archetype--mobile` (narrow mobile screen) · Archetype 4 — `wf-archetype--modal` (overlay dialog) · Composing archetypes — modal-over-anything pattern · Grid debugging — visualising the template areas
 2. **Drop the right pattern family inside** — dashboard ([dashboard-screens.md](references/dashboard-screens.md)), settings ([settings-screens.md](references/settings-screens.md)), modal ([modal-and-overlay-patterns.md](references/modal-and-overlay-patterns.md)), state/empty ([state-and-feedback-patterns.md](references/state-and-feedback-patterns.md)).
   > Pattern 1 — KPI overview (stat band + chart + recent activity) · Pattern 2 — Data table (sortable list with filters + pagination) · Pattern 3 — Single record (header + tabs + detail panel) · Pattern 4 — Settings (sectioned forms + save bar) · Pattern 5 — Empty admin (onboarding wizard step) · Pattern 6 — Multi-column board (kanban / columns) · The stat-band recipe — 4 KPI cards in a row · The chart placeholder — `wf-image` substitute · Sidebar grouping with `wf-divider` · Dense data — when to break the 16px gap rule
 3. **Add navigation** — top nav, side nav, bottom tabs, breadcrumb, command palette. See [`navigation-patterns.md`](references/navigation-patterns.md).
@@ -34,7 +35,7 @@ The page-skeleton shapes that organise the kit's 19 blocks into the most common 
   > Pattern 1 — Standard sortable table · Pattern 2 — Compact list (denser than table) · Pattern 3 — Expandable rows (master-detail in one view) · Pattern 4 — Inline editable cells · Pattern 5 — Drag-to-reorder (sortable list) · Pattern 6 — Virtualized big-data (10k+ rows) · Row selection — checkbox column + bulk action bar · Empty table state · Sticky header + sticky first column · Cell type conventions (text, number, date, status, action)
 6. **Compose archetypes** — modal-over-anything (a `wf-archetype--modal` overlays any other archetype on the same screen).
 
-Checklist:
+Copy this checklist and track your progress:
 
 - [ ] Each `.wf-screen` picks exactly one archetype
 - [ ] Navigation pattern matches the archetype (top nav for web, side nav for app, bottom tabs for mobile)
@@ -84,6 +85,7 @@ Composes with every sibling wireframe skill (fidelity, devices, screens) and eve
 ## Resources
 
 - [layout-archetypes.md](references/layout-archetypes.md) — 4 base archetype skeletons + composition rules.
+  > The 4 archetypes — when to choose which · Archetype 1 — `wf-archetype--app` (desktop app chrome) · Archetype 2 — `wf-archetype--web` (standard web page) · Archetype 3 — `wf-archetype--mobile` (narrow mobile screen) · Archetype 4 — `wf-archetype--modal` (overlay dialog) · Composing archetypes — modal-over-anything pattern · Grid debugging — visualising the template areas
 - [dashboard-screens.md](references/dashboard-screens.md) — KPI overview / data table / single record / settings / wizard / kanban (app-grid archetype).
   > Pattern 1 — KPI overview (stat band + chart + recent activity) · Pattern 2 — Data table (sortable list with filters + pagination) · Pattern 3 — Single record (header + tabs + detail panel) · Pattern 4 — Settings (sectioned forms + save bar) · Pattern 5 — Empty admin (onboarding wizard step) · Pattern 6 — Multi-column board (kanban / columns) · The stat-band recipe — 4 KPI cards in a row · The chart placeholder — `wf-image` substitute · Sidebar grouping with `wf-divider` · Dense data — when to break the 16px gap rule
 - [settings-screens.md](references/settings-screens.md) — settings hub / single section / preferences / security / billing / notifications (settings archetype).
