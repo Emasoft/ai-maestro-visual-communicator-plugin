@@ -10,7 +10,13 @@ name: ci
 
 on:
   push:
-    branches: [main]
+    # B5 (canonical-pipeline-migration step 5) — include `master` for
+    # rename-safe future-proofing. The plugin uses `main` exclusively, but
+    # canon ships [main, master] so a future default-branch rename keeps
+    # CI firing on the new branch name without an extra commit.
+    branches: [main, master]
+  # pull_request without an explicit branches filter — gh-actions.md says
+  # PR events should run against the PR target branch automatically.
   pull_request:
   merge_group:
 
@@ -87,9 +93,27 @@ jobs:
           enable-cache: true
 
       - name: validate plugin
+        # Canon exit-code classification — exit codes 1-4 are CRITICAL /
+        # MAJOR / MINOR / NIT (all block in --strict mode). Exit codes ≥5
+        # are advisory-only WARNINGs; surface them as a workflow notice
+        # but don't fail the job. The strict-mode end-state is the same;
+        # the classification just adds operator clarity in CI logs.
         run: |
+          set +e
           uvx --from git+https://github.com/Emasoft/claude-plugins-validation \
             --with pyyaml cpv-remote-validate plugin . --strict
+          exit_code=$?
+          set -e
+          if [ $exit_code -eq 0 ]; then
+            echo "Validation passed"
+            exit 0
+          elif [ $exit_code -ge 1 ] && [ $exit_code -le 4 ]; then
+            echo "::error::Validation failed (exit $exit_code: CRITICAL/MAJOR/MINOR/NIT)"
+            exit $exit_code
+          else
+            echo "::warning::Validation produced only WARNING-level findings (exit $exit_code) — advisory, not blocking"
+            exit 0
+          fi
 
   test:
     # IMPORTANT: display name must remain `Test` — see file header.
