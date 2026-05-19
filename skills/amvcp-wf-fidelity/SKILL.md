@@ -27,11 +27,13 @@ The fidelity engine. Four ordinal stages — `wireframe` / `low` / `mid` / `hi` 
 1. **Pick a fidelity stage** via the audience × phase matrix in [`fidelity-decision-guide.md`](references/fidelity-decision-guide.md).
 2. **Set `data-wf-fidelity`** on the `.wf-root` to one of `wireframe` / `low` / `mid` / `hi`. Invalid values throw (fail-fast).
 3. **Author kit blocks** per [`wireframe-kit.md`](references/wireframe-kit.md) — never hardcode a hex; every color reads `var(--vc-color-*)` so desaturation works.
+  > The 19 classes — at a glance · Authoring a `.wf-root` · Per-class HTML contract · The `--vc-*` token contract — what the wireframe consumes · The `--wf-*` geometry tokens · The grayscale rule — why no class hardcodes a hex · The fidelity-lock attribute mechanics · Avatar exception — why `.wf-avatar` stays round at every fidelity · Selection contract — every block is a `data-ve-id` atom
 4. **For a ramp** — wrap four `.wf-root` copies in a `.wf-ramp`, one per stage. See [`fidelity-ramp.md`](references/fidelity-ramp.md).
 5. **For a slider** — add a `.wf-fidelity-slider` that drives `applyFidelity(rootEl, fidelity)` on its target.
 6. **Verify theme correctness** — flip the theme; chroma must stay zero at fidelity=wireframe in BOTH themes. See [`theme-and-dark-mode.md`](references/theme-and-dark-mode.md).
 7. **Write realistic placeholder copy** — never lorem ipsum. See [`copy-conventions.md`](references/copy-conventions.md).
 8. **Respect the spacing/type scale** — every gap is a `--vc-space-*`, every text size a `--vc-text-*`. See [`spacing-and-typography.md`](references/spacing-and-typography.md).
+  > The `--vc-space-*` scale · The `--vc-text-*` scale · Spacing application rules · Vertical rhythm — the consistent gap pattern · Heading hierarchy · Text utility classes (wf-text + custom) · Font family contract — serif / sans / mono · Line length (measure) — 65-75 characters · Letter spacing for tracked uppercase · Numerals — tabular vs proportional · Common spacing + type bugs
 
 Checklist:
 
@@ -81,6 +83,8 @@ Composes with every sibling wireframe skill (devices, screens, archetypes) and e
 - [fidelity-ramp.md](references/fidelity-ramp.md) — 4-stage desaturation, `k`-factor table, ramp + slider authoring.
 - [fidelity-decision-guide.md](references/fidelity-decision-guide.md) — audience × phase → fidelity matrix.
 - [wireframe-kit.md](references/wireframe-kit.md) — 19 fidelity-locked classes, per-class HTML contract, token table.
+  > The 19 classes — at a glance · Authoring a `.wf-root` · Per-class HTML contract · The `--vc-*` token contract — what the wireframe consumes · The `--wf-*` geometry tokens · The grayscale rule — why no class hardcodes a hex · The fidelity-lock attribute mechanics · Avatar exception — why `.wf-avatar` stays round at every fidelity · Selection contract — every block is a `data-ve-id` atom
 - [theme-and-dark-mode.md](references/theme-and-dark-mode.md) — two-theme guarantee, lightness preservation, theme-flip event.
 - [spacing-and-typography.md](references/spacing-and-typography.md) — `--vc-space-*` + `--vc-text-*` scales, vertical rhythm.
+  > The `--vc-space-*` scale · The `--vc-text-*` scale · Spacing application rules · Vertical rhythm — the consistent gap pattern · Heading hierarchy · Text utility classes (wf-text + custom) · Font family contract — serif / sans / mono · Line length (measure) — 65-75 characters · Letter spacing for tracked uppercase · Numerals — tabular vs proportional · Common spacing + type bugs
 - [copy-conventions.md](references/copy-conventions.md) — no-lorem rule, realistic placeholders, microcopy budgets.
