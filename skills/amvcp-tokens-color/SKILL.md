@@ -54,11 +54,28 @@ The color layer of the token system — perceptual OKLCh ramp generator (with op
 
 ## Examples
 
-- *"Generate a 10-step blue color ramp."* → `generateOklchRamp('#1d4ed8', 10)` (step 1), map stops to the color roles, emit DESIGN.md.
-- *"I want gray derived from one ink color."* → `generateNeutralScale('#1a2026', [5,10,20,40,60,80,95])` (step 2).
-- *"Color these 7 activity types distinctly."* → `generateCategoricalHues(7, baseHue)` (step 3); alternatively the shipped activity role-map.
-- *"Add badge severities (MUST/IMO/Q/FYI)."* → step 6 — `renderRoleMapCss('badge-severity')`, inject, apply `data-vc-role="must"|"imo"|"q"|"fyi"`.
-- *"Check this report color passes contrast."* → `contrastRatio('#1a1a1a', '#fafafa')` (step 5).
+```
+Input:  "Generate a 10-step blue color ramp."
+Output: generateOklchRamp('#1d4ed8', 10) (step 1) → 10 stops in OKLCh
+        space; map mid stop → --vc-color-accent, near-white →
+        --vc-color-surface-sunken. Emit as DESIGN.md color: group.
+
+Input:  "I want gray derived from one ink color."
+Output: generateNeutralScale('#1a2026', [5,10,20,40,60,80,95]) (step 2)
+        → 7 gray stops via color-mix(in oklab, var(--ink) N%, transparent).
+
+Input:  "Color these 7 activity types distinctly."
+Output: generateCategoricalHues(7, baseHue) (step 3) → 7 hues separated
+        by 137.5° each; or use the shipped activity role-map directly.
+
+Input:  "Add badge severities (MUST/IMO/Q/FYI)."
+Output: step 6 → renderRoleMapCss('badge-severity'), inject the returned
+        <style>, apply data-vc-role="must"|"imo"|"q"|"fyi" to elements.
+
+Input:  "Check this report color passes WCAG AA contrast."
+Output: contrastRatio('#1a1a1a', '#fafafa') (step 5) → 15.36, well above
+        the 4.5:1 AA threshold for body text.
+```
 
 ## Modes
 

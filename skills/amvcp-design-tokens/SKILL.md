@@ -45,11 +45,24 @@ This router emits no markup. The downstream sibling produces the actual artifact
 
 ## Examples
 
-- *"Generate a 10-step blue color ramp."* → load `amvcp-tokens-color`, step 1.
-- *"Make a warm design system and show me the tokens."* → load `amvcp-tokens-presets` (pick the heritage preset) + `amvcp-tokens-contact-sheet` (mount the sheet) + `amvcp-tokens-anti-slop` (lint).
-- *"Set up the phi spacing scale."* → load `amvcp-tokens-scales`, step 1.
-- *"Apply the factory-dark theme to this page."* → load `amvcp-tokens-presets`, step 4.
-- *"Check this report for AI-slop colors."* → load `amvcp-tokens-anti-slop`, step 2.
+```
+Input:  "Generate a 10-step blue color ramp."
+Output: load amvcp-tokens-color, run step 1 (generateOklchRamp).
+
+Input:  "Make a warm design system and show me the tokens."
+Output: load amvcp-tokens-presets (pick the heritage preset), then
+        amvcp-tokens-contact-sheet (mount the sheet), then
+        amvcp-tokens-anti-slop (lint the emitted HTML).
+
+Input:  "Set up the phi spacing scale."
+Output: load amvcp-tokens-scales, run step 1 (generatePhiSpacing).
+
+Input:  "Apply the factory-dark theme to this page."
+Output: load amvcp-tokens-presets, run step 4 (hot-swap).
+
+Input:  "Check this report for AI-slop colors."
+Output: load amvcp-tokens-anti-slop, run step 2 (lintHtml).
+```
 
 ## When to choose this category
 
