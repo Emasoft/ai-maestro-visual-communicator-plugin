@@ -1083,16 +1083,20 @@ const tests = [
 
 const page = await browser.getPage("icon-svg-tests");
 
-for (const t of tests) {
-  try {
-    await t(page);
-  } catch (e) {
-    record(t.name || 'unnamed', 'ERROR', t.name || '',
-      String(e && e.message || e).slice(0, 120));
+try {
+  for (const t of tests) {
+    try {
+      await t(page);
+    } catch (e) {
+      record(t.name || 'unnamed', 'ERROR', t.name || '',
+        String(e && e.message || e).slice(0, 120));
+    }
   }
-}
 
-for (const r of results) {
-  console.log(`TEST | ${r.name} | ${r.status} | ${r.desc} | `
-    + `${r.detail.replace(/\|/g, '/')}`);
+  for (const r of results) {
+    console.log(`TEST | ${r.name} | ${r.status} | ${r.desc} | `
+      + `${r.detail.replace(/\|/g, '/')}`);
+  }
+} finally {
+  await page.close();
 }

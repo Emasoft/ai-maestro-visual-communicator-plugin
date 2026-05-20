@@ -270,7 +270,55 @@ def render_failures(rows: list[dict]) -> str:
     return "\n".join(out)
 
 
+def chromium_renderer_count() -> int:
+    """Return the number of Chrome for Testing renderer subprocesses.
+
+    Uses a ps snapshot (per ~/.claude/rules/browser-ui-test-techniques.md §9
+    — never grep the live ps output, snapshot first to avoid self-match).
+    """
+    snap = subprocess.run(
+        ["ps", "-eo", "pid,command"],
+        capture_output=True, text=True, check=False,
+    ).stdout
+    return sum(
+        1 for line in snap.splitlines()
+        if "Chrome for Testing" in line and "--type=renderer" in line
+    )
+
+
 def main() -> int:
+    baseline = chromium_renderer_count()
+    try:
+        rc = _main_inner()
+    finally:
+        # Always run the leak check, even if _main_inner raised — but do NOT
+        # `return` from inside `finally` (that would swallow any in-flight
+        # exception). Just emit the warning; the caller still sees the real
+        # traceback if one is propagating.
+        leaked = chromium_renderer_count() - baseline
+        if leaked > 0:
+            print(
+                f"\nWARNING: {leaked} chromium renderer process(es) leaked "
+                f"during the test run (baseline {baseline}, now {baseline + leaked}).",
+                file=sys.stderr,
+                flush=True,
+            )
+            print(
+                "  This is a TEST BUG, not a CPV bug — the leaked tests "
+                "are missing `try/finally { await page.close() }`. See "
+                "~/.claude/rules/browser-ui-test-techniques.md §14.",
+                file=sys.stderr,
+                flush=True,
+            )
+    # If _main_inner returned cleanly but leaked, escalate to exit 2 so CI
+    # catches the hygiene regression. Test failures (rc != 0) trump leak
+    # warnings — we don't want a leak to mask a real test failure code.
+    if leaked > 0 and rc == 0:
+        return 2
+    return rc
+
+
+def _main_inner() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument(
         "--only",
