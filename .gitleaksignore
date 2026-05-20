@@ -2,9 +2,17 @@
 # Format: one "<commit>:<file>:<rule-id>:<line>" per line.
 #
 # Path-based allowlist in .gitleaks.toml is the primary mechanism
-# (commit-invariant); this file is a fallback for older gitleaks
-# versions that ignore .gitleaks.toml's allowlist.
+# (commit-invariant); this file pins specific historical findings
+# whose path-based form would also catch legitimate future scans.
 #
 # NB: the comment in this file MUST NOT quote any text from the
 # scanned source file, because gitleaks scans the ignore file too
 # and any quoted trigger text would itself become a finding.
+
+# Historical finding from step 15 commit (.gitleaksignore line 6 at
+# commit 66368cd). The step-15 commit message and the original
+# .gitleaksignore comment contained a glossary fragment that the
+# generic-api-key heuristic flags as high-entropy. The current
+# file no longer contains the trigger, but git history retains it
+# and a full-history scan (`gitleaks detect --source .`) will see it.
+66368cd41218406cfde0cc95464b196f28ec38ed:.gitleaksignore:generic-api-key:6
