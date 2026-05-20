@@ -108,17 +108,42 @@
       ".mega-linter.yml",
       ".markdownlint.json"
     ],
-    "_intentional_validator_false_positives_rationale": "Per canonical-pipeline-migration step 12 (doctor report 20260520_063543+0200-post-migration-doctor.md, finding A): four `Possible broken backtick path` WARNINGs against `skills/amvcp-self-debug-rules/SKILL.md` for paths that DO exist on disk. The validator's bare-slug-path heuristic flags backtick-wrapped mentions like `amvcp-iterm2-preview/SKILL.md` that appear in bullet-text without a markdown link wrapper. The same skill file (lines 102-107) correctly links the same 4 skills via `[text](../amvcp-foo/SKILL.md)` form; lines 119-122 use the bare form as descriptive 'See also' labels. The validator should walk the plugin's `skills/<name>/` tree before warning, identical to the resolver used by `Reference to non-existent skill` (the MAJOR-grade resolver) — this is the same class of false-positive as upstream bug #27 but in a different code path. Tracked as candidate upstream bug #30. The affected skill file is on the DO NOT TOUCH list (hand-tuned rule labels per project memory + TRDD-4c300620); the bare-slug form is intentional in those bullet labels. The 4 WARNINGs are advisory only — they do NOT block publish.",
+    "_intentional_validator_false_positives_rationale": "Documented validator false-positives. Each entry is a per-finding allowlist of (file, level, message_substring) consumed by publish.py::_gate_validate(). Sources: (1) step 12 — 4 `Possible broken backtick path` WARNINGs against `skills/amvcp-self-debug-rules/SKILL.md` for paths that DO exist on disk; tracked as candidate upstream bug #30. (2) step 14 — 1 MAJOR `Reference to non-existent skill 'amvcp-wf-'` against `skills/amvcp-wireframe/SKILL.md`; tracked as upstream bug #27 (HEAD-list parser empty-suffix). The matcher in `_gate_validate()` allowlists findings whose (file, level) tuple matches and whose message CONTAINS the listed `message_substring`. Findings outside this allowlist still block G3 normally. ALL allowlisted entries cite the upstream bug they correspond to in the `upstream_bug` field — when CPV ships the fix, the entry can be removed.",
     "_intentional_validator_false_positives": [
       {
         "file": "skills/amvcp-self-debug-rules/SKILL.md",
-        "warnings": [
-          "Possible broken backtick path: `amvcp-iterm2-preview/SKILL.md`",
-          "Possible broken backtick path: `amvcp-modal-comments/SKILL.md`",
-          "Possible broken backtick path: `amvcp-math-and-latex/SKILL.md`",
-          "Possible broken backtick path: `amvcp-regex-vis/SKILL.md`"
-        ],
-        "rationale": "All 4 sibling skills exist at the cited paths (verified: `ls skills/amvcp-iterm2-preview/SKILL.md skills/amvcp-modal-comments/SKILL.md skills/amvcp-math-and-latex/SKILL.md skills/amvcp-regex-vis/SKILL.md` returns all 4). Validator heuristic does not resolve bare-slug paths against the plugin's `skills/` tree. File is DO NOT TOUCH (hand-tuned rule labels). Candidate upstream bug #30."
+        "level": "WARNING",
+        "message_substring": "Possible broken backtick path: `amvcp-iterm2-preview/SKILL.md`",
+        "upstream_bug": "#30 (candidate)",
+        "rationale": "Sibling skill exists at `skills/amvcp-iterm2-preview/SKILL.md`. Validator's bare-slug-path heuristic doesn't walk plugin's skills/ tree. File is DO NOT TOUCH."
+      },
+      {
+        "file": "skills/amvcp-self-debug-rules/SKILL.md",
+        "level": "WARNING",
+        "message_substring": "Possible broken backtick path: `amvcp-modal-comments/SKILL.md`",
+        "upstream_bug": "#30 (candidate)",
+        "rationale": "Sibling skill exists at `skills/amvcp-modal-comments/SKILL.md`. Validator's bare-slug-path heuristic doesn't walk plugin's skills/ tree. File is DO NOT TOUCH."
+      },
+      {
+        "file": "skills/amvcp-self-debug-rules/SKILL.md",
+        "level": "WARNING",
+        "message_substring": "Possible broken backtick path: `amvcp-math-and-latex/SKILL.md`",
+        "upstream_bug": "#30 (candidate)",
+        "rationale": "Sibling skill exists at `skills/amvcp-math-and-latex/SKILL.md`. Validator's bare-slug-path heuristic doesn't walk plugin's skills/ tree. File is DO NOT TOUCH."
+      },
+      {
+        "file": "skills/amvcp-self-debug-rules/SKILL.md",
+        "level": "WARNING",
+        "message_substring": "Possible broken backtick path: `amvcp-regex-vis/SKILL.md`",
+        "upstream_bug": "#30 (candidate)",
+        "rationale": "Sibling skill exists at `skills/amvcp-regex-vis/SKILL.md`. Validator's bare-slug-path heuristic doesn't walk plugin's skills/ tree. File is DO NOT TOUCH."
+      },
+      {
+        "file": "skills/amvcp-wireframe/SKILL.md",
+        "level": "MAJOR",
+        "message_substring": "Reference to non-existent skill 'amvcp-wf",
+        "upstream_bug": "#27",
+        "rationale": "False positive in CPV's HEAD-list parser — the bullet-list of sibling skills `amvcp-wf-archetypes`, `amvcp-wf-devices`, `amvcp-wf-fidelity`, `amvcp-wf-screens` is being parsed as either the empty-suffix entry `amvcp-wf-` (CPV v2.96.0 local cache) or `amvcp-wf` (CPV master via uvx — same bug, slightly different trimming). The substring `Reference to non-existent skill 'amvcp-wf` matches BOTH wording variants. All 4 cited skills exist on disk (verified: `ls skills/amvcp-wf-{archetypes,devices,fidelity,screens}/SKILL.md`). Filed upstream as bug #27."
       }
     ]
   }
