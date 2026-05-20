@@ -68,6 +68,19 @@ CHANGELOG = REPO_ROOT / "CHANGELOG.md"
 UV_LOCK = REPO_ROOT / "uv.lock"
 HOOK_SOURCE = REPO_ROOT / "git-hooks" / "pre-push"
 
+# ---------------------------------------------------------------------------
+# Network resilience — load gh/git retry wrappers from the sibling module so
+# every push + `gh release create` survives transient github.com hiccups.
+# Pattern from ~/.claude/rules/github-timeouts.md.
+#
+# Fail-fast: cpv_network_resilience.py ships alongside publish.py. A user
+# who deleted the file is expected to refresh via
+# `cpv standardize --force-templates` — silently swallowing the ImportError
+# would leave network calls without retry, defeating the whole point of
+# adding the helper module.
+# ---------------------------------------------------------------------------
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from cpv_network_resilience import gh_with_retry, git_with_retry  # noqa: E402
 
 # ---------------------------------------------------------------------------
 # Process helpers
@@ -153,11 +166,17 @@ def _read_remote_latest_tag() -> str | None:
 
     Uses `git ls-remote --tags origin` so we don't need a fetch. Filters out
     `^{}` peeled-tag entries and tags that don't match `vX.Y.Z`.
+
+    Wrapped with git_with_retry — a transient network glitch shouldn't make
+    G1 falsely think there's no remote tag (which would let a duplicate-
+    version push slip through).
     """
-    result = _run(
+    print("$ git ls-remote --tags origin")
+    result = git_with_retry(
         ["git", "ls-remote", "--tags", "origin"],
+        cwd=REPO_ROOT,
         check=False,
-        capture=True,
+        capture_output=True,
     )
     if result.returncode != 0:
         # Network failure / no remote — caller treats as "no remote tag known".
@@ -619,11 +638,20 @@ def _git_push(new_version: str) -> None:
     On total failure we roll back the local tag + commit so the user is
     not stranded with a half-published state. The error is loud (a
     full traceback message) so the user knows exactly what to do next.
+
+    Wrapped with git_with_retry so transient network hiccups (DNS, TCP
+    reset, 5xx from github.com edge) auto-recover; 4xx-class permanent
+    errors (auth, non-fast-forward) fall through immediately. The
+    helper auto-injects `-c http.lowSpeedLimit=100 -c http.lowSpeedTime=300`
+    for slow-link tolerance per ~/.claude/rules/github-timeouts.md.
     """
     tag = f"v{new_version}"
-    result = _run(
+    print(f"$ git push --atomic origin HEAD {tag}")
+    result = git_with_retry(
         ["git", "push", "--atomic", "origin", "HEAD", tag],
+        cwd=REPO_ROOT,
         check=False,
+        capture_output=False,
     )
     if result.returncode == 0:
         return
@@ -787,15 +815,24 @@ def _stage_github_release(new_version: str, push: bool) -> None:
         return
     # Check whether the release already exists (release.yml may have raced
     # us). If so, skip — `gh release create` would error out on duplicate.
-    check = _run(
+    # Wrapped with gh_with_retry for transient-error survival; auto-sets
+    # GH_HTTP_TIMEOUT=300 for slow-link tolerance.
+    print(f"$ gh release view v{new_version}")
+    check = gh_with_retry(
         ["gh", "release", "view", f"v{new_version}"],
+        cwd=REPO_ROOT,
         check=False,
-        capture=True,
+        capture_output=True,
     )
     if check.returncode == 0:
         _log(f"  release v{new_version} already exists; skipping")
         return
-    _run(
+    # gh release create: wrapped with retry — github.com edge 502/503 during
+    # release POST is common and recoverable. The classifier treats
+    # "already exists" as permanent (idempotent retry is safe; permanent
+    # failure surfaces loudly).
+    print(f"$ gh release create v{new_version} --title v{new_version} --generate-notes")
+    create_result = gh_with_retry(
         [
             "gh",
             "release",
@@ -804,8 +841,13 @@ def _stage_github_release(new_version: str, push: bool) -> None:
             "--title",
             f"v{new_version}",
             "--generate-notes",
-        ]
+        ],
+        cwd=REPO_ROOT,
+        check=False,
+        capture_output=False,
     )
+    if create_result.returncode != 0:
+        sys.exit(create_result.returncode)
 
 
 def _run_publish_mode(
