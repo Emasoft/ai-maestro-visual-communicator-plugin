@@ -1,0 +1,28 @@
+# gitleaks custom config for ai-maestro-visual-communicator-plugin.
+# Extends the default ruleset (see https://github.com/gitleaks/gitleaks)
+# and adds a path-based allowlist for documented false-positive findings.
+#
+# Path-based allowlist > fingerprint-based .gitleaksignore: fingerprints
+# contain the scanning commit's SHA, so they go stale every time a new
+# commit is made and need to be re-added; the path/regex form is
+# commit-invariant.
+#
+# Mega-Linter's REPOSITORY_GITLEAKS_CONFIG_FILE setting in .mega-linter.yml
+# is what makes the bundled gitleaks descriptor pick up THIS file instead
+# of the default /action/lib/.automation/.gitleaks.toml shipped with the
+# MegaLinter image.
+
+[extend]
+useDefault = true
+
+# Allowlist for descriptive design-glossary text in
+# skills/amvcp-visual-communication/SKILL.md that the generic-api-key
+# rule flags as a suspected API key. The flagged phrase is a glossary
+# of design-system names (CSS color space + golden ratio + Material
+# Design version number), NOT a credential.
+[[allowlists]]
+description = "Design-system glossary phrase is not a secret"
+targetRules = ["generic-api-key"]
+paths = [
+  '''skills/amvcp-visual-communication/SKILL\.md''',
+]

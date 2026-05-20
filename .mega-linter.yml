@@ -41,6 +41,12 @@ COPYPASTE_JSCPD_ARGUMENTS: "--threshold 5"
 # Checkov — skip workflow-level permission checks (we set permissions per-job)
 REPOSITORY_CHECKOV_ARGUMENTS: "--skip-check CKV2_GHA_1"
 
+# Gitleaks — point at the repo's .gitleaks.toml so the path-based
+# allowlist for documented documentation-text false positives applies.
+# Without this MegaLinter uses its bundled default and ignores the
+# local config entirely.
+REPOSITORY_GITLEAKS_CONFIG_FILE: .gitleaks.toml
+
 # Markdown settings — allow long lines in README (badges).
 # Single-quoted so the regex \. is read literally by yamllint.
 MARKDOWN_MARKDOWNLINT_FILTER_REGEX_EXCLUDE: 'CHANGELOG\.md'

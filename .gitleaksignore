@@ -1,16 +1,10 @@
-# gitleaks ignore file — used by Mega-Linter Lint-Security job.
-# Format: one fingerprint per line. Fingerprint = "<commit>:<file>:<rule-id>:<line>".
+# gitleaks fingerprint allowlist — supplementary to .gitleaks.toml.
+# Format: one "<commit>:<file>:<rule-id>:<line>" per line.
 #
-# False positives in skills/amvcp-visual-communication/SKILL.md line 26:
-# the line contains the descriptive table-cell text
-#   "DESIGN.md tokens, OKLCH/phi/MD3 scales, 13 dual-theme presets, ..."
-# and gitleaks' `generic-api-key` rule flags the high-entropy substring
-# `OKLCH/phi/MD3` as a suspected API key. This is plain documentation
-# text; OKLCH is a CSS color space, phi is the golden ratio, MD3 is
-# Material Design 3 — none are secrets.
+# Path-based allowlist in .gitleaks.toml is the primary mechanism
+# (commit-invariant); this file is a fallback for older gitleaks
+# versions that ignore .gitleaks.toml's allowlist.
 #
-# Two fingerprints because the same line was scanned at two different
-# commit SHAs during the CI run (the v1.3.0 publish commit and the
-# v1.3.1 commit). The line text is byte-identical at both points.
-4153feb7425fff11576ac1633be427ab80367aa0:skills/amvcp-visual-communication/SKILL.md:generic-api-key:26
-8c406e4d77dfe406d1c627074c7852d955c3d12a:skills/amvcp-visual-communication/SKILL.md:generic-api-key:26
+# NB: the comment in this file MUST NOT quote any text from the
+# scanned source file, because gitleaks scans the ignore file too
+# and any quoted trigger text would itself become a finding.
