@@ -1,0 +1,16 @@
+# gitleaks ignore file — used by Mega-Linter Lint-Security job.
+# Format: one fingerprint per line. Fingerprint = "<commit>:<file>:<rule-id>:<line>".
+#
+# False positives in skills/amvcp-visual-communication/SKILL.md line 26:
+# the line contains the descriptive table-cell text
+#   "DESIGN.md tokens, OKLCH/phi/MD3 scales, 13 dual-theme presets, ..."
+# and gitleaks' `generic-api-key` rule flags the high-entropy substring
+# `OKLCH/phi/MD3` as a suspected API key. This is plain documentation
+# text; OKLCH is a CSS color space, phi is the golden ratio, MD3 is
+# Material Design 3 — none are secrets.
+#
+# Two fingerprints because the same line was scanned at two different
+# commit SHAs during the CI run (the v1.3.0 publish commit and the
+# v1.3.1 commit). The line text is byte-identical at both points.
+4153feb7425fff11576ac1633be427ab80367aa0:skills/amvcp-visual-communication/SKILL.md:generic-api-key:26
+8c406e4d77dfe406d1c627074c7852d955c3d12a:skills/amvcp-visual-communication/SKILL.md:generic-api-key:26

@@ -1083,7 +1083,19 @@ def _build_parser() -> argparse.ArgumentParser:
     mode.add_argument(
         "--gate",
         action="store_true",
-        help="run the 4 quality gates (G1-G4); no mutations",
+        help="run the 6 quality gates (G0-G5); no mutations",
+    )
+    mode.add_argument(
+        "--gate-validate",
+        action="store_true",
+        help=(
+            "run ONLY G3 (validate plugin via cpv-remote-validate --strict, "
+            "with documented-known-exception allowlist applied). For use "
+            "in CI workflows after a push, where the other gates (version "
+            "bump, dev-browser tests, marketplace registration) either "
+            "already passed pre-push, do not apply, or need different "
+            "runner setup."
+        ),
     )
     mode.add_argument(
         "--install-hook",
@@ -1118,6 +1130,9 @@ def main() -> int:
 
     if args.gate:
         return _run_gate_mode()
+    if args.gate_validate:
+        # G3-only — for CI Validate job. Returns 0 on PASS, 1 on FAIL.
+        return 0 if _gate_validate() else 1
     if args.install_hook:
         return _run_install_hook()
 

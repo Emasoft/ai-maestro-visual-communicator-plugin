@@ -1,0 +1,27 @@
+{
+  "_comment": "Copy-paste detection config for jscpd (run by Mega-Linter Lint-Security). MegaLinter's FILTER_REGEX_EXCLUDE does NOT apply to jscpd because jscpd runs in 'project' mode and consumes its own config; per-jscpd ignore globs must live HERE. The vendor/regex-vis/ tree is third-party MIT-licensed code (see THIRD_PARTY_NOTICES.md) and its internal duplication is upstream's problem, not this plugin's; same for _dev folders (per-project ephemera) and node_modules / .venv (toolchain).",
+  "threshold": 5,
+  "ignore": [
+    "**/node_modules/**",
+    "**/.git/**",
+    "**/.venv/**",
+    "**/vendor/**",
+    "**/tests_dev/**",
+    "**/docs_dev/**",
+    "**/scripts_dev/**",
+    "**/samples_dev/**",
+    "**/examples_dev/**",
+    "**/builds_dev/**",
+    "**/downloads_dev/**",
+    "**/libs_dev/**",
+    "**/reports/**",
+    "**/reports_dev/**",
+    "**/llm_externalizer_output/**",
+    "**/.claude/**",
+    "**/.tldr/**",
+    "**/.trashcan/**",
+    "**/CHANGELOG.md",
+    "**/uv.lock",
+    "**/package-lock.json"
+  ]
+}
