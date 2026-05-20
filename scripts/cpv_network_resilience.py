@@ -169,7 +169,7 @@ def run_with_retry(
     max_attempts: int = GH_MAX_ATTEMPTS,
     backoff: float = GH_BACKOFF_SEC,
     transient_check: Callable[[str, int], bool] = is_transient_subprocess_error,
-    on_retry: Callable[[int, "subprocess.CompletedProcess[str]"], None] | None = None,
+    on_retry: Callable[[int, subprocess.CompletedProcess[str]], None] | None = None,
     print_cmd: bool = False,
 ) -> subprocess.CompletedProcess[str]:
     """Run a subprocess command with bounded retries on transient failures.
