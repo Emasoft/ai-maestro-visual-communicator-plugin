@@ -106,6 +106,19 @@
       ".github/workflows/notify-marketplace.yml",
       ".mega-linter.yml",
       ".markdownlint.json"
+    ],
+    "_intentional_validator_false_positives_rationale": "Per canonical-pipeline-migration step 12 (doctor report 20260520_063543+0200-post-migration-doctor.md, finding A): four `Possible broken backtick path` WARNINGs against `skills/amvcp-self-debug-rules/SKILL.md` for paths that DO exist on disk. The validator's bare-slug-path heuristic flags backtick-wrapped mentions like `amvcp-iterm2-preview/SKILL.md` that appear in bullet-text without a markdown link wrapper. The same skill file (lines 102-107) correctly links the same 4 skills via `[text](../amvcp-foo/SKILL.md)` form; lines 119-122 use the bare form as descriptive 'See also' labels. The validator should walk the plugin's `skills/<name>/` tree before warning, identical to the resolver used by `Reference to non-existent skill` (the MAJOR-grade resolver) — this is the same class of false-positive as upstream bug #27 but in a different code path. Tracked as candidate upstream bug #30. The affected skill file is on the DO NOT TOUCH list (hand-tuned rule labels per project memory + TRDD-4c300620); the bare-slug form is intentional in those bullet labels. The 4 WARNINGs are advisory only — they do NOT block publish.",
+    "_intentional_validator_false_positives": [
+      {
+        "file": "skills/amvcp-self-debug-rules/SKILL.md",
+        "warnings": [
+          "Possible broken backtick path: `amvcp-iterm2-preview/SKILL.md`",
+          "Possible broken backtick path: `amvcp-modal-comments/SKILL.md`",
+          "Possible broken backtick path: `amvcp-math-and-latex/SKILL.md`",
+          "Possible broken backtick path: `amvcp-regex-vis/SKILL.md`"
+        ],
+        "rationale": "All 4 sibling skills exist at the cited paths (verified: `ls skills/amvcp-iterm2-preview/SKILL.md skills/amvcp-modal-comments/SKILL.md skills/amvcp-math-and-latex/SKILL.md skills/amvcp-regex-vis/SKILL.md` returns all 4). Validator heuristic does not resolve bare-slug paths against the plugin's `skills/` tree. File is DO NOT TOUCH (hand-tuned rule labels). Candidate upstream bug #30."
+      }
     ]
   }
 }
