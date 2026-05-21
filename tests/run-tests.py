@@ -215,9 +215,19 @@ TEST_LINE = re.compile(r"^TEST \| (?P<name>[^|]+?) \| (?P<status>PASS|FAIL|ERROR
 
 
 def run_script(script: Path) -> list[dict]:
-    """Run one dev-browser script. Return parsed test rows."""
+    """Run one dev-browser script. Return parsed test rows.
+
+    `--headless` is enforced by default — see
+    `~/.claude/rules/browser-ui-test-techniques.md` R18. Set HEADFUL=1
+    in the environment to launch a visible Chromium window (only useful
+    when actively debugging a single test by eye).
+    """
+    cmd = ["dev-browser", "--timeout", "180"]
+    if os.environ.get("HEADFUL", "") != "1":
+        cmd.append("--headless")
+    cmd.extend(["run", str(script)])
     proc = subprocess.run(
-        ["dev-browser", "--timeout", "180", "run", str(script)],
+        cmd,
         capture_output=True,
         text=True,
     )
@@ -286,7 +296,28 @@ def chromium_renderer_count() -> int:
     )
 
 
+def stop_dev_browser_daemon() -> None:
+    """Stop any running dev-browser daemon + its managed Chromium.
+
+    Required so that the very next `dev-browser ... --headless run` call
+    relaunches Chromium in headless mode. Without this, a daemon that
+    was started in visible/headful mode keeps its visible Chromium
+    around and ignores the new flag (the daemon decides the mode at
+    launch time). Idempotent — exits 0 even when no daemon is running.
+    """
+    subprocess.run(
+        ["dev-browser", "stop"],
+        capture_output=True, text=True, check=False,
+    )
+
+
 def main() -> int:
+    # Belt + suspenders headless enforcement (per ~/.claude/rules/
+    # browser-ui-test-techniques.md R18): kill any existing daemon so
+    # the next dev-browser invocation in run_script() starts Chromium
+    # fresh in headless mode. Skip when HEADFUL=1 (debugging only).
+    if os.environ.get("HEADFUL", "") != "1":
+        stop_dev_browser_daemon()
     baseline = chromium_renderer_count()
     try:
         rc = _main_inner()
