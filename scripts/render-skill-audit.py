@@ -75,7 +75,7 @@ def _parse_frontmatter(text: str) -> tuple[dict[str, Any], str]:
     raw = m.group(1)
     body = text[m.end():]
     try:
-        import yaml  # type: ignore
+        import yaml
         fm = yaml.safe_load(raw) or {}
         if not isinstance(fm, dict):
             fm = {"_raw": raw}

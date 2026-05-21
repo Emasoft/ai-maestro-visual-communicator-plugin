@@ -108,7 +108,7 @@
       ".mega-linter.yml",
       ".markdownlint.json"
     ],
-    "_intentional_validator_false_positives_rationale": "Documented validator false-positives. Each entry is a per-finding allowlist of (file, level, message_substring) consumed by publish.py::_gate_validate(). Sources: (1) step 12 — 4 `Possible broken backtick path` WARNINGs against `skills/amvcp-self-debug-rules/SKILL.md` for paths that DO exist on disk; tracked as candidate upstream bug #30. (2) step 14 — 1 MAJOR `Reference to non-existent skill 'amvcp-wf-'` against `skills/amvcp-wireframe/SKILL.md`; tracked as upstream bug #27 (HEAD-list parser empty-suffix). The matcher in `_gate_validate()` allowlists findings whose (file, level) tuple matches and whose message CONTAINS the listed `message_substring`. Findings outside this allowlist still block G3 normally. ALL allowlisted entries cite the upstream bug they correspond to in the `upstream_bug` field — when CPV ships the fix, the entry can be removed.",
+    "_intentional_validator_false_positives_rationale": "Documented validator false-positives. Each entry is a per-finding allowlist of (file, level, message_substring) consumed by publish.py::_gate_validate(). Sources: (1) step 12 — 4 `Possible broken backtick path` WARNINGs against `skills/amvcp-self-debug-rules/SKILL.md` for paths that DO exist on disk; tracked as candidate upstream bug #30. (2) step 14 — 1 MAJOR `Reference to non-existent skill 'amvcp-wf-'` against `skills/amvcp-wireframe/SKILL.md`; tracked as upstream bug #27 (HEAD-list parser empty-suffix). (3) v1.3.5 — 1 CRITICAL `<skillaudit-native>` install-integrity finding (CPV's bundled scanner cannot locate its own rules/skillaudit_patterns.json inside the uvx-cached site-packages; the file lives at the repo top-level but is not packaged as package_data — upstream packaging bug, filed as candidate bug #32). (4) v1.3.5 — 5 MINOR `Absolute path found` findings against `scripts/skillaudit_patterns.json` (lines 144/174/473/617 mention /etc/, /usr/, /etc/shadow, /etc/cron, /etc/passwd as detection-regex patterns for the skill-auditor scanner — they are LITERAL strings inside the security catalog the scanner uses to detect malicious skills, not hardcoded paths in our runtime code; tracked as candidate upstream bug #33, the absolute-path linter should skip files whose name matches *_patterns*.json or *_rules*.json). The matcher in `_gate_validate()` allowlists findings whose (file, level) tuple matches and whose message CONTAINS the listed `message_substring`. Findings outside this allowlist still block G3 normally. ALL allowlisted entries cite the upstream bug they correspond to in the `upstream_bug` field — when CPV ships the fix, the entry can be removed.",
     "_intentional_validator_false_positives": [
       {
         "file": "skills/amvcp-self-debug-rules/SKILL.md",
@@ -144,6 +144,20 @@
         "message_substring": "Reference to non-existent skill 'amvcp-wf",
         "upstream_bug": "#27",
         "rationale": "False positive in CPV's HEAD-list parser — the bullet-list of sibling skills `amvcp-wf-archetypes`, `amvcp-wf-devices`, `amvcp-wf-fidelity`, `amvcp-wf-screens` is being parsed as either the empty-suffix entry `amvcp-wf-` (CPV v2.96.0 local cache) or `amvcp-wf` (CPV master via uvx — same bug, slightly different trimming). The substring `Reference to non-existent skill 'amvcp-wf` matches BOTH wording variants. All 4 cited skills exist on disk (verified: `ls skills/amvcp-wf-{archetypes,devices,fidelity,screens}/SKILL.md`). Filed upstream as bug #27."
+      },
+      {
+        "file": "<skillaudit-native>",
+        "level": "CRITICAL",
+        "message_substring": "SkillAudit native scan could not run",
+        "upstream_bug": "#32 (candidate)",
+        "rationale": "CPV's bundled `cpv_skillaudit_native.py` resolves its rule catalog as `Path(__file__).parent.parent / 'rules' / 'skillaudit_patterns.json'`, but the `rules/` directory at the CPV repo top-level is NOT packaged as `package_data` in CPV's pyproject — so when CPV is installed via `uvx --from git+https://github.com/Emasoft/claude-plugins-validation`, the catalog is missing from the cached site-packages and the scanner cannot start. The catalog DOES exist in CPV's git checkout (~/.cache/uv/git-v0/checkouts/.../rules/skillaudit_patterns.json) but uv archives only the importable Python package, not sibling top-level dirs. Workarounds: (a) ship the patterns file inside the package, (b) make `_RULES_PATH` walk up to find a `rules/` sibling of the repo root, (c) bundle as `importlib.resources`. Until upstream ships any of those, the scanner returns a CRITICAL on every CPV invocation against any plugin — universal blast radius, not anything our plugin can cause or fix."
+      },
+      {
+        "file": "scripts/skillaudit_patterns.json",
+        "level": "MINOR",
+        "message_substring": "Absolute path found: '/",
+        "upstream_bug": "#33 (candidate)",
+        "rationale": "All 5 absolute-path findings (lines 144 /etc/, 144 /usr/, 174 /etc/shadow, 473 /etc/cron, 617 /etc/passwd) are LITERAL strings inside this file's JSON regex-pattern catalog — they are the patterns the skill-auditor scanner USES to detect malicious skills that reference sensitive Unix paths. They are NOT hardcoded absolute paths used by our runtime code (the file is loaded as opaque JSON data by `cpv_skillaudit_rules.py`). CPV's absolute-path lint should skip files whose basename matches `*_patterns*.json` / `*_rules*.json` (similar to how it skips lockfiles and vendor dirs). Single message_substring `\"Absolute path found: '/\"` matches all 5 findings."
       }
     ]
   }
