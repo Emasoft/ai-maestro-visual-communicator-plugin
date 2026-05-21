@@ -352,24 +352,42 @@ async function testMarkSelectable(page) {
   // Clear any prior selection, then click the first bar by its bbox.
   await page.evaluate(() => window.__veChart.clearSelection());
   // Wait for the bar's entry animation (CSS scaleY(0)->scaleY(1) over
-  // ~600ms) to complete so the rect has its full painted height. With
-  // scaleY(0) the bbox has h=0 and the click misses the rect entirely
-  // (lands on <main>). Poll for h > 0 instead of a fixed timeout.
-  const deadline = Date.now() + 2000;
-  let box = { cx: 0, cy: 0, h: 0 };
+  // ~600ms) to complete so the rect has its FULLY PAINTED height. The
+  // previous threshold of `h > 4` was deterministic about "rendered at
+  // all" but not about "animation done" — under headless Chromium the
+  // poll could resolve mid-animation and the bar would still be moving
+  // when the click landed, so the click missed the rect entirely.
+  //
+  // Two layered guards:
+  // 1. Poll until height stops growing across two consecutive samples
+  //    (animation has plateaued).
+  // 2. Re-read the bbox immediately before clicking (R11 in
+  //    ~/.claude/rules/browser-ui-test-techniques.md — stale
+  //    coordinates are the #1 source of flake).
+  const deadline = Date.now() + 2500;
+  let prevH = -1;
   while (Date.now() < deadline) {
-    box = await page.evaluate(() => {
+    const sample = await page.evaluate(() => {
       const fig = document.querySelector(
         'figure.ve-chart[data-ve-chart-type="bar"]');
-      const bar = fig.querySelector('.ve-chart-bar');
-      const r = bar.getBoundingClientRect();
-      return { cx: r.x + r.width / 2, cy: r.y + r.height / 2, h: r.height };
+      const bar = fig && fig.querySelector('.ve-chart-bar');
+      return bar ? bar.getBoundingClientRect().height : 0;
     });
-    if (box.h > 4) { break; }
-    await page.waitForTimeout(60);
+    if (sample > 4 && sample === prevH) { break; }
+    prevH = sample;
+    await page.waitForTimeout(80);
   }
+  // Re-read coordinates AFTER the animation has settled — never trust
+  // stale bbox values cached from earlier in the wait loop.
+  const box = await page.evaluate(() => {
+    const fig = document.querySelector(
+      'figure.ve-chart[data-ve-chart-type="bar"]');
+    const bar = fig.querySelector('.ve-chart-bar');
+    const r = bar.getBoundingClientRect();
+    return { cx: r.x + r.width / 2, cy: r.y + r.height / 2 };
+  });
   await page.mouse.click(box.cx, box.cy);
-  await page.waitForTimeout(120);
+  await page.waitForTimeout(150);
   const res = await page.evaluate(() => {
     const sel = window.amvcpChart.getSelection();
     if (!sel.length) { return { count: 0 }; }
