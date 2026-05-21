@@ -14,5 +14,8 @@ amvcp-interactive.css
 amvcp-layout.js
 amvcp-layout.css
 amvcp-tables.js
+# Vendored Pierre diff viewer bundle — synced from scripts/amvcp-pierre-diff.mjs
+# by run-tests.py for the pierre-diff-fixture.html test.
+amvcp-pierre-diff.mjs
 sample-report.html
 sample-report.idmap.json

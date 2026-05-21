@@ -1,0 +1,153 @@
+import {
+  createHighlighter,
+  createJavaScriptRegexEngine,
+  createOnigurumaEngine,
+} from 'shiki';
+
+import type {
+  DiffsHighlighter,
+  DiffsThemeNames,
+  HighlighterTypes,
+  SupportedLanguages,
+  ThemeRegistrationResolved,
+} from '../types';
+import type { ResolvedLanguage } from '../worker/types';
+import { attachResolvedLanguages } from './languages/attachResolvedLanguages';
+import { cleanUpResolvedLanguages } from './languages/cleanUpResolvedLanguages';
+import { getResolvedOrResolveLanguage } from './languages/getResolvedOrResolveLanguage';
+import { attachResolvedThemes } from './themes/attachResolvedThemes';
+import { cleanUpResolvedThemes } from './themes/cleanUpResolvedThemes';
+import { getResolvedOrResolveTheme } from './themes/getResolvedOrResolveTheme';
+import { registerCustomTheme } from './themes/registerCustomTheme';
+
+type CachedOrLoadingHighlighterType =
+  | Promise<DiffsHighlighter>
+  | DiffsHighlighter
+  | undefined;
+
+let highlighter: CachedOrLoadingHighlighterType;
+
+interface HighlighterOptions {
+  themes: DiffsThemeNames[];
+  langs: SupportedLanguages[];
+  preferredHighlighter?: HighlighterTypes;
+}
+
+export async function getSharedHighlighter({
+  themes,
+  langs,
+  preferredHighlighter = 'shiki-js',
+}: HighlighterOptions): Promise<DiffsHighlighter> {
+  highlighter ??= createHighlighter({
+    themes: [],
+    langs: ['text'],
+    engine:
+      preferredHighlighter === 'shiki-wasm'
+        ? createOnigurumaEngine(import('shiki/wasm'))
+        : createJavaScriptRegexEngine(),
+  }) as Promise<DiffsHighlighter>;
+
+  const instance = isHighlighterLoading(highlighter)
+    ? await highlighter
+    : highlighter;
+  highlighter = instance;
+
+  const languageLoaders: Promise<ResolvedLanguage>[] = [];
+  for (const language of langs) {
+    if (language === 'text' || language === 'ansi') continue;
+    const maybeResolvedLanguage = getResolvedOrResolveLanguage(language);
+    if ('then' in maybeResolvedLanguage) {
+      languageLoaders.push(maybeResolvedLanguage);
+    } else {
+      attachResolvedLanguages(maybeResolvedLanguage, instance);
+    }
+  }
+
+  const themeLoaders: Promise<ThemeRegistrationResolved>[] = [];
+  for (const themeName of themes) {
+    const maybeResolvedTheme = getResolvedOrResolveTheme(themeName);
+    if ('then' in maybeResolvedTheme) {
+      themeLoaders.push(maybeResolvedTheme);
+    } else {
+      attachResolvedThemes(maybeResolvedTheme, highlighter);
+    }
+  }
+
+  // If we need to load any languages or themes, lets do that now
+  if (languageLoaders.length > 0 || themeLoaders.length > 0) {
+    await Promise.all([
+      Promise.all(languageLoaders).then((languages) => {
+        attachResolvedLanguages(languages, instance);
+      }),
+      Promise.all(themeLoaders).then((themes) => {
+        attachResolvedThemes(themes, instance);
+      }),
+    ]);
+  }
+
+  return instance;
+}
+
+export function isHighlighterLoaded(
+  h: CachedOrLoadingHighlighterType = highlighter
+): h is DiffsHighlighter {
+  return h != null && !('then' in h);
+}
+
+export function getHighlighterIfLoaded(): DiffsHighlighter | undefined {
+  if (highlighter != null && !('then' in highlighter)) {
+    return highlighter;
+  }
+  return undefined;
+}
+
+export function isHighlighterLoading(
+  h: CachedOrLoadingHighlighterType = highlighter
+): h is Promise<DiffsHighlighter> {
+  return h != null && 'then' in h;
+}
+
+export function isHighlighterNull(
+  h: CachedOrLoadingHighlighterType = highlighter
+): h is undefined {
+  return h == null;
+}
+
+export async function preloadHighlighter(
+  options: HighlighterOptions
+): Promise<void> {
+  return void (await getSharedHighlighter(options));
+}
+
+export async function disposeHighlighter(): Promise<void> {
+  if (highlighter == null) return;
+  (await highlighter).dispose();
+  cleanUpResolvedLanguages();
+  cleanUpResolvedThemes();
+  highlighter = undefined;
+}
+
+registerCustomTheme('pierre-dark', async () => {
+  const { default: theme } = await import('@pierre/theme/pierre-dark');
+  return { ...theme, name: 'pierre-dark' } as ThemeRegistrationResolved;
+});
+
+// LOCAL CHANGE (ai-maestro-visual-communicator vendor): @pierre/theme@0.0.29
+// (pinned for bun's minimum-release-age policy — 1.x is too recent) ships
+// `pierre-dark-vibrant` / `pierre-light-vibrant` variants instead of the
+// 1.x-only `-soft` variants. Map `-soft` → `-vibrant` so the public
+// Pierre API names still resolve.
+registerCustomTheme('pierre-dark-soft', async () => {
+  const { default: theme } = await import('@pierre/theme/pierre-dark-vibrant');
+  return { ...theme, name: 'pierre-dark-soft' } as ThemeRegistrationResolved;
+});
+
+registerCustomTheme('pierre-light', async () => {
+  const { default: theme } = await import('@pierre/theme/pierre-light');
+  return { ...theme, name: 'pierre-light' } as ThemeRegistrationResolved;
+});
+
+registerCustomTheme('pierre-light-soft', async () => {
+  const { default: theme } = await import('@pierre/theme/pierre-light-vibrant');
+  return { ...theme, name: 'pierre-light-soft' } as ThemeRegistrationResolved;
+});

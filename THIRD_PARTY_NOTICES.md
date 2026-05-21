@@ -22,4 +22,23 @@ When the project is redistributed in source form, the licence files referenced b
 
 ---
 
+## pierre-diffs
+
+- **Source repository:** <https://github.com/pierre-computer-company/diffs-js> (path `packages/diffs`)
+- **Upstream package:** `@pierre/diffs` 1.2.1
+- **Upstream licence:** Apache-2.0
+- **Upstream copyright:** Copyright © The Pierre Computer Company
+- **Vendored under:** `vendor/pierre-diffs/` (top-level — listed in `package.json` `files` so it ships with the published plugin alongside the built artefact)
+- **Licence text (verbatim):** [`vendor/pierre-diffs/LICENSE.md`](./vendor/pierre-diffs/LICENSE.md), mirrored at [`scripts/amvcp-pierre-diff.LICENSE`](./scripts/amvcp-pierre-diff.LICENSE) so the published bundle ships next to its licence.
+- **What was copied:** the entire `packages/diffs/` directory of the upstream monorepo (`src/`, `LICENSE.md`, `README.md`, `tsconfig.json`, `tsdown.config.ts`). Tests and the monorepo-only `apps/`, `scripts/` files were not copied.
+- **What was modified:**
+    - `package.json` — replaced the workspace `catalog:` and `^3.0.0` refs with explicit version pins; dropped the React / SSR / Worker entry points; dropped jsdom / arethetypeswrong / react devDeps (we only build the vanilla-JS bundle).
+    - `src/highlighter/shared_highlighter.ts` — remapped `@pierre/theme/pierre-{dark,light}-soft` (only available in `@pierre/theme@1.x`) to the `pierre-{dark,light}-vibrant` variants shipped by `@pierre/theme@0.0.29` (the most recent version that passes `bun`'s `minimum-release-age` policy at vendoring time). The skill-side theme names `pierre-{dark,light}-soft` still resolve at runtime — only the underlying asset is the `-vibrant` palette.
+    - `tsconfig.json` — removed the `extends: '../../tsconfig.options.json'` reference (monorepo parent isn't vendored).
+    - `scripts/bundle.mjs` — **NEW** (not from upstream). Single-file `esbuild` bundler that consumes the upstream source + node_modules and emits one browser-loadable ESM at `dist-bundle/index.mjs`. Released under the project's own MIT licence.
+- **What ships to plugin end users:** the built artefact `scripts/amvcp-pierre-diff.mjs` (~10 MB raw / ~1.8 MB gzipped — Shiki grammars + themes dominate) plus a sibling `scripts/amvcp-pierre-diff.LICENSE` (with the upstream Apache-2.0 text), AND the full vendored source under `vendor/pierre-diffs/` (so contributors can rebuild without a separate clone). Both paths are listed in `package.json` `files`.
+- **Pinned upstream commit:** the v1.2.1 release artefact, distributed inside `apps/demo/` of the monorepo snapshot vendored under `downloads_dev/pierre-main.zip` (gitignored). Replace via `bun run build:bundle` from inside `vendor/pierre-diffs/` after any future upstream re-vendor.
+
+---
+
 If you find a vendored library that is missing from this notice, or whose licence text has drifted out of sync with the upstream, please open an issue.

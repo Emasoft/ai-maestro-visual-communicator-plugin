@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Pierre diff viewer smoke fixture</title>
+    <style>
+      body { margin: 16px; font-family: system-ui; }
+      pre#out { background: #f5f5f5; padding: 8px; border-radius: 4px; }
+    </style>
+  </head>
+  <body>
+    <h1>Pierre diff viewer smoke fixture</h1>
+    <diffs-container id="dc1" data-ve-id="diff-1"></diffs-container>
+    <pre id="out"></pre>
+    <script type="module">
+      // Side-effect import registers the <diffs-container> custom element
+      // AND exposes the full vanilla-JS named-export surface (FileDiff,
+      // parseDiffFromFile, parsePatchFiles, codeToHtml, etc.).
+      import * as Pierre from "./amvcp-pierre-diff.mjs";
+      window.__pierre = Pierre;
+      const out = document.getElementById("out");
+      const result = {
+        elementRegistered: customElements.get("diffs-container") != null,
+        exports: Object.keys(Pierre).sort().length,
+        hasFileDiff: typeof Pierre.FileDiff === "function",
+        hasParseDiffFromFile: typeof Pierre.parseDiffFromFile === "function",
+        hasParsePatchFiles: typeof Pierre.parsePatchFiles === "function",
+        hasCodeToHtml: typeof Pierre.codeToHtml === "function",
+        hasVirtualizedFileDiff: typeof Pierre.VirtualizedFileDiff === "function",
+        diffsTagName: Pierre.DIFFS_TAG_NAME,
+      };
+      window.__result = result;
+      out.textContent = JSON.stringify(result, null, 2);
+    </script>
+  </body>
+</html>

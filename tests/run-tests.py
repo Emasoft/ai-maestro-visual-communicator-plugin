@@ -77,6 +77,13 @@ def sync_runtime_into_fixtures() -> None:
         "amvcp-interactive.css",
         "amvcp-layout.js",
         "amvcp-layout.css",
+        # Pierre diff viewer (vendored — Apache-2.0). Single-file ESM
+        # bundle built by `vendor/pierre-diffs/scripts/bundle.mjs`. The
+        # pierre-diff fixture loads it via <script type="module" src=...>.
+        # Large file (~10 MB) — only synced when present so test runs on
+        # a clean checkout still work even if the contributor hasn't run
+        # `bun run build:bundle` yet.
+        "amvcp-pierre-diff.mjs",
     ):
         s = src / name
         d = FIXTURES / name
