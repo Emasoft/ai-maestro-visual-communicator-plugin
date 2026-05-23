@@ -1,5 +1,13 @@
 # Layout choice — split vs stacked
 
+## Table of Contents
+
+- Decision table
+- Inheriting the page's design tokens
+- Tradeoffs vs amvcp-code-diff
+
+## Decision table
+
 Pierre's `FileDiff` (and `VirtualizedFileDiff`) accepts `layout: 'split' | 'stacked'` in its options. Pick by the table below; do NOT autopilot one or the other.
 
 | Diff shape | Layout | Why |

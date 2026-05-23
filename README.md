@@ -16,12 +16,38 @@
 - **Multi-harness** — Claude Code, Pi, Codex CLI, OpenCode, and Cursor configs included.
 - **32-test dev-browser suite** covering every fixed bug, edit-panel surface, and the v3 decision-toggle flow (incl. mutex).
 
-## Install
+## Installation
 
 ```bash
 /plugin marketplace add Emasoft/ai-maestro-plugins
 /plugin install ai-maestro-visual-communicator-plugin@ai-maestro-plugins
 ```
+
+## Usage
+
+After installation, invoke any of the 10 slash commands from
+within a Claude Code session — each one launches the corresponding
+HTML page in a Chromium app window and returns the user's
+selection / comments back to the agent.
+
+```bash
+/amvcp-generate-web-diagram   # interactive web diagram
+/amvcp-generate-visual-plan   # plan-of-work review page
+/amvcp-generate-slides        # slide deck
+/amvcp-diff-review            # code diff review with comments
+/amvcp-plan-review            # markdown plan review with toggles
+/amvcp-project-recap          # snapshot of project state
+/amvcp-fact-check             # claim-by-claim fact-check page
+/amvcp-interactive-report     # convert any .md report into an
+                              # interactive HTML page with v2 modal
+                              # comments + v3 decision toggles
+/amvcp-respond-to-comment     # continue an open comment thread
+/amvcp-share-page             # share a finished page over LAN
+```
+
+Every page is a single self-contained HTML file. On Submit, the
+page closes itself and the agent receives the multi-select payload
+(picked items + comment threads + decision toggles).
 
 ## Platform requirements
 

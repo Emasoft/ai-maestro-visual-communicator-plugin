@@ -44,11 +44,21 @@ Issues = "https://github.com/Emasoft/ai-maestro-visual-communicator-plugin/issue
 [tool.ruff]
 line-length = 120
 target-version = "py312"
+# Test fixtures (tests/fixtures/, **/__fixtures__, **/testdata) are deliberately
+# vendored / mirror copies of runtime artefacts used by the dev-browser test
+# suite. Ruff must never lint or auto-format them locally (e.g. via
+# `ruff check scripts/ tests/`) or it would "correct" the very samples the
+# tests depend on. The `**/fixtures`, `**/testdata`, `**/__fixtures__` patterns
+# mirror the canon v2.103.3 generator (Mega-Linter FILTER_REGEX_EXCLUDE also
+# excludes the same globs in CI).
 extend-exclude = [
     "vendor/",
     "tests_dev/",
     "scripts/amvcp-regex.umd.js",
     "scripts/amvcp-runtime.js",
+    "**/fixtures",
+    "**/testdata",
+    "**/__fixtures__",
 ]
 
 [tool.ruff.lint]

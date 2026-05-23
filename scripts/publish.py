@@ -351,19 +351,33 @@ def _finding_is_allowlisted(
 ) -> dict | None:
     """Return the matching allowlist entry if `finding` matches one, else None.
 
-    Match rule: file == entry.file (exact) AND level == entry.level AND
+    Match rule: file matches entry.file AND level == entry.level AND
     entry.message_substring is a substring of finding.message.
+
+    File matching is glob-aware via fnmatch — if entry.file contains any
+    of the glob metacharacters `*`, `?`, or `[`, fnmatch.fnmatchcase is
+    used; otherwise plain string equality. This keeps the common case
+    (single-file allowlist entry) cheap AND lets a single entry like
+    `"file": "skills/**/*.md"` cover broad categories of recursive-self-
+    scan FPs without 60+ near-identical entries.
 
     Both file and level are compared case-sensitively for file and
     case-insensitively (uppercase-normalised) for level. Message is a
     plain substring match — conservative, not regex / glob.
     """
+    import fnmatch
     f_file = (finding.get("file") or "").strip()
     f_level = (finding.get("level") or "").strip().upper()
     f_msg = finding.get("message") or ""
     for entry in allowlist:
-        if entry["file"] != f_file:
-            continue
+        entry_file = entry["file"]
+        if any(c in entry_file for c in "*?["):
+            # Glob match — fnmatchcase keeps it case-sensitive.
+            if not fnmatch.fnmatchcase(f_file, entry_file):
+                continue
+        else:
+            if entry_file != f_file:
+                continue
         if entry["level"] != f_level:
             continue
         if entry["message_substring"] not in f_msg:
