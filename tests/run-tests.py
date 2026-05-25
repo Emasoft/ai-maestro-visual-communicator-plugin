@@ -67,6 +67,10 @@ def sync_runtime_into_fixtures() -> None:
         "amvcp-tokens.js",
         "amvcp-token-sheet.js",
         "amvcp-tokens.css",
+        # component variant-matrix renderer — the component-variants
+        # fixture loads it as a co-located <script src="…"> URL, so it
+        # must sit beside the HTML the same way the runtime does.
+        "amvcp-component-variants.js",
         # Phase 2 modules whose fixtures use bare-name <script src="…">
         # but whose fixtures/ entries are NON-SYMLINK copies committed
         # before the symlink convention was established. Without this

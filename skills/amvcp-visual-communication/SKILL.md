@@ -54,7 +54,7 @@ Every category ships its own [SKILL](SKILL.md), a `references/` folder with 30+ 
 | 12 | **slide-decks** | `scripts/amvcp-slide.js` | Presentation HTML — 16 layouts, 5 entrance moods, 4 transitions, fixed-aspect letterbox | [amvcp-slide-decks](../amvcp-slide-decks/SKILL.md) |
 | 13 | **prose-pages** (`report-doc`) | `scripts/amvcp-report-doc.js` | Long-form HTML reports — exec summary, RFC, ADR, postmortem, retrospective, plus QA gates | [amvcp-prose-pages](../amvcp-prose-pages/SKILL.md) |
 
-There are also six supporting skills not in the 13-category routing matrix because they bolt on a specialized engine or layer rather than scaffold a generic visual: `amvcp-graph-diagrams` (Mermaid + Graphviz alternative engine for the diagram category), `amvcp-choice-tables` (form-mode `<table>` for `data-ve-type="table-form"` only), `amvcp-modal-comments` (the per-element comment-thread layer, mounted by the runtime), `amvcp-math-and-latex` (KaTeX + TikZJax for equations / chemistry / TikZ figures), `amvcp-regex-vis` (the vendored interactive regex visualizer + editor — `.ve-regex`), and `amvcp-pierre-diff` (the high-fidelity vendored Pierre diff viewer — Shiki highlight, merge-conflict resolver, huge-file virtualizer; reach for it when `amvcp-code-highlight`'s lightweight diff isn't enough).
+There are also supporting skills not in the 13-category routing matrix because they bolt on a specialized engine, design element, or layer rather than scaffold a generic visual: `amvcp-graph-diagrams` (Mermaid + Graphviz alternative engine for the diagram category), `amvcp-choice-tables` (form-mode `<table>` for `data-ve-type="table-form"` only), `amvcp-modal-comments` (the per-element comment-thread layer, mounted by the runtime), `amvcp-math-and-latex` (KaTeX + TikZJax for equations / chemistry / TikZ figures), `amvcp-regex-vis` (the vendored interactive regex visualizer + editor — `.ve-regex`), `amvcp-pierre-diff` (the high-fidelity vendored Pierre diff viewer — Shiki highlight, merge-conflict resolver, huge-file virtualizer; reach for it when `amvcp-code-highlight`'s lightweight diff isn't enough), `amvcp-tokens-contact-sheet` (the DESIGN.md "living design page" sheeting every *token* visually), and `amvcp-component-variant-matrix` (a sheet of every size · state · intent of ONE *component* — distinct from the token contact sheet).
 
 ## Decision matrix — content shape → category
 
@@ -100,6 +100,7 @@ This is the heart of the umbrella. When you're about to add a visual, find the r
 | **Tabs / accordion / filter pills / segmented control / kanban / TOC / scroll-spy / theme toggle / search box / lightbox / modal / popover / before-after slider / copy button** | interactive-controls |
 | **Entry animation, scroll reveal, count-up, skeleton, parallax, spring, hover lift, SVG line-draw** | animation |
 | **The look of the page itself** (color ramp, type scale, elevation, motion tokens, brand preset, anti-slop check) | design-tokens |
+| **Every state / size / variant of ONE component on a sheet** (button states, card treatments, input sizes × states) | component-variant-matrix |
 | **Page chrome** — sidebar shell, KPI row layout, A4 print, sticky header, hero background, dashboard grid | layout |
 | **Type system** — fluid clamp() scale, font pairing, drop-cap, lead, pull quote, footnote, kbd | typography |
 | **Render an existing report as a commentable interactive HTML page** | prose-pages (scaffold) + modal-comments (per-element threads) |
@@ -265,4 +266,5 @@ Sibling skills the umbrella dispatches to (loaded via plugin skill index):
 - [amvcp-math-and-latex](../amvcp-math-and-latex/SKILL.md) — KaTeX + TikZJax for equations / figures
 - [amvcp-regex-vis](../amvcp-regex-vis/SKILL.md) — vendored interactive regex visualizer + editor (`.ve-regex`)
 - [amvcp-pierre-diff](../amvcp-pierre-diff/SKILL.md) — vendored Pierre high-fidelity diff viewer (Shiki, merge conflicts, huge files)
+- [amvcp-component-variant-matrix](../amvcp-component-variant-matrix/SKILL.md) — a sheet of every size · state · intent of ONE component
 - [amvcp-self-debug-rules](../amvcp-self-debug-rules/SKILL.md) — R1-R41 verification rules every skill must pass
