@@ -37,6 +37,20 @@ Six sections, top to bottom:
 6. **Rollout strip** (3-step horizontal pipeline: dev → staging → prod
    with shared-border step cards).
 
+**Long-writeup composition note.** A PR writeup that runs past ~3
+screens (many files in the tour, a deep Why section) reads far better
+in a two-column layout with a **sticky TOC sidebar** down the left. Do
+NOT hand-build one — compose the existing
+[`22-sticky-sidebar-toc.md`](../../amvcp-layout-chrome/references/22-sticky-sidebar-toc.md)
+(or the scroll-spy variant
+[`21-scroll-spy-toc.md`](../../amvcp-layout-chrome/references/21-scroll-spy-toc.md))
+from `amvcp-layout-chrome`, with the sidebar hidden below ~900px so the
+sections stack to one column on narrow viewports (matches E4.9). The
+TOC links target the same section anchors the tour already defines; pair
+it with `scroll-margin-top` on each `<section>` so anchored jumps clear
+any sticky header. Short writeups skip the TOC — it only earns its
+column when the page is long enough to get lost in.
+
 ## E4.2 The TL;DR card
 
 ```html
@@ -333,6 +347,10 @@ Consumes:
   identifier mentions
 - [diff-blocks-unified.md](./diff-blocks-unified.md) §D1.6 — the
   line-through-on-del strike-through variant for "historical removal"
+- [22-sticky-sidebar-toc.md](../../amvcp-layout-chrome/references/22-sticky-sidebar-toc.md)
+  / [21-scroll-spy-toc.md](../../amvcp-layout-chrome/references/21-scroll-spy-toc.md)
+  — the sticky left TOC for long writeups (see §E4.1), hidden below
+  ~900px so it collapses with the E4.9 narrow-viewport stack
 
 ## E4.11 Tokens consumed
 

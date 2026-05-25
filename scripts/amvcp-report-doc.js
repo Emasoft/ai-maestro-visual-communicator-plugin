@@ -11,7 +11,8 @@
  *   are owned by the per-kind modules: amvcp-slide.js, etc.). The
  *   doc-shell elements it ships (.vc-doc article, .vc-toc nav,
  *   .vc-callout aside, .vc-rubric table, .vc-pullquote blockquote,
- *   .vc-metric div) are INERT under the runtime's selection layer —
+ *   .vc-prompt aside, .vc-metric div) are INERT under the runtime's
+ *   selection layer —
  *   they carry NO `data-ve-id` and NO `data-ve-comment-id`, so the
  *   runtime's universal click handler ignores them. The contract is
  *   preserved by ABSENCE: if a downstream skill needs the doc shell's
@@ -370,6 +371,32 @@
     '.vc-callout--note    .vc-callout-glyph::before { content: "\\270E"; }',
     '.vc-callout--danger  .vc-callout-glyph::before { content: "\\25A0"; }',
 
+    /* --- prompt-echo box (provenance-footer-and-autopill.md) ------ */
+    /* Quotes the agent's triggering request back verbatim. Agent-
+       controlled like .vc-auto-pill (omit on human-authored docs).
+       Monochrome surface-sunken so it never competes with content;
+       light/dark mirror automatically via the role tokens. Previously
+       hand-pasted per page — now engine-injected so it is QA-covered. */
+    '.vc-prompt {',
+    '  margin-block: var(--vc-space-4, 16px);',
+    '  padding: var(--vc-space-3, 12px) var(--vc-space-4, 16px);',
+    '  background: var(--vc-color-surface-sunken, #f1ece0);',
+    '  border: 1px solid var(--vc-color-border, #e3dcc9);',
+    '  border-radius: var(--vc-radius-md, 8px);',
+    '}',
+    '.vc-prompt-label {',
+    '  font-family: var(--vc-font-mono, ui-monospace, monospace);',
+    '  font-size: var(--vc-text-0, 11px);',
+    '  letter-spacing: 0.08em;',
+    '  text-transform: uppercase;',
+    '  color: var(--vc-color-content-muted, #5b5343);',
+    '  margin: 0 0 var(--vc-space-2, 8px);',
+    '}',
+    '.vc-prompt > p:not(.vc-prompt-label) {',
+    '  margin: 0;',
+    '  font-style: italic;',
+    '}',
+
     /* --- quality-rubric / scored-matrix block (spec §12.3) -------- */
     '.vc-rubric {',
     '  width: 100%;',
@@ -480,7 +507,7 @@
     '    break-inside: avoid; page-break-inside: avoid;',
     '    orphans: 3; widows: 3;',
     '  }',
-    '  .vc-callout, .vc-rubric, .vc-figure,',
+    '  .vc-callout, .vc-rubric, .vc-figure, .vc-prompt,',
     '  .vc-doc table, .vc-doc pre, .vc-metrics {',
     '    break-inside: avoid; page-break-inside: avoid;',
     '  }',

@@ -5,7 +5,9 @@
 - [E3.1 The shape](#e31-the-shape)
 - [E3.2 The header](#e32-the-header)
 - [E3.3 The risk-map chips](#e33-the-risk-map-chips)
+- [E3.3b The risk legend](#e33b-the-risk-legend)
 - [E3.4 The per-file diff card](#e34-the-per-file-diff-card)
+- [E3.4b The per-file risk-tag badge](#e34b-the-per-file-risk-tag-badge)
 - [E3.5 The comment bubble — `::before` rotated-square trick](#e35-the-comment-bubble--before-rotated-square-trick)
 - [E3.6 Anchoring comments to line numbers](#e36-anchoring-comments-to-line-numbers)
 - [E3.7 Collapsed safe files](#e37-collapsed-safe-files)
@@ -65,13 +67,15 @@ A horizontal row of chips, one per touched file. Each chip is:
 </a>
 ```
 
-Three classes:
-- `.ve-pr-chip--attention` (clay/accent) — high-risk, needs careful
-  review (TRUST boundary, security-sensitive)
-- `.ve-pr-chip--medium` (oat/neutral-amber) — meaningful change,
-  routine review
-- `.ve-pr-chip--safe` (olive/success) — refactor, type-fix, comment-
-  change
+Three classes, each keyed to one risk role token (the SAME three the
+legend in E3.3b and the per-file tags in E3.4b consume):
+- `.ve-pr-chip--attention` (`--ve-accent`, clay) — high-risk, needs
+  careful review (TRUST boundary, security-sensitive)
+- `.ve-pr-chip--medium` (`--vc-color-warning`, amber) — meaningful
+  change, routine review. A dedicated warning role, NOT a reuse of oat,
+  so "worth a look" has its own hue
+- `.ve-pr-chip--safe` (`--vc-color-success`, olive) — refactor,
+  type-fix, comment-change
 
 Click handler scrolls to the file card AND adds a 1.4s pulse outline:
 
@@ -93,6 +97,55 @@ Mined catalog quote: *"`target.style.boxShadow = '0 0 0 3px
 rgba(217,119,87,0.35)'; setTimeout(…remove, 1400)` — draws the eye
 after a smooth-scroll lands."* — adopted verbatim, just with the token
 color.
+
+## E3.3b The risk legend
+
+The three chip colors are meaningless until the reader is told what
+they decode to. Add a one-line legend immediately beneath the chip
+row — a horizontal strip of swatch + label pairs, one per risk class,
+in the SAME order and the SAME tokens as the chips:
+
+```html
+<div class="ve-pr-risk-legend" aria-label="Risk legend">
+  <span class="ve-pr-risk-legend__item ve-pr-risk-legend__item--attention">
+    <span class="ve-pr-risk-legend__dot"></span>needs attention
+  </span>
+  <span class="ve-pr-risk-legend__item ve-pr-risk-legend__item--medium">
+    <span class="ve-pr-risk-legend__dot"></span>worth a look
+  </span>
+  <span class="ve-pr-risk-legend__item ve-pr-risk-legend__item--safe">
+    <span class="ve-pr-risk-legend__dot"></span>safe
+  </span>
+</div>
+```
+
+```css
+.ve-pr-risk-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--vc-space-3, 12px);
+  margin-block: var(--vc-space-2, 8px) var(--vc-space-4, 16px);
+  font-size: var(--vc-text-0, 11px);
+  color: var(--vc-color-content-muted, #5b5343);
+}
+.ve-pr-risk-legend__item { display: inline-flex; align-items: center; gap: 6px; }
+.ve-pr-risk-legend__dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--ve-risk-color);
+}
+/* One declaration per class — light/dark mirror automatically because
+   the value is a role token, re-resolved per theme. Reuses the exact
+   three risk roles the chips (E3.3) and risk-tags (E3.4b) key off, so
+   the legend can never drift from what it decodes. */
+.ve-pr-risk-legend__item--attention { --ve-risk-color: var(--ve-accent); }
+.ve-pr-risk-legend__item--medium    { --ve-risk-color: var(--vc-color-warning, #a8791f); }
+.ve-pr-risk-legend__item--safe      { --ve-risk-color: var(--vc-color-success, #3a6b5c); }
+```
+
+Keying every risk surface (chip, legend dot, per-file tag) off the
+same three role tokens via one `--ve-risk-color` custom property means
+a single DESIGN.md theme swap re-tints all of them in lockstep — the
+legend is structurally incapable of disagreeing with the chips.
 
 ## E3.4 The per-file diff card
 
@@ -129,6 +182,58 @@ Each file gets a card:
 
 The card is a grid with the diff on the left and comments on the
 right (or stacked vertically on narrow viewports).
+
+## E3.4b The per-file risk-tag badge
+
+The chip-nav (E3.3) tells the reader a file's risk *before* they reach
+it; the risk-tag repeats that signal *at* the card so the reader who
+scrolled past the chips still sees it. It is OPTIONAL and distinct from
+the new/mod/del **status** badge already on the header — status answers
+"what kind of change", risk-tag answers "how much care this needs".
+
+```html
+<header class="ve-pr-file-card__head">
+  <span class="ve-pr-file-card__icon">[icon]</span>
+  <span class="ve-pr-file-card__path">src/auth/middleware.ts</span>
+  <span class="ve-pr-file-card__stat ve-pr-file-card__stat--add">+47</span>
+  <span class="ve-pr-file-card__stat ve-pr-file-card__stat--del">−12</span>
+  <span class="ve-pr-file-card__badge ve-pr-file-card__badge--modified">modified</span>
+  <span class="ve-pr-risk-tag ve-pr-risk-tag--attention">needs attention</span>
+</header>
+```
+
+```css
+.ve-pr-risk-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: var(--vc-text-0, 11px);
+  letter-spacing: 0.02em;
+  /* tag color comes from the shared risk role; the soft fill is a
+     color-mix wash of the same token so it tints itself per theme. */
+  color: var(--ve-risk-color);
+  background: color-mix(in srgb, var(--ve-risk-color) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ve-risk-color) 30%, transparent);
+}
+.ve-pr-risk-tag::before {
+  content: "";
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--ve-risk-color);
+}
+/* Same three roles as the chips (E3.3) and the legend (E3.4b's dots) —
+   one source of truth for "what attention/medium/safe look like". */
+.ve-pr-risk-tag--attention { --ve-risk-color: var(--ve-accent); }
+.ve-pr-risk-tag--medium    { --ve-risk-color: var(--vc-color-warning, #a8791f); }
+.ve-pr-risk-tag--safe      { --ve-risk-color: var(--vc-color-success, #3a6b5c); }
+```
+
+The three labels (`needs attention` / `worth a look` / `safe`) match
+the legend (E3.3b) verbatim so a reader cross-references chip → legend
+→ tag without re-learning the vocabulary. Use the tag only on the
+prominent (non-collapsed) cards; collapsed safe files (E3.7) already
+carry their "purely additive" summary and do not need it repeated.
 
 ## E3.5 The comment bubble — `::before` rotated-square trick
 
@@ -247,6 +352,10 @@ This composition consumes:
 
 - [ ] Risk-map chips: all 3 risk colors (clay / oat / olive) read on
       both themes
+- [ ] Risk legend: swatch dots + labels readable, colors match the
+      chips on both themes
+- [ ] Per-file risk-tag: tag text + soft fill + dot legible on both
+      themes; color matches the file's chip
 - [ ] Per-file diff card: file-path label readable on both themes
 - [ ] Comment bubbles: bg / border / pointer visible on both themes
 - [ ] Pulse outline: readable on both themes (color-mix uses accent)
@@ -254,11 +363,20 @@ This composition consumes:
 
 ## E3.11 Tokens consumed
 
-- `--ve-accent` — pulse / focus / link colour
-- `--vc-color-success` / `--vc-color-danger` — +N / −N stat colours
+- `--ve-accent` — pulse / focus / link colour; the `attention` risk role
+- `--vc-color-success` / `--vc-color-danger` — +N / −N stat colours;
+  `--vc-color-success` also = the `safe` risk role
+- `--vc-color-warning` — the `medium` risk role (chip / legend / tag) —
+  a dedicated role, NOT a reuse of oat, so "worth a look" has its own hue
+- `--vc-color-content-muted` — risk-legend label text
 - `--vc-color-neutral-50` / `-300` / `-500` / `-700` — neutrals
 - `--vc-font-mono` — file paths, branch names, stat numbers
 - `--vc-radius-md` / `-sm` — card / chip radii
+
+The three risk roles (`--ve-accent` / `--vc-color-warning` /
+`--vc-color-success`) are funnelled through one `--ve-risk-color`
+custom property in the chip, legend, and tag CSS — a single point of
+truth so the three risk surfaces can never visually disagree.
 - All from [diff-blocks-unified.md](./diff-blocks-unified.md) +
   [diff-gutter-old-new.md](./diff-gutter-old-new.md)
 

@@ -112,6 +112,8 @@ Composes with every other amvcp-* skill on the same page (R22). Multiple diagram
   > The authoring surface · SceneGraph · Node · Edge · Group · Validation (all fail-fast) · Node-type library · Role -> token fill map · The three presets · Auto-placement (presets other than `free`) · Edge routing · Selection
 - [node-type-library](references/node-type-library.md) — the seven node types, when to pick each, role-tinting per type.
   > The seven node types · `start` and `end` · `process` · `decision` · `subprocess` · `external` · `card` · Authoring shape correctness · Size customization · Role tinting per type · DESIGN.md tokens consumed · Selection atoms · Anti-patterns · Visual verification
+- [diagram-legend](references/diagram-legend.md) — the key that decodes shapes / role tints / edge styles; a chip row mirroring the node-type and role vocabulary, themed off the same `--vc-*` tokens.
+  > When a diagram needs a legend · The chip-row markup · The CSS · Shape chips · Role chips · Edge chips · DESIGN.md tokens consumed · Composition · Anti-patterns · Visual verification
 - [edge-routing-strategies](references/edge-routing-strategies.md) — `straight` / `ortho` / `bezier` / `loop`; styles; arrowheads; hit-area twins.
   > The four routes · `straight` — the bare line · `ortho` — the workhorse · `bezier` — the curve · `loop` — the back-edge · Edge anchors · Edge labels · Edge styles · Arrowheads · The 14px hit-area twin · DESIGN.md tokens consumed · Anti-patterns · Visual verification
 - [arrow-marker-defs](references/arrow-marker-defs.md) — marker `<defs>`, the 3-marker scheme, `context-stroke`.

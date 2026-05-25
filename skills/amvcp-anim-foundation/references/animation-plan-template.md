@@ -33,6 +33,12 @@ This is a planning aid, not runtime code.
 - Which `--vc-duration-*` token drives each phase: ____
 - Is the sequence triggered on load, on scroll, or on interaction: ____
 
+> Turn this section into a picture: a
+> [keyframe-schedule-strip](keyframe-schedule-strip.md) plots each named
+> beat at its ms offset on a single track, so a reviewer sees the
+> choreography without reading the CSS. Recommended for any sequence with
+> ≥3 beats.
+
 ## 2. Element inventory
 
 List every element that moves, with its role:

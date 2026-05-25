@@ -172,3 +172,7 @@ is the overlay-runtime (R24).
   > E8.1 The shape · E8.2 The markup · E8.3 Why 2 columns · E8.4 The "load-bearing pair" discipline · E8.5 The narrow-viewport stacking · E8.6 The "describe the pair" prose convention · E8.7 Composition with the risk table · E8.8 Selection / commenting · E8.9 Cross-references · E8.10 Light + dark verification · E8.11 Tokens consumed · E8.12 Mined source attribution
 - [compare-n-approaches](references/compare-n-approaches.md) — 3-column "debounced search × 3 implementations" layout, code block + Pro/Con + metric chips + recommendation card per column.
   > E9.1 The shape · E9.2 The page-level grid · E9.3 Per-column markup · E9.4 The Pro/Con sub-grid · E9.5 The metric chips strip · E9.6 The recommendation card · E9.7 The "code panel per column" discipline · E9.8 Selection / commenting per column · E9.9 Cross-references · E9.10 When to use · E9.11 Light + dark verification · E9.12 Tokens consumed · E9.13 Mined source attribution
+
+### Inline primitives
+- [source-location-chip](references/source-location-chip.md) — the `path:line` atom: mono path in full-contrast `--vc-color-content`, line-range dimmed in `--vc-color-content-muted`; the shared spelling for every walkthrough step / summary / focus-card location label.
+  > E10.1 The pattern · E10.2 The markup · E10.3 The CSS · E10.4 Where it appears · E10.5 The line-range forms · E10.6 Selection / commenting · E10.7 Light + dark verification · E10.8 Tokens consumed · E10.9 Anti-patterns · E10.10 Mined source attribution

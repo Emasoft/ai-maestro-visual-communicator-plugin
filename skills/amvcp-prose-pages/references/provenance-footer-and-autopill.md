@@ -205,8 +205,24 @@ provenance — it says what the agent was asked to produce.
 ```
 
 Use the prompt box for `compare-n-approaches-shape`,
-`visual-design-exploration-shape`, and any other "here's what was
-asked, here are the answers" deliverable.
+`visual-design-exploration-shape`, the `implementation-plan-shape`
+(echo the build request at the top), and any other one-shot
+agent-generated deliverable where quoting the trigger back to the
+reader is itself the provenance. It generalizes: a reader who sees
+*exactly* what was asked can judge the answer against it in one glance.
+
+**The verbatim rule.** The whole value is fidelity — paste the
+triggering request *unedited*. Do not paraphrase, summarize, or "clean
+up" it; a cleaned-up prompt silently drops the constraints the reader
+needs to evaluate whether the deliverable actually met them (see the
+anti-pattern below). The italic body styling signals "this is a quote,
+not the document's own prose".
+
+**Agent-controlled, like the auto-pill.** The prompt box means "this is
+the request an agent was handed". Emit it only on agent-produced
+deliverables; never hand-author one onto a human-written document (it
+would misrepresent authorship exactly as a stray auto-pill does). Cap
+it at one per page — the document answers one request.
 
 ## DESIGN.md tokens consumed
 
@@ -229,7 +245,7 @@ report-doc shape:
 | Shape | Footer | Auto-pill | Files-read | Prompt-box |
 |---|---|---|---|---|
 | `status-report-shape` | yes | yes | optional | no |
-| `implementation-plan-shape` | yes | yes | no | no |
+| `implementation-plan-shape` | yes | yes | no | YES (echo the build request) |
 | `pr-writeup-author-side-shape` | yes (issue/RFC links) | optional | no | no |
 | `pr-review-reviewer-side-shape` | yes (sha refs) | optional | no | no |
 | `feature-explainer-shape` | optional | optional | YES (sidebar) | no |
