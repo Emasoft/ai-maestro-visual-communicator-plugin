@@ -45,6 +45,9 @@ env/
 /.tldr/
 /.tldrignore
 
+# CodeGraph MCP knowledge-graph index (regenerable SQLite cache)
+/.codegraph/
+
 # Mega-Linter runtime artefacts — produced by the lint-security CI job
 # (.github/workflows/ci.yml) and locally by `mega-linter-runner`. The
 # reports dir is large (per-linter sub-reports + html dashboard) and
@@ -95,5 +98,6 @@ node_modules/
 /.rechecker/**
 /.claude/**
 /.tldr/**
+/.codegraph/**
 **/node_modules/**
 **/dist/**
