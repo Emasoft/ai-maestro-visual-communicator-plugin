@@ -1396,6 +1396,14 @@
   function renderSceneGraph(hostEl) {
     if (!hostEl) { return; }
     var scene;
+    // Capture the pristine JSON text up-front, BEFORE the host is wiped
+    // further down. The double-init guard (reRenderScene) reads this back
+    // from hostEl.__vcSceneJSON; re-querying the <script> AFTER the wipe
+    // (the old `jsonText(hostEl)` call) returned '' — a falsy stash that
+    // made the second init() re-render a now-scriptless host and paint a
+    // bogus "no script found" error over the good first render. Stash the
+    // text we already have instead.
+    var pristineJson = '';
     try {
       var jsonEl = hostEl.querySelector(
         'script[type="application/json"]');
@@ -1403,6 +1411,7 @@
         throw new Error('no <script type="application/json"> scene'
           + ' graph found in the host element');
       }
+      pristineJson = jsonEl.textContent;
       scene = JSON.parse(jsonEl.textContent);
       validateScene(scene);
     } catch (parseErr) {
@@ -1536,8 +1545,11 @@
 
     // Record the ORIGINAL scene JSON on the host so a theme hot-swap
     // can re-render from a clean copy (the rendered scene was mutated
-    // by autoPlace/snap/_stepIndex).
-    hostEl.__vcSceneJSON = jsonText(hostEl);
+    // by autoPlace/snap/_stepIndex). Use the text captured BEFORE the
+    // wipe (see pristineJson above) — re-reading the <script> here would
+    // find nothing, because the host's contents were already swapped for
+    // the rendered SVG.
+    hostEl.__vcSceneJSON = pristineJson;
     return svg;
   }
 
@@ -2298,18 +2310,11 @@
     hostEl.appendChild(menu);
   }
 
-  // jsonText — re-read the host's embedded JSON text (the pristine
-  // source, before any in-place mutation).
-  function jsonText(hostEl) {
-    var jsonEl = hostEl.querySelector('script[type="application/json"]');
-    return jsonEl ? jsonEl.textContent : '';
-  }
-
   // reRenderScene — re-render a host from its stored pristine JSON. Used
-  // by the theme hot-swap path. The <script type="application/json"> is
-  // preserved across renders (renderSceneGraph only clears non-script
-  // children would be ideal, but it clears everything — so we re-inject
-  // the script element before re-rendering).
+  // by the theme hot-swap path AND by the double-init guard in init().
+  // renderSceneGraph swaps the host's whole contents for the rendered SVG
+  // (the embedded <script> included), so we re-inject the script element
+  // from the stashed pristine JSON before re-rendering.
   function reRenderScene(hostEl) {
     var pristine = hostEl.__vcSceneJSON;
     if (!pristine) { return; }
