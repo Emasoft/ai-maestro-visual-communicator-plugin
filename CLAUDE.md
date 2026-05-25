@@ -78,6 +78,31 @@ that differs from our fixed mode, do NOT adopt it as-is; either express it throu
 selection/comment model or drop it. When it is a *graphic-style* technique, adopt it
 (wire it to DESIGN.md so it stays themeable).
 
+### 5. Composability via HTML + SVG — simple, modular, NO rigid structure
+
+You can NEVER predict what combination of elements an agent will be asked to compose
+("a network graph, with each node's icon on top and a traffic pie below it" is just one
+of infinitely many). So the plugin must make ANY combination work with **no pre-existing
+structure**. The way to guarantee that:
+
+- **HTML + SVG are the only substrate, and SVG is a SUPERSET of HTML.** Via
+  `<foreignObject>`, an SVG can embed arbitrary HTML; HTML can embed SVG; they nest
+  bidirectionally to any depth. That nesting is the source of unbounded flexibility —
+  anything can sit inside, on top of, or beside anything.
+- **Every element is a SIMPLE, MODULAR, COMPOSABLE primitive** — never a rigid bespoke
+  template baked for one scenario. Compose by **nesting / layering** the existing simple
+  primitives, NOT by authoring a new combined component per request. Example: to put an
+  icon + a chart on a graph node, reuse the graph element and drop the icon SVG + the
+  chart into the node (e.g. a `<foreignObject>` or an overlay keyed to the node's
+  position) — do NOT build a custom "graph-with-icons-and-charts" engine.
+- **Keep elements orthogonal** so arbitrary combinations "just work": each owns its own
+  markup + `data-ve-*` atoms + DESIGN.md theming, and none assumes what it's combined
+  with. The runtime's single scan inits every element type on the page at once.
+- **Harness HTML + SVG; do not over-engineer.** The basic ingredients already give
+  near-total flexibility. If a composition feels like it needs a new structured
+  container or a bespoke engine, step back — it almost always reduces to "nest simple
+  primitives in HTML/SVG."
+
 ## Importing ideas from external examples / collections (the integration protocol)
 
 When asked to "implement"/"integrate" an external set of artifacts (a zip of example
