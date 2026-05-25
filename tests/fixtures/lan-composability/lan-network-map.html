@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LAN network map — composability fixture (graph + icon-svg + chart)</title>
+<!-- Console-error capture MUST be the first script so it wraps the three
+     modules' boot. assertion 6 (zero JS console errors when all 3 init
+     together) reads window.__lanConsoleErrors. Kept tiny + dependency-free. -->
+<script>
+(function () {
+  // Honor ?theme=dark|light BEFORE the runtime boots, so the page renders in
+  // that theme from frame 1 (the runtime's detectAndStampTheme reads this
+  // attribute at boot). The dual-theme test loads the page once per theme via
+  // this param instead of flipping data-ve-theme at runtime — a live flip
+  // goes through the DESIGN.md engine's re-theme path, which we keep off the
+  // hot path here so the test stays deterministic.
+  try {
+    var m = (location.search || '').match(/[?&]theme=(light|dark)/);
+    if (m) { document.documentElement.setAttribute('data-ve-theme', m[1]); }
+  } catch (e) { /* no-op */ }
+
+  window.__lanConsoleErrors = [];
+  var origErr = console.error ? console.error.bind(console) : function () {};
+  console.error = function () {
+    try {
+      window.__lanConsoleErrors.push(
+        Array.prototype.slice.call(arguments).map(String).join(' '));
+    } catch (e) { /* never let the capture itself throw */ }
+    return origErr.apply(null, arguments);
+  };
+  window.addEventListener('error', function (ev) {
+    window.__lanConsoleErrors.push('window.onerror: '
+      + (ev && ev.message ? ev.message : String(ev)));
+  });
+  window.addEventListener('unhandledrejection', function (ev) {
+    window.__lanConsoleErrors.push('unhandledrejection: '
+      + (ev && ev.reason ? String(ev.reason) : 'unknown'));
+  });
+})();
+</script>
+<!--
+  PERMANENT composability regression fixture (TRDD: lan-composability).
+
+  Proves three amvcp visual-element skills compose on ONE page, driven by
+  three simulated source docs (source-1 topology, source-2 inventory,
+  source-3 traffic):
+
+    Layer 1  GRAPH       scripts/amvcp-diagram.js  — the LAN topology as a
+                         <div class="ve-scene-graph"> scene graph (nodes +
+                         edges, the power edge dashed). Gives node POSITIONS
+                         and the node/edge selection atoms for free.
+    Layer 2  ICON-SVG    simple inline-SVG glyph per component type, one
+                         <g data-ve-id data-ve-type="lan-icon"> per node,
+                         laid over the graph node in a sibling overlay <svg>
+                         that shares the graph's exact viewBox so the two
+                         coordinate systems line up 1:1.
+    Layer 3  CHART       scripts/amvcp-chart.js — one DONUT per node (pie is
+                         remapped to a sorted bar by the chart guardrail, so
+                         we author donut directly — the sanctioned circular
+                         form), placed just below each node.
+
+  The runtime (scripts/amvcp-runtime.js) boots all three modules together on
+  DOMContentLoaded (bootEverything -> bootVisualizeModules -> diagram.init,
+  chart.scan, iconSvg.init) — THAT shared boot is the composability proof:
+  one page, three element types, one interaction model, zero namespace clash.
+
+  Two modes, per project CLAUDE.md:
+    - Interaction = FIXED: every node / edge / icon / donut / arc is a
+      data-ve-id + data-ve-type atom; selection / hover triple-feedback /
+      comment all come from the runtime, never hand-rolled here.
+    - Graphic style = VARIABLE: every colour / type / space is a --vc-* token,
+      light + dark both. No nested scrollbars — the page (document) expands.
+-->
+<style>
+  /* Full --vc-* palette in two :root blocks (light default + a
+     data-ve-theme="dark" override) so the page themes correctly with no
+     DESIGN.md present and a light<->dark flip is observable. Mirrors the
+     other test fixtures' token blocks verbatim so the modules' var(--vc-…)
+     reads resolve identically. */
+  :root,
+  html[data-ve-theme="light"] {
+    --vc-color-canvas: #faf6ee;
+    --vc-color-surface: #ffffff;
+    --vc-color-surface-raised: #fffdf8;
+    --vc-color-surface-sunken: #f1ece0;
+    --vc-color-content: #1f1a14;
+    --vc-color-content-muted: #5b5343;
+    --vc-color-content-subtle: #8a8170;
+    --vc-color-border: #e3dcc9;
+    --vc-color-border-strong: #c9bfa3;
+    --vc-color-accent: #b8861f;
+    --vc-color-on-accent: #ffffff;
+    --vc-color-success: #3a6b5c;
+    --vc-color-warning: #a8791f;
+    --vc-color-danger: #a84a32;
+    --vc-color-info: #3464a8;
+    --vc-font-heading: "Playfair Display, Georgia, serif";
+    --vc-font-body: "Inter, system-ui, sans-serif";
+    --vc-font-mono: "JetBrains Mono, ui-monospace, monospace";
+    --vc-text-0: 12px;
+    --vc-text-1: 14px;
+    --vc-text-2: 16px;
+    --vc-text-3: 20px;
+    --vc-weight-regular: 400;
+    --vc-weight-medium: 500;
+    --vc-weight-bold: 700;
+    --vc-radius-none: 0;
+    --vc-radius-sm: 4px;
+    --vc-radius-md: 8px;
+    --vc-radius-lg: 12px;
+    --vc-radius-xl: 16px;
+    --vc-radius-full: 9999px;
+    --vc-duration-fast: 120ms;
+    --vc-duration-slow: 400ms;
+    --vc-easing-decel: cubic-bezier(0,0,0,1);
+  }
+  html[data-ve-theme="dark"] {
+    --vc-color-canvas: #1b1813;
+    --vc-color-surface: #262119;
+    --vc-color-surface-raised: #2f2920;
+    --vc-color-surface-sunken: #15120d;
+    --vc-color-content: #f3ecdd;
+    --vc-color-content-muted: #b5ab93;
+    --vc-color-content-subtle: #857c66;
+    --vc-color-border: #3a3327;
+    --vc-color-border-strong: #564c39;
+    --vc-color-accent: #d8a83f;
+    --vc-color-on-accent: #1b1813;
+    --vc-color-success: #6db89c;
+    --vc-color-warning: #d8a83f;
+    --vc-color-danger: #d8765c;
+    --vc-color-info: #6d9cd8;
+  }
+
+  /* Only the DOCUMENT scrolls — no inner overflow box anywhere. The LAN map
+     is wide, so the page expands and the document gets the single
+     horizontal scrollbar (per ~/.claude no-nested-scrollbars rule). */
+  html, body { overflow-x: auto; }
+  body {
+    margin: 0;
+    padding: 28px;
+    background: var(--vc-color-canvas, #faf6ee);
+    color: var(--vc-color-content, #1f1a14);
+    font: 16px/1.55 var(--vc-font-body, system-ui, sans-serif);
+  }
+  /* No max-width clamp — non-wrappable content (the LAN map) extends the
+     page rather than living in a scroll box. */
+  main { max-width: none; }
+  h1 { font-family: var(--vc-font-heading, Georgia, serif); margin: 0 0 4px; }
+  p.note { color: var(--vc-color-content-muted, #5b5343); font-size: 14px;
+           margin: 0 0 20px; }
+
+  /* The stage holds the two coordinate-aligned layers (graph + overlay).
+     Its aspect-ratio is pinned to the scene's W:H so BOTH layer <svg>s,
+     which share the identical viewBox and preserveAspectRatio, scale and
+     letterbox IDENTICALLY — so a point at SVG user coord (x,y) in the
+     overlay sits exactly over the same coord in the graph. width:100% lets
+     the stage (and the page) grow/shrink; it never adds its own scrollbar.
+     The donuts and LAN chips are NESTED inside the overlay svg via
+     <foreignObject> at each node's coordinate, so they need no percentage
+     or letterbox math at all — they ride the same SVG user-space. */
+  #lan-stage {
+    position: relative;
+    width: 100%;
+    margin-inline: auto;
+    /* aspect-ratio is set inline by the composer once it knows W/H. */
+  }
+  /* Both layers stack in the same box. */
+  #lan-graph-layer,
+  #lan-icon-layer {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+  /* The graph host. overflow:visible so nothing clips; the diagram module
+     sizes its own <svg> to width:100%. */
+  .ve-scene-graph { overflow: visible; }
+  #lan-graph-layer .ve-scene-graph,
+  #lan-graph-layer svg { width: 100%; height: 100%; display: block; }
+
+  /* Overlay <svg> shares the graph viewBox 1:1. pointer-events:none on the
+     layer, re-enabled per interactive child so only the glyphs / donuts /
+     chips take the pointer (the graph node beneath stays clickable around
+     them). The donuts live in <foreignObject> here, nested in SVG space. */
+  #lan-icon-layer { pointer-events: none; overflow: visible; }
+  #lan-icon-layer g[data-ve-type="lan-icon"],
+  #lan-icon-layer foreignObject { pointer-events: auto; }
+  #lan-icon-layer g[data-ve-type="lan-icon"] { cursor: pointer; }
+  /* Glyph primitives read --vc-* so they re-theme and stay legible in both
+     themes. The runtime's `svg g[data-ve-id]:hover > rect|path|...` rule
+     supplies the hover/selected triple-feedback for free. */
+  .lan-glyph { fill: none;
+    stroke: var(--vc-color-content, #1f1a14);
+    stroke-width: 34;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    vector-effect: non-scaling-stroke; }
+  .lan-glyph-fill { fill: var(--vc-color-accent, #b8861f); stroke: none; }
+  .lan-glyph-bg   { fill: var(--vc-color-surface, #ffffff);
+                    stroke: var(--vc-color-border-strong, #c9bfa3);
+                    stroke-width: 24; }
+
+  /* The per-node HTML cell nested in the overlay's <foreignObject>. Holds a
+     mono LAN-address chip and one donut. Each is its own atom; neither
+     assumes anything about its neighbours — the same cell markup would host
+     any other element just as well (the generality the test proves). */
+  .lan-cell { display: flex; flex-direction: column; align-items: center;
+              gap: 4px; }
+  .lan-donut { width: 96px; }
+  .lan-donut figure.ve-chart { margin: 0; }
+  .lan-donut .ve-chart-title  { display: none; }   /* keep the map compact */
+  .lan-donut .ve-chart-legend { display: none; }
+  .lan-donut .ve-chart-source { display: none; }
+
+  /* The LAN address chip under each node (mono). One atom per chip. */
+  .lan-addr { font-family: var(--vc-font-mono, ui-monospace, monospace);
+              font-size: 11px; line-height: 1;
+              color: var(--vc-color-content-muted, #5b5343);
+              background: var(--vc-color-surface-sunken, #f1ece0);
+              border: 1px solid var(--vc-color-border, #e3dcc9);
+              border-radius: var(--vc-radius-sm, 4px);
+              padding: 2px 6px; white-space: nowrap; cursor: pointer; }
+
+  /* The ups01 -> core-sw01 POWER edge is visually distinct: amber + dashed.
+     The graph module already dashes it (style:"dashed") and stamps it with
+     data-ve-label="power" (we set edge.label='power'); we tint it amber here
+     off that STABLE label. (The edge's data-ve-id embeds the diagram's
+     internal sceneId counter — `ve-sgN-edge-…` — which is not stable enough
+     to target.) This is the GRAPH element's own edge being restyled via a
+     --vc-* token, not a hand-drawn line. */
+  #lan-graph-layer g[data-ve-type="diagram-edge"][data-ve-label="power"] > path {
+    stroke: var(--vc-color-warning, #a8791f) !important;
+  }
+
+  /* Tier captions — faint guide labels, nested as <text> in the overlay's
+     SVG user-space (so they ride the same coordinate system as everything
+     else). Uses fill (SVG) not color, and a px font sized in user units. */
+  .lan-tier-label { fill: var(--vc-color-content-subtle, #8a8170);
+                    font-family: var(--vc-font-body, system-ui, sans-serif);
+                    font-size: 22px; font-weight: var(--vc-weight-bold, 700);
+                    letter-spacing: 0.04em; text-transform: uppercase;
+                    pointer-events: none; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Acme LAN — live network map</h1>
+  <p class="note">25 components · graph topology + per-type icon + traffic-by-team donut,
+     composed on one page. Click any node, icon, edge, or donut segment to select it.</p>
+
+  <!-- The three coordinate-aligned layers. The composer below fills all of
+       them from the source data, then the runtime boots every module. -->
+  <div id="lan-stage">
+    <div id="lan-graph-layer">
+      <div class="ve-scene-graph" id="lan-scene" data-ve-scene-preset="free">
+        <!-- scene-graph JSON is injected here by the composer before boot -->
+        <script type="application/json" id="lan-scene-json">{ "version": 1, "preset": "free", "nodes": [], "edges": [] }</script>
+      </div>
+    </div>
+    <svg id="lan-icon-layer" xmlns="http://www.w3.org/2000/svg" aria-hidden="false"></svg>
+  </div>
+</main>
+
+<!--
+  The composer. It owns the SOURCE DATA (transcribed from source-1/2/3) and
+  builds the three layers deterministically:
+    1. assigns each node an (x,y) in a tiered layout,
+    2. writes the scene-graph JSON (nodes + edges, power edge dashed),
+    3. emits one icon <g> atom per node into the overlay svg,
+    4. emits one donut <pre> + LAN-address chip per node into the overlay,
+    5. lets the runtime's DOMContentLoaded bootEverything() init all modules.
+  This is exactly how a real composed page works: Claude emits the data + a
+  small composer; the element skills do the rendering. No custom graph engine,
+  no from-scratch edge math — the graph element does that.
+-->
+<script>
+window.__lanFixtureError = '';
+(function () {
+  try {
+    // ── Node box + layout geometry (must match amvcp-diagram.js) ──────
+    // process node default box is 160x80; (x,y) is the node's TOP-LEFT;
+    // centre = (x+80, y+40); bottom = y+80.
+    var NODE_W = 160, NODE_H = 80;
+
+    // ── SOURCE 2 — component inventory: id, type, label, lan ──────────
+    // 25 nodes, 21 distinct types (verbatim from source-2; the build-spec
+    // prose's "24 / 19" miscounts its own data file).
+    var COMPONENTS = [
+      { id: 'gw01',        type: 'gateway',        label: 'Edge Gateway',     lan: '10.0.0.1' },
+      { id: 'fw01',        type: 'firewall',       label: 'Firewall',         lan: '10.0.0.2' },
+      { id: 'core-sw01',   type: 'switch',         label: 'Core Switch',      lan: '10.0.1.1' },
+      { id: 'ups01',       type: 'ups',            label: 'UPS Cabin',        lan: '10.0.1.250' },
+      { id: 'lb01',        type: 'load-balancer',  label: 'Load Balancer',    lan: '10.0.2.10' },
+      { id: 'web01',       type: 'web-server',     label: 'Web 01',           lan: '10.0.2.21' },
+      { id: 'web02',       type: 'web-server',     label: 'Web 02',           lan: '10.0.2.22' },
+      { id: 'app01',       type: 'app-server',     label: 'Intranet App',     lan: '10.0.3.10' },
+      { id: 'db01',        type: 'db-server',      label: 'PostgreSQL',       lan: '10.0.3.20' },
+      { id: 'es01',        type: 'elasticsearch',  label: 'Elasticsearch',    lan: '10.0.3.30' },
+      { id: 'auth01',      type: 'auth-server',    label: 'Auth / SSO',       lan: '10.0.3.40' },
+      { id: 'nas01',       type: 'nas',            label: 'NAS Array',        lan: '10.0.4.10' },
+      { id: 'backup01',    type: 'backup',         label: 'Backup',           lan: '10.0.4.20' },
+      { id: 'faststore01', type: 'fast-storage',   label: 'Fast-Storage',     lan: '10.0.4.30' },
+      { id: 'media01',     type: 'media-server',   label: 'Media Server',     lan: '10.0.4.40' },
+      { id: 'render01',    type: 'render-station',  label: 'Render 01',       lan: '10.0.5.11' },
+      { id: 'render02',    type: 'render-station',  label: 'Render 02',       lan: '10.0.5.12' },
+      { id: 'access-sw01', type: 'relay',          label: 'Access Switch',    lan: '10.0.6.1' },
+      { id: 'ws01',        type: 'workstation',    label: 'Workstation 01',   lan: '10.0.6.21' },
+      { id: 'ws02',        type: 'workstation',    label: 'Workstation 02',   lan: '10.0.6.22' },
+      { id: 'term01',      type: 'terminal',       label: 'Ops Terminal',     lan: '10.0.6.30' },
+      { id: 'printsrv01',  type: 'print-server',   label: 'Print Server',     lan: '10.0.6.40' },
+      { id: 'printer01',   type: 'printer',        label: 'Printer F1',       lan: '10.0.6.41' },
+      { id: 'printer02',   type: 'printer',        label: 'Printer F2',       lan: '10.0.6.42' },
+      { id: 'wifi01',      type: 'wifi-ap',        label: 'Wi-Fi AP',         lan: '10.0.6.50' }
+    ];
+
+    // ── SOURCE 1 — topology (adjacency). The power link is flagged. ───
+    var EDGES = [
+      { from: 'gw01',        to: 'fw01' },
+      { from: 'fw01',        to: 'core-sw01' },
+      { from: 'ups01',       to: 'core-sw01', power: true },
+      { from: 'core-sw01',   to: 'lb01' },
+      { from: 'lb01',        to: 'web01' },
+      { from: 'lb01',        to: 'web02' },
+      { from: 'core-sw01',   to: 'app01' },
+      { from: 'app01',       to: 'db01' },
+      { from: 'app01',       to: 'es01' },
+      { from: 'core-sw01',   to: 'auth01' },
+      { from: 'core-sw01',   to: 'nas01' },
+      { from: 'nas01',       to: 'backup01' },
+      { from: 'core-sw01',   to: 'faststore01' },
+      { from: 'core-sw01',   to: 'media01' },
+      { from: 'core-sw01',   to: 'render01' },
+      { from: 'core-sw01',   to: 'render02' },
+      { from: 'core-sw01',   to: 'access-sw01' },
+      { from: 'access-sw01', to: 'ws01' },
+      { from: 'access-sw01', to: 'ws02' },
+      { from: 'access-sw01', to: 'term01' },
+      { from: 'access-sw01', to: 'printsrv01' },
+      { from: 'printsrv01',  to: 'printer01' },
+      { from: 'printsrv01',  to: 'printer02' },
+      { from: 'access-sw01', to: 'wifi01' }
+    ];
+
+    // ── SOURCE 3 — traffic by team. Column order is FIXED so palette(5)
+    //    assigns the same colour to the same team across EVERY donut. ──
+    var TEAMS = ['Platform', 'DataSci', 'Web', 'Design', 'Ops'];
+    var TRAFFIC = {
+      'gw01':        [20, 20, 25, 15, 20],
+      'fw01':        [22, 18, 25, 15, 20],
+      'core-sw01':   [20, 20, 20, 20, 20],
+      'ups01':       [0, 0, 0, 0, 100],
+      'lb01':        [10, 5, 75, 5, 5],
+      'web01':       [8, 4, 80, 4, 4],
+      'web02':       [8, 4, 80, 4, 4],
+      'app01':       [45, 15, 20, 10, 10],
+      'db01':        [25, 55, 10, 5, 5],
+      'es01':        [15, 65, 12, 3, 5],
+      'auth01':      [40, 10, 20, 10, 20],
+      'nas01':       [15, 25, 10, 40, 10],
+      'backup01':    [10, 15, 5, 10, 60],
+      'faststore01': [10, 30, 10, 45, 5],
+      'media01':     [5, 5, 10, 75, 5],
+      'render01':    [2, 3, 5, 88, 2],
+      'render02':    [2, 3, 5, 88, 2],
+      'access-sw01': [18, 12, 20, 30, 20],
+      'ws01':        [30, 20, 20, 20, 10],
+      'ws02':        [10, 10, 15, 60, 5],
+      'term01':      [20, 10, 10, 5, 55],
+      'printsrv01':  [15, 10, 15, 30, 30],
+      'printer01':   [20, 15, 20, 25, 20],
+      'printer02':   [18, 12, 18, 32, 20],
+      'wifi01':      [25, 18, 22, 20, 15]
+    };
+
+    // ── TIERED LAYOUT (source-1 segments). Each entry: a column of node
+    //    ids. Columns march left->right; rows top->bottom within a tier.
+    //    No two nodes share a cell, so edges never cross a node. ───────
+    var TIERS = [
+      { label: 'Edge',    ids: ['gw01', 'fw01'] },
+      { label: 'Core',    ids: ['core-sw01', 'ups01'] },
+      { label: 'DMZ',     ids: ['lb01', 'web01', 'web02'] },
+      { label: 'App',     ids: ['app01', 'db01', 'es01', 'auth01'] },
+      { label: 'Storage', ids: ['nas01', 'backup01', 'faststore01', 'media01'] },
+      { label: 'Compute', ids: ['render01', 'render02'] },
+      { label: 'Access',  ids: ['access-sw01', 'ws01', 'ws02', 'term01',
+                                'printsrv01', 'printer01', 'printer02', 'wifi01'] }
+    ];
+
+    // Spacing chosen so every node has clear room: an icon above and a
+    // donut + LAN chip below, with the graph edges routing in the gaps.
+    var COL_X0   = 150;   // left margin for the first column's node x
+    var COL_STEP = 250;   // horizontal stride between tiers (columns)
+    var ROW_Y0   = 120;   // top margin for the first row's node y
+    var ROW_STEP = 300;   // vertical stride between rows within a tier
+
+    var byId = {};
+    var i, j;
+    for (i = 0; i < COMPONENTS.length; i++) { byId[COMPONENTS[i].id] = COMPONENTS[i]; }
+
+    // Assign x,y per the tiered layout.
+    var maxRows = 0;
+    for (i = 0; i < TIERS.length; i++) {
+      var tier = TIERS[i];
+      if (tier.ids.length > maxRows) { maxRows = tier.ids.length; }
+      for (j = 0; j < tier.ids.length; j++) {
+        var nd = byId[tier.ids[j]];
+        nd.x = COL_X0 + i * COL_STEP;
+        nd.y = ROW_Y0 + j * ROW_STEP;
+      }
+    }
+
+    // Scene canvas size — enough margin past the furthest node box.
+    var SCENE_W = COL_X0 + (TIERS.length - 1) * COL_STEP + NODE_W + 120;
+    var SCENE_H = ROW_Y0 + (maxRows - 1) * ROW_STEP + NODE_H + 150;
+
+    // ── Layer 1: scene-graph JSON ────────────────────────────────────
+    // Every node is a `process` box (clean rectangle for the glyph to sit
+    // on); detail carries nothing (the LAN chip is a separate atom so it
+    // can be selected on its own). Label is the short component name.
+    var sceneNodes = [];
+    for (i = 0; i < COMPONENTS.length; i++) {
+      var c = COMPONENTS[i];
+      sceneNodes.push({ id: c.id, type: 'process', label: c.label,
+                        x: c.x, y: c.y });
+    }
+    var sceneEdges = [];
+    for (i = 0; i < EDGES.length; i++) {
+      var e = EDGES[i];
+      var se = { from: e.from, to: e.to, route: 'ortho' };
+      if (e.power) { se.style = 'dashed'; se.label = 'power'; }
+      sceneEdges.push(se);
+    }
+    var scene = {
+      version: 1, preset: 'free', grid: 2,
+      width: SCENE_W, height: SCENE_H,
+      nodes: sceneNodes, edges: sceneEdges
+    };
+    document.getElementById('lan-scene-json').textContent = JSON.stringify(scene);
+
+    // Pin the stage aspect-ratio to the scene so the graph <svg>
+    // (preserveAspectRatio "meet") fills it with no letterboxing — this is
+    // what keeps SVG user units == stage percentages for the overlays.
+    var stage = document.getElementById('lan-stage');
+    stage.style.aspectRatio = SCENE_W + ' / ' + SCENE_H;
+
+    // ── Overlay layer: per-node NESTED decoration (icon + donut + chip) ─
+    // The composition mechanism: SVG is a superset of HTML. The overlay
+    // <svg> shares the graph's exact viewBox, and for EACH node we nest, at
+    // that node's coordinate:
+    //   • a simple inline-SVG icon glyph just ABOVE the node box, and
+    //   • a <foreignObject> just BELOW it holding an HTML cell (the donut +
+    //     the mono LAN-address chip).
+    // <foreignObject> is the bidirectional-nesting bridge (HTML inside SVG);
+    // because the donut rides SVG user-space it tracks the node with ZERO
+    // percentage/letterbox math. Every piece is self-contained — its own
+    // markup, its own data-ve-* atom, its own --vc-* theming — and makes no
+    // assumption about its neighbours, so the SAME approach would compose any
+    // other set of elements at the same node. We build with explicit DOM /
+    // createElementNS calls so the SVG vs HTML namespaces are unambiguous
+    // (innerHTML on an <svg> would risk parsing the foreignObject's HTML in
+    // the SVG namespace).
+    var SVGNS = 'http://www.w3.org/2000/svg';
+    var ICONS = lanIcons();
+    var iconLayer = document.getElementById('lan-icon-layer');
+    iconLayer.setAttribute('viewBox', '0 0 ' + SCENE_W + ' ' + SCENE_H);
+    iconLayer.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+
+    var ICON_SIZE = 64;    // on-canvas glyph box side (svg user units)
+    var FO_W = 116;        // foreignObject width  (donut + chip cell)
+    var FO_H = 150;        // foreignObject height (donut ~96 + chip + gap)
+
+    function svgNode(name, attrs) {
+      var e = document.createElementNS(SVGNS, name);
+      if (attrs) {
+        for (var k in attrs) {
+          if (attrs.hasOwnProperty(k)) { e.setAttribute(k, String(attrs[k])); }
+        }
+      }
+      return e;
+    }
+
+    for (i = 0; i < COMPONENTS.length; i++) {
+      var n = COMPONENTS[i];
+
+      // (a) ICON glyph — one <g data-ve-type="lan-icon"> atom, centred over
+      //     the node box, sitting just above it (clear of the node label).
+      var gx = n.x + NODE_W / 2 - ICON_SIZE / 2;
+      var gy = n.y - ICON_SIZE - 14;
+      var sc = (ICON_SIZE / 1000).toFixed(4);   // local 0..1000 -> ICON_SIZE
+      var inner = ICONS[n.type];
+      if (!inner) { throw new Error('no glyph for type: ' + n.type); }
+      var iconG = svgNode('g', {
+        'data-ve-id': 'lan-icon-' + n.id,
+        'data-ve-type': 'lan-icon',
+        'data-ve-label': n.type,
+        tabindex: '0', role: 'button',
+        transform: 'translate(' + gx + ',' + gy + ') scale(' + sc + ')'
+      });
+      // The rounded background plate + the authored glyph primitives. The
+      // glyph markup is static, authored SVG — innerHTML here is the SVG
+      // namespace (correct: these ARE svg primitives).
+      iconG.innerHTML =
+        '<rect class="lan-glyph-bg" x="-40" y="-40" width="1080"'
+        + ' height="1080" rx="120"/>' + inner;
+      iconLayer.appendChild(iconG);
+
+      // (b) DONUT + LAN chip — nested via <foreignObject> just below the
+      //     node box. The HTML cell is built with DOM APIs (HTML namespace).
+      var foX = n.x + NODE_W / 2 - FO_W / 2;
+      var foY = n.y + NODE_H + 6;
+      var fo = svgNode('foreignObject', {
+        x: foX, y: foY, width: FO_W, height: FO_H,
+        // Decorative grouping id so the cell is addressable; the real
+        // interaction atoms are the chip, the donut, and the donut's arcs.
+        'data-ve-deco': n.id
+      });
+      var cell = document.createElement('div');
+      cell.className = 'lan-cell';
+      cell.setAttribute('xmlns', 'http://www.w3.org/1999/xhtml');
+
+      // LAN address chip — its own selection atom.
+      var chip = document.createElement('div');
+      chip.className = 'lan-addr';
+      chip.setAttribute('data-ve-id', 'lan-addr-' + n.id);
+      chip.setAttribute('data-ve-type', 'lan-address');
+      chip.setAttribute('data-ve-label', n.lan);
+      chip.textContent = n.lan;
+      cell.appendChild(chip);
+
+      // Donut wrapper atom containing the chart:donut@1 fenced block. The
+      // chart module replaces the <pre> with <figure.ve-chart> (its own
+      // data-ve-id atom), and stamps each of the 5 arcs as a chart-point
+      // atom. We hand-roll none of that. Team order is FIXED so palette(5)
+      // colours each team consistently across every donut.
+      var data = TRAFFIC[n.id];
+      var seriesData = [];
+      for (j = 0; j < TEAMS.length; j++) {
+        seriesData.push({ x: TEAMS[j], y: data[j] });
+      }
+      var donutSpec = {
+        title: n.label + ' — traffic by team',
+        series: [{ label: 'traffic', data: seriesData }]
+      };
+      var donutWrap = document.createElement('div');
+      donutWrap.className = 'lan-donut';
+      donutWrap.setAttribute('data-ve-id', 'lan-donut-' + n.id);
+      donutWrap.setAttribute('data-ve-type', 'lan-donut');
+      donutWrap.setAttribute('data-ve-label', n.label);
+      var pre = document.createElement('pre');
+      var code = document.createElement('code');
+      code.className = 'language-chart:donut@1';
+      code.textContent = JSON.stringify(donutSpec);
+      pre.appendChild(code);
+      donutWrap.appendChild(pre);
+      cell.appendChild(donutWrap);
+
+      fo.appendChild(cell);
+      iconLayer.appendChild(fo);
+    }
+
+    // Faint tier labels — nested as <text> in the overlay's SVG space.
+    for (i = 0; i < TIERS.length; i++) {
+      var tx = COL_X0 + i * COL_STEP + NODE_W / 2;
+      var ty = ROW_Y0 - 64;
+      var lbl = svgNode('text', {
+        x: tx, y: ty, 'text-anchor': 'middle', 'class': 'lan-tier-label'
+      });
+      lbl.textContent = TIERS[i].label;
+      iconLayer.appendChild(lbl);
+    }
+
+    // Expose computed facts for the headless test (no behaviour change).
+    window.__lanScene = {
+      sceneW: SCENE_W, sceneH: SCENE_H,
+      nodeCount: COMPONENTS.length, edgeCount: EDGES.length,
+      teams: TEAMS,
+      types: (function () {
+        var set = {}; var out = [];
+        for (var k = 0; k < COMPONENTS.length; k++) {
+          if (!set[COMPONENTS[k].type]) { set[COMPONENTS[k].type] = 1;
+            out.push(COMPONENTS[k].type); }
+        }
+        return out;
+      })(),
+      powerEdgeId: 've-lan-edge-ups01-to-core-sw01'
+    };
+    window.__lanReady = true;
+  } catch (err) {
+    window.__lanFixtureError = String(err && err.message || err);
+  }
+
+  // ── helpers ────────────────────────────────────────────────────────
+  // 19 distinct, simple glyphs. Each draws inside a local 0 0 1000 1000
+  // box using .lan-glyph (hairline) / .lan-glyph-fill (accent). The
+  // silhouettes are deliberately different per type so no two icons look
+  // alike (assertion: distinct path geometry per type).
+  function lanIcons() {
+    return {
+      // gateway — a globe with a vertical uplink arrow.
+      'gateway':
+        '<circle class="lan-glyph" cx="500" cy="560" r="300"/>'
+        + '<path class="lan-glyph" d="M200 560 H800 M500 260 V860 '
+        + 'M300 380 Q500 480 700 380 M300 740 Q500 640 700 740"/>'
+        + '<path class="lan-glyph" d="M500 120 V300 M420 200 L500 120 L580 200"/>',
+      // firewall — brick wall + a flame.
+      'firewall':
+        '<rect class="lan-glyph" x="160" y="420" width="680" height="420"/>'
+        + '<path class="lan-glyph" d="M160 560 H840 M160 700 H840 '
+        + 'M390 420 V560 M610 560 V700 M390 700 V840 M610 700 V840 '
+        + 'M280 700 V840"/>'
+        + '<path class="lan-glyph-fill" d="M500 130 q120 130 60 230 '
+        + 'q70 -20 60 -120 q70 110 0 220 q-30 70 -120 70 q-150 0 -120 -160 '
+        + 'q20 -90 180 -240 z"/>',
+      // switch — a box with up/down port arrows (a network switch).
+      'switch':
+        '<rect class="lan-glyph" x="140" y="380" width="720" height="240" rx="40"/>'
+        + '<path class="lan-glyph" d="M280 460 H440 M620 460 L720 460 '
+        + 'M280 540 L380 540 M560 540 H720"/>'
+        + '<path class="lan-glyph" d="M440 420 L500 460 L440 500 '
+        + 'M560 500 L500 540 L560 580"/>',
+      // ups — a battery cell with a lightning bolt.
+      'ups':
+        '<rect class="lan-glyph" x="220" y="260" width="560" height="560" rx="40"/>'
+        + '<path class="lan-glyph" d="M420 200 H580 M420 200 V260 M580 200 V260"/>'
+        + '<path class="lan-glyph-fill" d="M540 340 L380 580 H500 L460 760 '
+        + 'L640 500 H520 Z"/>',
+      // load-balancer — one source fanning out to three targets.
+      'load-balancer':
+        '<circle class="lan-glyph-fill" cx="220" cy="500" r="70"/>'
+        + '<circle class="lan-glyph" cx="780" cy="280" r="70"/>'
+        + '<circle class="lan-glyph" cx="780" cy="500" r="70"/>'
+        + '<circle class="lan-glyph" cx="780" cy="720" r="70"/>'
+        + '<path class="lan-glyph" d="M290 500 H520 M520 500 L710 290 '
+        + 'M520 500 H710 M520 500 L710 710"/>',
+      // web-server — a monitor with a globe (HTTP front-end).
+      'web-server':
+        '<rect class="lan-glyph" x="180" y="240" width="640" height="440" rx="30"/>'
+        + '<circle class="lan-glyph" cx="500" cy="460" r="150"/>'
+        + '<path class="lan-glyph" d="M350 460 H650 M500 310 V610 '
+        + 'M400 360 Q500 430 600 360 M400 560 Q500 490 600 560"/>'
+        + '<path class="lan-glyph" d="M380 760 H620 M500 680 V760"/>',
+      // app-server — a rack unit with a gear (application logic).
+      'app-server':
+        '<rect class="lan-glyph" x="240" y="220" width="520" height="560" rx="30"/>'
+        + '<path class="lan-glyph" d="M320 330 H680 M320 470 H520"/>'
+        + '<circle class="lan-glyph-fill" cx="600" cy="600" r="90"/>'
+        + '<path class="lan-glyph" d="M600 470 V520 M600 680 V730 '
+        + 'M470 600 H520 M680 600 H730 M520 520 L555 555 M680 680 L645 645"/>',
+      // db-server — the classic cylinder database.
+      'db-server':
+        '<path class="lan-glyph" d="M250 320 V680 q0 90 250 90 q250 0 250 -90 V320"/>'
+        + '<ellipse class="lan-glyph" cx="500" cy="320" rx="250" ry="90"/>'
+        + '<path class="lan-glyph" d="M250 470 q250 90 500 0 '
+        + 'M250 575 q250 90 500 0"/>',
+      // elasticsearch — three nested search rings + a magnifier.
+      'elasticsearch':
+        '<circle class="lan-glyph" cx="460" cy="460" r="220"/>'
+        + '<circle class="lan-glyph" cx="460" cy="460" r="120"/>'
+        + '<path class="lan-glyph" d="M620 620 L820 820"/>'
+        + '<circle class="lan-glyph-fill" cx="460" cy="460" r="40"/>',
+      // auth-server — a shield with a keyhole.
+      'auth-server':
+        '<path class="lan-glyph" d="M500 160 L800 280 V520 '
+        + 'q0 220 -300 330 q-300 -110 -300 -330 V280 Z"/>'
+        + '<circle class="lan-glyph-fill" cx="500" cy="430" r="70"/>'
+        + '<path class="lan-glyph-fill" d="M470 470 H530 L515 640 H485 Z"/>',
+      // nas — stacked disk bays (network-attached storage).
+      'nas':
+        '<rect class="lan-glyph" x="240" y="240" width="520" height="520" rx="30"/>'
+        + '<path class="lan-glyph" d="M240 410 H760 M240 580 H760"/>'
+        + '<circle class="lan-glyph-fill" cx="330" cy="325" r="34"/>'
+        + '<circle class="lan-glyph-fill" cx="330" cy="495" r="34"/>'
+        + '<circle class="lan-glyph-fill" cx="330" cy="665" r="34"/>',
+      // backup — a disk with a circular-arrow (restore loop).
+      'backup':
+        '<rect class="lan-glyph" x="240" y="240" width="520" height="520" rx="60"/>'
+        + '<path class="lan-glyph" d="M620 420 a160 160 0 1 0 40 150"/>'
+        + '<path class="lan-glyph" d="M620 320 V440 H500"/>',
+      // fast-storage — a memory chip with a speed bolt (NVMe).
+      'fast-storage':
+        '<rect class="lan-glyph" x="300" y="300" width="400" height="400" rx="24"/>'
+        + '<path class="lan-glyph" d="M380 300 V200 M500 300 V200 M620 300 V200 '
+        + 'M380 700 V800 M500 700 V800 M620 700 V800 '
+        + 'M300 380 H200 M300 500 H200 M300 620 H200 '
+        + 'M700 380 H800 M700 500 H800 M700 620 H800"/>'
+        + '<path class="lan-glyph-fill" d="M520 360 L420 520 H500 L460 640 '
+        + 'L600 480 H520 Z"/>',
+      // media-server — a play triangle inside a film frame.
+      'media-server':
+        '<rect class="lan-glyph" x="200" y="280" width="600" height="440" rx="30"/>'
+        + '<path class="lan-glyph" d="M200 360 H300 M200 460 H300 M200 560 H300 '
+        + 'M200 640 H300 M700 360 H800 M700 460 H800 M700 560 H800 M700 640 H800"/>'
+        + '<path class="lan-glyph-fill" d="M440 380 L640 500 L440 620 Z"/>',
+      // render-station — a 3D cube (rendering / GPU node).
+      'render-station':
+        '<path class="lan-glyph" d="M500 180 L800 340 V660 L500 820 '
+        + 'L200 660 V340 Z"/>'
+        + '<path class="lan-glyph" d="M200 340 L500 500 L800 340 '
+        + 'M500 500 V820"/>',
+      // relay — two opposed transfer arrows (the access switch / relay).
+      'relay':
+        '<rect class="lan-glyph" x="160" y="380" width="680" height="240" rx="40"/>'
+        + '<path class="lan-glyph" d="M280 470 H700 M620 420 L720 470 L620 520"/>'
+        + '<path class="lan-glyph" d="M720 560 H300 M380 510 L280 560 L380 610"/>',
+      // workstation — a desktop tower + monitor.
+      'workstation':
+        '<rect class="lan-glyph" x="200" y="240" width="420" height="320" rx="20"/>'
+        + '<path class="lan-glyph" d="M340 640 H480 M410 560 V640 M300 700 H520"/>'
+        + '<rect class="lan-glyph" x="680" y="300" width="140" height="380" rx="20"/>'
+        + '<circle class="lan-glyph-fill" cx="750" cy="620" r="26"/>',
+      // terminal — a console window with a prompt caret.
+      'terminal':
+        '<rect class="lan-glyph" x="180" y="240" width="640" height="520" rx="30"/>'
+        + '<path class="lan-glyph" d="M180 360 H820"/>'
+        + '<path class="lan-glyph-fill" d="M300 460 L420 540 L300 620 V580 '
+        + 'L360 540 L300 500 Z"/>'
+        + '<path class="lan-glyph" d="M470 620 H660"/>',
+      // print-server — a printer wired to a small server node.
+      'print-server':
+        '<rect class="lan-glyph" x="220" y="380" width="560" height="280" rx="24"/>'
+        + '<rect class="lan-glyph" x="320" y="240" width="360" height="160"/>'
+        + '<rect class="lan-glyph" x="320" y="600" width="360" height="200"/>'
+        + '<circle class="lan-glyph-fill" cx="690" cy="470" r="34"/>'
+        + '<path class="lan-glyph" d="M360 470 H560"/>',
+      // printer — a printer with an emerging sheet (distinct from server).
+      'printer':
+        '<rect class="lan-glyph" x="220" y="400" width="560" height="260" rx="24"/>'
+        + '<rect class="lan-glyph" x="320" y="260" width="360" height="160"/>'
+        + '<rect class="lan-glyph-fill" x="340" y="600" width="320" height="180"/>'
+        + '<circle class="lan-glyph" cx="690" cy="490" r="30"/>',
+      // wifi-ap — concentric broadcast arcs over a base.
+      'wifi-ap':
+        '<path class="lan-glyph" d="M260 520 a340 340 0 0 1 480 0"/>'
+        + '<path class="lan-glyph" d="M340 600 a230 230 0 0 1 320 0"/>'
+        + '<path class="lan-glyph" d="M410 680 a130 130 0 0 1 180 0"/>'
+        + '<circle class="lan-glyph-fill" cx="500" cy="760" r="46"/>'
+    };
+  }
+})();
+</script>
+
+<!-- The runtime boots all three element modules together (diagram + chart +
+     icon-svg) on DOMContentLoaded. We load the modules AFTER the composer so
+     the DOM (scene JSON, icon atoms, donut <pre> blocks) is in place when
+     each module's init/scan runs. We do NOT set any __*ManualInit flag: the
+     runtime's bootEverything() and each module's own self-boot are
+     idempotent and coexist — that shared boot is the composability proof. -->
+<!-- Loaded from the parent fixtures/ dir: amvcp-diagram.js + amvcp-chart.js +
+     amvcp-icon-svg.js are symlinks there -> ../../scripts/ (always current);
+     amvcp-runtime.js is the regular-file copy that run-tests.py's
+     sync_runtime_into_fixtures() refreshes on every run. This fixture lives
+     one level down in lan-composability/, hence the ../ prefix.
+
+     ALL THREE element modules must be loaded explicitly — the runtime does
+     NOT bundle them; bootEverything() only inits a module if its global is
+     present (tryModule). The graph element lives in amvcp-diagram.js. -->
+<script src="../amvcp-diagram.js"></script>
+<script src="../amvcp-icon-svg.js"></script>
+<script src="../amvcp-chart.js"></script>
+<script src="../amvcp-runtime.js"></script>
+</body>
+</html>
