@@ -158,7 +158,7 @@
     // Click-to-copy snippet button — the EXPORT affordance. Alt/Meta-click
     // copies the snippet; a plain click is left to the runtime selection.
     if (variant.snippet) {
-      var copyBtn = el('button', 'vc-cvm-copy vc-state', {
+      var copyBtn = el('button', 'vc-cvm-copy', {
         type: 'button',
         'data-vc-copy': String(variant.snippet),
         'aria-label': 'Copy snippet for ' + (variant.label || key),
@@ -210,7 +210,7 @@
   // source example used) so the eye compares TREATMENTS, not content. A
   // schema may override the body text via variant.sample.* fields.
   function renderComponentInstance(component, variant, treatment, opts) {
-    var inst = el('div', 'vc-cvm-instance vc-state');
+    var inst = el('div', 'vc-cvm-instance');
     // Apply the treatment as inline style off --vc-* tokens. These are
     // the ONLY inline styles; everything else lives in the injected
     // stylesheet so it themes consistently.
@@ -398,7 +398,7 @@
     }
     // The Theme toggle — mirrors the token-sheet's header button so the
     // matrix flips light/dark live (delegates to the runtime when present).
-    var themeBtn = el('button', 'vc-cvm-theme-toggle vc-state',
+    var themeBtn = el('button', 'vc-cvm-theme-toggle',
       { type: 'button' });
     head.appendChild(themeBtn);
     attachThemeToggle(themeBtn, designmd);
