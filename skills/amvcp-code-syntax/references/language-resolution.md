@@ -1,11 +1,11 @@
-# Sub-technique A7 — Language resolution + the 17-alias map
+# Sub-technique A7 — Language resolution + the alias map
 
 ## Table of Contents
 
 - [A7.1 The resolution rule](#a71-the-resolution-rule)
 - [A7.2 Why `null` is a deliberate result](#a72-why-null-is-a-deliberate-result)
 - [A7.3 The two attribute conventions](#a73-the-two-attribute-conventions)
-- [A7.4 The 17-alias map (the full vocabulary)](#a74-the-17-alias-map-the-full-vocabulary)
+- [A7.4 The alias map (the full vocabulary)](#a74-the-alias-map-the-full-vocabulary)
 - [A7.5 The class-extraction regex](#a75-the-class-extraction-regex)
 - [A7.6 Why JS+TS share one table](#a76-why-jsts-share-one-table)
 - [A7.7 Unknown ids — the fail-soft path](#a77-unknown-ids--the-fail-soft-path)
@@ -62,9 +62,9 @@ Both are first-class:
 A `<pre>` can carry BOTH `class="language-js"` AND
 `data-ve-lang="diff"` — `data-ve-lang` wins (explicit beats class).
 
-## A7.4 The 17-alias map (the full vocabulary)
+## A7.4 The alias map (the full vocabulary)
 
-The tokenizer ships seven canonical languages, plus 17 aliases that
+The tokenizer ships seven canonical languages, plus 22 aliases that
 resolve to one of them:
 
 | Canonical | Aliases (all resolve to canonical) |
@@ -77,7 +77,7 @@ resolve to one of them:
 | `css` | `scss`, `less` |
 | `diff` | `patch`, `udiff` |
 
-**Total: 7 canonical + 17 aliases = 24 ids the tokenizer recognises.**
+**Total: 7 canonical + 22 aliases = 29 ids the tokenizer recognises.**
 
 Case-insensitive — `data-ve-lang="TypeScript"` and `data-ve-lang="ts"`
 both resolve to `js`.

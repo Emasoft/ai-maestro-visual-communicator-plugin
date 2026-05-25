@@ -47,16 +47,18 @@ A themed, atom-stamped table whose rows/cells participate in the standard `data-
 
 | Symptom | Fix |
 |---|---|
-| Table renders but JS doesn't enhance it | Confirm `amvcp-tables.js` is loaded and the table has `data-ve-mode="..."`. |
-| Sticky / frozen column doesn't stick | Verify `position: sticky` ancestor isn't `overflow: hidden`. |
-| Sort doesn't fire | Confirm header has `data-vc-sort` and the script is loaded before DOM-ready. |
+| Badge `<span>` renders unstyled | These badges are author-written `<span>`s — you must ship the `.sev` / `.risk-dot` / `.chip` CSS yourself (see each reference). The tables module does NOT inject them. |
+| Decision pill missing on rows | The 3-state pill is injected by the runtime's `attachDecisionMini()`, not by author markup — confirm `amvcp-runtime.js` is loaded and the table opts into a mode (`data-ve-table="data\|matrix\|compare"`). |
+| Color-only badge fails a11y | Always pair the color with a visible text label or `aria-label`; never rely on color alone. |
 
 ## Examples
 
+Badges are plain author `<span>`s with author-defined CSS (the module does not inject them). A severity badge in a risks table:
+
 ```html
-<table class="vc-table">
+<table data-ve-table="data">
   <tbody>
-    <tr><td>X</td><td><span class="vc-pill" data-vc-state="warn">PARTIAL</span></td></tr>
+    <tr><th scope="row">X</th><td><span class="sev sev-high" aria-label="High severity">HIGH</span></td></tr>
   </tbody>
 </table>
 ```

@@ -120,36 +120,51 @@ no-nested-scrollbars rule).
 
 ## Examples
 
-**Example 1 — inline SVG icon**
+**Example 1 — authored SVG scene-graph (the `<script type="application/icon-svg+json">` path)**
 
 ```html
-<figure data-ve-icon-svg data-ve-id="icon-search">
-  <pre><code class="language-svg-scene">
-{"kind":"icon","variant":"search","size":24,"color":"currentColor"}
-  </code></pre>
-</figure>
+<script type="application/icon-svg+json" id="pipeline">
+{
+  "viewBox": [0, 0, 1000, 1000],
+  "ariaLabel": "Pipeline stages",
+  "primitives": [
+    { "type": "process",  "id": "in",  "x": 60,  "y": 380,
+      "w": 280, "h": 240, "label": "Ingest" },
+    { "type": "decision", "id": "v",   "x": 360, "y": 380,
+      "w": 280, "h": 240, "label": "Valid?",  "variant": "warning" },
+    { "type": "process",  "id": "out", "x": 660, "y": 380,
+      "w": 280, "h": 240, "label": "Persist", "variant": "success" }
+  ]
+}
+</script>
 ```
 
-**Example 2 — device frame around a screenshot**
+The same scene also compiles from a fenced ` ```icon-svg ` block (it
+renders to `<code class="language-icon-svg">`, which the runtime scans).
+
+**Example 2 — device frame around a screenshot (the `deviceFrame()` JS path)**
 
 ```html
-<figure data-ve-icon-svg data-ve-id="frame-app">
-  <pre><code class="language-svg-scene">
-{"kind":"device-frame","variant":"ios","content":{"img":"./screenshot.png"}}
-  </code></pre>
-</figure>
+<div id="app-mockup"></div>
+<script>
+  document.getElementById('app-mockup').appendChild(
+    window.amvcpIconSvg.deviceFrame({
+      kind: 'ios', title: 'My App',
+      content: '<img src="./screenshot.png" alt="app screenshot">'
+    })
+  );
+</script>
 ```
 
-**Example 3 — image with hotspots (annotated callouts)**
+**Example 3 — image with hotspots (annotated callouts — the HTML path)**
 
 ```html
-<figure data-ve-icon-svg data-ve-id="annotations">
-  <pre><code class="language-svg-scene">
-{"kind":"hotspot","image":"./ui.png","points":[
-  {"x":0.20,"y":0.30,"label":"A — sidebar"},
-  {"x":0.62,"y":0.45,"label":"B — main panel"}
-]}
-  </code></pre>
+<figure class="isvg-annotated">
+  <img src="./ui.png" alt="annotated UI">
+  <span class="isvg-hotspot" data-ve-id="hs-sidebar"
+        style="--x: 0.20; --y: 0.30" role="button" tabindex="0">A — sidebar</span>
+  <span class="isvg-hotspot" data-ve-id="hs-main"
+        style="--x: 0.62; --y: 0.45" role="button" tabindex="0">B — main panel</span>
 </figure>
 ```
 

@@ -43,16 +43,18 @@ A themed, atom-stamped table whose rows/cells participate in the standard `data-
 
 | Symptom | Fix |
 |---|---|
-| Table renders but JS doesn't enhance it | Confirm `amvcp-tables.js` is loaded and the table has `data-ve-mode="..."`. |
-| Sticky / frozen column doesn't stick | Verify `position: sticky` ancestor isn't `overflow: hidden`. |
-| Sort doesn't fire | Confirm header has `data-vc-sort` and the script is loaded before DOM-ready. |
+| Table renders but JS doesn't enhance it | Confirm `amvcp-tables.js` is loaded and the table has `data-ve-table="matrix"` (or `"compare"`). |
+| Glyph doesn't appear in a matrix cell | Confirm the `<td>` has `data-ve-val="pass\|fail\|partial\|na"` — only those four values inject a glyph; unknown values are left untouched. |
+| Emphasis column not highlighted | Confirm `data-ve-col-emphasis` is on exactly one `<th>` — two emphasis columns trigger a `console.warn` and neither is applied. |
 
 ## Examples
 
+`data-ve-table="matrix"` enhances each `<td data-ve-val="…">` into a glyph + screen-reader word. Allowed values: `pass` / `fail` / `partial` / `na`:
+
 ```html
-<table class="vc-table" data-ve-mode="matrix">
+<table data-ve-table="matrix">
   <thead><tr><th>Item</th><th>A11y</th><th>Perf</th></tr></thead>
-  <tbody><tr><td>X</td><td data-vc-glyph="check"></td><td data-vc-glyph="partial"></td></tr></tbody>
+  <tbody><tr><th scope="row">X</th><td data-ve-val="pass"></td><td data-ve-val="partial"></td></tr></tbody>
 </table>
 ```
 

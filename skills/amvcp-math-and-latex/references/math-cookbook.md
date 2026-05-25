@@ -402,7 +402,7 @@ So a **single click** on a diagram selects the whole diagram. **Mouse-highlight*
 }
 ```
 
-The agent receives the visible label of the user's pick plus the *complete* TikZ source, which is enough to act: "rotate the gravity vector to point along the slope direction", "swap the chemfig formula for benzoic acid", "scale the Carnot cycle to compress the isotherms".
+The agent receives the visible label of the user's pick plus the *complete* TikZ source, which is enough to act: "rotate the gravity vector to point along the slope direction", "relabel this atom node", "scale the Carnot cycle to compress the isotherms".
 
 > **Cost note.** TikZJax is a ~3 MB WASM bundle (downloaded once, cached by the browser). Don't add `class="ve-tikz"` on a page that has no TikZ — it would lazy-load TikZJax for nothing. The runtime only triggers the load when at least one `.ve-tikz` element is in the DOM.
 
@@ -516,6 +516,8 @@ This means the same figure source flies through the iteration loop *and* lands i
 
 ## Pattern: chemistry molecule with selectable atoms and bonds
 
+`chemfig` is NOT preloaded in TikZJax (see [tikz-substitutions](./tikz-substitutions.md) — it crashes the WASM instance). Draw ball-and-stick structures with **manual TikZ primitives** (atom nodes + bond lines), which also match the semantic regions one-to-one:
+
 ```html
 <div class="ve-tikz"
      data-ve-tikz-viewbox="0 0 6 4"
@@ -528,7 +530,18 @@ This means the same figure source flies through the iteration loop *and* lands i
        {"id":"angle-HOH","label":"H–O–H bond angle","shape":"circle","cx":3.0,"cy":1.7,"r":0.4}
      ]'>
 % ve-region: water-molecule
-\chemfig{H-O(-[2]H)-H}
+\begin{tikzpicture}
+  \coordinate (O)  at (3.0,2.0);
+  \coordinate (H1) at (1.5,1.0);
+  \coordinate (H2) at (4.5,1.0);
+  % ve-region: bond-OH1
+  \draw[thick] (O) -- (H1);
+  % ve-region: bond-OH2
+  \draw[thick] (O) -- (H2);
+  \node[circle,draw,fill=red!20]  at (O)  {O};
+  \node[circle,draw,fill=blue!10] at (H1) {H};
+  \node[circle,draw,fill=blue!10] at (H2) {H};
+\end{tikzpicture}
 </div>
 ```
 
@@ -553,12 +566,12 @@ All three coexist on the same figure. The runtime picks the innermost match for 
 | Inline equation in a paragraph                     | `.ve-math`  |
 | Block-display equation                             | `.ve-math ve-math--block` |
 | Chemical reaction (linear: `H2O + CO2 -> H2CO3`)   | `.ve-math ve-math--chem` (mhchem) |
-| Chemical structure (atoms, bonds, rings)           | `.ve-tikz` (chemfig) |
+| Chemical structure (atoms, bonds, rings)           | `.ve-tikz` with **manual** atom/bond primitives (chemfig is NOT preloaded — it crashes; see [tikz-substitutions](./tikz-substitutions.md)) |
 | Physics equation                                   | `.ve-math`  |
-| Physics diagram (free body, circuit, optics)       | `.ve-tikz`  |
-| Thermodynamic cycle (PV, TS, hS)                   | `.ve-tikz` (pgfplots) |
-| Statistical chart (histogram, scatter)             | Chart.js (existing pattern, see `${CLAUDE_PLUGIN_ROOT}/references/libraries.md`) — but pgfplots in `.ve-tikz` is also fine for static publication-quality charts |
+| Physics diagram (free body, optics)                | `.ve-tikz` (manual primitives; `circuitikz` is NOT preloaded) |
+| Thermodynamic cycle (PV, TS, hS)                   | `.ve-tikz` with `\draw plot` + `domain=`/`samples=` (`pgfplots` is NOT preloaded), or route to `.ve-chart` (Chart.js) |
+| Statistical chart (histogram, scatter)             | `.ve-chart` (Chart.js) — see `${CLAUDE_PLUGIN_ROOT}/references/libraries.md`. `pgfplots` is NOT preloaded in TikZJax. |
 | Venn diagram                                       | `.ve-tikz`  |
 | Geometry construction                              | `.ve-tikz`  |
-| Feynman diagram                                    | `.ve-tikz` (`tikz-feynman` package, available in TikZJax) |
+| Feynman diagram                                    | Static SVG fallback — `tikz-feynman` is NOT preloaded in TikZJax (see [tikz-substitutions](./tikz-substitutions.md)) |
 | State machine / flowchart                          | Mermaid (existing pattern, much faster to author) |

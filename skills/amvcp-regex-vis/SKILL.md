@@ -8,6 +8,9 @@ metadata:
 
 # Regex Visualizer + Editor
 
+> **Parent umbrella:** [`skills/amvcp-visual-communication/SKILL.md`](../amvcp-visual-communication/SKILL.md) — load the umbrella first to route between the category skills.
+> **Related code skills:** [amvcp-code-syntax](../amvcp-code-syntax/SKILL.md) (static highlight of a regex literal in prose) · [amvcp-code-highlight](../amvcp-code-highlight/SKILL.md) (router for the code-display surface).
+
 ## Overview
 
 Loads when the user wants to visualize, explain, debug, or edit a JS regex. Sub-skill of `amvcp-visual-communication`: vendored regex-vis renders the pattern as a tree with an Edit panel. The user mutates inline; the agent receives `original`, `edited`, and the full `AST.Regex`.

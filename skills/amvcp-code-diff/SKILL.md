@@ -12,6 +12,7 @@ metadata:
 > **Parent umbrella:** [`skills/amvcp-visual-communication/SKILL.md`](../amvcp-visual-communication/SKILL.md).
 > **Router:** [`skills/amvcp-code-highlight/SKILL.md`](../amvcp-code-highlight/SKILL.md) — load the router to choose between code-syntax, code-diff, code-snippets, code-fences.
 > **Sibling code skills:** [amvcp-code-syntax](../amvcp-code-syntax/SKILL.md) (load FIRST — substrate) · [amvcp-code-snippets](../amvcp-code-snippets/SKILL.md) · [amvcp-code-fences](../amvcp-code-fences/SKILL.md).
+> **Heavyweight alternative:** [amvcp-pierre-diff](../amvcp-pierre-diff/SKILL.md) — Shiki-quality highlighting + line virtualizer + merge-conflict resolver + streaming code. Escalate to it when a diff is ≥ ~500 lines, needs merge-conflict (`<<<<<<<`) resolution, or renders streaming-generated code. This skill stays the right pick for small inline diffs in a larger report.
 
 ## Overview
 

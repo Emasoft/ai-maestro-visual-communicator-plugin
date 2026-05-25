@@ -50,12 +50,20 @@ from __future__ import annotations
 
 import subprocess
 import sys
+from typing import NoReturn
 
 import iterm2
 
 
-def _fail(reason: str) -> None:
-    """Print a one-line diagnostic to stderr and exit non-zero."""
+def _fail(reason: str) -> NoReturn:
+    """Print a one-line diagnostic to stderr and exit non-zero.
+
+    Annotated `NoReturn` (it always raises `SystemExit` via `sys.exit`)
+    so the type checker knows control never falls through. Without this,
+    callers like `_navigate` would be flagged for using `app`/`session`
+    after a `_fail(...)` guard that supposedly "returns" — the same
+    pattern the sibling `detect_iterm2.py::_fail` already uses.
+    """
     print(f"iterm2-nav: {reason}", file=sys.stderr)
     sys.exit(1)
 

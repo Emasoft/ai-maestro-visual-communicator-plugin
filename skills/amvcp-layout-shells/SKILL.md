@@ -1,6 +1,6 @@
 ---
 name: amvcp-layout-shells
-description: "Application-shell layouts for visual-communicator pages — IDE 3-panel shell (sidebar + main + inspector + collapse toggle), sidebar shell, top-nav shell, split-pane shell. Use when the user asks for an IDE-style page, app shell, sidebar layout, collapsible panel, 3-panel tool UI, or split-pane workspace. Trigger with 'IDE shell', '3-panel layout', 'sidebar shell', 'app shell', 'collapsible sidebar', 'split-pane', 'tool UI', 'inspector panel'."
+description: "Application-shell layout for visual-communicator pages — the IDE 3-panel shell (left sidebar + centre main + right inspector + collapse toggle). Use when the user asks for an IDE-style page, app shell, sidebar layout, collapsible panel, or 3-panel tool UI. Trigger with 'IDE shell', '3-panel layout', 'sidebar shell', 'app shell', 'collapsible sidebar', 'tool UI', 'inspector panel'."
 license: MIT
 compatibility: "Browser (CSS Grid, dvh units, position:sticky). Requires scripts/amvcp-layout.css for grid presets and scripts/amvcp-layout.js for collapse-toggle wiring. Themes off the DESIGN.md engine."
 metadata:
@@ -13,7 +13,7 @@ metadata:
 
 ## Overview
 
-Application-shell layouts: persistent page chrome around a flexible workspace. Covers the IDE 3-panel shell (left sidebar + centre main + right inspector + collapse toggle) and its variants. Every shell is a CSS-Grid scaffold with a documented `data-la-*` DOM attribute for runtime toggles; `amvcp-layout.js` wires the toggle behaviour. Use this skill when the page needs persistent navigation chrome rather than a flowing document body.
+Application-shell layout: persistent page chrome around a flexible workspace. Ships the IDE 3-panel shell (left sidebar + centre main + right inspector + collapse toggle). The shell is a CSS-Grid scaffold with a documented `data-la-*` DOM attribute for the runtime collapse toggle; `amvcp-layout.js` wires the toggle behaviour. Use this skill when the page needs persistent navigation chrome rather than a flowing document body. (Sidebar-only / top-nav / split-pane variants are not shipped yet — fall back to the [grids+foundation](../amvcp-layout-grids/SKILL.md) presets for those.)
 
 ## Prerequisites
 
@@ -70,16 +70,16 @@ Self-contained HTML: one `<style>` (or `<link href="amvcp-layout.css">`) carryin
 ## Examples
 
 Input: user asks for a VS-Code-style 3-panel page (file tree on the left, editor in the middle, inspector on the right).
-Output: a `.la-ide` shell with `data-la-sidebar="open"` on mount and a `[data-la-toggle]` button:
+Output: a `.la-ide` shell with `data-la-sidebar="open"` on the container and a `[data-la-toggle="ide"]` button whose value matches the container's `data-ve-id` (this is how `toggleSidebar()` resolves its target — an empty `data-la-toggle` is logged and ignored):
 
 ```html
+<button class="la-ide-toggle" data-la-toggle="ide" aria-expanded="true">Sidebar</button>
 <div class="la-ide" data-la-sidebar="open" data-ve-id="ide">
-  <aside data-ve-id="files" data-la-pane="sidebar">
-    <button data-la-toggle aria-label="Toggle file tree">≡</button>
+  <nav class="la-ide__sidebar" data-ve-id="files">
     <ul>…</ul>
-  </aside>
-  <main data-ve-id="editor" data-la-pane="main">…</main>
-  <aside data-ve-id="inspector" data-la-pane="inspector">…</aside>
+  </nav>
+  <div class="la-ide__center" data-ve-id="editor">…</div>
+  <aside class="la-ide__inspector" data-ve-id="inspector">…</aside>
 </div>
 <script src="amvcp-layout.js"></script>
 ```

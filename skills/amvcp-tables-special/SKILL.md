@@ -45,16 +45,18 @@ A themed, atom-stamped table whose rows/cells participate in the standard `data-
 
 | Symptom | Fix |
 |---|---|
-| Table renders but JS doesn't enhance it | Confirm `amvcp-tables.js` is loaded and the table has `data-ve-mode="..."`. |
-| Sticky / frozen column doesn't stick | Verify `position: sticky` ancestor isn't `overflow: hidden`. |
-| Sort doesn't fire | Confirm header has `data-vc-sort` and the script is loaded before DOM-ready. |
+| Table renders but JS doesn't enhance it | Confirm `amvcp-tables.js` is loaded and the table opts into a mode (`data-ve-table="data\|matrix\|compare"`). |
+| Emphasis side not highlighted in before/after | A before/after table is a `compare` table — put `data-ve-col-emphasis="1"` on the winning `<th scope="col">`. |
+| Sort mis-orders a table with body rowspans | The module declines to sort a body that has `rowspan` (it surfaces a `console.info` rather than silently mis-sorting) — split the spanned rows or drop the sort. |
 
 ## Examples
 
+Before/after is a `compare`-mode table; mark the emphasised side with `data-ve-col-emphasis`:
+
 ```html
-<table class="vc-table" data-ve-mode="before-after">
-  <thead><tr><th>Before</th><th>After</th></tr></thead>
-  <tbody><tr><td>old</td><td>new</td></tr></tbody>
+<table data-ve-table="compare">
+  <thead><tr><th scope="col">Before</th><th scope="col" data-ve-col-emphasis="1">After</th></tr></thead>
+  <tbody><tr><th scope="row">Latency</th><td>old</td><td>new</td></tr></tbody>
 </table>
 ```
 

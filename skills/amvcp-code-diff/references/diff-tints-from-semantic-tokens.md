@@ -153,21 +153,23 @@ shift). Most authors don't need this — the auto-mix is correct for
 - Safari 16.2+ (December 2022)
 - Firefox 113+ (May 2023)
 
-All within the runtime's supported-browser matrix. Older browsers fall
-through to the hardcoded `#9ece9e` / `#a84a32` defaults (the
-`color-mix()` declaration is invalid → the `var()` fallback to the
-literal hex applies).
+All of these are at or below the runtime's supported-browser matrix
+floor, so `color-mix()` is always available — the diff tints need no
+rgba fallback and the runtime ships none.
 
-For pre-2023 Safari (uncommon now), the fallback is:
-- Add bg fallback: a hardcoded `rgba(154, 206, 158, 0.22)` (the olive
-  baked at 22%)
-- Del bg fallback: a hardcoded `rgba(168, 74, 50, 0.22)` (the rust at
-  22%)
-
-The runtime's `:root` declaration provides BOTH the `color-mix` form
-AND the rgba fallback — modern browsers use the `color-mix`; older
-ones use the rgba. Both are theme-coherent because the fallback rgba
-is the SAME numeric value the `color-mix` would compute.
+Note on the `var()` fallbacks inside the declaration: the
+`#3a6b5c` / `#a84a32` hexes in `D4.1` are fallbacks for the
+`var(--vc-color-success …)` / `var(--vc-color-danger …)` LOOKUPS
+(they apply when those custom properties are undefined), NOT a
+fallback for `color-mix()` itself. CSS `var()` fallbacks only cover
+undefined custom properties; they do NOT rescue an unsupported
+function. If a browser below the matrix floor ever parsed the
+declaration, the whole `color-mix(…)` value would be invalid at
+computed-value time and the line would render with NO tint (the
+property is dropped) — it would NOT silently resolve to a hardcoded
+green/red. That fail-soft (no tint) is acceptable; a fabricated
+hardcoded tint would not be, since it would bypass the theming chain
+this whole file exists to protect.
 
 ## D4.8 Selection tint over diff tint
 

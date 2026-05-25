@@ -8,6 +8,11 @@
 - [Mode 2 — Mermaid → SVG workflow](#mode-2--mermaid--svg-workflow)
 - [Worked examples](#worked-examples)
 - [Closing the preview](#closing-the-preview)
+- [Side effects of opening a preview](#side-effects-of-opening-a-preview)
+- [Page navigation — Python API + keystroke fallback](#page-navigation--python-api--keystroke-fallback)
+- [Recommended one-time profile setup](#recommended-one-time-profile-setup)
+- [Why focused/unfocused title bars sometimes look the same](#why-focusedunfocused-title-bars-sometimes-look-the-same)
+- [close_preview.applescript safety](#close_previewapplescript-safety)
 
 ## Why detect iTerm2 first
 

@@ -48,6 +48,16 @@
  *   getThemePreset(name)              — named theme preset (light+dark)
  *   refresh(root)                     — re-scan after dynamic DOM insert
  *   reThemeAll(root)                  — re-render all scenes on theme swap
+ *   exportSceneAsPng(hostEl, opts)    — rasterize a scene SVG to a PNG download
+ *   exportSceneAsJpeg(hostEl)         — rasterize a scene SVG to a JPEG download
+ *   exportSceneAsWebp(hostEl)         — rasterize a scene SVG to a WebP download
+ *   exportSceneAsSvg(hostEl)          — download a scene as standalone SVG
+ *   copySceneAsPng(hostEl)            — copy a scene PNG to the clipboard
+ *   attachExportMenu(hostEl)          — wire the built-in export dropdown
+ *
+ * A scene host carrying `data-ve-scene-viewport="<height>"` is additionally
+ * wrapped in a fixed-height pan / wheel-zoom / mini-map stage on init
+ * (internal `_wrapInViewport`); default-mode scenes keep width:100%.
  */
 (function () {
   'use strict';

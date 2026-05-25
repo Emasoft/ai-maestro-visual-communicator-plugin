@@ -136,7 +136,10 @@ Some PR-review fixtures show deleted lines with `text-decoration:
 line-through`. Mined from `17-pr-writeup`:
 
 ```css
-.ve-code-line[data-ve-diff="del"] .ve-code-content {
+/* Scoped to the .ve-diff-strike opt-in — WITHOUT this prefix the
+   strike-through would apply to every del line on the page, which
+   contradicts the opt-in contract described below. */
+.ve-code-block.ve-diff-strike .ve-code-line[data-ve-diff="del"] .ve-code-content {
   text-decoration: line-through;
   opacity: 0.85;
 }

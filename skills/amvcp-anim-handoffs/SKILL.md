@@ -47,12 +47,14 @@ A page whose cross-skill animation handoffs are consistent (one shared `animateS
 ## Examples
 
 ```js
-// Chart consumer — KPI card counter
-import { animateStat } from './amvcp-animation.js'
-
+// Chart consumer — KPI card counter.
+// amvcp-animation.js is NOT an ES module — it self-installs the global
+// `window.amvcpAnimation` on load. Guard for it, then call the method.
 const cardValue = document.querySelector('.kpi-card .value')
 cardValue.dataset.vaStat = '45200'
-animateStat(cardValue)   // counts 0 → 45,200
+if (window.amvcpAnimation && typeof window.amvcpAnimation.animateStat === 'function') {
+  window.amvcpAnimation.animateStat(cardValue)   // counts 0 → 45,200
+}
 ```
 
 ```html

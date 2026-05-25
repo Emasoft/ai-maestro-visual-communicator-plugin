@@ -39,7 +39,7 @@ python3 $CLAUDE_PLUGIN_ROOT/scripts/share.py $CLAUDE_PROJECT_ROOT/reports/visual
 
 ## Requirements
 
-- vercel-deploy skill (`npm skills install vercel-deploy`)
+- vercel-deploy skill (`pi install npm:vercel-deploy`) — `share.py` searches only the Pi skill paths, so a Pi-compatible install is required
 
 ## Notes
 

@@ -253,36 +253,46 @@ Kanban also exports its state as Markdown (`##` columns, `- [ ]` cards).
 ### Concrete scaffold — filter pills + sortable table
 
 ```html
-<script type="application/json" id="ic-data">
-{
-  "rows": [
-    {"id": "f1", "severity": "high",   "title": "Stale credential"},
-    {"id": "f2", "severity": "medium", "title": "Slow query"},
-    {"id": "f3", "severity": "low",    "title": "Lint warning"}
-  ]
-}
-</script>
-
 <link rel="stylesheet" href="amvcp-interactive.css">
 <script src="amvcp-designmd.js"></script>
 <script src="amvcp-interactive.js"></script>
 
-<fieldset class="ic-filter-pills" data-target="#rows">
-  <input type="radio" id="f-all"  name="sev" value=""       checked>
-  <label for="f-all">All</label>
-  <input type="radio" id="f-high" name="sev" value="high">
-  <label for="f-high">High</label>
-</fieldset>
+<!-- Filter pills — class="ic-filterbar", .ic-pill-radio / .ic-pill,
+     and sibling .ic-filtered blocks keyed by data-filter-tag. -->
+<div class="ic-filterbar" data-ic-persist data-id="findings-filter"
+     role="radiogroup" aria-label="Filter findings">
+  <span class="ic-pill-group">
+    <input class="ic-pill-radio" type="radio" name="findings-filter"
+           id="flt-all" value="*" checked>
+    <label class="ic-pill" for="flt-all">All
+      <span class="ic-pill-count"></span></label>
+    <input class="ic-pill-radio" type="radio" name="findings-filter"
+           id="flt-high" value="high">
+    <label class="ic-pill" for="flt-high">High
+      <span class="ic-pill-count"></span></label>
+  </span>
+</div>
 
-<table class="ic-sortable" id="rows">
-  <thead><tr><th data-sort="title">Title</th><th data-sort="severity">Severity</th></tr></thead>
-  <tbody><!-- rows hydrated from #ic-data --></tbody>
+<!-- Sortable table — class="ic-table" + data-ic-sortable, with
+     data-ic-sort on each sortable <th> and pre-rendered <tbody> rows. -->
+<table class="ic-table" data-ic-sortable data-id="findings" data-ic-persist>
+  <thead>
+    <tr><th data-ic-sort>Title</th><th data-ic-sort>Severity</th></tr>
+  </thead>
+  <tbody>
+    <tr class="ic-filtered" data-filter-tag="high"><td>Stale credential</td><td>high</td></tr>
+    <tr class="ic-filtered" data-filter-tag="med"><td>Slow query</td><td>med</td></tr>
+    <tr class="ic-filtered" data-filter-tag="low"><td>Lint warning</td><td>low</td></tr>
+  </tbody>
 </table>
 ```
 
-The page listens for `ic:filter-change` and `ic:sort-change` if a host
-needs to react; otherwise the widgets self-manage state and persist to
-localStorage.
+`amvcp-interactive.js` injects ARIA, wires the three-state sort cycle,
+and (for the CSS-only filter baseline) you also emit one
+`#flt-<id>:checked ~ .ic-filtered … { display:… }` rule pair per pill
+(see `filter-pills.md`). The filter bar fires `ic:filter-change`; the
+sortable table self-manages its sort state (no event) and persists the
+chosen column via `data-ic-persist`.
 
 ## Modes
 
@@ -294,7 +304,7 @@ Composes with every other amvcp-* skill on the same page (R22). Multiple control
 
 ## Resources
 
-All 31 reference files live under `./references/`. Read the **inner ring**
+All 38 reference files live under `./references/`. Read the **inner ring**
 (state-plumbing, copy-clipboard, scroll-spy, keyboard-shortcuts) first
 since they're the shared infrastructure; then jump to whichever widget
 references your brief. Each reference is self-sufficient — 200–600

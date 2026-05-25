@@ -61,6 +61,7 @@ build step, no npm deps.
 |---|---|---|
 | `highlightLine(text, lang)` | token-span HTML for ONE line | Most common entry — the gutter builder calls this per line. |
 | `highlightBlock(lines, lang)` | array of per-line HTML strings | Threads the inside-block-comment / inside-triple-string carry state line to line. |
+| `scan(root)` | count of blocks highlighted | Walks every `.ve-code-block` under `root` (default `document`), tokenises each `.ve-code-content` in place. Idempotent — marks each `<pre>` so a re-scan skips it. Called from the runtime boot + theme-rescan. |
 | `detectLanguage(preEl)` | language id, or `null` | Resolves a language from `data-ve-lang` or `class="language-*"`. |
 | `normalizeLang(idOrAlias)` | canonical language id, or `null` | Resolves any alias (`py` → `python`, `ts` → `js`, …). |
 | `languages` | the registered language descriptor map | Read-only; integration tests use it to enumerate registered langs. |
@@ -179,7 +180,7 @@ plain-fell-back.
 ## A1.11 The runtime wiring contract
 
 The integration point is `initCodeGutter` (in `scripts/amvcp-
-runtime.js`, line ~6881). After it splits the raw source into
+runtime.js`). After it splits the raw source into
 `lineSrc[]`, it calls `amvcpCodeHighlight.highlightBlock(lineSrc, lang)`
 to get an array of per-line HTML; each line's `.ve-code-content` is
 populated with the returned HTML instead of `escapeHtml(lineSrc[li])`.

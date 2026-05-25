@@ -34,6 +34,10 @@
  *   serializeDesignMd(designmd)    -> text (round-trips frontmatter+prose)
  *   tokenSchema                    -> descriptor array driving the Phase-1b
  *                                     style-controller pad
+ *   saveUserPreset(name, text?)    -> { ok, name } | { ok:false, error }
+ *   renameUserPreset(old, new)     -> { ok, name } | { ok:false, error }
+ *   deleteUserPreset(name)         -> { ok, name } (idempotent)
+ *   listUserPresets()              -> { name: designMdText, … } (R28)
  */
 (function () {
   'use strict';

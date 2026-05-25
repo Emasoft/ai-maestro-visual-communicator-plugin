@@ -258,11 +258,15 @@
   }
 
   /* ============ PIPELINE ============ */
+  /* no-nested-scrollbars (R2): a wide pipeline must extend the document,
+     never spawn an inner horizontal scroller. The mobile breakpoint below
+     wraps the steps; on desktop the row stays on one line and the page
+     owns the only horizontal scrollbar. */
   .pipeline {
     display: flex;
     gap: 0;
     align-items: stretch;
-    overflow-x: auto;
+    overflow-x: visible;
     padding-bottom: 4px;
   }
 

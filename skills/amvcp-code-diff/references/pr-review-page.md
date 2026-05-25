@@ -109,7 +109,7 @@ Each file gets a card:
   </header>
 
   <div class="ve-pr-file-card__diff">
-    <div class="ve-code-block" data-ve-diff-mode="twin">
+    <div class="ve-code-block" data-ve-diff-gutter="twin">
       <pre><code class="language-diff">@@ -42,7 +42,8 @@ function authMiddleware …</code></pre>
     </div>
   </div>

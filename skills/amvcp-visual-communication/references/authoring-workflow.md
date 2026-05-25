@@ -41,11 +41,11 @@ Read the references each time — don't memorize.
   — every page must wire up element selection. For per-engine specifics see
   the sub-skill cookbooks (Mermaid, Graphviz, Chart.js, math/LaTeX, TikZ,
   regex, prose, choice-tables).
-- For text-heavy architecture overviews: open `templates/architecture.html`.
+- For text-heavy architecture overviews: open `${CLAUDE_PLUGIN_ROOT}/templates/architecture.html`.
 - For flowcharts, sequence diagrams, ER, state machines, mind maps, class
-  diagrams, C4: open `templates/mermaid-flowchart.html`.
-- For data tables (passive or form): open `templates/data-table.html`.
-- For slide decks: open `templates/slide-deck.html` and read the slide-deck-mode
+  diagrams, C4: open `${CLAUDE_PLUGIN_ROOT}/templates/mermaid-flowchart.html`.
+- For data tables (passive or form): open `${CLAUDE_PLUGIN_ROOT}/templates/data-table.html`.
+- For slide decks: open `${CLAUDE_PLUGIN_ROOT}/templates/slide-deck.html` and read the slide-deck-mode
   and slide-patterns references inside the `amvcp-slide-decks` sub-skill.
 - For prose-heavy publishable pages: read the "Prose Page Elements" section
   in `${CLAUDE_PLUGIN_ROOT}/references/css-patterns.md` and the "Typography
@@ -55,10 +55,10 @@ Read the references each time — don't memorize.
 
 ### Template inventory
 
-- `templates/architecture.html` — text-heavy architecture overviews.
-- `templates/mermaid-flowchart.html` — flowcharts, sequence, ER, state, mind maps, class, C4.
-- `templates/data-table.html` — passive tables and table-form (radio/checkbox) mode.
-- `templates/slide-deck.html` — slide-deck reference with all 10 slide types.
+- `${CLAUDE_PLUGIN_ROOT}/templates/architecture.html` — text-heavy architecture overviews.
+- `${CLAUDE_PLUGIN_ROOT}/templates/mermaid-flowchart.html` — flowcharts, sequence, ER, state, mind maps, class, C4.
+- `${CLAUDE_PLUGIN_ROOT}/templates/data-table.html` — passive tables and table-form (radio/checkbox) mode.
+- `${CLAUDE_PLUGIN_ROOT}/templates/slide-deck.html` — slide-deck reference with all 10 slide types.
 
 ## Step 3 — Author the page
 

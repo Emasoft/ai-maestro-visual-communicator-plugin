@@ -14,7 +14,7 @@ Authors interactive HTML diagrams using Mermaid (flowchart, sequence, ER, `state
 
 ## Prerequisites
 
-Mermaid v11+ ESM CDN; Graphviz lazy-loaded via vendored viz.js on `.ve-graph`; Chromium (falls back to default); Python 3.12+ for `scripts/amvcp-select.py`.
+Mermaid v11+ ESM CDN; Graphviz lazy-loaded via `@viz-js/viz` WASM from CDN (jsDelivr) on first `.ve-graph`; Chromium (falls back to default); Python 3.12+ for `scripts/amvcp-select.py`.
 
 ## Instructions
 

@@ -45,15 +45,17 @@ A themed, atom-stamped table whose rows/cells participate in the standard `data-
 
 | Symptom | Fix |
 |---|---|
-| Table renders but JS doesn't enhance it | Confirm `amvcp-tables.js` is loaded and the table has `data-ve-mode="..."`. |
+| Table renders but JS doesn't enhance it | Confirm `amvcp-tables.js` is loaded and the table has `data-ve-table="data"`. |
 | Sticky / frozen column doesn't stick | Verify `position: sticky` ancestor isn't `overflow: hidden`. |
-| Sort doesn't fire | Confirm header has `data-vc-sort` and the script is loaded before DOM-ready. |
+| Sort doesn't fire | Confirm the table has `data-ve-table="data"` and `amvcp-tables.js` is loaded before DOM-ready. Numeric sort is auto-detected per column; opt a column out with `data-ve-nosort` on its `<th>`. |
 
 ## Examples
 
+`data-ve-table="data"` makes every header sortable (numeric auto-detected per column); `data-ve-table-csv` adds the copy-as-CSV affordance:
+
 ```html
-<table class="vc-table" data-ve-mode="sortable" data-ve-csv-export>
-  <thead><tr><th data-vc-sort="numeric">N</th></tr></thead>
+<table data-ve-table="data" data-ve-table-csv>
+  <thead><tr><th>N</th></tr></thead>
   <tbody><tr><td>1.5</td></tr></tbody>
 </table>
 ```

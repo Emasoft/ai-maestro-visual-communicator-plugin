@@ -4,7 +4,7 @@ description: Verify the factual accuracy of a document against the actual codeba
 ---
 Load the amvcp-visual-communication skill, then verify the factual accuracy of a document that makes claims about a codebase. Read the file, extract every verifiable claim, check each against the actual code and git history, correct inaccuracies in place, and add a verification summary.
 
-For HTML files: read `../skills/amvcp-visual-communication/references/css-patterns.md` to match the existing page's styling when inserting the verification summary.
+For HTML files: read `${CLAUDE_PLUGIN_ROOT}/references/css-patterns.md` to match the existing page's styling when inserting the verification summary.
 
 **Target file** — determine what to verify from `$1`:
 - Explicit path: verify that specific file (`.html`, `.md`, or any text document)

@@ -35,19 +35,14 @@ To synchronise with the page's `--vc-theme`:
 ```js
 import { FileDiff } from './amvcp-pierre-diff.mjs';
 
-function pickTheme(prefersDark) {
-  return {
-    dark: 'pierre-dark',
-    light: 'pierre-light',
-  };
-}
-
 const instance = new FileDiff({
   container,
   patch,
   options: {
     layout: 'split',
-    theme: pickTheme(document.documentElement.dataset.veTheme === 'dark'),
+    // Pass BOTH keys; Pierre resolves which one to paint from the host
+    // page's theme — you don't pick the active side yourself.
+    theme: { dark: 'pierre-dark', light: 'pierre-light' },
     lang: 'typescript',
   },
 });
@@ -66,4 +61,4 @@ If the DESIGN.md presets diverge significantly from Pierre's themes (e.g. a high
 - per-side annotation slot (a comment on the old side stays anchored to old line N even when the user scrolls the new side)
 - per-side selection (drag-select range on either side — emits both line numbers in the selection payload)
 
-Picking Pierre's split for a tiny ≤ 30-line diff overkill. Pick `amvcp-code-diff` for those.
+Picking Pierre's split for a tiny ≤ 30-line diff is overkill. Pick `amvcp-code-diff` for those.

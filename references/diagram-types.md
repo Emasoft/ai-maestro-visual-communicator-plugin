@@ -16,7 +16,7 @@ Three approaches depending on complexity:
 
 **Simple topology (under 10 elements):** Use Mermaid. A `graph TD` with custom `themeVariables` produces readable diagrams with automatic edge routing.
 
-**Text-heavy overviews (under 15 elements):** CSS Grid with explicit row/column placement. Sections as rounded cards with colored borders and monospace labels. Vertical flow arrows between sections. The reference template at `templates/architecture.html` demonstrates this pattern. Use when cards need descriptions, code references, tool lists, or other rich content that Mermaid nodes can't hold.
+**Text-heavy overviews (under 15 elements):** CSS Grid with explicit row/column placement. Sections as rounded cards with colored borders and monospace labels. Vertical flow arrows between sections. The reference template at `${CLAUDE_PLUGIN_ROOT}/templates/architecture.html` demonstrates this pattern. Use when cards need descriptions, code references, tool lists, or other rich content that Mermaid nodes can't hold.
 
 **Complex architectures (15+ elements):** Use the **hybrid pattern** — a simple Mermaid overview (5-8 nodes showing module relationships) followed by detailed CSS Grid cards for each module's internals. This gives you visual topology AND readable details. The overview diagram uses module names with `<small>` tags for key function names. The cards below show full function lists with new/modified badges. Never try to cram 15+ elements into a single Mermaid diagram — it will render unreadably small even with zoom controls.
 
@@ -51,15 +51,15 @@ Three approaches depending on complexity:
 ## Data Visualizations
 
 ### Data Tables / Comparisons / Audits
-Use a real `<table>` element — not CSS Grid pretending to be a table. Tables get accessibility, copy-paste behavior, and column alignment for free. The reference template at `templates/data-table.html` demonstrates all patterns below.
+Use a real `<table>` element — not CSS Grid pretending to be a table. Tables get accessibility, copy-paste behavior, and column alignment for free. The reference template at `${CLAUDE_PLUGIN_ROOT}/templates/data-table.html` demonstrates all patterns below.
 
 **Use proactively.** Any time you'd render an ASCII box-drawing table in the terminal, generate an HTML table instead. This includes: requirement audits (request vs plan), feature comparisons, status reports, configuration matrices, test result summaries, dependency lists, permission tables, API endpoint inventories — any structured rows and columns.
 
 Layout patterns:
-- Sticky `<thead>` so headers stay visible when scrolling long tables
+- Sticky `<thead>` so headers stay visible when scrolling long tables (the page's own vertical scroll — never an inner scroll container)
 - Alternating row backgrounds via `tr:nth-child(even)` (subtle, 2-3% lightness shift)
-- First column optionally sticky for wide tables with horizontal scroll
-- Responsive wrapper with `overflow-x: auto` for tables wider than the viewport
+- First column optionally sticky for wide tables (sticky against the page's own horizontal scroll)
+- For tables wider than the viewport, let the page itself widen — the reader uses the document's single horizontal scrollbar. NEVER wrap the table in an inner `overflow-x: auto` scroll box (that creates a second, nested scrollbar)
 - Column width hints via `<colgroup>` or `th` widths — let text-heavy columns breathe
 - Row hover highlight for scanability
 

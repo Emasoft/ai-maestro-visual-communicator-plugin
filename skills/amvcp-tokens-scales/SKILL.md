@@ -23,10 +23,10 @@ The algorithmic scale generators (phi spacing, MD3 + cinematic elevation, 8×8 m
 
 ## Instructions
 
-1. **Phi spacing scale** — call `amvcpTokens.generatePhiSpacing(opts)` to produce a golden-ratio progression of spacing tokens. Populates the DESIGN.md `spacing:` group. See [phi-spacing-generator](./references/phi-spacing-generator.md).
-2. **Elevation scale** — call `generateElevationScale(opts)` for the MD3 5-level scale plus cinematic shadow variants. Populates the `elevation:` group. See [elevation-scale](./references/elevation-scale.md).
-3. **Motion library** — call `generateMotionLibrary(opts)` for 8 durations × 8 easings + the master damper. Populates the `motion:` group. Reduced-motion gates handled by consumers. See [motion-token-library](./references/motion-token-library.md).
-4. **Z-index scale** — call `generateZIndexScale(opts)` for the 9-level semantic stacking scale (base / dropdown / sticky / overlay / modal / popover / tooltip / toast / system). Populates the `z-index:` group. See [z-index-scale](./references/z-index-scale.md).
+1. **Phi spacing scale** — call `amvcpTokens.generatePhiSpacing(basePx, steps)` (positional: base px size + step count) to produce a golden-ratio progression of spacing tokens. Populates the DESIGN.md `spacing:` group. See [phi-spacing-generator](./references/phi-spacing-generator.md).
+2. **Elevation scale** — call `generateElevationScale(opts)` (`opts.style` = `'md3'` (default) or `'cinematic'`; `opts.tint` optional) for the MD3 5-level scale plus cinematic shadow variants. Populates the `elevation:` group. See [elevation-scale](./references/elevation-scale.md).
+3. **Motion library** — call `generateMotionLibrary()` (no args) for 8 durations × 8 easings + the master damper. Populates the `motion:` group. Reduced-motion gates handled by consumers. See [motion-token-library](./references/motion-token-library.md).
+4. **Z-index scale** — call `generateZIndexScale()` (no args) for the 9-level semantic stacking scale (behind / base / raised / dropdown / sticky / overlay / modal / toast / tooltip). Populates the `z-index:` group. See [z-index-scale](./references/z-index-scale.md).
 5. **Token vocabulary** — wire the 5-layer naming (primitive → semantic → component → utility → state) per [token-vocabulary](./references/token-vocabulary.md). Use [layer-architecture](./references/layer-architecture.md) to declare `@layer ve-primitive, ve-semantic, ve-component` in the right order.
 6. **Centralised pattern** — keep ONE source of truth for primitives per [centralised-token-pattern](./references/centralised-token-pattern.md). Never duplicate a primitive in two `.css` files.
 7. **Delegation chain** — for component-local overrides, use the `var(--primary, var(--secondary, fallback))` fallback chain per [token-delegation-chain](./references/token-delegation-chain.md).
@@ -43,8 +43,8 @@ The algorithmic scale generators (phi spacing, MD3 + cinematic elevation, 8×8 m
 
 | Symptom | Fix |
 |---|---|
-| `generatePhiSpacing` throws | The opts produced a collapsed scale (e.g. base size 0). Check the seed value, ratio, and step count. |
-| `generateMotionLibrary` durations all identical | The opts have `base = 0` or `step = 1`. Use the default values or fix the opts. |
+| `generatePhiSpacing` throws | `basePx` is not a positive finite number, or `steps` is not a positive integer. Pass valid positional args, e.g. `generatePhiSpacing(4, 10)`. |
+| `generateElevationScale` produces flat shadows | `opts.style` typo — must be exactly `'md3'` or `'cinematic'` (any other value falls back to `'md3'`). |
 | `@layer` cascade has no effect | Declaration order is wrong. The `@layer ve-primitive, ve-semantic, ve-component;` line MUST come BEFORE any rule that uses those layers. |
 | Component reads `--vc-color-accent` and gets empty | The DESIGN.md has no `color.accent:` defined, AND the consumer doesn't use a fallback chain. Either define the primitive in DESIGN.md OR add `var(--vc-color-accent, fallback)` at the consumer. |
 | `.vc-*` utility class has no effect | The `amvcp-tokens.css` file isn't loaded OR the class is being overridden by a more-specific selector that doesn't read tokens. |
@@ -55,14 +55,15 @@ The algorithmic scale generators (phi spacing, MD3 + cinematic elevation, 8×8 m
 
 ```
 Input:  "Generate a φ-spaced spacing scale starting from 4px."
-Output: generatePhiSpacing({ base: 4, count: 10 }) (step 1) → 10 stops
-        4, 6.5, 10.5, 17, 27.5, 44.5, 72, 116.5, 188.5, 305 (φ ≈ 1.618).
-        Apply via applyTokens. Verify in contact-sheet's spacing panel.
+Output: generatePhiSpacing(4, 10) (step 1) → 10 integer-rounded stops
+        4, 6, 10, 17, 27, 44, 72, 116, 188, 304 (φ ≈ 1.618).
+        Apply via resolveTokens + applyTokens. Verify in the contact-sheet
+        spacing panel.
 
 Input:  "Set up the MD3 elevation tokens."
-Output: generateElevationScale({ system: 'md3' }) (step 2) → elevation.0
-        through elevation.5, each a box-shadow with MD3-tuned blur and
-        offset for material elevation levels 0–5.
+Output: generateElevationScale({ style: 'md3' }) (step 2) → shadow-0
+        through shadow-4 plus shadow-border, each a box-shadow with
+        MD3-tuned blur and offset for material elevation levels 0–4.
 
 Input:  "Establish the @layer cascade for a new page."
 Output: step 5 — emit at the top of the stylesheet:

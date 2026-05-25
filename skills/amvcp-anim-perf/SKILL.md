@@ -44,10 +44,10 @@ A page whose infinite loops cost zero CPU while off-screen, whose non-critical w
 ## Examples
 
 ```js
-// Use the delta-time primitive for a canvas
-import { createLoop } from './amvcp-animation.js'
-
-const loop = createLoop(
+// Use the delta-time primitive for a canvas.
+// amvcp-animation.js is NOT an ES module — it installs the global
+// `window.amvcpAnimation` on load. Read createLoop off that global.
+const loop = window.amvcpAnimation.createLoop(
   (dt) => { /* update — use dt seconds */ },
   ()    => { /* render */ }
 )
@@ -56,14 +56,14 @@ loop.start()
 loop.stop()
 ```
 
-```js
-// Idle-defer non-critical wiring
-import { deferInit } from './amvcp-animation.js'
-
-deferInit(() => {
-  // expensive, non-critical wiring runs after the page is interactive
-})
-```
+The two-tier idle defer is **automatic** — you do not call it. When the
+module self-inits on `DOMContentLoaded`, content-gating work (stagger
+indexing, atom stamping, scroll-reveal) runs immediately and the polish
+layer (card tilt, parallax fallback, loop-pause IO) is wrapped in the
+internal `deferInit` (`requestIdleCallback`, with a `setTimeout(1)`
+fallback for Safari). After a dynamic DOM insertion, re-arm everything
+with `window.amvcpAnimation.refresh(root)`. See
+[idle-deferred-init](references/idle-deferred-init.md) for the contract.
 
 ## Visual verification
 

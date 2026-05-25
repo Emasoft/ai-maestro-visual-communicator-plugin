@@ -17,7 +17,12 @@ tell application "System Events"
     end if
 end tell
 
-tell application "iTerm"
+-- Target vanilla iTerm.app via its bundle id (NOT the bare name "iTerm")
+-- so the call cannot be hijacked by a fork like iTermAI.app
+-- (com.googlecode.iterm2.iTermAI), which intercepts plain
+-- `tell application "iTerm"` calls when both are installed. Mirrors
+-- open_preview.applescript and screenshot_preview_pane.applescript.
+tell application id "com.googlecode.iterm2"
     tell current window
         tell current tab
             set allSessions to sessions

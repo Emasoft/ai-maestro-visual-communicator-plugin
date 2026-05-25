@@ -44,11 +44,11 @@ visually count.
 
 ## D3.2 The markup
 
-Adding `data-ve-diff-mode="twin"` on a `.ve-code-block` opts into the
+Adding `data-ve-diff-gutter="twin"` on a `.ve-code-block` opts into the
 twin gutter:
 
 ```html
-<div class="ve-code-block" data-ve-diff-mode="twin">
+<div class="ve-code-block" data-ve-diff-gutter="twin">
   <pre><code class="language-diff">@@ -42,4 +42,5 @@
  function hello (name) {
 -  return 'Hi, ' + name;
@@ -59,7 +59,7 @@ twin gutter:
 </div>
 ```
 
-The runtime's `initCodeGutter`, on encountering `data-ve-diff-mode=
+The runtime's `initCodeGutter`, on encountering `data-ve-diff-gutter=
 "twin"`:
 1. Parses the hunk header to extract the starting old-line number and
    new-line number.
@@ -71,11 +71,11 @@ The runtime's `initCodeGutter`, on encountering `data-ve-diff-mode=
 ## D3.3 The CSS
 
 ```css
-.ve-code-block[data-ve-diff-mode="twin"] .ve-code-line {
+.ve-code-block[data-ve-diff-gutter="twin"] .ve-code-line {
   padding-left: calc(7.4ch + var(--ve-code-indent, 2) * 1ch);
   text-indent: calc(var(--ve-code-indent, 2) * -1ch);
 }
-.ve-code-block[data-ve-diff-mode="twin"] .ve-code-linenum--old {
+.ve-code-block[data-ve-diff-gutter="twin"] .ve-code-linenum--old {
   position: absolute;
   left: 0;
   top: 0; bottom: 0;
@@ -85,7 +85,7 @@ The runtime's `initCodeGutter`, on encountering `data-ve-diff-mode=
   border-right: 1px solid color-mix(in srgb, currentColor 12%, transparent);
   color: color-mix(in srgb, currentColor 45%, transparent);
 }
-.ve-code-block[data-ve-diff-mode="twin"] .ve-code-linenum--new {
+.ve-code-block[data-ve-diff-gutter="twin"] .ve-code-linenum--new {
   position: absolute;
   left: 3.7ch;
   top: 0; bottom: 0;
@@ -95,10 +95,10 @@ The runtime's `initCodeGutter`, on encountering `data-ve-diff-mode=
   border-right: 1px solid color-mix(in srgb, currentColor 18%, transparent);
   color: color-mix(in srgb, currentColor 50%, transparent);
 }
-.ve-code-block[data-ve-diff-mode="twin"] .ve-code-linenum--old::before {
+.ve-code-block[data-ve-diff-gutter="twin"] .ve-code-linenum--old::before {
   content: attr(data-old);
 }
-.ve-code-block[data-ve-diff-mode="twin"] .ve-code-linenum--new::before {
+.ve-code-block[data-ve-diff-gutter="twin"] .ve-code-linenum--new::before {
   content: attr(data-new);
 }
 ```
@@ -143,7 +143,7 @@ function initCodeGutterTwinDiff(pre) {
 }
 ```
 
-The runtime owns this; the author just sets the `data-ve-diff-mode=
+The runtime owns this; the author just sets the `data-ve-diff-gutter=
 "twin"` attribute.
 
 ## D3.5 Hunk header rendering in twin mode
@@ -250,7 +250,7 @@ default is correct.
 
 | Rule | Why |
 |---|---|
-| Use `data-ve-diff-mode="twin"` on the `.ve-code-block` wrapper, not the inner `<pre>` | Runtime reads it from the wrapper after `initCodeGutter` re-parents |
+| Use `data-ve-diff-gutter="twin"` on the `.ve-code-block` wrapper, not the inner `<pre>` | Runtime reads it from the wrapper after `initCodeGutter` re-parents |
 | Provide a valid `@@` hunk header in the diff source | Twin gutter parses it to seed old/new line counters; without it, both columns start at 1 (legal but loses fidelity) |
 | Don't mix twin and single mode in the same block | Visual confusion |
 | The runtime handles the gutter; authors don't write `.ve-code-linenum--old/--new` themselves | Same discipline as the single-gutter pattern |

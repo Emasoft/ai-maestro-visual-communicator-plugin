@@ -41,14 +41,16 @@ A themed, atom-stamped table whose rows/cells participate in the standard `data-
 
 | Symptom | Fix |
 |---|---|
-| Table renders but JS doesn't enhance it | Confirm `amvcp-tables.js` is loaded and the table has `data-ve-mode="..."`. |
+| Table renders but JS doesn't enhance it | Confirm `amvcp-tables.js` is loaded and the table has the right opt-in attribute (`data-ve-table="data\|matrix\|compare"`). |
 | Sticky / frozen column doesn't stick | Verify `position: sticky` ancestor isn't `overflow: hidden`. |
-| Sort doesn't fire | Confirm header has `data-vc-sort` and the script is loaded before DOM-ready. |
+| Sort doesn't fire | Confirm the table has `data-ve-table="data"` (which makes headers sortable) and `amvcp-tables.js` is loaded before DOM-ready. |
 
 ## Examples
 
+A baseline table needs no opt-in — the runtime styles every `<table>` (borders, zebra, `<tr>`-as-selectable-atom). Add `data-ve-table="data"` only to opt into sort/numeric-detect:
+
 ```html
-<table class="vc-table" data-ve-mode="readonly">
+<table>
   <thead><tr><th>A</th><th>B</th></tr></thead>
   <tbody><tr><td>1</td><td>2</td></tr></tbody>
 </table>

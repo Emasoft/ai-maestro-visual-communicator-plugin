@@ -467,7 +467,7 @@ The orchestrator (the slash command `/amvcp-interactive-report`) reads the submi
 
 #### Interactive agent reports v2 — modal comment threads
 
-For the v2/v3 modal-comment thread payloads (`comment-thread`, decision-only `kind:"decision"`, the page-side hover-bridge / polling loop / atomic-write contract, the queue-dir wire format), see `${CLAUDE_PLUGIN_ROOT}/references/comment-chat-box.md` for the reusable UI/wire-format contract and the trimmed `${CLAUDE_PLUGIN_ROOT}/skills/amvcp-visual-communication/references/modal-comments.md` for the v2/v3 renderer + responder workflow.
+For the v2/v3 modal-comment thread payloads (`comment-thread`, decision-only `kind:"decision"`, the page-side hover-bridge / polling loop / atomic-write contract, the queue-dir wire format), see `${CLAUDE_PLUGIN_ROOT}/references/comment-chat-box.md` for the reusable UI/wire-format contract and `${CLAUDE_PLUGIN_ROOT}/skills/amvcp-modal-comments/references/agent-report-flow.md` for the v2/v3 renderer + responder workflow.
 
 **Timeout/error sentinels** (the runner emits these when no submission arrives or when something is structurally wrong) keep their old shape: `{"id": null, "reason": "timeout|no-file|missing-file|no-browser|...", ...}`.
 
@@ -581,11 +581,11 @@ For per-engine cookbooks see:
 - Graphviz (.ve-graph): `${CLAUDE_PLUGIN_ROOT}/skills/amvcp-graph-diagrams/references/graphviz-cookbook.md`
 - Math (.ve-math, KaTeX): `${CLAUDE_PLUGIN_ROOT}/skills/amvcp-math-and-latex/references/math-cookbook.md`
 - TikZ limitations / substitutions: `${CLAUDE_PLUGIN_ROOT}/skills/amvcp-math-and-latex/references/tikz-substitutions.md`
-- Charts (.ve-chart, Chart.js): `${CLAUDE_PLUGIN_ROOT}/skills/amvcp-charts-and-dashboards/references/chartjs-integration.md`
+- Charts (.ve-chart, Chart.js): `${CLAUDE_PLUGIN_ROOT}/skills/amvcp-dashboards/references/chartjs-integration.md`
 - Regex (.ve-regex): `${CLAUDE_PLUGIN_ROOT}/skills/amvcp-regex-vis/references/regex-vis-cookbook.md`
 - Tables (passive + form): `${CLAUDE_PLUGIN_ROOT}/skills/amvcp-choice-tables/references/table-form-schema.md`
 - Prose (paragraph numbering, snippets): `${CLAUDE_PLUGIN_ROOT}/skills/amvcp-prose-pages/references/prose-mode.md`
-- Slides: `${CLAUDE_PLUGIN_ROOT}/skills/amvcp-visual-communication/references/slide-patterns.md`
+- Slides: `${CLAUDE_PLUGIN_ROOT}/skills/amvcp-slide-decks/references/slide-patterns.md`
 
 ---
 
@@ -633,15 +633,16 @@ When portability matters more than file size (e.g., the page is going to be shar
 </script>
 ```
 
-The runtime is ~10 KB minified-but-not-minified and adds no external requests. For HTML pages that may be opened directly via `file://` (no agent runner), this is the only way to guarantee the selection overlay still works.
+The runtime is a single unminified vanilla-JS file (~570 KB) and adds no external requests; inlining trades that one-time page-weight cost for true single-file portability. For HTML pages that may be opened directly via `file://` (no agent runner), this is the only way to guarantee the selection overlay still works.
 
 ---
 
 ### Future extensions (not yet implemented)
 
+Multi-select is now the default (Phases 1-7 above): every click toggles an entry in `window.veSelection`, prose/math/code support the 1-7 depth grammar, drag deselects, tables expose row/column handles, and `<pre>` blocks expose a line-number gutter. The items below remain deferred:
+
 - **Range selection on charts** — drag x1→x2 to select a span; payload `data.range = {from, to}`.
-- **Multi-select with modifier keys** — Shift/Cmd-click on cards to send multiple selections at once.
 - **Persistent state** — store the selection in `URLSearchParams` so refreshing the page restores partial form input.
 - **Drag-to-reorder** — for plan/roadmap pages where the user wants to re-prioritise sections.
 
-These are deliberately deferred. Current scope: single-click selection + table form selection.
+These are deliberately deferred. Current scope: full multi-select (element + text + math + code + row + column + codeline) plus table-form mode.

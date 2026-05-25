@@ -339,7 +339,7 @@ Consumes:
 - `--ve-accent` — TL;DR border, focus pulse, current rollout step
 - `--vc-color-success` / `--vc-color-danger` — Before/After bullet
   marks, +N/−N stats, badges
-- `--vc-color-neutral-50` / `-300` / `-400` / `-500` — neutrals
+- `--vc-color-neutral-50` / `--vc-color-neutral-300` / `--vc-color-neutral-400` / `--vc-color-neutral-500` — neutrals
 - `--vc-font-mono` — branch names, file paths, stat numbers
 - `--vc-radius-md` / `--vc-radius-sm` — card / pill radii
 

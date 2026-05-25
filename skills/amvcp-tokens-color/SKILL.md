@@ -16,7 +16,7 @@ The color layer of the token system — perceptual OKLCh ramp generator (with op
 
 ## Prerequisites
 
-- `amvcp-tokens.js` colocated with the HTML — exposes `generateOklchRamp`, `generateNeutralScale`, `generateCategoricalHues`, `oklchToHex`, `oklchToP3`, `contrastRatio`, the role-map renderers, the state-token map.
+- `amvcp-tokens.js` colocated with the HTML — exposes `generateOklchRamp`, `generateNeutralScale`, `generateCategoricalHues`, `contrastRatio`, `renderRoleMapCss`. (OKLCh→sRGB / →P3 conversion is internal: `generateOklchRamp` already emits hex stops and, with `opts.p3`, a P3 block — you do not call `oklchToHex`/`oklchToP3` directly.)
 - `amvcp-designmd.js` for the `--vc-color-*` resolution + `applyTokens(map, rootEl)`.
 - `amvcp-tokens.css` for `.vc-state` overlay, role-map `[data-vc-role="…"]` rules, and the dark-text-hierarchy family.
 
@@ -24,10 +24,10 @@ The color layer of the token system — perceptual OKLCh ramp generator (with op
 
 1. **Generate a color ramp** — call `amvcpTokens.generateOklchRamp(seedHex, steps, opts)` for a perceptual OKLCh ramp. Map ramp stops to the 15 `--vc-color-*` roles (mid stop → `accent`, near-white stop → `surface-sunken`). See [oklch-color-ramp](./references/oklch-color-ramp.md) for opts; [oklch-color-space](./references/oklch-color-space.md) for the rationale + conversion math.
 2. **Neutral scale** — for tonally locked neutrals, call `generateNeutralScale(inkHex, stops)`. Derives the whole gray family from ONE ink via `color-mix(in oklab, var(--ink) X%, transparent)`. Single source of truth. See [neutral-scale-generator](./references/neutral-scale-generator.md).
-3. **Categorical / multi-hue palette** — `generateCategoricalHues(N, seedHue)` rotates by 137.5° (golden angle) for N maximally-separated hues. See [golden-angle-categorical](./references/golden-angle-categorical.md).
+3. **Categorical / multi-hue palette** — `generateCategoricalHues(seedHex, count)` rotates by 137.5° (golden angle) off the seed for `count` maximally-separated hues. See [golden-angle-categorical](./references/golden-angle-categorical.md).
 4. **P3 wide-gamut accent** — pass `opts.p3 = true` to `generateOklchRamp` to emit a P3 variant inside an `@supports (color: color(display-p3 0 0 0))` block. See [p3-wide-gamut](./references/p3-wide-gamut.md).
 5. **Verify contrast** — every fg/bg pair MUST pass WCAG AA. Use `amvcpTokens.contrastRatio(fgHex, bgHex)`; AA = 4.5:1 for text, 3:1 for large text or graphical elements. See [wcag-contrast](./references/wcag-contrast.md).
-6. **Apply a role map** — for badge severity, activity, graph-node, or icon-tint surfaces, call `amvcpTokens.renderRoleMapCss(name)` and inject the returned `<style>`. Apply `data-vc-role="<role>"` to consuming elements. See [semantic-role-maps](./references/semantic-role-maps.md) for the generic mechanism; the specific maps in [badge-severity-roles](./references/badge-severity-roles.md), [activity-color-map](./references/activity-color-map.md), [graph-node-color-map](./references/graph-node-color-map.md), [icon-tint-rotation](./references/icon-tint-rotation.md).
+6. **Apply a role map** — for badge severity, activity, graph-node, or icon-tint surfaces, call `amvcpTokens.renderRoleMapCss(name, seedAccentHex)` and inject the returned `<style>`. The map names are `'badge'`, `'activity'`, `'graph-node'`, `'icon-tint'`. The optional `seedAccentHex` seeds the golden-angle hues for the categorical maps (defaults to the heritage accent if omitted); the `'badge'` map ignores it. Apply `data-vc-role="<role>"` to consuming elements (attribute values are case-sensitive — badge roles are uppercase `MUST`/`IMO`/`Q`/`FYI`). See [semantic-role-maps](./references/semantic-role-maps.md) for the generic mechanism; the specific maps in [badge-severity-roles](./references/badge-severity-roles.md), [activity-color-map](./references/activity-color-map.md), [graph-node-color-map](./references/graph-node-color-map.md), [icon-tint-rotation](./references/icon-tint-rotation.md).
 7. **Derived state color split** — derive `fg`, `bg`, `border`, `icon` for a semantic role via [derived-state-color-split](./references/derived-state-color-split.md) (percentages tuned per WCAG).
 8. **Interaction states** — MD3 hover/focus/pressed opacities + the `.vc-state` overlay per [interaction-state-tokens](./references/interaction-state-tokens.md).
 9. **Dark text hierarchy** — 3-tier on-surface text set (primary / secondary / tertiary) per [dark-text-hierarchy](./references/dark-text-hierarchy.md).
@@ -43,11 +43,11 @@ The color layer of the token system — perceptual OKLCh ramp generator (with op
 
 | Symptom | Fix |
 |---|---|
-| `generateOklchRamp` throws on seed hex | The seed isn't a parseable 3-/6-digit hex. Convert via the OKLCh conversion utility first. |
-| Ramp stop is washed out / too saturated | Tune `opts.lightnessRange` / `opts.chromaShape` per [oklch-color-ramp](./references/oklch-color-ramp.md). |
+| `generateOklchRamp` throws on seed hex | The seed isn't a parseable 3-/6-digit hex string. Pass a valid hex, e.g. `'#1d4ed8'`. |
+| Ramp stop is washed out / too low-contrast | Raise `opts.Lmax` (default `0.95`), or switch `opts.curve` between `'phi'` (default) and `'radix'` per [oklch-color-ramp](./references/oklch-color-ramp.md). |
 | `contrastRatio` returns < 4.5 for a text token | The fg/bg pair fails WCAG AA. Pick a darker fg or lighter bg — never weaken the threshold. |
 | P3 colors look identical to sRGB | Display isn't wide-gamut OR `@supports` not loaded. Test on a P3-capable display. |
-| Role map `[data-vc-role="…"]` has no effect | `renderRoleMapCss` output not injected, OR the element doesn't carry `data-vc-role`. |
+| Role map `[data-vc-role="…"]` has no effect | `renderRoleMapCss` output not injected, OR the element doesn't carry `data-vc-role`, OR the attribute value case is wrong (selectors are case-sensitive — badge roles are uppercase `MUST`/`IMO`/`Q`/`FYI`; activity/graph-node/icon-tint roles are lowercase). |
 | `.vc-state` overlay never fires | Interaction state tokens not loaded OR the element isn't inside a `.vc-state` container. |
 | Dark text appears washed out on light surface | The 3-tier hierarchy was built for dark surfaces — for light, use the engine's content roles, see [dark-text-hierarchy](./references/dark-text-hierarchy.md). |
 | `lintTokenSet` flags an AI purple/violet/indigo | Re-seed the ramp away from that cluster. Validate by OKLCh hue/chroma — `h: 280-310` and `c > 0.15` is the slop zone. |
@@ -65,12 +65,13 @@ Output: generateNeutralScale('#1a2026', [5,10,20,40,60,80,95]) (step 2)
         → 7 gray stops via color-mix(in oklab, var(--ink) N%, transparent).
 
 Input:  "Color these 7 activity types distinctly."
-Output: generateCategoricalHues(7, baseHue) (step 3) → 7 hues separated
+Output: generateCategoricalHues(accentHex, 7) (step 3) → 7 hues separated
         by 137.5° each; or use the shipped activity role-map directly.
 
 Input:  "Add badge severities (MUST/IMO/Q/FYI)."
-Output: step 6 → renderRoleMapCss('badge-severity'), inject the returned
-        <style>, apply data-vc-role="must"|"imo"|"q"|"fyi" to elements.
+Output: step 6 → renderRoleMapCss('badge'), inject the returned
+        <style>, apply data-vc-role="MUST"|"IMO"|"Q"|"FYI" to elements
+        (the attribute value is case-sensitive — uppercase).
 
 Input:  "Check this report color passes WCAG AA contrast."
 Output: contrastRatio('#1a1a1a', '#fafafa') (step 5) → 15.36, well above

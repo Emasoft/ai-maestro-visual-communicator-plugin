@@ -27,7 +27,7 @@ runtime boundary that keeps the integrity probe satisfied.
 
 **What this skill owns.** Every detail of how a `<pre><code>` becomes a
 syntax-highlighted, gutter-decorated, copy-able, selectable, theme-
-coherent block. The tokenizer descriptor model, the 17-alias language
+coherent block. The tokenizer descriptor model, the alias language
 map, the integrity probe, the gutter geometry, the wrap-marker stripe,
 the copy-byte-exact-source transport, the 3-state hover/select model,
 and the light-dark mirror discipline.
@@ -52,8 +52,8 @@ skill *consumes* `--ve-code-*` and documents per-role usage).
 ## Instructions
 
 1. **Author plain semantic HTML.** `<pre><code class="language-py ve-code-block">` — never hand-author gutter spans, copy buttons, `<span class="ve-tok-*">` tokens, or selection rings. The runtime builds the gutter (`initCodeGutter`); the tokenizer fills each line's `.ve-code-content` with `<span class="ve-tok-*">` markup.
-2. **Declare the language ONCE** on the `<pre>` or its `<code>` — either `class="language-<id>"` or `data-ve-lang="<id>"`. See [language-resolution](references/language-resolution.md) for the 17-alias map. Unknown / absent → block renders **plain** (byte-correct, never corrupted).
-  > A7.1 The resolution rule · A7.2 Why `null` is a deliberate result · A7.3 The two attribute conventions · A7.4 The 17-alias map (the full vocabulary) · A7.5 The class-extraction regex · A7.6 Why JS+TS share one table · A7.7 Unknown ids — the fail-soft path · A7.8 Multi-class robustness · A7.9 Author rules · A7.10 The future-proof shape · A7.11 No tokens consumed (this reference)
+2. **Declare the language ONCE** on the `<pre>` or its `<code>` — either `class="language-<id>"` or `data-ve-lang="<id>"`. See [language-resolution](references/language-resolution.md) for the alias map. Unknown / absent → block renders **plain** (byte-correct, never corrupted).
+  > A7.1 The resolution rule · A7.2 Why `null` is a deliberate result · A7.3 The two attribute conventions · A7.4 The alias map (the full vocabulary) · A7.5 The class-extraction regex · A7.6 Why JS+TS share one table · A7.7 Unknown ids — the fail-soft path · A7.8 Multi-class robustness · A7.9 Author rules · A7.10 The future-proof shape · A7.11 No tokens consumed (this reference)
 3. **Respect the source-fidelity contract.** The tokenizer runs every highlighted line through a probe that strips tags + decodes entities and asserts byte-match with source — if it fails, the line falls back to `escapeHtml(source)`. NEVER hand-inject `<span class="ve-tok-*">`; a buggy hand-wrap defeats the probe. See [integrity-probe](references/integrity-probe.md).
   > A8.1 What it does · A8.2 Why this exists · A8.3 The two probe implementations · A8.4 The call sites · A8.5 The failure-mode catalog (what the probe catches) · A8.6 What the probe does NOT catch · A8.7 The cascade — probe is the LAST line of defence · A8.8 Performance · A8.9 What an author can do (basically nothing) · A8.10 The test contract · A8.11 No tokens consumed
 4. **Wrap mode is mandatory.** Code blocks ride the runtime's `white-space:pre-wrap` + hanging-indent + wrap-marker stripe — NEVER set `overflow-x:auto` on a `<pre>` or wrap it in an `overflow:auto` box. Wide code extends the page. See [wrap-and-no-inner-scroll](references/wrap-and-no-inner-scroll.md).
@@ -167,8 +167,8 @@ overlay-runtime (R24).
   > A5.1 What it does · A5.2 Where the byte-exact source comes from · A5.3 The SVG glyphs · A5.4 The button markup the runtime injects · A5.5 The transport — clipboard API + textarea fallback · A5.6 The success swap · A5.7 What the button does NOT do · A5.8 Diff-mode copy: opt for the resolved side · A5.9 The CSV / data-fence variant · A5.10 What an author can override · A5.11 Tokens consumed
 - [code-atom-selection](references/code-atom-selection.md) — `.ve-code-line` as selectable atom, drag-paint, 3-state hover/select model, 9-level multi-click ladder, selection-yield CSS.
   > A6.1 What the runtime ships · A6.2 The 9-level multi-click ladder (code variant) · A6.3 The drag-paint contract · A6.4 The selection payload (the comment-pill format) · A6.5 The comment pill · A6.6 The hover hint (preview state) · A6.7 The yield rule (CRITICAL — re-stated) · A6.8 Author rules · A6.9 The accessibility surface · A6.10 Tokens consumed (selection-specific)
-- [language-resolution](references/language-resolution.md) — `data-ve-lang` vs `class="language-*"` precedence, 17-alias map, null = no highlighting.
-  > A7.1 The resolution rule · A7.2 Why `null` is a deliberate result · A7.3 The two attribute conventions · A7.4 The 17-alias map (the full vocabulary) · A7.5 The class-extraction regex · A7.6 Why JS+TS share one table · A7.7 Unknown ids — the fail-soft path · A7.8 Multi-class robustness · A7.9 Author rules · A7.10 The future-proof shape · A7.11 No tokens consumed (this reference)
+- [language-resolution](references/language-resolution.md) — `data-ve-lang` vs `class="language-*"` precedence, alias map, null = no highlighting.
+  > A7.1 The resolution rule · A7.2 Why `null` is a deliberate result · A7.3 The two attribute conventions · A7.4 The alias map (the full vocabulary) · A7.5 The class-extraction regex · A7.6 Why JS+TS share one table · A7.7 Unknown ids — the fail-soft path · A7.8 Multi-class robustness · A7.9 Author rules · A7.10 The future-proof shape · A7.11 No tokens consumed (this reference)
 - [integrity-probe](references/integrity-probe.md) — source-fidelity contract, DOM + Node probe paths, "discard highlight, keep plain" fail-soft.
   > A8.1 What it does · A8.2 Why this exists · A8.3 The two probe implementations · A8.4 The call sites · A8.5 The failure-mode catalog (what the probe catches) · A8.6 What the probe does NOT catch · A8.7 The cascade — probe is the LAST line of defence · A8.8 Performance · A8.9 What an author can do (basically nothing) · A8.10 The test contract · A8.11 No tokens consumed
 

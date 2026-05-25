@@ -106,7 +106,7 @@ The 5 layout siblings compose freely with each other and with every other amvcp-
 The 5 layout siblings:
 
 - [amvcp-layout-grids](../amvcp-layout-grids/SKILL.md) — foundation: spatial token ladder, --la-* aliases, named gaps, reading measure, every grid preset (2-1, 3-1, subgrid cardrow, auto-fill, article 3-col + wide/bleed), mobile breakpoint, RTL rule, no-nested-scrollbars contract, selection-atoms contract (16 refs).
-- [amvcp-layout-shells](../amvcp-layout-shells/SKILL.md) — application-shell layouts: IDE 3-panel shell + collapse toggle, sidebar shell, top-nav shell, split-pane shell (1 ref).
+- [amvcp-layout-shells](../amvcp-layout-shells/SKILL.md) — application-shell layout: the IDE 3-panel shell (sidebar + main + inspector) + collapse toggle (1 ref).
 - [amvcp-layout-kpi](../amvcp-layout-kpi/SKILL.md) — KPI rows, stat bands, metric strips, and the 12-column dashboard grid that hosts them (2 refs).
 - [amvcp-layout-chrome](../amvcp-layout-chrome/SKILL.md) — persistent page chrome: sticky header (opaque + glass), sticky toolbar, scroll-spy + sticky-sidebar + right-margin + prefilled TOC variants, fluid clamp() headings, section-numbered headers (10 refs).
 - [amvcp-layout-print-hero](../amvcp-layout-print-hero/SKILL.md) — A4 print rules + cover + page breaks + print-color-adjust + decorative hero with radial glows + device mockup frames + rotated comparison hero (6 refs).

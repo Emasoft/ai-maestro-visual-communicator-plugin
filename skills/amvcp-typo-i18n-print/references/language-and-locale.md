@@ -105,11 +105,11 @@ marks:
 
 | Language | Open quote | Close quote |
 |---|---|---|
-| English (en) | " | " |
+| English (en) | “ | ” |
 | French (fr) | « | » |
-| German (de) | „ | " |
+| German (de) | „ | “ |
 | Japanese (ja) | 「 | 」 |
-| Spanish (es) | « | » or " " |
+| Spanish (es) | « | » or “ ” |
 
 The CSS `quotes` property declares the per-language quote pairs, but
 modern browsers ship sensible defaults — just set `lang` correctly

@@ -41,6 +41,10 @@
  *   highlightBlock(lines, lang) -> array of per-line HTML (threads the
  *                                  inside-block-comment / inside-triple-
  *                                  string carry state line to line)
+ *   scan(root)                  -> walk every .ve-code-block under `root`
+ *                                  (default document), tokenise each
+ *                                  .ve-code-content in place, return the
+ *                                  number of blocks highlighted (idempotent)
  *   detectLanguage(preEl)       -> resolves a language id for a <pre>
  *   normalizeLang(idOrAlias)    -> canonical language id or null
  *   languages                   -> the registered language descriptor map

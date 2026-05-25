@@ -44,7 +44,7 @@ The fence protocol, palette engine, selection contract, animations, tooltip, and
 
 ## Output
 
-The fenced `<pre>` becomes a `<figure class="ve-chart" data-ve-chart-type="<type>" data-ve-chart-backend="svg|canvas" data-ve-id="ve-chart-N" data-ve-type="chart">`. Every bar/stem/dot is a `chart-point` atom that plugs into the runtime's multi-select / comment-modal / 3-state-pill machinery.
+The fenced `<pre>` becomes a `<figure class="ve-chart" data-ve-chart-type="<type>" data-ve-chart-backend="svg|css|canvas" data-ve-id="ve-chart-N" data-ve-type="chart">` (`css` is the segmented-bar CSS-flex backend; `canvas` is the >100-mark auto-switch for `bar`/`dot-plot`). Every bar/stem/dot/segment is a `chart-point` atom that plugs into the runtime's multi-select / comment-modal / 3-state-pill machinery.
 
 ## Error Handling
 

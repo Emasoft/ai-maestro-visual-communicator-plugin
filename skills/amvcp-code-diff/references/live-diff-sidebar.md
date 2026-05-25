@@ -133,7 +133,10 @@ function renderDiff() {
     return current[k] !== ORIGINAL[k];
   });
   if (changedKeys.length === 0) {
-    diffEl.innerHTML = escapeHtml('// no changes yet');
+    // F2.7: the empty state is a ctx-coloured comment line, not bare text,
+    // so it picks up the same per-line styling as a real diff line.
+    diffEl.innerHTML = '<span class="ve-code-line" data-ve-diff="ctx">'
+      + escapeHtml('// no changes yet') + '</span>';
     diffEl.parentElement.classList.remove('ve-live-diff__diff--has-changes');
     return;
   }

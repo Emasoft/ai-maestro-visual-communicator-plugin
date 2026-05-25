@@ -28,7 +28,7 @@ HTML pages.
 - **Optional:** a `surf` CLI for AI image generation in pages and slides.
   Always check `which surf` first and degrade gracefully if absent.
 - **Optional for `/amvcp-share-page`:** the `vercel-deploy` skill installed
-  (`npm skills install vercel-deploy`).
+  (`pi install npm:vercel-deploy`).
 
 ## Environment variables
 
@@ -92,7 +92,7 @@ JSON, paste to the agent" overlay so the flow still terminates cleanly.
   before invoking, and fall back to a typography-only design when absent.
   Never let a missing `surf` block page generation.
 - **`vercel-deploy` skill** — required by `/amvcp-share-page` to publish a
-  page to a public URL. Install with `npm skills install vercel-deploy`.
+  page to a public URL. Install with `pi install npm:vercel-deploy`.
   All other commands work without it.
 
 ## External libraries (CDN, optional)

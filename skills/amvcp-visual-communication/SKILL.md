@@ -13,9 +13,11 @@ metadata:
 
 This is the **routing layer** for the AI Maestro Visual Communicator plugin. The architecture is:
 
-> **1 agent → 13 category skills → ~502 reference files**
+> **1 agent → 13 category skills (+ 6 supporting skills) → 500+ reference files**
 
 You (the agent) load this umbrella whenever you are about to add any visual to a document. It does not emit HTML itself — it tells you **which** category skill owns the visual the user is asking for, and points you at the right SKILL.md + references for the technique you'll scaffold.
+
+**Be proactive — render, don't ASCII.** Before emitting an ASCII/box table, indented tree, hand-aligned diagram, fenced "diff", or long bullet hierarchy in chat, route here instead: rows × columns → HTML table; process/architecture → diagram; quantitative comparison → chart; before/after code → diff view. The terminal can't render hierarchy, color, or click-to-act; a generated page can, and it's selectable + comment-able.
 
 ## Prerequisites
 
@@ -30,7 +32,7 @@ You (the agent) load this umbrella whenever you are about to add any visual to a
 3. Read that category's SKILL.md plus the specific reference file(s) it points to for the technique.
 4. Scaffold the HTML per the category's contract (atom IDs, `data-ve-*` attributes, runtime scripts).
 5. Run the standard self-debug loop — light + dark theme screenshots, no nested scrollbars, atom contract present.
-6. Open the result via the iTerm-first launcher (`scripts/amvcp-show-launcher.py`) for the user to inspect.
+6. Open the result with the interactive selection runner `python3 "$CLAUDE_PLUGIN_ROOT/scripts/amvcp-select.py" <file>.html` (it blocks until the user clicks and returns the selection JSON). For a quick local preview without the selection round-trip, the iTerm-first launcher `scripts/amvcp-show-launcher.py` is also available.
 
 ## The 13 categories
 
@@ -52,7 +54,7 @@ Every category ships its own [SKILL](SKILL.md), a `references/` folder with 30+ 
 | 12 | **slide-decks** | `scripts/amvcp-slide.js` | Presentation HTML — 16 layouts, 5 entrance moods, 4 transitions, fixed-aspect letterbox | [amvcp-slide-decks](../amvcp-slide-decks/SKILL.md) |
 | 13 | **prose-pages** (`report-doc`) | `scripts/amvcp-report-doc.js` | Long-form HTML reports — exec summary, RFC, ADR, postmortem, retrospective, plus QA gates | [amvcp-prose-pages](../amvcp-prose-pages/SKILL.md) |
 
-There are also four supporting skills not in the routing matrix because they bolt on rather than scaffold a new visual: `amvcp-graph-diagrams` (Mermaid + Graphviz alternative engine for the diagram category), `amvcp-choice-tables` (form-mode `<table>` for `data-ve-type="table-form"` only), `amvcp-modal-comments` (the per-element comment-thread layer, mounted by the runtime), `amvcp-math-and-latex` (KaTeX + TikZJax for equations / chemistry / TikZ figures).
+There are also six supporting skills not in the 13-category routing matrix because they bolt on a specialized engine or layer rather than scaffold a generic visual: `amvcp-graph-diagrams` (Mermaid + Graphviz alternative engine for the diagram category), `amvcp-choice-tables` (form-mode `<table>` for `data-ve-type="table-form"` only), `amvcp-modal-comments` (the per-element comment-thread layer, mounted by the runtime), `amvcp-math-and-latex` (KaTeX + TikZJax for equations / chemistry / TikZ figures), `amvcp-regex-vis` (the vendored interactive regex visualizer + editor — `.ve-regex`), and `amvcp-pierre-diff` (the high-fidelity vendored Pierre diff viewer — Shiki highlight, merge-conflict resolver, huge-file virtualizer; reach for it when `amvcp-code-highlight`'s lightweight diff isn't enough).
 
 ## Decision matrix — content shape → category
 
@@ -89,6 +91,8 @@ This is the heart of the umbrella. When you're about to add a visual, find the r
 | An **annotated image with hotspots** | icon-svg (hotspot mode) |
 | A **code block** with syntax highlight | code-highlight |
 | A **diff** (split or unified) / **PR review** | code-highlight (`diff` mode) |
+| A **rich/high-fidelity diff** — huge file, merge conflicts, streaming code, accept/reject UI | pierre-diff (vendored Pierre `<diffs-container>`) — use when code-highlight's lightweight diff is not enough |
+| A **regex to visualize, explain, debug, or interactively edit** | regex-vis (vendored `.ve-regex` tree + editor) |
 | A **tabbed code sample** (JSON / YAML / curl variants) | code-highlight (`tabs` mode) — pairs with interactive-controls for the tab strip |
 | A **slide deck** / **presentation** / **pitch** / **talk slides** | slide-decks |
 | A **long-form static document** (executive summary, RFC, ADR, postmortem, case study, retro, whitepaper, design-system doc, essay) | prose-pages |
@@ -259,4 +263,6 @@ Sibling skills the umbrella dispatches to (loaded via plugin skill index):
 - [amvcp-graph-diagrams](../amvcp-graph-diagrams/SKILL.md) — Mermaid + Graphviz alternative engine
 - [amvcp-modal-comments](../amvcp-modal-comments/SKILL.md) — per-element comment-thread layer
 - [amvcp-math-and-latex](../amvcp-math-and-latex/SKILL.md) — KaTeX + TikZJax for equations / figures
+- [amvcp-regex-vis](../amvcp-regex-vis/SKILL.md) — vendored interactive regex visualizer + editor (`.ve-regex`)
+- [amvcp-pierre-diff](../amvcp-pierre-diff/SKILL.md) — vendored Pierre high-fidelity diff viewer (Shiki, merge conflicts, huge files)
 - [amvcp-self-debug-rules](../amvcp-self-debug-rules/SKILL.md) — R1-R41 verification rules every skill must pass

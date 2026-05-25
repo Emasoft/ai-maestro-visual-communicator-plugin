@@ -1,6 +1,6 @@
 ---
 name: amvcp-tokens-presets
-description: "Named dual-theme presets + personality tooling — 13 brand presets (heritage, factory-dark, wireframe, CJK, ...) each a complete DESIGN.md fixture, 9-category taxonomy, personality deltas (warmer / cooler / playful / corporate), hot-swap, playground, multi-brand mixer, scoped theming, dual-theme contract, syntax tokens. Use when picking a palette, applying a preset, or blending two brands. Trigger with 'pick a palette', 'apply preset', 'design system', 'hot swap theme', 'warmer', 'playful'."
+description: "Named dual-theme presets + personality tooling — 14 brand presets (heritage, factory-dark, wireframe-grayscale, cjk-claude, ...) each a complete DESIGN.md fixture, 9-category taxonomy, personality deltas (warmer / cooler / playful / minimal), hot-swap, scoped theming, dual-theme contract, syntax tokens. Use when picking a palette, applying a preset, or restyling. Trigger with 'pick a palette', 'apply preset', 'design system', 'hot swap theme', 'warmer', 'playful'."
 license: MIT
 metadata:
   author: Emasoft
@@ -12,24 +12,24 @@ metadata:
 
 ## Overview
 
-The named-preset layer of the token system. Ships ~13 dual-theme presets (heritage-warm, factory-dark, wireframe-grayscale, CJK-typography, etc.), each a complete DESIGN.md fixture passing both the dual-theme contract AND the anti-slop gate. A 9-category aesthetic taxonomy (Bold/Warm/Dark/Clean/...) lets the picker steer by mood. Personality deltas (warmer/cooler/playful/corporate/minimal) nudge any preset along a single axis without rewriting the whole token set. Hot-swap restyling re-themes a live page via `window.__veDesignMd.hotSwap(text)`. The in-page playground exposes sliders + radios that write to `--vc-*` for live tuning. The multi-brand mixer blends two DESIGN.mds with per-role rules. Scoped theming applies a DESIGN.md to a sub-tree only. The dual-theme contract is the structural rule every preset MUST obey.
+The named-preset layer of the token system. Ships 14 dual-theme presets (heritage, factory-dark, wireframe-grayscale, cjk-claude, etc.), each a complete DESIGN.md fixture passing both the dual-theme contract AND the anti-slop gate. A 9-category aesthetic taxonomy (Bold/Warm/Dark/Clean/...) lets the picker steer by mood. Personality deltas (warmer/cooler/playful/corporate/minimal) nudge any preset along a single axis without rewriting the whole token set. Hot-swap restyling re-themes a live page via `window.__veDesignMd.hotSwap(text)`. The in-page playground exposes sliders + radios that write to `--vc-*` for live tuning. The multi-brand mixer blends two DESIGN.mds with per-role rules. Scoped theming applies a DESIGN.md to a sub-tree only. The dual-theme contract is the structural rule every preset MUST obey.
 
 ## Prerequisites
 
 - `amvcp-designmd.js` colocated with the HTML — parses, validates, resolves, applies.
 - `amvcp-tokens.js` for `amvcpTokens.PRESETS` (the named library), `applyPersonalityDelta`, `mixDesignMds`.
 - `amvcp-runtime.js` for the hot-swap hook (`window.__veDesignMd.hotSwap`).
-- `amvcp-tokens.css` for the `.vc-playground` chrome (when shipping a tuner UI).
+- `amvcp-tokens.css` for the `.vc-*` utility classes the tuner UI uses (`vc-bg-*`, `vc-p-*`, `vc-rounded-*`, `vc-shadow-*`); the playground itself ships its own inline `<style>` (see [live-token-playground](./references/live-token-playground.md)).
 
 ## Instructions
 
-1. **Pick a preset** — list `amvcpTokens.PRESETS` for the 13 named dual-theme sets. Pick by name (`heritage`, `factory-dark`, `wireframe`, ...) and emit the preset's frontmatter as the page's `<script type="text/design-md">` block. See [preset-library](./references/preset-library.md) for the full list + [preset-category-system](./references/preset-category-system.md) for the 9-category taxonomy.
+1. **Pick a preset** — list `amvcpTokens.PRESETS` for the 14 named dual-theme sets. Pick by name (`heritage`, `factory-dark`, `wireframe-grayscale`, ...) and emit the preset's frontmatter as the page's `<script type="text/design-md">` block. See [preset-library](./references/preset-library.md) for the full list + [preset-category-system](./references/preset-category-system.md) for the 9-category taxonomy.
 2. **Apply a brand preset** — instantiate one of the showcase presets per its dedicated reference: [heritage-warm-palette](./references/heritage-warm-palette.md), [factory-dark-palette](./references/factory-dark-palette.md), [wireframe-grayscale-palette](./references/wireframe-grayscale-palette.md), [cjk-typography-tokens](./references/cjk-typography-tokens.md).
 3. **Tune personality** — `applyPersonalityDelta(designmdText, 'warmer'|'cooler'|'playful'|'corporate'|'minimal')` nudges the preset along ONE axis. Compose multiple deltas by chaining. See [personality-deltas](./references/personality-deltas.md).
 4. **Hot-swap a live page** — `window.__veDesignMd.hotSwap(presetText)` re-themes the whole page live, no reload. See [hot-swap-restyling](./references/hot-swap-restyling.md).
 5. **Ship a token playground** — embed [live-token-playground](./references/live-token-playground.md) for sliders / pickers that write to `--vc-*` for in-page tuning. The hover→snippet preview pattern (DM-22) shows the resulting CSS snippet live.
 6. **Blend two brands** — `amvcpTokens.mixDesignMds(brandA, brandB, rules)` per [multi-brand-mixer](./references/multi-brand-mixer.md). Per-role rules let one brand contribute color while the other contributes typography.
-7. **Scope a theme to a sub-tree** — `amvcpDesignMd.applyTokens(parsed.designmd.tokens, rootEl)` applies a DESIGN.md to ONE element subtree only. See [scoped-theming](./references/scoped-theming.md).
+7. **Scope a theme to a sub-tree** — resolve a flat map first, then apply it to ONE element subtree only: `amvcpDesignMd.applyTokens(amvcpDesignMd.resolveTokens(parsed.designmd, 'light'), rootEl)`. `applyTokens` takes a resolved `{ '--vc-*': value }` map (NOT the raw token tree). See [scoped-theming](./references/scoped-theming.md).
 8. **Honor the dual-theme contract** — EVERY artifact ships BOTH light AND dark. The engine enforces this mechanically; see [dual-theme-contract](./references/dual-theme-contract.md) for why and how.
 9. **Syntax-highlight tokens** — for code samples, the 12-token vocabulary in [code-syntax-tokens](./references/code-syntax-tokens.md) ships pre-theme'd per preset.
 10. **Always end** — pipe the final emitted DESIGN.md + HTML through `amvcpTokens.lintTokenSet` and `lintHtml` (the anti-slop sibling). A preset that fails the gate is a contradiction.
@@ -44,7 +44,7 @@ The named-preset layer of the token system. Ships ~13 dual-theme presets (herita
 
 | Symptom | Fix |
 |---|---|
-| Preset not found in `amvcpTokens.PRESETS` | Typo in preset name. List `Object.keys(amvcpTokens.PRESETS)` to see all 13. |
+| Preset not found in `amvcpTokens.PRESETS` | Typo in preset name. List `Object.keys(amvcpTokens.PRESETS)` to see all 14. |
 | `applyPersonalityDelta` returns unchanged text | Delta name typo (must be exactly `warmer`/`cooler`/`playful`/`corporate`/`minimal`). |
 | `hotSwap` doesn't re-theme | `amvcp-runtime.js` not loaded — without the runtime, the hook is undefined. |
 | Playground slider has no effect | The slider's target token doesn't exist in the active DESIGN.md, OR the slider is writing to a `:root` var that's being shadowed by a more-specific selector. |
@@ -62,13 +62,13 @@ Output: step 4 → window.__veDesignMd.hotSwap(amvcpTokens.PRESETS['heritage'])
 
 Input:  "Make this page warmer + more playful."
 Output: step 3 (compose two deltas):
-        let m = amvcpTokens.PRESETS['corporate'].text;
+        let m = amvcpTokens.PRESETS['trust-indigo'];
         m = applyPersonalityDelta(m, 'warmer');
         m = applyPersonalityDelta(m, 'playful');
         window.__veDesignMd.hotSwap(m);
 
 Input:  "Wireframe this design first."
-Output: steps 2 + 4 → hotSwap(amvcpTokens.PRESETS['wireframe'])
+Output: steps 2 + 4 → hotSwap(amvcpTokens.PRESETS['wireframe-grayscale'])
         Zero hue, zero radius — pure structural draft.
 
 Input:  "Co-brand this page with brand A color + brand B typography."
@@ -90,7 +90,7 @@ Composes with every other amvcp-tokens-* skill — presets bundle generated pale
 
 ## Resources
 
-- [preset-library.md](./references/preset-library.md) — the 13 named dual-theme presets, `applyPersonalityDelta`, hot-swap restyling.
+- [preset-library.md](./references/preset-library.md) — the 14 named dual-theme presets, `applyPersonalityDelta`, hot-swap restyling.
   > The presets · Anti-slop note — `trust-indigo` · Personality deltas — `applyPersonalityDelta` · Hot-swap restyling · Scoped theming with a preset
 - [preset-category-system.md](./references/preset-category-system.md) — the 9-category aesthetic taxonomy (Bold/Warm/Dark/Clean/...) (DT-26).
   > The nine categories · When to use which category · Scaffold to emit · Lib functions used · DESIGN.md tokens used · Anti-slop interaction · Adding a new preset to a category · Selection / comment / decision-mini contract · Visual verification

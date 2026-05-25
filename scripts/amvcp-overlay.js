@@ -12,10 +12,12 @@
  *     collectSubmission(),  // payload of selected elements
  *     clearSelections(), // forget all selections
  *
- *     // Test hook — bypasses the click pipeline so the headless audit
+ *     // Test hooks — bypass the click pipeline so the headless audit
  *     // can confirm selector-round-trip without simulating real mouse
  *     // events.
- *     _addSelectionForTest(el)
+ *     _addSelectionForTest(el),
+ *     _computeSelector(el)   // exposed so the round-trip test can assert
+ *                            // querySelector(selector) === el
  *   };
  *
  * The selection target is the ACTUAL HTML element under the cursor —

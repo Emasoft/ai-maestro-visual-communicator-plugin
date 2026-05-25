@@ -191,21 +191,17 @@ Code blocks need explicit whitespace preservation and a max-height constraint. W
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 16px;
-  overflow-x: auto;
+  /* No inner scroller: wide code wraps via pre-wrap; if it can't wrap,
+     the page widens and the reader uses the document's own scrollbar. */
+  overflow-x: visible;
   /* CRITICAL: preserve line breaks and indentation */
   white-space: pre-wrap;
   word-break: break-word;
 }
-
-/* Constrain height for long code */
-.code-block--scroll {
-  max-height: 400px;
-  overflow-y: auto;
-}
 ```
 
 ```html
-<pre class="code-block code-block--scroll"><code>// Your code here
+<pre class="code-block"><code>// Your code here
 function example() {
   return true;
 }</code></pre>
@@ -240,8 +236,9 @@ function example() {
   background: var(--surface-elevated);
   white-space: pre-wrap;
   word-break: break-word;
-  max-height: 500px;
-  overflow: auto;
+  /* No max-height + inner scroller: long code extends the page; the
+     reader scrolls the document, not a nested box. */
+  overflow: visible;
 }
 ```
 
@@ -313,7 +310,10 @@ For file structures, use `<pre>` with monospace + `white-space: pre`. Tree conne
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 16px 20px;
-  overflow-x: auto;
+  /* Tree connectors need white-space: pre and cannot wrap. A wide tree
+     extends the page width; the reader uses the document's own
+     horizontal scrollbar, never an inner one. */
+  overflow-x: visible;
   white-space: pre;
 }
 
@@ -522,7 +522,7 @@ mermaid.initialize({
 
 Add zoom controls to every `.mermaid-wrap` container for complex diagrams.
 
-**Small diagrams in slides.** If a diagram has fewer than ~7 nodes with no branching, it will render tiny in a full-viewport slide container. For simple linear flows (A → B → C → D), use CSS pipeline cards instead of Mermaid — see `${CLAUDE_PLUGIN_ROOT}/skills/amvcp-visual-communication/references/slide-patterns.md` "CSS Pipeline Slide." Reserve Mermaid for complex graphs where automatic edge routing is actually needed.
+**Small diagrams in slides.** If a diagram has fewer than ~7 nodes with no branching, it will render tiny in a full-viewport slide container. For simple linear flows (A → B → C → D), use CSS pipeline cards instead of Mermaid — see `${CLAUDE_PLUGIN_ROOT}/skills/amvcp-slide-decks/references/slide-patterns.md` "CSS Pipeline Slide." Reserve Mermaid for complex graphs where automatic edge routing is actually needed.
 
 #### Full Pattern
 
@@ -533,7 +533,10 @@ Add zoom controls to every `.mermaid-wrap` container for complex diagrams.
   border: 1px solid var(--border);
   border-radius: 12px;
   padding: 32px 24px;
-  overflow: auto;
+  /* No inner scrollbar on the diagram container. A diagram wider than the
+     viewport extends the page (reader uses the document's own scrollbar);
+     the zoom/pan engine clips inside .mermaid-viewport instead. */
+  overflow: visible;
   /* CRITICAL: center the diagram both horizontally and vertically */
   display: flex;
   justify-content: center;
@@ -739,7 +742,9 @@ This pattern removes all hardcoded IDs and supports unlimited diagrams per page.
   display: flex;
   align-items: stretch;
   gap: 0;
-  overflow-x: auto;
+  /* A long pipeline extends the page rather than scrolling inside an
+     inner box; the reader uses the document's own horizontal scrollbar. */
+  overflow-x: visible;
   padding-bottom: 8px;
 }
 
@@ -776,20 +781,17 @@ This pattern removes all hardcoded IDs and supports unlimited diagrams per page.
 
 #### Data Tables
 
-Use real `<table>` elements for tabular data. Wrap in a scrollable container for wide tables.
+Use real `<table>` elements for tabular data. A wide table extends the page width — the reader uses the document's own horizontal scrollbar. NEVER wrap the table in an inner `overflow-x: auto` scroll box (that nests a second scrollbar).
 
 ```css
-/* Scrollable wrapper for wide tables */
+/* Card wrapper for tables. overflow: visible (not hidden) so a wide table
+   extends the page instead of being clipped; the reader uses the
+   document's own horizontal scrollbar, never a nested inner scrollview. */
 .table-wrap {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 12px;
-  overflow: hidden;
-}
-
-.table-scroll {
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
+  overflow: visible;
 }
 
 /* Base table */

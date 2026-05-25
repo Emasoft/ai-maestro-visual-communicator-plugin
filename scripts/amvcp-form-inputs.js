@@ -2,20 +2,33 @@
  * ai-maestro-visual-communicator-plugin — form-input widgets.
  *
  * Phase 5 batch 1 (TRDD-9616579c §missing-elements): a dependency-free
- * module that ships SIX structured-response input widgets for
+ * module that ships NINETEEN structured-response input widgets for
  * conversational agent reports. The agent renders a question; the user
- * answers via radio / checkbox / number+unit / date / color / rank
- * instead of typing prose. Every value lands in a custom event
- * (`ve-form-change`) that the runtime threads into the comment-turn
- * payload, and persists to localStorage so a refresh keeps the answer.
+ * answers via a typed widget instead of typing prose. Every value lands
+ * in a custom event (`ve-form-change`) that the runtime threads into the
+ * comment-turn payload, and persists to localStorage so a refresh keeps
+ * the answer.
  *
- * The six widgets:
- *   §1 ve-quiz-radio    — single-select pick from N options
- *   §2 ve-quiz-multi    — multi-select pick (checkbox group)
- *   §3 ve-numeric-input — number + unit dropdown (px / % / em / s / …)
- *   §4 ve-date-input    — native <input type="date">
- *   §5 ve-color-input   — native <input type="color"> + hex readout
- *   §6 ve-rank-list     — drag-to-reorder <li> stack with persistent order
+ * The nineteen widgets:
+ *   §1  ve-quiz-radio     — single-select pick from N options
+ *   §2  ve-quiz-multi     — multi-select pick (checkbox group)
+ *   §3  ve-numeric-input  — number + unit dropdown (px / % / em / s / …)
+ *   §4  ve-date-input     — native <input type="date">
+ *   §5  ve-color-input    — native <input type="color"> + hex readout
+ *   §6  ve-slider         — themed range slider with optional ticks
+ *   §7  ve-toggle         — themed boolean switch (role="switch")
+ *   §8  ve-rating         — 1-N star / dot rating
+ *   §9  ve-card-picker    — rich single-select cards (title/subtitle/body)
+ *   §10 ve-tag-input      — typed tags with chip display + suggestions
+ *   §11 ve-text-input     — single-line text with optional pattern check
+ *   §12 ve-text-area      — multi-line with character counter
+ *   §13 ve-url-input      — URL with live validation + preview link
+ *   §14 ve-tree-picker    — hierarchical single-select tree
+ *   §15 ve-password-input — masked text with strength meter
+ *   §16 ve-currency-input — monetary amount + currency switcher
+ *   §17 ve-gallery-picker — single-select from N image cards
+ *   §18 ve-tier-list      — drag items into S/A/B/C/D tier zones
+ *   §19 ve-rank-list      — drag-to-reorder <li> stack with persistent order
  *
  * Design contract:
  *   - Dependency-free. Pure HTML + CSS + vanilla ES5-style JS.
@@ -51,6 +64,19 @@
  *   initNumericInput(el)            — wire one .ve-numeric-input
  *   initDateInput(el)               — wire one .ve-date-input
  *   initColorInput(el)              — wire one .ve-color-input
+ *   initSlider(el)                  — wire one .ve-slider
+ *   initToggle(el)                  — wire one .ve-toggle
+ *   initRating(el)                  — wire one .ve-rating
+ *   initCardPicker(el)              — wire one .ve-card-picker
+ *   initTagInput(el)                — wire one .ve-tag-input
+ *   initTextInput(el)               — wire one .ve-text-input
+ *   initTextArea(el)                — wire one .ve-text-area
+ *   initUrlInput(el)                — wire one .ve-url-input
+ *   initTreePicker(el)              — wire one .ve-tree-picker
+ *   initPasswordInput(el)           — wire one .ve-password-input
+ *   initCurrencyInput(el)           — wire one .ve-currency-input
+ *   initGalleryPicker(el)           — wire one .ve-gallery-picker
+ *   initTierList(el)                — wire one .ve-tier-list
  *   initRankList(el)                — wire one .ve-rank-list
  *   readModel(el)                   — parse embedded JSON (or null)
  *   loadValue(id, def)              — localStorage read

@@ -89,7 +89,10 @@ Mermaid renders SVG. Override its classes for pixel-perfect control that `themeV
   border: 1px solid var(--border);
   border-radius: 12px;
   padding: 24px;
-  overflow: auto;
+  /* No inner scrollbar: a wide diagram extends the page (reader uses the
+     document's own scrollbar); the zoom/pan engine clips inside
+     .mermaid-viewport instead. */
+  overflow: visible;
 }
 
 /* CRITICAL: Force node/edge text to follow the page's color scheme.

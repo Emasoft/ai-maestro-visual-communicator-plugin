@@ -34,7 +34,7 @@ The output is owned by the sibling skill. This router emits nothing.
 
 | Symptom | Fix |
 |---|---|
-| Don't know which sibling owns my need | Re-read the routing matrix; default to [tables-core](../amvcp-tables-primitives/SKILL.md) when uncertain. |
+| Don't know which sibling owns my need | Re-read the routing matrix; default to [amvcp-tables-primitives](../amvcp-tables-primitives/SKILL.md) when uncertain. |
 | Need spans multiple siblings | Compose — load core first, then add the other siblings as needed. |
 
 ## Examples
@@ -42,9 +42,13 @@ The output is owned by the sibling skill. This router emits nothing.
 ```text
 User: "I want a sortable, virtualized table with status pills per row."
 Route:
-  - tables-core           → base table scaffold
-  - tables-sort-virt      → sort + virtualization
-  - tables-cells-badges   → status pill per row
+  - amvcp-tables-primitives   → base table scaffold
+  - amvcp-tables-sort-virt    → sort + virtualization
+  - amvcp-tables-cells-badges → status pill per row
+
+User: "Show the options as a table and let me pick one / vote."
+Route:
+  - amvcp-choice-tables       → interactive radio/checkbox table-form (returns the pick to the agent)
 ```
 
 ## Modes
@@ -64,3 +68,7 @@ The 5 table siblings:
 - [amvcp-tables-matrix-compare](../amvcp-tables-matrix-compare/SKILL.md) — matrix + comparison, matrix glyph injection, matrix summary footer, coverage audit, comparison emphasis column, decision matrix (6 refs).
 - [amvcp-tables-cells-badges](../amvcp-tables-cells-badges/SKILL.md) — per-cell decision pill, risk dot / severity badge, status pill key-value, compact metric chip strip, stat card warn modifier, colored cell board, Unicode icon headers, impact mini-table (8 refs).
 - [amvcp-tables-special](../amvcp-tables-special/SKILL.md) — before-after 2-col, kanban-as-table, pro/con tradeoff grid, spanning cell grid, table-form scope skip, row-move not clone, keyboard accessibility (7 refs).
+
+**Interactive sibling (not part of the 5-way split — it's a separate skill):**
+
+- [amvcp-choice-tables](../amvcp-choice-tables/SKILL.md) — a table that ASKS the user a question: radio (single) / checkbox (multi) per row, Submit returns the selection to the agent. Route here when the user wants to *pick / vote / choose* from the table rather than just read them. Form-mode is owned by `amvcp-runtime.js`, not `amvcp-tables.js`.

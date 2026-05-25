@@ -25,8 +25,7 @@ For the shared engine fundamentals (scene-graph schema, node-type library, edge 
 
 ## Instructions
 
-1. **Pick an archetype.** Proportional flow bands → see [sankey-flow-diagram](references/sankey-flow-diagram.md). Central topic with radial branches → see [mind-map-radial](references/mind-map-radial.md). Top-down hierarchy → see [tree-hierarchy-diagram](references/tree-hierarchy-diagram.md).
-  > When to choose this pattern · Scaffold · Encoding magnitude in band width · Coloring bands by source · Conservation check (the integrity rule) · DESIGN.md tokens consumed · Selection atoms · Variations · Anti-patterns · Visual verification · Cross-skill seam
+1. **Pick an archetype.** Proportional flow bands → see [sankey-flow-diagram](references/sankey-flow-diagram.md). Central topic with radial branches → see [mind-map-radial](references/mind-map-radial.md). Top-down hierarchy → see [tree-hierarchy-diagram](references/tree-hierarchy-diagram.md). Each reference's full table-of-contents is in Resources below.
 2. **Emit the scene graph** — one `<div class="ve-scene-graph">` with an embedded `<script type="application/json">` carrying the `{version, preset, width, height, nodes, edges}` document.
 3. **For sankey:** enforce conservation — sum of band widths leaving a node must equal the sum entering it. The validator flags any imbalance.
 4. **For mind map:** central node is the root; branches radiate at evenly-spaced angles. Tint branches by category via `role`.

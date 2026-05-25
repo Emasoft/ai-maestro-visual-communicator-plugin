@@ -21,7 +21,7 @@ into the comment-turn record.
 - `scripts/amvcp-runtime.js` loaded (provides the selection model and `data-ve-form` discovery).
 - `scripts/amvcp-form-inputs.js` loaded (the widget implementations).
 - DESIGN.md tokens available — `--vc-color-*`, `--vc-radius-*`, `--vc-space-*` from `amvcp-designmd.js`.
-- For drag-reorder widgets, pointer-events / touch are required (mobile + desktop).
+- The drag widgets (`ve-rank-list`, `ve-tier-list`) use the native HTML5 drag-and-drop API, which fires on desktop pointers but NOT on touchscreens — drag reordering is desktop-only today (touch users fall back to the persisted default order). Track touch parity as a known gap.
 
 ## Instructions
 
@@ -67,7 +67,10 @@ captures the rationale.
 ## Quick start
 
 ```html
-<link rel="stylesheet" href="amvcp-tokens.css">
+<!-- amvcp-form-inputs.js self-injects its own <style>; the only external
+     dependency is the DESIGN.md token engine for theming (optional —
+     every widget has baked --vc-* fallbacks). -->
+<script src="amvcp-designmd.js"></script>
 <script src="amvcp-form-inputs.js"></script>
 
 <!-- Pick the rollout strategy -->
@@ -92,7 +95,7 @@ BEFORE loading the script, then call
 `window.amvcpFormInputs.injectStyles(document)` +
 `window.amvcpFormInputs.init(document)` yourself.
 
-## The six widgets
+## The nineteen widgets
 
 ### `ve-quiz-radio` — single-select
 
@@ -600,16 +603,16 @@ Each widget emits a `ve-form-change` CustomEvent (bubbles up the DOM) with `even
 - `value`: the current answer (type depends on widget — string, array, number, etc.).
 - `timestamp`: epoch-ms when the change fired.
 
-The widget ALSO writes `value` to `localStorage[data-ve-id]` so a page refresh restores the answer. Subscribers reading the persisted value MUST `JSON.parse` it.
+The widget ALSO writes `value` to `localStorage["amvcp-form-input:" + data-ve-id]` so a page refresh restores the answer. Subscribers reading the persisted value MUST `JSON.parse` it.
 
 ## Error Handling
 
 | Symptom | Cause | Fix |
 |---|---|---|
-| Widget renders blank | Missing `data-ve-form-*` config or malformed JSON | Check console — runtime fail-fasts with a clear `[amvcp-form-inputs]` error |
+| Widget renders blank | Missing or malformed inner `<script type="application/json">` model | Check console — runtime fail-fasts with a clear `[form-input error]` box in place of the widget |
 | `ve-form-change` never fires | Subscriber attached to wrong DOM root | Event bubbles — attach to `document` or an ancestor of the widget |
 | LocalStorage not restoring | Widget missing `data-ve-id` (no persistence key) | Add a stable `data-ve-id` attribute |
-| Drag-reorder unresponsive on mobile | Touch handlers gated behind `pointer-events: none` | Verify the parent's CSS doesn't disable pointer events on touch |
+| Drag-reorder unresponsive on touch devices | `ve-rank-list` / `ve-tier-list` use native HTML5 DnD, which mobile browsers don't fire | Known desktop-only limitation; on touch the saved/default order is used — don't rely on drag reordering for touch-primary audiences |
 | Colors illegible on dark theme | Single-theme palette in author CSS | Use only `--vc-*` tokens — never hardcoded hex |
 
 ## Examples
@@ -617,9 +620,18 @@ The widget ALSO writes `value` to `localStorage[data-ve-id]` so a page refresh r
 **Example 1 — radio (single-select)**
 
 ```html
-<div data-ve-id="lang-choice"
-     data-ve-form="quiz-radio"
-     data-ve-form-options='["Python","JavaScript","Rust","Go"]'>
+<div class="ve-quiz-radio" data-ve-id="lang-choice">
+  <script type="application/json">
+    {
+      "label": "Pick a language:",
+      "options": [
+        { "value": "python",     "label": "Python" },
+        { "value": "javascript", "label": "JavaScript" },
+        { "value": "rust",       "label": "Rust" },
+        { "value": "go",         "label": "Go" }
+      ]
+    }
+  </script>
 </div>
 <script>
 document.addEventListener('ve-form-change', (e) => {
@@ -631,20 +643,30 @@ document.addEventListener('ve-form-change', (e) => {
 **Example 2 — numeric with unit dropdown**
 
 ```html
-<div data-ve-id="memory-budget"
-     data-ve-form="numeric-input"
-     data-ve-form-units='["MB","GB","TB"]'
-     data-ve-form-default='{"value": 4, "unit": "GB"}'>
+<div class="ve-numeric-input" data-ve-id="memory-budget">
+  <script type="application/json">
+    {
+      "label": "Memory budget:",
+      "value": 4,
+      "unit":  "GB",
+      "units": ["MB", "GB", "TB"]
+    }
+  </script>
 </div>
 ```
 
 **Example 3 — drag-to-reorder**
 
 ```html
-<ol data-ve-id="priority-rank"
-    data-ve-form="rank-list"
-    data-ve-form-items='["Bug fixes","New features","Refactor","Docs"]'>
-</ol>
+<div class="ve-rank-list" data-ve-id="priority-rank">
+  <p class="ve-quiz-label">Drag to rank:</p>
+  <ol>
+    <li data-ve-rank-key="bugs">Bug fixes</li>
+    <li data-ve-rank-key="features">New features</li>
+    <li data-ve-rank-key="refactor">Refactor</li>
+    <li data-ve-rank-key="docs">Docs</li>
+  </ol>
+</div>
 ```
 
 ## Resources

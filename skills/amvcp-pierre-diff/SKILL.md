@@ -5,7 +5,7 @@ license: Apache-2.0
 compatibility: "Any modern browser supporting Custom Elements v1 + CSSStyleSheet.replaceSync (Chromium 79+, Safari 16.4+, Firefox 101+). Pure ESM, no npm runtime dependency — single bundled `amvcp-pierre-diff.mjs` (~10 MB raw / ~1.8 MB gzipped). Bundle weight is dominated by Shiki's TextMate grammars and themes; lazy-load the script tag only on pages that actually mount a `<diffs-container>`."
 metadata:
   author: Emasoft
-  upstream_source: "https://github.com/pierrecomputer/diffs-js (packages/diffs)"
+  upstream_source: "https://github.com/pierre-computer-company/diffs-js (packages/diffs)"
   upstream_license: "Apache-2.0"
   upstream_version: "1.2.1"
 ---
@@ -17,7 +17,7 @@ metadata:
 
 ## Overview
 
-Vendored copy of [Pierre Computer Company's diff viewer](https://github.com/pierrecomputer/diffs-js) (`@pierre/diffs` 1.2.1, Apache-2.0) bundled as a single browser ESM. Provides:
+Vendored copy of [Pierre Computer Company's diff viewer](https://github.com/pierre-computer-company/diffs-js) (`@pierre/diffs` 1.2.1, Apache-2.0) bundled as a single browser ESM. Provides:
 
 - Syntax-highlighted diff rendering via Shiki (every TextMate grammar Shiki ships — TS, JS, Python, Rust, Go, Swift, Kotlin, C, C++, Java, Markdown, HTML, CSS, SQL, etc.)
 - **Split** (side-by-side) or **stacked** (unified) layout

@@ -19,7 +19,7 @@ The headline design-tokens deliverable: a rendered, self-contained, DESIGN.md-th
 - `amvcp-designmd.js` colocated with the HTML — parses the DESIGN.md, exposes `parseDesignMd`.
 - `amvcp-token-sheet.js` — the contact-sheet renderer (`renderContactSheet`, `mountContactSheet`, `contrastRatio`).
 - `amvcp-tokens.css` — the contact-sheet chrome (panel grid, swatch styles, copy-affordance, dual-theme split).
-- Optional: `amvcp-runtime.js` for the `window.__veDesignMd.hotSwap` Theme toggle in the contact-sheet header strip.
+- Optional: `amvcp-runtime.js` for the `window.__veDesignMd.toggleTheme()` Theme button in the contact-sheet header strip. Without the runtime the button still flips light/dark standalone via the engine's `resolveTokens` + `applyTokens`.
 
 ## Instructions
 
@@ -33,7 +33,7 @@ The headline design-tokens deliverable: a rendered, self-contained, DESIGN.md-th
 8. **Z-index panel** — overlapping plates that visually demonstrate the stacking order ([contact-sheet-z-panel](./references/contact-sheet-z-panel.md)).
 9. **State panel** — frozen state demos + a live instance ([contact-sheet-state-panel](./references/contact-sheet-state-panel.md)).
 10. **Code panel** — syntax-highlighted sample + 12-color legend ([contact-sheet-code-panel](./references/contact-sheet-code-panel.md)).
-11. **Click-to-copy on every swatch** — `<button data-vc-copy="<token-value>">`. The handler uses `navigator.clipboard.writeText` with a fail-soft fallback (see [click-to-copy](./references/click-to-copy.md) for the deliberate exception to the plugin's fail-fast policy).
+11. **Copy on every swatch** — `<button data-vc-copy="<token-value>">`. An **Alt/Option-click (or Meta-click)** copies the value; a plain click is passed through to the runtime's selection handler (so swatches can be selected + commented on). The copy uses `navigator.clipboard.writeText` with a fail-soft fallback (see [click-to-copy](./references/click-to-copy.md) for the deliberate exception to the plugin's fail-fast policy).
 12. **Always end** — pipe the emitted HTML through `amvcpTokens.lintHtml` (the anti-slop sibling). A contact sheet that ships slop is a contradiction.
 
 ## Output
@@ -57,19 +57,20 @@ The headline design-tokens deliverable: a rendered, self-contained, DESIGN.md-th
 Input:  "Render the token contact sheet for the heritage preset."
 Output: load the heritage preset (sibling amvcp-tokens-presets):
         const parsed = amvcpDesignMd.parseDesignMd(
-                          amvcpTokens.PRESETS['heritage'].text);
+                          amvcpTokens.PRESETS['heritage']);
         amvcpTokenSheet.mountContactSheet(parsed.designmd,
                           document.querySelector('#sheet'));
         amvcpTokens.lintHtml(document.documentElement.outerHTML);
 
 Input:  "Show me a click-to-copy color grid for this DESIGN.md."
 Output: const parsed = amvcpDesignMd.parseDesignMd(designmdText);
-        amvcpTokenSheet.renderContactSheet(parsed.designmd,
-                          { panels: ['color'] });
+        const sheet = amvcpTokenSheet.renderContactSheet(parsed.designmd);
+        // renderContactSheet emits one panel per DESIGN.md token group;
+        // the color grid is the first panel. Append `sheet` where wanted.
 
 Input:  "Build a style guide page from this designmd."
-Output: step 2 → full mount. The page IS the style guide. Theme
-        toggle in the header strip hot-swaps the active theme.
+Output: step 2 → full mount. The page IS the style guide. The Theme
+        button in the header strip flips light/dark live.
 ```
 
 ## Modes

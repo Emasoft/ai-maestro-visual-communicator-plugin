@@ -30,7 +30,7 @@ Share a visual communicator HTML file instantly via Vercel. Returns a live URL w
 
 ## Requirements
 
-- **vercel-deploy skill** - Required for deployment. Install with: `npm skills install vercel-deploy`
+- **vercel-deploy skill** - Required for deployment. Install with: `pi install npm:vercel-deploy`
 
 No Vercel account, Cloudflare account, or API keys needed. The deployment is "claimable" — you can transfer it to your Vercel account later if you want.
 
