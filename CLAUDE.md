@@ -50,6 +50,34 @@ So a request like "make an *editor* for X" or "an *exporter* for Y" never means 
 skill — it means: the X / Y element already is editable/exportable; use or augment that
 one skill.
 
+### 4. Two modes — one FIXED, one VARIABLE (orthogonal to the thing)
+
+Every element has two separable "modes". Do not confuse them, and treat them very
+differently when importing ideas:
+
+- **Interaction Design Mode — FIXED. INVARIANT. The plugin's identity.**
+  The signature UX: **interaction · selection · highlighting · triple-state feedback
+  (normal · hover · selected, each with its brightness-direction + glow delta) ·
+  the comment-box round-trip.** It is done ONE way and one way only, uniform across
+  EVERY element — it IS the UI of the visual communicator. It is the same whether the
+  element is a chart, a kanban, a diff, or a slide. **Imported ideas may NEVER change
+  it.** An external example's own selection / drag / export / highlight UX is
+  subordinate: map it onto OUR fixed interaction model (select → triple-feedback →
+  comment/edit → re-emit), never adopt a foreign interaction paradigm in its place.
+
+- **Graphic Style Mode — VARIABLE. EDITABLE. Realtime.**
+  Everything visual that is driven by **DESIGN.md** parameters/tokens: palette, type
+  scale, spacing, radius, elevation, motion, density — live-themeable (always light +
+  dark, presets, hot-swap). This is the ONLY place visual variation lives.
+
+**Import rule:** ideas from external elements may **AUGMENT / ENRICH** — add a
+graphic-style treatment, a new thing's coverage, a better DESIGN.md-driven visual —
+but may **NEVER REPLACE** either mode. The UX pillars that make the visual communicator
+what it is must never change. When a catalogued technique is an *interaction* technique
+that differs from our fixed mode, do NOT adopt it as-is; either express it through our
+selection/comment model or drop it. When it is a *graphic-style* technique, adopt it
+(wire it to DESIGN.md so it stays themeable).
+
 ## Importing ideas from external examples / collections (the integration protocol)
 
 When asked to "implement"/"integrate" an external set of artifacts (a zip of example
