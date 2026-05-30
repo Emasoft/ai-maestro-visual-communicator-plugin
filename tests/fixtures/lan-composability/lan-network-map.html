@@ -163,6 +163,15 @@
   #lan-stage {
     position: relative;
     width: 100%;
+    /* Floor the stage so the map never scales so far down that the nested
+       SVG glyphs and the <foreignObject> donuts collide (overlap) — that
+       happens below ~0.4x of the 1930px natural width, i.e. on phone-portrait
+       widths. Above this floor the whole map scales to fit each viewport
+       flawlessly; below it the DOCUMENT scrolls horizontally (html/body
+       overflow-x:auto), which is the no-nested-scrollbars-compliant way to
+       present non-wrappable wide content. 820px == just under the
+       tablet-portrait width that already renders perfectly. */
+    min-width: 820px;
     margin-inline: auto;
     /* aspect-ratio is set inline by the composer once it knows W/H. */
   }
