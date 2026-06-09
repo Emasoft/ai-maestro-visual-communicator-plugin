@@ -49,6 +49,28 @@ Every page is a single self-contained HTML file. On Submit, the
 page closes itself and the agent receives the multi-select payload
 (picked items + comment threads + decision toggles).
 
+## Memory (recall before you render)
+
+The plugin adopts the AI-Maestro markdown memory system
+(`rules/memory-protocol.md`): durable project facts live as
+symptom-indexed markdown notes in the harness `memory/` dir, searched
+with `memgrep` and degrading to plain `grep` when the binary is absent.
+
+VISUAL-COMMUNICATOR workflow wiring:
+
+- **Before generating any page**, the agent runs `amvcp-memory-recall`
+  to surface house-style and confirmed-preference notes (themes,
+  density, palettes) so prior decisions shape the output without
+  re-asking.
+- **After a confirmed preference or a solved gotcha**, the agent runs
+  `amvcp-memory-write` to capture one symptom-indexed note (plus its
+  `MEMORY.md` index line) for future sessions.
+
+`memgrep` is optional: install it once from the `ai-maestro-janitor`
+repo (`cargo install --path <…>/ai-maestro-janitor/tools/memgrep`);
+until then both skills fall back to `grep -rliE` — recall degrades,
+never breaks.
+
 ## Platform requirements
 
 **Supported OSes**: macOS, Linux, and Windows. Python 3.12+ required.

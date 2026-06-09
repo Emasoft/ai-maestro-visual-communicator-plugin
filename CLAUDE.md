@@ -125,6 +125,10 @@ thing, and the palette has exactly one entry per thing.
 
 ## Other standing rules (see ~/.claude memory for detail)
 
+- **Recall before you render** — per `rules/memory-protocol.md`: recall
+  house-style / preference notes (`amvcp-memory-recall`) before generating any
+  visual; capture confirmed preferences and solved gotchas with
+  `amvcp-memory-write`.
 - **Always ship light + dark** for every visual; single-theme is a correctness defect.
 - **Screenshot-test every visual change** (dev-browser, light + dark).
 - The runtime (`scripts/amvcp-runtime.js`) is exempt from the CPV LOC cap — don't split

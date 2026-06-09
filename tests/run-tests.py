@@ -360,6 +360,35 @@ def main() -> int:
     return rc
 
 
+def run_memory_suite() -> list[dict]:
+    """Run the CLI-level memory-skills suite (no browser, no server needed).
+
+    test-memory-skills.py prints the same `TEST | …` lines the dev-browser
+    scripts print, so its rows merge straight into the unified table.
+    """
+    proc = subprocess.run(
+        [sys.executable, str(ROOT / "test-memory-skills.py")],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    rows: list[dict] = []
+    for line in (proc.stdout or "").splitlines():
+        m = TEST_LINE.match(line.strip())
+        if m:
+            rows.append(m.groupdict())
+    if not rows:
+        rows.append(
+            {
+                "name": "test-memory-skills",
+                "status": "ERROR",
+                "desc": "no TEST lines from the memory suite",
+                "detail": ((proc.stderr or "")[:200]).replace("\n", " "),
+            }
+        )
+    return rows
+
+
 def _main_inner() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument(
@@ -373,6 +402,21 @@ def _main_inner() -> int:
     regenerate_sample_report()
     clean_queue()
 
+    wanted = (
+        {s.strip() for s in args.only.split(",") if s.strip()} if args.only else None
+    )
+
+    all_rows: list[dict] = []
+    # The memory-skills suite is pure CLI (issue #2) — run it before the
+    # browser stack spins up so a server/dev-browser problem can't mask it.
+    if wanted is None or "test-memory-skills" in wanted:
+        print("running test-memory-skills.py …", flush=True)
+        rows = run_memory_suite()
+        all_rows.extend(rows)
+        for r in rows:
+            marker = {"PASS": "✓", "FAIL": "✗", "ERROR": "!"}.get(r["status"], "?")
+            print(f"  {marker} {r['name']} — {r['status']}", flush=True)
+
     server = start_server()
     try:
         if not wait_for_server():
@@ -380,11 +424,9 @@ def _main_inner() -> int:
             return 2
 
         scripts = sorted(SCRIPTS.glob("test-*.js"))
-        if args.only:
-            wanted = {s.strip() for s in args.only.split(",") if s.strip()}
+        if wanted is not None:
             scripts = [s for s in scripts if s.stem in wanted]
 
-        all_rows: list[dict] = []
         for script in scripts:
             # Wipe the queue between scripts so residue from one suite cannot
             # bleed into another. Each test asserts against fresh disk state.
