@@ -3,7 +3,7 @@ trdd-id: bac00789-95b9-43d6-9c49-9ea679edf8b6
 title: Adopt the markdown memory system — memory-protocol rule + recall/write skills
 column: complete
 created: 2026-06-09T23:52:17+0200
-updated: 2026-06-09T23:52:17+0200
+updated: 2026-06-10T00:25:00+0200
 current-owner: amvcp-dev
 assignee: amvcp-dev
 priority: 3
@@ -17,7 +17,7 @@ eht: []
 blocked-by: []
 relevant-rules: []
 release-via: publish
-delivery: pull-request
+delivery: direct-push
 target-branch: main
 feature-branch: feat/2-markdown-memory
 merge-strategy: squash
@@ -83,6 +83,14 @@ the answer's jargon.
   unified table, exit 0 (integration + `--only` filter verified).
 - Fallback exercised under a minimal PATH that excludes memgrep → grep branch
   returns the fixture note.
+
+## Delivery note (2026-06-10)
+
+The repo's `git-hooks/pre-push` forbids ALL direct pushes (process-ancestry
+check; only `scripts/publish.py` may push). Feature branches therefore stay
+LOCAL: this branch awaits the user's local merge into `main`, after which the
+canonical `publish.py` release ships it. No PR is possible without bypassing
+the owner's hook, which we do not do.
 
 ## Acceptance mapping (issue #2)
 
