@@ -1163,6 +1163,115 @@
     return n;
   }
 
+  // ── Public: renderInto(el, spec) — build a code block from a spec ───
+  //
+  // The INVERSE of scan(): scan() reads source OUT of a runtime-built
+  // block and writes tokens back in; renderInto() takes a raw spec
+  // ({ lang, source }) and BUILDS the whole block DOM from scratch, so a
+  // caller that has no pre-rendered <pre><code> (the slide module's
+  // delegated JSON-deck "code" blocks — amvcp-slide.js renderDelegated)
+  // gets a block byte-identical to one the runtime produced. The wrapper /
+  // per-line scaffolding reproduces initCodeGutter (runtime ~line 6986):
+  //
+  //   <div class="ve-code-block" data-ve-block-id data-ve-line-count>
+  //     <pre><code class="language-<lang>">
+  //       <span class="ve-code-line" data-ve-block-id data-ve-line
+  //             style="--ve-code-indent:<leadingWS+2>;">
+  //         <span class="ve-code-linenum"></span>
+  //         <span class="ve-code-content">…highlightBlock line…</span>
+  //       </span> … per line …
+  //     </code></pre>
+  //   </div>
+  //
+  // Tokenisation is NOT reimplemented — the per-line HTML is exactly what
+  // highlightBlock(lines, lang) returns (already probed, byte-exact, plain
+  // escaped text for an undeclared lang). The built <pre> is marked
+  // __veCodeHighlighted so a later scan() leaves it untouched (idempotent).
+  //
+  // Fail-fast: a non-element `el` or a missing `spec.source` throws a
+  // clear Error — a delegated block can never silently render blank.
+  var nextDelegatedBlockId = 0;
+
+  function renderInto(el, spec) {
+    if (!el || typeof el.appendChild !== 'function' ||
+        el.nodeType !== 1) {
+      throw new Error('amvcpCodeHighlight.renderInto: first argument ' +
+        'must be a DOM element');
+    }
+    if (!spec || spec.source == null) {
+      throw new Error('amvcpCodeHighlight.renderInto: spec.source is ' +
+        'required (got ' + (spec ? typeof spec.source : 'no spec') + ')');
+    }
+    var doc = el.ownerDocument || (typeof document !== 'undefined'
+      ? document : null);
+    if (!doc) {
+      throw new Error('amvcpCodeHighlight.renderInto: no document is ' +
+        'available to build the code block');
+    }
+
+    var langId = normalizeLang(spec.lang);
+    // Source split exactly as initCodeGutter does (runtime ~line 6931):
+    // trim ONE trailing newline so a source ending in "\n" does not render
+    // a spurious final blank line, then split into one line per row.
+    var raw = String(spec.source);
+    if (raw.length && raw.charAt(raw.length - 1) === '\n') {
+      raw = raw.slice(0, -1);
+    }
+    var lines = raw.split('\n');
+    var rendered = highlightBlock(lines, langId);
+    var blockId = 'vsd-code-' + (nextDelegatedBlockId++);
+
+    var wrapper = doc.createElement('div');
+    wrapper.className = 've-code-block';
+    wrapper.setAttribute('data-ve-block-id', blockId);
+    wrapper.setAttribute('data-ve-line-count', String(lines.length));
+
+    var pre = doc.createElement('pre');
+    var code = doc.createElement('code');
+    if (langId) code.className = 'language-' + langId;
+
+    for (var i = 0; i < lines.length; i++) {
+      var leadingMatch = (lines[i] || '').match(/^[ \t]*/);
+      var leadingLen = leadingMatch ? leadingMatch[0].length : 0;
+
+      var lineSpan = doc.createElement('span');
+      lineSpan.className = 've-code-line';
+      lineSpan.setAttribute('data-ve-block-id', blockId);
+      lineSpan.setAttribute('data-ve-line', String(i + 1));
+      lineSpan.setAttribute('style', '--ve-code-indent:' +
+        (leadingLen + 2) + ';');
+
+      var numSpan = doc.createElement('span');
+      numSpan.className = 've-code-linenum';
+
+      var contentSpan = doc.createElement('span');
+      contentSpan.className = 've-code-content';
+      // highlightBlock already returns byte-exact token-span HTML (or
+      // plain escaped text); drop it straight in — re-escaping would
+      // double-escape, escaping textContent would lose the token spans.
+      contentSpan.innerHTML = rendered[i];
+
+      lineSpan.appendChild(numSpan);
+      lineSpan.appendChild(contentSpan);
+      code.appendChild(lineSpan);
+    }
+
+    pre.appendChild(code);
+    // Two guard flags so neither runtime pass re-touches this fully-built
+    // block (the runtime walks every <pre> on boot):
+    //   __veCodeHighlighted — scan() skips re-tokenising (line ~1131).
+    //   __veGutterInit      — initCodeGutter() returns early (runtime
+    //                         line 6922) instead of inserting a SECOND
+    //                         .ve-code-block wrapper + copy button + per-
+    //                         line spans around our already-built block.
+    // Without the gutter flag a delegated block would be double-wrapped.
+    pre.__veCodeHighlighted = 1;
+    pre.__veGutterInit = 1;
+    wrapper.appendChild(pre);
+    el.appendChild(wrapper);
+    return wrapper;
+  }
+
   // ── API surface ────────────────────────────────────────────────────
   var api = {
     highlightLine: highlightLine,
@@ -1172,7 +1281,8 @@
     languages: LANGUAGES,
     tokenRoles: TOKEN_ROLES,
     escapeHtml: escapeHtml,
-    scan: scan
+    scan: scan,
+    renderInto: renderInto
   };
 
   // Dual export — browser global + Node require. Same guard pattern as

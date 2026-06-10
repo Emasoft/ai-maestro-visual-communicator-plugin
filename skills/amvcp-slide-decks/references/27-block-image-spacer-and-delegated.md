@@ -71,14 +71,14 @@ correctly in 95% of cases.
 { "type": "code", "lang": "rust", "source": "fn handle() { … }" }
 
 // diagram
-{ "type": "diagram", "notation": "mermaid", "source": "flowchart LR\n  A --> B" }
+{ "type": "diagram", "notation": "ascii", "source": "+---+   +---+\n| A | --> | B |\n+---+   +---+" }
 
 // chart
 { "type": "chart", "chartType": "line", "data": { … } }
 ```
 
 The renderer dispatches to:
-- `window.amvcpCodeBlock.renderInto(host, {lang, source})` for
+- `window.amvcpCodeHighlight.renderInto(host, {lang, source})` for
   `code`.
 - `window.amvcpDiagram.renderInto(host, {notation, source})` for
   `diagram`.
@@ -128,9 +128,18 @@ message naming the expected global — never a blank placeholder.
 
 ```jsonc
 { "type": "diagram",
-  "notation": "mermaid",
-  "source": "flowchart LR\n  Client --> Cache\n  Cache --> DB\n  Cache -.->|stale| Refresh" }
+  "notation": "ascii",
+  "source": "+--------+     +--------+     +--------+\n| Client | --> | Cache  | --> |   DB   |\n+--------+     +---+----+     +--------+\n                   :stale\n               +---v-----+\n               | Refresh |\n               +---------+" }
 ```
+
+`amvcp-diagram.js` renders only the **scene-graph JSON** model
+(`"notation": "scene-graph"` or `"json"`) and **ASCII** art
+(`"notation": "ascii"`) — it has no Mermaid/Graphviz parser (it only
+*themes* Mermaid for a library it does not bundle), so any other
+`notation` here fail-fasts with a "no mermaid/graphviz parser" error.
+For Mermaid or Graphviz diagrams use the `/amvcp-generate-web-diagram`
+command (the `amvcp-graph-diagrams` skill); those are NOT available as
+slide delegated blocks.
 
 ### Chart (delegated):
 
@@ -215,12 +224,12 @@ Y renderer module, but window.amvcpZ.renderInto is not available"`:
 
 | Block type | Missing module | Fix |
 |---|---|---|
-| `code` | `amvcp-codeblock.js` | Include `<script src="./amvcp-codeblock.js"></script>` BEFORE `amvcp-slide.js`. |
-| `diagram` | `amvcp-graphdiagram.js` | Include `<script src="./amvcp-graphdiagram.js"></script>` before. |
-| `chart` | `amvcp-charts.js` | Include `<script src="./amvcp-charts.js"></script>` before. |
+| `code` | `amvcp-code-highlight.js` | Include `<script src="./amvcp-code-highlight.js"></script>` BEFORE `amvcp-slide.js`. |
+| `diagram` | `amvcp-diagram.js` | Include `<script src="./amvcp-diagram.js"></script>` before. |
+| `chart` | `amvcp-chart.js` | Include `<script src="./amvcp-chart.js"></script>` before. |
 
 The script order matters — `amvcp-slide.js` checks
-`window.amvcpCodeBlock` (etc.) at RENDER time, which happens after
+`window.amvcpCodeHighlight` (etc.) at RENDER time, which happens after
 `DOMContentLoaded`. If the sibling script is missing or loaded
 AFTER the boot fires, the check fails.
 

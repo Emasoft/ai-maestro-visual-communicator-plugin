@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>slide delegated-block test fixture</title>
+<style>
+  html, body {
+    margin: 0; padding: 0;
+    height: 100vh; min-height: 100vh;
+    background: var(--vc-color-canvas, #ffffff);
+    color: var(--vc-color-content, #1f1a14);
+    font: 16px/1.55 var(--vc-font-body, system-ui, sans-serif);
+    overflow-x: auto;
+  }
+  #deck-host { position: fixed; inset: 0; }
+</style>
+</head>
+<body>
+<div id="deck-host"></div>
+
+<!-- Minimal dual-theme DESIGN.md (light + dark both ship — project memory:
+     light_dark_themes). The slide CSS reads --vc-* via var(name, fallback). -->
+<script type="text/design-md" id="ve-designmd">
+designmd_version: 1
+meta:
+  name: "Delegated Fixture"
+  default_theme: light
+colors:
+  light:
+    canvas: "#faf6ee"
+    surface: "#ffffff"
+    surface-raised: "#fffdf8"
+    surface-sunken: "#f1ece0"
+    content: "#1f1a14"
+    content-muted: "#5b5343"
+    content-subtle: "#8a8170"
+    border: "#e3dcc9"
+    border-strong: "#c9bfa3"
+    accent: "#b8861f"
+    on-accent: "#ffffff"
+    success: "#3a6b5c"
+    warning: "#a8791f"
+    danger: "#a84a32"
+    info: "#3464a8"
+  dark:
+    canvas: "#1b1813"
+    surface: "#262119"
+    surface-raised: "#2f2920"
+    surface-sunken: "#15120d"
+    content: "#f3ecdd"
+    content-muted: "#b5ab93"
+    content-subtle: "#857c66"
+    border: "#3a3327"
+    border-strong: "#564c39"
+    accent: "#d8a83f"
+    on-accent: "#1b1813"
+    success: "#6db89c"
+    warning: "#d8a83f"
+    danger: "#d8765c"
+    info: "#6d9cd8"
+typography:
+  font-heading: "Playfair Display, Georgia, serif"
+  font-body: "Inter, system-ui, sans-serif"
+  font-mono: "JetBrains Mono, ui-monospace, monospace"
+  scale: [16, 20, 28, 40, 64, 96, 140]
+  weight-regular: 400
+  weight-medium: 500
+  weight-bold: 800
+  line-height: 1.3
+spacing:
+  scale: [4, 8, 12, 16, 24, 40, 64, 96, 160]
+radius:
+  none: 0
+  sm: 4
+  md: 10
+  lg: 20
+  xl: 32
+  full: 9999
+motion:
+  duration-fast: 160
+  duration-slow: 640
+  easing-standard: "cubic-bezier(0.16,1,0.3,1)"
+  easing-decel: "cubic-bezier(0,0,0,1)"
+</script>
+
+<!-- One slide carrying all THREE delegated block types (code / diagram /
+     chart). Before the renderInto fix this deck threw at render time
+     ("window.amvcp*.renderInto is not available"); this fixture is the
+     end-to-end proof the delegated path now works. Notations are limited
+     to what window.amvcpDiagram actually renders (scene-graph + ASCII) —
+     Mermaid/Graphviz live in the amvcp-graph-diagrams family, not here. -->
+<script type="application/json" id="vsd-deck">
+{
+  "kind": "deck",
+  "title": "Delegated Block Fixture Deck",
+  "id": "slide-delegated-deck",
+  "aspect": "16:9",
+  "fit": "letterbox",
+  "slides": [
+    {
+      "layout": "content",
+      "blocks": [
+        { "type": "heading", "text": "Delegated blocks render through their sibling modules." },
+        { "type": "code",
+          "lang": "js",
+          "source": "const cache = new Map();\nfunction get(key) {\n  return cache.get(key);\n}" },
+        { "type": "diagram",
+          "notation": "ascii",
+          "source": "+--------+\n| client |\n+---+----+\n    |\n+---v----+\n| cache  |\n+--------+" },
+        { "type": "chart",
+          "chartType": "bar",
+          "data": {
+            "labels": ["search", "read", "write"],
+            "datasets": [
+              { "label": "p99 (ms)", "data": [335, 290, 180] }
+            ] } }
+      ]
+    }
+  ]
+}
+</script>
+
+<script>window.__vsdManualInit = true;</script>
+<!-- Served via the tests/fixtures/amvcp-*.js symlinks -> ../../scripts/.
+     The three delegated renderers MUST load before the boot script so
+     window.amvcpCodeHighlight / amvcpChart / amvcpDiagram exist. -->
+<script src="amvcp-designmd.js"></script>
+<script src="amvcp-slide.js"></script>
+<script src="amvcp-code-highlight.js"></script>
+<script src="amvcp-chart.js"></script>
+<script src="amvcp-diagram.js"></script>
+<script>
+(function () {
+  function boot() {
+    try {
+      var raw = document.getElementById('ve-designmd').textContent;
+      var parsed = window.amvcpDesignMd.parseDesignMd('---\n' + raw + '\n---\n');
+      if (!parsed.ok) {
+        window.__vsdFixtureError = 'parse: ' + parsed.errors.join('; ');
+        return;
+      }
+      var theme = parsed.designmd.meta.default_theme || 'light';
+      document.documentElement.setAttribute('data-ve-theme', theme);
+      var map = window.amvcpDesignMd.resolveTokens(parsed.designmd, theme);
+      window.amvcpDesignMd.applyTokens(map, document.documentElement);
+
+      window.amvcpSlideDeck.injectSlideCSS(document);
+      var deckJson = document.getElementById('vsd-deck').textContent;
+      var host = document.getElementById('deck-host');
+      // renderDeck renders EVERY slide's blocks — the delegated blocks
+      // render here; a missing renderInto would throw and land in catch.
+      var viewport = window.amvcpSlideDeck.renderDeck(deckJson, host);
+      window.amvcpSlideDeck.createDeck(viewport);
+      window.__vsdFixtureReady = true;
+    } catch (e) {
+      window.__vsdFixtureError = String(e && e.message || e);
+    }
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot);
+  } else {
+    boot();
+  }
+})();
+</script>
+</body>
+</html>

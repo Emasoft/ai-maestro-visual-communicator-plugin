@@ -17,7 +17,7 @@
 
 The code-focus slide gives ONE code snippet the centre of attention. A
 heading at the top names the snippet's role; a code block (delegated to
-`amvcp-codeblock.js`) fills the rest of the stage with line-numbered
+`amvcp-code-highlight.js`) fills the rest of the stage with line-numbered
 syntax-highlighted source. No bullets, no second code block, no chart.
 
 The slide is "look at this code" — the snippet should be ≤ 10 lines,
@@ -30,7 +30,7 @@ real source the team committed.
 `layout: "code-focus"` builds a slide with:
 
 - One required `heading` block (the snippet's role).
-- One required `code` block (delegated to `window.amvcpCodeBlock`).
+- One required `code` block (delegated to `window.amvcpCodeHighlight`).
 - One optional `callout` block below (a one-line "look at the X" note).
 
 The renderer applies `vsd-layout-code-focus` to the section; the layout
@@ -46,7 +46,7 @@ A `code` block has:
 }
 ```
 
-The renderer delegates to `window.amvcpCodeBlock.renderInto(host,
+The renderer delegates to `window.amvcpCodeHighlight.renderInto(host,
 {lang, source})`; if the sibling module is missing, the renderer
 THROWS with a clear message — never a blank placeholder.
 
@@ -101,15 +101,15 @@ Bigger snippet (still ≤ 10 lines):
 - `renderSlide(doc, slide, i, deck)` — flat-block path.
 - `renderBlock(doc, block, ctx)` — for the `code` block, delegates.
 - `renderDelegated(doc, block, "code")` — calls
-  `window.amvcpCodeBlock.renderInto(host, {lang, source})`. Throws
+  `window.amvcpCodeHighlight.renderInto(host, {lang, source})`. Throws
   with `"amvcp-slide: block type \"code\" needs the code-block
-  (amvcp-codeblock.js) renderer module, but
-  window.amvcpCodeBlock.renderInto is not available"` if the sibling
+  (amvcp-code-highlight.js) renderer module, but
+  window.amvcpCodeHighlight.renderInto is not available"` if the sibling
   module is missing.
 
 ## DESIGN.md tokens used
 
-The code block themes off `amvcp-codeblock.js`'s own token contract
+The code block themes off `amvcp-code-highlight.js`'s own token contract
 (see the `amvcp-code-highlight` skill for that layer). The slide
 layer contributes:
 
@@ -125,7 +125,7 @@ layer contributes:
 ## Selection / comment / decision-mini contract notes
 
 The code-focus slide is one selectable atom. The code block inside
-is rendered by `amvcp-codeblock.js`; that module may stamp its own
+is rendered by `amvcp-code-highlight.js`; that module may stamp its own
 `data-ve-id` on its container — that's the code-block layer's
 concern. The slide-level selection ring paints around the whole
 slide.
@@ -183,11 +183,11 @@ via the dev-browser path in `skills/amvcp-self-debug-rules/SKILL.md`:
    strings in distinct colours).
 4. Line numbers are visible (the code-block renderer's standard
    output).
-5. Console reports zero "amvcp-codeblock.js not loaded" errors.
+5. Console reports zero "amvcp-code-highlight.js not loaded" errors.
 
 ## Languages tested on `lang` field
 
-The `lang` field is passed through to `amvcp-codeblock.js` for
+The `lang` field is passed through to `amvcp-code-highlight.js` for
 syntax highlighting. The code-block module accepts:
 
 | Lang | What it highlights |

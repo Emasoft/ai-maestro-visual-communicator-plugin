@@ -89,7 +89,7 @@ With a bar chart:
   `chart` block.
 - `renderDelegated(doc, block, "chart")` — calls
   `window.amvcpChart.renderInto(host, {chartType, data})`. Throws with
-  a clear "amvcp-charts.js not loaded" error if the sibling module is
+  a clear "amvcp-chart.js not loaded" error if the sibling module is
   missing.
 
 ## DESIGN.md tokens used
@@ -111,7 +111,7 @@ dashboards` skill for that layer.
 ## Selection / comment / decision-mini contract notes
 
 The data-story slide is one selectable atom. The chart inside is
-rendered by the delegated `amvcp-charts.js` module, which MAY stamp
+rendered by the delegated `amvcp-chart.js` module, which MAY stamp
 its own `data-ve-id` on its container — that's the chart layer's
 business, not the slide layer's. The reviewer's comment on a
 data-story is typically about the FINDING (the heading), not about
@@ -174,7 +174,7 @@ via the dev-browser path in `skills/amvcp-self-debug-rules/SKILL.md`:
    jump, the highest bar, etc.).
 4. The chart palette matches the deck's accent (the chart module
    reads `--vc-color-accent`).
-5. Console reports zero "amvcp-charts.js not loaded" errors.
+5. Console reports zero "amvcp-chart.js not loaded" errors.
 
 ## Anti-patterns for data-story slides
 

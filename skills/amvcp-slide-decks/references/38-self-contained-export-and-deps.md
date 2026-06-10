@@ -32,9 +32,9 @@ A deployable slide deck is a 3-to-6 file bundle:
 | `deck.html` | Yes | The page. Contains the embedded JSON + preset. |
 | `amvcp-designmd.js` | Yes | Token engine. ~20 KB minified. |
 | `amvcp-slide.js` | Yes | Slide module. ~50 KB minified. |
-| `amvcp-codeblock.js` | Conditional | If any slide uses `code` block. |
-| `amvcp-graphdiagram.js` | Conditional | If any slide uses `diagram` block. |
-| `amvcp-charts.js` | Conditional | If any slide uses `chart` block. |
+| `amvcp-code-highlight.js` | Conditional | If any slide uses `code` block. |
+| `amvcp-diagram.js` | Conditional | If any slide uses `diagram` block. |
+| `amvcp-chart.js` | Conditional | If any slide uses `chart` block. |
 
 All five JS files ship as plain `<script>` tags. No `import`. No
 bundler. No build.
@@ -63,9 +63,9 @@ The HTML structure:
   </script>
 
   <script src="./amvcp-designmd.js"></script>
-  <script src="./amvcp-codeblock.js"></script>
-  <script src="./amvcp-graphdiagram.js"></script>
-  <script src="./amvcp-charts.js"></script>
+  <script src="./amvcp-code-highlight.js"></script>
+  <script src="./amvcp-diagram.js"></script>
+  <script src="./amvcp-chart.js"></script>
   <script src="./amvcp-slide.js"></script>
 </body>
 </html>
@@ -77,9 +77,9 @@ CRITICAL: the script tags must load in this order:
 
 1. `amvcp-designmd.js` — defines `window.amvcpDesignMd`.
 2. Sibling modules (any order):
-   - `amvcp-codeblock.js` — defines `window.amvcpCodeBlock`.
-   - `amvcp-graphdiagram.js` — defines `window.amvcpDiagram`.
-   - `amvcp-charts.js` — defines `window.amvcpChart`.
+   - `amvcp-code-highlight.js` — defines `window.amvcpCodeHighlight`.
+   - `amvcp-diagram.js` — defines `window.amvcpDiagram`.
+   - `amvcp-chart.js` — defines `window.amvcpChart`.
 3. `amvcp-slide.js` — defines `window.amvcpSlideDeck`. Auto-boots
    on `DOMContentLoaded`.
 
@@ -100,11 +100,11 @@ because:
    `--vc-*` token system.
 
 The same logic excludes:
-- Mermaid CDN (the `amvcp-graphdiagram.js` module renders
+- Mermaid CDN (the `amvcp-diagram.js` module renders
   diagrams natively).
-- Shiki CDN (the `amvcp-codeblock.js` module renders code
+- Shiki CDN (the `amvcp-code-highlight.js` module renders code
   natively).
-- Chart.js CDN (the `amvcp-charts.js` module renders charts
+- Chart.js CDN (the `amvcp-chart.js` module renders charts
   natively).
 - Google Fonts CDN (the system font stack is the default; custom
   fonts must be embedded as `@font-face` blocks).
@@ -126,12 +126,12 @@ with no delegated blocks loads zero KB of sibling JS.
 ```
 
 The fail-fast behaviour: a slide that uses `type: "code"` without
-`amvcp-codeblock.js` loaded throws with:
+`amvcp-code-highlight.js` loaded throws with:
 
 ```
 amvcp-slide: block type "code" needs the code-block
-(amvcp-codeblock.js) renderer module, but
-window.amvcpCodeBlock.renderInto is not available. Include that
+(amvcp-code-highlight.js) renderer module, but
+window.amvcpCodeHighlight.renderInto is not available. Include that
 module's <script> in the deck.
 ```
 

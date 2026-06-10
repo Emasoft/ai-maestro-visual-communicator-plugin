@@ -2350,6 +2350,80 @@
     }
   }
 
+  // ── renderInto — the slide-deck delegated-block entry point ──────────
+  //
+  // The slide module (amvcp-slide.js) renders a deck `diagram` block by
+  // calling `window.amvcpDiagram.renderInto(host, spec)` where
+  //   spec = { notation: <string>, source: <diagram source string> }.
+  // We do NOT reimplement rendering — we route to the module's EXISTING
+  // paths:
+  //   - scene-graph JSON (the module's native model) → inject the source
+  //     as the host's <script type="application/json"> and call
+  //     renderSceneGraph(), exactly the reRenderScene() internal does.
+  //   - ascii / text art → reuse the styleAsciiDiagrams() <pre> path.
+  // This module has NO mermaid/graphviz/dot parser (it only THEMES
+  // Mermaid via buildMermaidThemeVariables for a lib it does not bundle);
+  // any such notation is a fail-fast Error, never a silent blank — the
+  // deck author must use a notation this renderer actually supports.
+  //
+  // Fail-fast (diagram-spec.md §1): a bad `el` or a missing `spec.source`
+  // throws a precise Error rather than swallowing — the slide module's
+  // renderDelegated() already throws when this method is absent, so the
+  // whole delegated path is loud-on-error by design.
+  var SCENE_NOTATIONS = { 'scene-graph': 1, scenegraph: 1, scene: 1,
+    json: 1, diagram: 1, '': 1 };
+  var ASCII_NOTATIONS = { ascii: 1, text: 1, txt: 1, 'ascii-art': 1 };
+  function renderInto(el, spec) {
+    if (!el || el.nodeType !== 1) {
+      throw new Error('amvcp-diagram: renderInto(el, spec) needs a DOM'
+        + ' element as its first argument');
+    }
+    if (!spec || typeof spec.source !== 'string' || spec.source === '') {
+      throw new Error('amvcp-diagram: renderInto(el, spec) needs'
+        + ' spec.source (a non-empty diagram source string)');
+    }
+    // notation is a free-form hint; normalise for the lookup tables.
+    var notation = (typeof spec.notation === 'string'
+      ? spec.notation : '').toLowerCase();
+    var doc = el.ownerDocument
+      || (typeof document !== 'undefined' ? document : null);
+    if (SCENE_NOTATIONS[notation]) {
+      // Reuse the native scene-graph render path: stash the source as the
+      // pristine JSON and route through reRenderScene, which injects the
+      // <script type="application/json"> and calls renderSceneGraph. The
+      // CSS the rendered SVG relies on is injected idempotently first —
+      // renderSceneGraph alone (unlike init) does not inject it, and the
+      // slide host may not have loaded the diagram CSS yet.
+      injectDiagramCSS(doc);
+      el.__vcSceneJSON = spec.source;
+      reRenderScene(el);
+      return el;
+    }
+    if (ASCII_NOTATIONS[notation]) {
+      // Reuse the ASCII path: render the art into a selectable .ve-ascii-
+      // diagram host so the injected CSS styles it and the runtime can
+      // select/comment it as ONE unit.
+      injectDiagramCSS(doc);
+      el.classList.add('ve-ascii-diagram');
+      el.setAttribute('data-ve-ascii-selectable', '1');
+      el.textContent = spec.source;
+      // Assign the single selection id the same way styleAsciiDiagrams
+      // does. We do it inline (not via styleAsciiDiagrams(parent)) because
+      // the slide host is still DETACHED at render time — querySelectorAll
+      // on a parent matches descendants only, so routing through the
+      // scanner would silently skip a not-yet-attached host.
+      if (!el.getAttribute('data-ve-id')) {
+        el.setAttribute('data-ve-id', 've-ascii-' + (++_asciiCounter));
+        el.setAttribute('data-ve-type', 'ascii-diagram');
+      }
+      return el;
+    }
+    throw new Error('amvcp-diagram: renderInto cannot render notation "'
+      + notation + '". This renderer supports the scene-graph JSON model'
+      + ' (notation "scene-graph"/"json") and "ascii" art only; it has no'
+      + ' mermaid/graphviz parser.');
+  }
+
   // ── injected CSS — §12.4 ────────────────────────────────────────────
   //
   // A small themed block. Every color is a `--vc-*` token with a
@@ -2826,6 +2900,9 @@
     getThemePreset: getThemePreset,
     reThemeAll: reThemeAll,
     refresh: refresh,
+    // Slide-deck delegated-block entry: render { notation, source } into
+    // a host (amvcp-slide.js calls window.amvcpDiagram.renderInto).
+    renderInto: renderInto,
     // Export menu — programmatic access for callers that want to wire
     // their own UI instead of the built-in dropdown.
     exportSceneAsPng: exportSceneAsPng,

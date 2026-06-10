@@ -133,10 +133,10 @@ When the deck renders but looks wrong:
 
 When a delegated block fails:
 
-1. The error names the missing module: `window.amvcpCodeBlock` /
+1. The error names the missing module: `window.amvcpCodeHighlight` /
    `window.amvcpDiagram` / `window.amvcpChart`.
 2. Verify the corresponding script is loaded:
-   `console.log(window.amvcpCodeBlock)`.
+   `console.log(window.amvcpCodeHighlight)`.
 3. Verify the load order: sibling modules BEFORE `amvcp-slide.js`.
 4. Verify the script src is correct (no 404 in the Network tab).
 
@@ -237,12 +237,12 @@ Fix: split — see ref #28.
 { "type": "code", "lang": "rust", "source": "fn x() {}" }
 ```
 
-Console (if `amvcp-codeblock.js` isn't loaded):
+Console (if `amvcp-code-highlight.js` isn't loaded):
 ```
-amvcp-slide: block type "code" needs the code-block (amvcp-codeblock.js) renderer module, but window.amvcpCodeBlock.renderInto is not available. Include that module's <script> in the deck.
+amvcp-slide: block type "code" needs the code-block (amvcp-code-highlight.js) renderer module, but window.amvcpCodeHighlight.renderInto is not available. Include that module's <script> in the deck.
 ```
 
-Fix: add `<script src="./amvcp-codeblock.js"></script>` BEFORE
+Fix: add `<script src="./amvcp-code-highlight.js"></script>` BEFORE
 `amvcp-slide.js`.
 
 ## Source provenance
