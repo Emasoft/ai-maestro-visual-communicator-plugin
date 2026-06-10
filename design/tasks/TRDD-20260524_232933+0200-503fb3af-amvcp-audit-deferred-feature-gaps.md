@@ -3,7 +3,7 @@ trdd-id: 503fb3af-3363-4683-b658-06771f332356
 title: amvcp audit — deferred feature-level gaps (doc claims with no implementation)
 status: in-progress
 created: 2026-05-24T23:29:33+0200
-updated: 2026-06-10T12:05:40+0200
+updated: 2026-06-10T12:19:00+0200
 ---
 
 # TRDD-503fb3af — amvcp audit: deferred feature-level gaps
@@ -25,7 +25,14 @@ updated: 2026-06-10T12:05:40+0200
   (csv-and-data-fences.md, SKILL.md:53) makes csv/yaml DATA fences that render
   plain by design. Resolved as option (B): corrected the ONE false claim
   (SKILL.md:105-107). YAML docs were already truthful — no change needed.
-- **G2, G3, G5, G6, G7, G8 — still OPEN** (not started).
+- **G3 (touch parity) — 📋 PLANNED** via `TRDD-7114fb4e` (facts verified, design
+  written; ONE architecture decision pending — shared `amvcp-sortable.js` module
+  vs the deliberate dependency-free design; recommended first slice = Opt 3,
+  rank-list + tier-list inside amvcp-form-inputs.js, no fork).
+- **G2, G5, G6 — OPEN, need a USER product decision** (G2/G5 build needs touching
+  a do-not-touch file [amvcp-tokens.js / amvcp-runtime.js] or removing the doc
+  promise; G6 is keep/deprecate/remove).
+- **G7, G8 — OPEN** (low-priority hygiene; not started).
 
 **Load-bearing facts / gotchas:**
 - G2 (`mixDesignMds`) and G5 (twin-gutter diff) live in DO-NOT-TOUCH files
@@ -108,7 +115,7 @@ Per-slice reports: `reports/plugin-audit/20260524_*-{slice}.md`
 - **Recommendation:** (B) unless the multi-brand mixer is on the roadmap —
   it's a sizable token-algebra feature.
 
-### G3 — Touch parity: drag-reorder widgets desktop-only (HIGH)
+### G3 — Touch parity: drag-reorder widgets desktop-only (HIGH) — 📋 PLANNED (TRDD-7114fb4e; verified facts + design; one architecture decision pending: shared module vs dependency-free)
 - **Symptom:** `ve-rank-list` + `ve-tier-list` (`amvcp-form-inputs.js`)
   and kanban drag (`amvcp-interactive.js`) use HTML5 drag-and-drop, which
   is non-functional on touch devices. The audit brief explicitly calls out
