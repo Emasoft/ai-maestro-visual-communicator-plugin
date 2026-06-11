@@ -330,7 +330,7 @@
       throw new Error('parseDesignMd: input must be a string');
     }
     // Normalise CRLF/CR to LF up front so line handling is uniform.
-    var src = text.replace(/^﻿/, '').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+    var src = text.replace(/^\uFEFF/, '').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
     var lines = src.split('\n');
     if (lines.length === 0 || lines[0].trim() !== '---') {
       throw new Error(
