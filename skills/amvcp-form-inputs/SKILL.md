@@ -21,7 +21,7 @@ into the comment-turn record.
 - `scripts/amvcp-runtime.js` loaded (provides the selection model and `data-ve-form` discovery).
 - `scripts/amvcp-form-inputs.js` loaded (the widget implementations).
 - DESIGN.md tokens available — `--vc-color-*`, `--vc-radius-*`, `--vc-space-*` from `amvcp-designmd.js`.
-- The drag widgets (`ve-rank-list`, `ve-tier-list`) use the native HTML5 drag-and-drop API, which fires on desktop pointers but NOT on touchscreens — drag reordering is desktop-only today (touch users fall back to the persisted default order). Track touch parity as a known gap.
+- The drag widgets (`ve-rank-list`, `ve-tier-list`) drive reordering with the Pointer Events API, so drag-to-reorder works on **mouse, touch, and pen** alike — one code path, full touch parity on phones and tablets. A ~6px move threshold keeps a tap distinct from a drag (a tap still selects the widget for commenting).
 
 ## Instructions
 
@@ -512,7 +512,8 @@ art-style pickers, material galleries, image preset libraries.
 
 Emits `{ kind: "tier-list", id, value: { S: [...], A: [...], …, unranked: [...] } }`.
 Every item starts in the "unranked" bucket; drag items into the
-appropriate tier zone. Tier `tone` values map to the design-token
+appropriate tier zone. Dragging uses Pointer Events, so it works on
+mouse, touch, and pen. Tier `tone` values map to the design-token
 scale: `best` → danger, `great` → warning, `good` → accent, `fair` →
 info, `weak` → success (the classic tier-list red→green spectrum).
 `tiers` is optional (defaults to S/A/B/C/D).
@@ -531,8 +532,9 @@ info, `weak` → success (the classic tier-list red→green spectrum).
 ```
 
 Emits `{ kind: "rank-list", id, value: ["<k1>", "<k2>", …] }` after
-every drop. The saved order survives reloads (the runtime re-orders
-the `<li>` children on init from the saved array).
+every drop. Dragging uses Pointer Events, so reordering works on mouse,
+touch, and pen alike. The saved order survives reloads (the runtime
+re-orders the `<li>` children on init from the saved array).
 
 ## Event handling
 
@@ -612,7 +614,8 @@ The widget ALSO writes `value` to `localStorage["amvcp-form-input:" + data-ve-id
 | Widget renders blank | Missing or malformed inner `<script type="application/json">` model | Check console — runtime fail-fasts with a clear `[form-input error]` box in place of the widget |
 | `ve-form-change` never fires | Subscriber attached to wrong DOM root | Event bubbles — attach to `document` or an ancestor of the widget |
 | LocalStorage not restoring | Widget missing `data-ve-id` (no persistence key) | Add a stable `data-ve-id` attribute |
-| Drag-reorder unresponsive on touch devices | `ve-rank-list` / `ve-tier-list` use native HTML5 DnD, which mobile browsers don't fire | Known desktop-only limitation; on touch the saved/default order is used — don't rely on drag reordering for touch-primary audiences |
+| Drag-reorder fires on a tap, not just a drag | A tap below the ~6px threshold is treated as a click (selects the widget), not a reorder | Working as intended — move the pointer past ~6px to start a drag; a tap selects the widget for commenting. `ve-rank-list` / `ve-tier-list` use Pointer Events, so reordering works on mouse, touch, and pen |
+| Page won't scroll while touching a rank/tier item | `touch-action:none` is set on the draggable items so a touch-drag reorders instead of scrolling | Expected — it is scoped to the items only; scroll by touching the page outside the draggable items |
 | Colors illegible on dark theme | Single-theme palette in author CSS | Use only `--vc-*` tokens — never hardcoded hex |
 
 ## Examples

@@ -1,9 +1,9 @@
 ---
 trdd-id: 7114fb4e-f53a-4230-954c-ff2bc11db106
 title: Touch parity for drag-reorder widgets via a shared pointer-events sortable (G3)
-column: backburner
+column: complete
 created: 2026-06-10T12:16:44+0200
-updated: 2026-06-10T12:16:44+0200
+updated: 2026-06-11T12:50:00+0200
 current-owner: amvcp-dev
 assignee: amvcp-dev
 priority: 3
@@ -39,13 +39,18 @@ external-refs: []
 
 ## ⏵ STATE — READ THIS FIRST ON RESUME (authoritative) — 2026-06-10
 
-**Status:** PLANNED. Facts verified; an ARCHITECTURE DECISION is required
-before implementation (see "Decision needed"). Recommended path is **Opt 3**
-(below) — it delivers touch parity for 2 of the 3 widgets with NO architecture
-violation and NO new module, and isolates the genuinely-hard kanban case.
+**Status:** ✅ DONE (Opt 3 implemented 2026-06-11, user-authorized via "complete
+pending tasks"). One shared Pointer-Events `makePointerSortable` helper inside
+amvcp-form-inputs.js now drives BOTH ve-rank-list and ve-tier-list; the HTML5
+DnD wiring is fully removed (0 remnants — one code path for mouse+touch+pen).
+Suites: 23 form-inputs (no regression) + 7 new touch-sortable = 30/30 GREEN
+(synthetic PointerEvents, touch AND mouse, tap≠drag, no-new-elements asserted).
+SKILL.md updated (touch supported). Report:
+reports/skill-improve/20260611_124606+0200-g3-touch-parity.md
 
-**NEXT ACTION:** get the user's call on the architecture fork, then implement
-Opt 3 phase 1 (rank-list + tier-list pointer-sortable inside amvcp-form-inputs.js).
+**REMAINING (deferred by design):** the kanban card drag (amvcp-interactive.js)
+— the cross-module sharing decision (extract helper to a shared module vs
+duplicate) is taken THEN, with this proven helper as the extraction source.
 
 ## The gap (verified against current code)
 
