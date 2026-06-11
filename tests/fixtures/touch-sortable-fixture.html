@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>touch-sortable test fixture</title>
+<style>
+  :root,
+  html[data-ve-theme="light"] {
+    --vc-color-canvas: #faf6ee;
+    --vc-color-surface: #ffffff;
+    --vc-color-surface-raised: #fffdf8;
+    --vc-color-surface-sunken: #f1ece0;
+    --vc-color-content: #1f1a14;
+    --vc-color-content-muted: #5b5343;
+    --vc-color-content-subtle: #8a8170;
+    --vc-color-border: #e3dcc9;
+    --vc-color-border-strong: #c9bfa3;
+    --vc-color-accent: #b8861f;
+    --vc-color-on-accent: #ffffff;
+    --vc-font-body: "Inter, system-ui, sans-serif";
+    --vc-radius-sm: 4px;
+    --vc-radius-md: 8px;
+  }
+  html[data-ve-theme="dark"] {
+    --vc-color-canvas: #1b1813;
+    --vc-color-surface: #262119;
+    --vc-color-surface-raised: #2f2920;
+    --vc-color-content: #f3ecdd;
+    --vc-color-border: #3a3327;
+    --vc-color-accent: #d8a83f;
+  }
+  body {
+    margin: 0;
+    padding: 28px;
+    background: var(--vc-color-canvas);
+    color: var(--vc-color-content);
+    font: 15px/1.5 var(--vc-font-body, system-ui, sans-serif);
+  }
+  main { max-width: 720px; margin: 0 auto; }
+  h2 { font-size: 16px; margin-top: 28px; }
+</style>
+</head>
+<body>
+<main>
+  <h2>rank list (touch reorder)</h2>
+  <div class="ve-rank-list" data-ve-id="rank:touch">
+    <p class="ve-quiz-label">Drag to rank:</p>
+    <ol>
+      <li data-ve-rank-key="alpha">Alpha</li>
+      <li data-ve-rank-key="bravo">Bravo</li>
+      <li data-ve-rank-key="charlie">Charlie</li>
+      <li data-ve-rank-key="delta">Delta</li>
+    </ol>
+  </div>
+
+  <h2>tier list (touch assign)</h2>
+  <div class="ve-tier-list" data-ve-id="tier:touch">
+    <script type="application/json">
+      {
+        "label": "Rank by impact:",
+        "tiers": [
+          { "key": "A", "label": "A", "tone": "great" },
+          { "key": "B", "label": "B", "tone": "good" }
+        ],
+        "items": [
+          { "key": "cache",   "label": "Add cache" },
+          { "key": "logs",    "label": "Structured logs" },
+          { "key": "metrics", "label": "Latency metrics" }
+        ]
+      }
+    </script>
+  </div>
+</main>
+
+<!-- Load DESIGN.md engine + runtime + the widget module, exactly as a
+     composed page would. The runtime supplies the click-to-select model
+     (test 5 checks that a sub-threshold tap still reaches it). The
+     widget module is loaded with manual-init so we can deterministically
+     boot it after the runtime has stamped its selection wiring. -->
+<script>window.__vcFormInputsManualInit = true;</script>
+<script src="amvcp-designmd.js"></script>
+<script src="amvcp-runtime.js"></script>
+<script src="amvcp-form-inputs.js"></script>
+<script>
+(function () {
+  function boot() {
+    try {
+      document.documentElement.setAttribute('data-ve-theme', 'light');
+      window.amvcpFormInputs.injectStyles(document);
+      window.amvcpFormInputs.init(document);
+      // Capture every form-change event for the test to inspect.
+      window.__vcFormChanges = [];
+      document.addEventListener('ve-form-change', function (ev) {
+        window.__vcFormChanges.push(ev.detail);
+      });
+      window.__vcFixtureReady = true;
+    } catch (e) {
+      window.__vcFixtureError = String(e && e.message || e);
+    }
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot);
+  } else { boot(); }
+})();
+</script>
+</body>
+</html>

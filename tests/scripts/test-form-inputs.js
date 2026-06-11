@@ -56,7 +56,15 @@ async function testAllWidgetsInit(page) {
     colorHex: document.querySelector('.ve-color-hex').textContent,
     rankInited: document.querySelector('.ve-rank-list').__veInited === true,
     rankItems: document.querySelectorAll('.ve-rank-list .ve-rank-item').length,
-    rankDraggable: document.querySelectorAll('.ve-rank-list li[draggable="true"]').length,
+    // Pointer-Events sortable (TRDD-7114fb4e): items no longer carry
+    // draggable="true" (HTML5 DnD removed). Touch-drag readiness is
+    // signalled by touch-action:none scoped to the rank rows.
+    rankTouchReady: (function () {
+      const lis = document.querySelectorAll('.ve-rank-list .ve-rank-item');
+      let n = 0;
+      lis.forEach(li => { if (li.style.touchAction === 'none') n++; });
+      return n;
+    })(),
     typeAttrsCorrect: (function () {
       const expect = {
         '.ve-quiz-radio': 'quiz-radio',
@@ -93,7 +101,7 @@ async function testAllWidgetsInit(page) {
     && r.numericInited && r.numericValuePresent && r.numericUnits === 3
     && r.dateInited && r.dateValue === '2026-06-01'
     && r.colorInited && r.colorHex === '#b8861f'
-    && r.rankInited && r.rankItems === 4 && r.rankDraggable === 4
+    && r.rankInited && r.rankItems === 4 && r.rankTouchReady === 4
     && r.typeAttrsCorrect.length === 0;
   record('form_inputs_all_init', ok ? 'PASS' : 'FAIL',
     'every kind mounts: radio, multi, numeric, date, color, rank',
@@ -222,28 +230,43 @@ async function testDateAndColorEmit(page) {
 async function testRankDragReorders(page) {
   // Drag the LAST item onto the FIRST — the rank order should rotate
   // it to the top, and the change event should carry the new order.
+  // TRDD-7114fb4e: the widget now uses Pointer Events (HTML5 DnD removed),
+  // so drive the gesture with synthetic pointerdown/move×N/up.
   const s = await setup(page);
   if (!s.ok) {
     record('form_inputs_rank_drag', 'FAIL', 'rank drag reorders', s.error);
     return;
   }
   const r = await page.evaluate(() => {
+    function fire(el, type, x, y) {
+      el.dispatchEvent(new PointerEvent(type, {
+        bubbles: true, cancelable: true, composed: true,
+        pointerId: 1, pointerType: 'mouse', isPrimary: true,
+        button: type === 'pointerup' ? -1 : 0,
+        buttons: type === 'pointerup' ? 0 : 1,
+        clientX: x, clientY: y
+      }));
+    }
     const list = document.querySelector('.ve-rank-list ol');
     const items = list.querySelectorAll('li');
     const dragged = items[3];          // last (docs)
     const target = items[0];           // first (logs)
-    const dt = new DataTransfer();
-    dragged.dispatchEvent(new DragEvent('dragstart',
-      { bubbles: true, cancelable: true, dataTransfer: dt }));
+    // The rank list is the LAST of 19 widgets — well below the fold.
+    // document.elementFromPoint only hit-tests the visible viewport, so
+    // scroll the list in before computing drop coordinates (a real user
+    // scrolls to the widget first).
+    list.scrollIntoView({ block: 'center' });
+    const dr = dragged.getBoundingClientRect();
+    const sx = dr.left + dr.width / 2;
+    const sy = dr.top + dr.height / 2;
     const tr = target.getBoundingClientRect();
-    target.dispatchEvent(new DragEvent('dragover',
-      { bubbles: true, cancelable: true,
-        clientY: tr.top + 4, dataTransfer: dt }));
-    target.dispatchEvent(new DragEvent('drop',
-      { bubbles: true, cancelable: true,
-        clientY: tr.top + 4, dataTransfer: dt }));
-    dragged.dispatchEvent(new DragEvent('dragend',
-      { bubbles: true, cancelable: true, dataTransfer: dt }));
+    const tx = tr.left + tr.width / 2;
+    const ty = tr.top + 3;             // upper half → insert before first
+    fire(dragged, 'pointerdown', sx, sy);
+    for (let i = 1; i <= 8; i++) {
+      fire(dragged, 'pointermove', sx + (tx - sx) * i / 8, sy + (ty - sy) * i / 8);
+    }
+    fire(dragged, 'pointerup', tx, ty);
     const after = Array.from(list.querySelectorAll('li'))
       .map(l => l.getAttribute('data-ve-rank-key'));
     return {
@@ -1059,6 +1082,10 @@ async function testTierListDragAssign(page) {
   }
   const r = await page.evaluate(() => {
     const root = document.querySelector('.ve-tier-list');
+    // Scroll the tier widget into the viewport — document.elementFromPoint
+    // (used by the pointer-sortable hitTest) only hits visible pixels, and
+    // the tier list sits far below the fold among 19 widgets.
+    root.scrollIntoView({ block: 'center' });
     const initialCounts = {
       rows:     root.querySelectorAll('.ve-tier-row').length,
       buckets:  root.querySelectorAll('.ve-tier-bucket').length,
@@ -1067,18 +1094,30 @@ async function testTierListDragAssign(page) {
       tierBadges: root.querySelectorAll(
         '.ve-tier-badge:not(.ve-tier-badge-unranked)').length
     };
-    // Drag "logs" → tier A
+    // Drag "logs" → tier A. TRDD-7114fb4e: Pointer Events (HTML5 DnD
+    // removed), so synthesise pointerdown/move×N/up onto the A bucket.
+    function fire(el, type, x, y) {
+      el.dispatchEvent(new PointerEvent(type, {
+        bubbles: true, cancelable: true, composed: true,
+        pointerId: 1, pointerType: 'mouse', isPrimary: true,
+        button: type === 'pointerup' ? -1 : 0,
+        buttons: type === 'pointerup' ? 0 : 1,
+        clientX: x, clientY: y
+      }));
+    }
     const aBucket = root.querySelector('.ve-tier-bucket[data-tier-key="A"]');
     const item = root.querySelector('.ve-tier-item[data-item-key="logs"]');
-    const dt = new DataTransfer();
-    item.dispatchEvent(new DragEvent('dragstart',
-      { bubbles: true, cancelable: true, dataTransfer: dt }));
-    aBucket.dispatchEvent(new DragEvent('dragover',
-      { bubbles: true, cancelable: true, dataTransfer: dt }));
-    aBucket.dispatchEvent(new DragEvent('drop',
-      { bubbles: true, cancelable: true, dataTransfer: dt }));
-    item.dispatchEvent(new DragEvent('dragend',
-      { bubbles: true, cancelable: true, dataTransfer: dt }));
+    const ir = item.getBoundingClientRect();
+    const sx = ir.left + ir.width / 2;
+    const sy = ir.top + ir.height / 2;
+    const ar = aBucket.getBoundingClientRect();
+    const tx = ar.left + ar.width / 2;
+    const ty = ar.top + ar.height / 2;
+    fire(item, 'pointerdown', sx, sy);
+    for (let i = 1; i <= 8; i++) {
+      fire(item, 'pointermove', sx + (tx - sx) * i / 8, sy + (ty - sy) * i / 8);
+    }
+    fire(item, 'pointerup', tx, ty);
     const ev = window.__vcFormChanges
       .filter(e => e.kind === 'tier-list').pop();
     return {

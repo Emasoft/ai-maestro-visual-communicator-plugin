@@ -1609,6 +1609,187 @@
     paint();
   }
 
+  // ── pointer-events sortable (shared by tier-list + rank-list) ──────
+  //
+  // ONE drag engine for both drag-reorder widgets, written pure +
+  // callback-based so it is trivially extractable to a standalone module
+  // later (TRDD-7114fb4e Opt 3 — within-file reuse, zero duplication,
+  // zero new module). It REPLACES the old HTML5 drag-and-drop wiring in
+  // BOTH widgets, giving ONE code path that fires on mouse + touch + pen
+  // (HTML5 DnD never fires on touch, so phones/tablets could not reorder).
+  //
+  // The widget supplies the geometry (`hitTest`) and the commit step
+  // (`onCommit`); the engine owns the pointer plumbing. It only adds/
+  // removes the widget's EXISTING CSS classes — never injects outlines,
+  // frames, or ghost nodes (the no-new-elements rule: drag state lives
+  // entirely in `draggingClass` / `dropTargetClass`).
+  //
+  // opts:
+  //   items          — array of draggable elements
+  //   containers      — array of drop containers (1 for rank-list, N for
+  //                     tier-list); used only to clear stale drop-target
+  //                     highlight, since hitTest decides the live target
+  //   hitTest(x, y)   — return { container, beforeNode, highlight } | null.
+  //                     The widget translates a viewport point into the
+  //                     drop container + the node to insert before (null =
+  //                     append). `highlight` is the element to flash with
+  //                     dropTargetClass (defaults to `container` when
+  //                     omitted — rank-list highlights the target row but
+  //                     inserts into the parent <ol>). null = no valid drop.
+  //   onCommit(item, container, beforeNode) — perform the move + persist
+  //   draggingClass   — class toggled on the item while it is dragging
+  //   dropTargetClass — class toggled on the live drop container
+  function makePointerSortable(opts) {
+    var items = opts.items || [];
+    var containers = opts.containers || [];
+    var hitTest = opts.hitTest;
+    var onCommit = opts.onCommit;
+    var draggingClass = opts.draggingClass;
+    var dropTargetClass = opts.dropTargetClass;
+    // ~6px move threshold so a click/tap is NOT a drag — below it the
+    // pointerup falls through to the runtime's click-to-select model.
+    var THRESHOLD = 6;
+
+    // Per-engine drag state. Only one pointer drags at a time; a second
+    // pointerdown while dragging is ignored (guarded below).
+    var active = null;   // the item currently being dragged (post-threshold)
+    var pressItem = null;
+    var pressId = null;
+    var startX = 0, startY = 0;
+    var started = false;          // crossed the threshold?
+    var lastTarget = null;        // node currently flashed with dropTargetClass
+    var suppressClick = false;    // swallow the click that trails a drag
+
+    function clearTargets() {
+      // Defensive sweep across declared containers …
+      for (var i = 0; i < containers.length; i++) {
+        containers[i].classList.remove(dropTargetClass);
+      }
+      // … plus the live highlight node, which may be a child (rank-list
+      // highlights the target row, not the parent <ol> container).
+      if (lastTarget) { lastTarget.classList.remove(dropTargetClass); }
+      lastTarget = null;
+    }
+
+    function endDrag(commit, x, y) {
+      if (started && active) {
+        if (commit && hitTest) {
+          var hit = hitTest(x, y);
+          if (hit && hit.container) {
+            onCommit(active, hit.container, hit.beforeNode || null);
+          }
+        }
+        active.classList.remove(draggingClass);
+        // A real drag fires a trailing `click`; suppress exactly one so
+        // it does not toggle the runtime's element-selection.
+        suppressClick = true;
+      }
+      clearTargets();
+      active = null;
+      pressItem = null;
+      pressId = null;
+      started = false;
+    }
+
+    function onDown(ev) {
+      // Primary button / primary touch only — never start drag logic on
+      // a secondary/middle click or a non-primary touch point. This also
+      // leaves right-click + multi-touch alone.
+      if (ev.button !== undefined && ev.button !== 0) { return; }
+      if (ev.isPrimary === false) { return; }
+      if (active) { return; }   // a drag is already in flight
+      pressItem = this;
+      pressId = ev.pointerId;
+      startX = ev.clientX;
+      startY = ev.clientY;
+      started = false;
+      // Capture so all subsequent moves/up route to this item even if the
+      // pointer leaves it. Guarded: synthetic events (and detached nodes)
+      // can throw — a failed capture still leaves the drag working via the
+      // per-item listeners.
+      try {
+        if (pressItem.setPointerCapture) {
+          pressItem.setPointerCapture(ev.pointerId);
+        }
+      } catch (_) { /* capture unavailable — proceed without it */ }
+    }
+
+    function onMove(ev) {
+      if (!pressItem || ev.pointerId !== pressId) { return; }
+      var dx = ev.clientX - startX;
+      var dy = ev.clientY - startY;
+      if (!started) {
+        if (Math.abs(dx) < THRESHOLD && Math.abs(dy) < THRESHOLD) { return; }
+        // Threshold crossed — promote the press to a drag.
+        started = true;
+        active = pressItem;
+        active.classList.add(draggingClass);
+      }
+      // Stop the page from scrolling/selecting under an active touch drag
+      // (touch-action:none on the item handles most of it; this covers
+      // the residual default for mouse text-selection too).
+      if (ev.cancelable) { ev.preventDefault(); }
+      if (!hitTest) { return; }
+      var hit = hitTest(ev.clientX, ev.clientY);
+      // The node to flash is `highlight` when supplied, else the
+      // container itself (tier-list highlights the bucket; rank-list
+      // highlights the target row but commits into the parent <ol>).
+      var next = hit ? (hit.highlight || hit.container) : null;
+      if (next !== lastTarget) {
+        if (lastTarget) { lastTarget.classList.remove(dropTargetClass); }
+        if (next) { next.classList.add(dropTargetClass); }
+        lastTarget = next;
+      }
+    }
+
+    function onUp(ev) {
+      if (!pressItem || ev.pointerId !== pressId) { return; }
+      endDrag(true, ev.clientX, ev.clientY);
+    }
+
+    function onCancel(ev) {
+      if (!pressItem || ev.pointerId !== pressId) { return; }
+      endDrag(false, ev.clientX, ev.clientY);
+    }
+
+    function onClick(ev) {
+      // Kill the synthetic `click` the browser emits right after a drag
+      // release so it does not reach the runtime's click-to-select model.
+      // A sub-threshold tap never sets the flag, so its click passes
+      // through unharmed.
+      //
+      // This MUST run before the runtime's selection handler, which is a
+      // CAPTURE-phase listener on `document` that bails on
+      // `ev.defaultPrevented`. Capture order is window → document → …, so
+      // a capture-phase listener on `window` fires first regardless of
+      // which module registered when — `preventDefault()` here makes the
+      // runtime's document-level handler skip the click. (A per-item or
+      // per-document capture listener would fire AFTER the runtime's,
+      // since document is an ancestor of the item and the runtime
+      // registered first — too late to stop it.)
+      if (suppressClick) {
+        suppressClick = false;
+        ev.preventDefault();
+        ev.stopPropagation();
+      }
+    }
+    if (typeof window !== 'undefined' && window.addEventListener) {
+      window.addEventListener('click', onClick, true);
+    }
+
+    for (var i = 0; i < items.length; i++) {
+      var it = items[i];
+      // touch-action:none on the DRAGGABLE ITEM ONLY (never the page) so
+      // a touch-drag reorders instead of scrolling — page scroll outside
+      // the items is untouched.
+      it.style.touchAction = 'none';
+      it.addEventListener('pointerdown', onDown);
+      it.addEventListener('pointermove', onMove);
+      it.addEventListener('pointerup', onUp);
+      it.addEventListener('pointercancel', onCancel);
+    }
+  }
+
   // ── §18 ve-tier-list ───────────────────────────────────────────────
   //
   // Tier-list maker: drag items between tier zones (S / A / B / C / D
@@ -1617,9 +1798,9 @@
   // tier. The emitted payload is { tier1: ["item1","item2"],
   // tier2: ["item3"], unranked: ["item4"] }.
   //
-  // The drag uses the same HTML5 API the rank-list uses, so the
-  // implementation is mostly bookkeeping around which tier-bucket the
-  // item ended up in.
+  // The drag uses the shared Pointer-Events sortable (makePointerSortable),
+  // so it works on mouse + touch + pen; the implementation is mostly
+  // bookkeeping around which tier-bucket the item ended up in.
   function initTierList(el) {
     if (!el || el.__veInited) { return; }
     var id = requireId(el);
@@ -1690,47 +1871,10 @@
     unranked.appendChild(uul);
     el.appendChild(unranked);
 
-    var dragged = null;
+    var tierItems = [];   // every draggable <li>, fed to the sortable
     function setupItem(li) {
       li.classList.add('ve-tier-item');
-      li.setAttribute('draggable', 'true');
-      li.addEventListener('dragstart', function (ev) {
-        dragged = li;
-        li.classList.add('ve-tier-dragging');
-        if (ev.dataTransfer) {
-          ev.dataTransfer.effectAllowed = 'move';
-          try { ev.dataTransfer.setData('text/plain',
-            li.getAttribute('data-item-key') || ''); }
-          catch (_) {}
-        }
-      });
-      li.addEventListener('dragend', function () {
-        if (dragged) { dragged.classList.remove('ve-tier-dragging'); }
-        dragged = null;
-        for (var k in lists) {
-          if (lists.hasOwnProperty(k)) {
-            lists[k].classList.remove('ve-tier-drop-target');
-          }
-        }
-      });
-    }
-    function setupBucket(bucket) {
-      bucket.addEventListener('dragover', function (ev) {
-        if (!dragged) { return; }
-        if (ev.preventDefault) { ev.preventDefault(); }
-        if (ev.dataTransfer) { ev.dataTransfer.dropEffect = 'move'; }
-        bucket.classList.add('ve-tier-drop-target');
-      });
-      bucket.addEventListener('dragleave', function () {
-        bucket.classList.remove('ve-tier-drop-target');
-      });
-      bucket.addEventListener('drop', function (ev) {
-        if (ev.preventDefault) { ev.preventDefault(); }
-        if (!dragged) { return; }
-        bucket.appendChild(dragged);
-        bucket.classList.remove('ve-tier-drop-target');
-        flush();
-      });
+      tierItems.push(li);
     }
     // Build + place every item in its saved tier (default: unranked)
     for (var ii = 0; ii < model.items.length; ii++) {
@@ -1754,9 +1898,34 @@
         lists[target].appendChild(li);
       })(model.items[ii]);
     }
+    // List of all buckets (drop containers) for highlight bookkeeping.
+    var buckets = [];
     for (var bk in lists) {
-      if (lists.hasOwnProperty(bk)) { setupBucket(lists[bk]); }
+      if (lists.hasOwnProperty(bk)) { buckets.push(lists[bk]); }
     }
+    // Pointer-events drag: find the bucket under the pointer (touch+mouse)
+    // and append the dragged item to it. beforeNode is always null —
+    // tier buckets are unordered sets, so the drop just appends.
+    makePointerSortable({
+      items: tierItems,
+      containers: buckets,
+      hitTest: function (x, y) {
+        var node = document.elementFromPoint(x, y);
+        var bucket = node && node.closest
+          ? node.closest('.ve-tier-bucket') : null;
+        // Only accept buckets that belong to THIS widget.
+        if (bucket && el.contains(bucket)) {
+          return { container: bucket, beforeNode: null };
+        }
+        return null;
+      },
+      onCommit: function (item, bucket) {
+        bucket.appendChild(item);
+        flush();
+      },
+      draggingClass: 've-tier-dragging',
+      dropTargetClass: 've-tier-drop-target'
+    });
     function flush() {
       var assignment = {};
       var payload = {};
@@ -1780,9 +1949,10 @@
 
   // ── §19 ve-rank-list ───────────────────────────────────────────────
   //
-  // Drag-to-reorder a <li> stack. Uses HTML5 drag-and-drop. Persists
-  // the post-drag order as an array of `data-ve-rank-key` values; on
-  // load the saved order is applied to the DOM before wiring drag.
+  // Drag-to-reorder a <li> stack. Uses the shared Pointer-Events sortable
+  // (makePointerSortable) so it works on mouse + touch + pen. Persists the
+  // post-drag order as an array of `data-ve-rank-key` values; on load the
+  // saved order is applied to the DOM before wiring drag.
   function initRankList(el) {
     if (!el || el.__veInited) { return; }
     var id = requireId(el);
@@ -1815,7 +1985,6 @@
     }
     // Wire drag on every <li>
     items = Array.prototype.slice.call(ol.children);   // re-read post-reorder
-    var dragged = null;
     function readOrder() {
       var lis = ol.querySelectorAll(':scope > li');
       var out = [];
@@ -1825,55 +1994,41 @@
       }
       return out;
     }
-    function setupItem(li) {
-      li.setAttribute('draggable', 'true');
-      li.classList.add('ve-rank-item');
-      li.addEventListener('dragstart', function (ev) {
-        dragged = li;
-        li.classList.add('ve-rank-dragging');
-        if (ev.dataTransfer) {
-          ev.dataTransfer.effectAllowed = 'move';
-          // setData required for Firefox to actually trigger drag.
-          try { ev.dataTransfer.setData('text/plain',
-            li.getAttribute('data-ve-rank-key') || ''); }
-          catch (_) { /* ignore */ }
+    for (var pi = 0; pi < items.length; pi++) {
+      items[pi].classList.add('ve-rank-item');
+    }
+    // Pointer-events drag: the target row under the pointer decides the
+    // insertion point (Y-midpoint → insert before/after, same rule the
+    // old HTML5 `drop` used). The container is always the <ol>; the
+    // target ROW gets the drop-target highlight (via `highlight`).
+    makePointerSortable({
+      items: items,
+      containers: [ol],
+      hitTest: function (x, y) {
+        var node = document.elementFromPoint(x, y);
+        var li = node && node.closest
+          ? node.closest('.ve-rank-list > ol > li, .ve-rank-list > ul > li')
+          : null;
+        // Only rows inside THIS list, and never the row being dragged
+        // (the engine flags it with ve-rank-dragging) — dropping onto
+        // yourself is a no-op and must not flash a highlight.
+        if (!li || !ol.contains(li) || li.classList.contains('ve-rank-dragging')) {
+          return null;
         }
-      });
-      li.addEventListener('dragend', function () {
-        if (dragged) { dragged.classList.remove('ve-rank-dragging'); }
-        dragged = null;
-        var lisAfter = ol.querySelectorAll(':scope > li');
-        for (var i = 0; i < lisAfter.length; i++) {
-          lisAfter[i].classList.remove('ve-rank-drop-target');
-        }
-      });
-      li.addEventListener('dragover', function (ev) {
-        if (!dragged || dragged === li) { return; }
-        if (ev.preventDefault) { ev.preventDefault(); }
-        if (ev.dataTransfer) { ev.dataTransfer.dropEffect = 'move'; }
-        li.classList.add('ve-rank-drop-target');
-      });
-      li.addEventListener('dragleave', function () {
-        li.classList.remove('ve-rank-drop-target');
-      });
-      li.addEventListener('drop', function (ev) {
-        if (ev.preventDefault) { ev.preventDefault(); }
-        if (!dragged || dragged === li) { return; }
-        // Insert before or after based on the drop position
         var rect = li.getBoundingClientRect();
         var midY = rect.top + rect.height / 2;
-        if (ev.clientY < midY) {
-          ol.insertBefore(dragged, li);
-        } else {
-          ol.insertBefore(dragged, li.nextSibling);
-        }
-        li.classList.remove('ve-rank-drop-target');
+        var beforeNode = y < midY ? li : li.nextSibling;
+        return { container: ol, beforeNode: beforeNode, highlight: li };
+      },
+      onCommit: function (item, container, beforeNode) {
+        container.insertBefore(item, beforeNode);
         var order = readOrder();
         saveValue(id, order);
         emitChange('rank-list', id, order);
-      });
-    }
-    for (var pi = 0; pi < items.length; pi++) { setupItem(items[pi]); }
+      },
+      draggingClass: 've-rank-dragging',
+      dropTargetClass: 've-rank-drop-target'
+    });
   }
 
   // ── init dispatcher ───────────────────────────────────────────────

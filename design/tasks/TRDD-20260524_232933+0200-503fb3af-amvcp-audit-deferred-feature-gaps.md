@@ -25,10 +25,10 @@ updated: 2026-06-10T12:19:00+0200
   (csv-and-data-fences.md, SKILL.md:53) makes csv/yaml DATA fences that render
   plain by design. Resolved as option (B): corrected the ONE false claim
   (SKILL.md:105-107). YAML docs were already truthful — no change needed.
-- **G3 (touch parity) — 📋 PLANNED** via `TRDD-7114fb4e` (facts verified, design
-  written; ONE architecture decision pending — shared `amvcp-sortable.js` module
-  vs the deliberate dependency-free design; recommended first slice = Opt 3,
-  rank-list + tier-list inside amvcp-form-inputs.js, no fork).
+- **G3 (touch parity) — ✅ DONE (rank-list + tier-list)** via `TRDD-7114fb4e`
+  Opt 3: shared Pointer-Events makePointerSortable inside amvcp-form-inputs.js,
+  HTML5 DnD removed, 30/30 green incl. 7 new touch tests. Kanban drag deferred
+  (cross-module sharing decision taken when it's tackled).
 - **G2, G5, G6 — OPEN, need a USER product decision** (G2/G5 build needs touching
   a do-not-touch file [amvcp-tokens.js / amvcp-runtime.js] or removing the doc
   promise; G6 is keep/deprecate/remove).
