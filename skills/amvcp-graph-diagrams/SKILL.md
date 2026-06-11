@@ -18,11 +18,12 @@ Mermaid v11+ ESM CDN; Graphviz lazy-loaded via `@viz-js/viz` WASM from CDN (jsDe
 
 ## Instructions
 
+0. **Fast path** — read `${CLAUDE_PLUGIN_ROOT}/references/QUICKSTART-web-diagram.md` and start from `templates/graphviz-diagram.html` (directed graphs) or `templates/mermaid-flowchart.html` (simple flows); fill the FILL slots instead of authoring boilerplate.
 1. **Pick engine** — Mermaid for ≤10 nodes; Graphviz `.ve-graph` for complex routing/math; hybrid for 15+.
 2. **Mermaid**: v11 ESM, `theme:'base'`, `securityLevel:'loose'`, wrap in `.diagram-shell > .mermaid-wrap`.
-3. **Graphviz**: drop DOT in `<div class="ve-graph">`, paste cookbook defaults.
+3. **Graphviz**: drop DOT in `<div class="ve-graph">`, paste cookbook defaults. Node CSS must target `path, polygon, ellipse` — rounded boxes render as `<path>`.
 4. **Wire** — Mermaid: `click <id> call veSelectMermaid("id","label")`. Graphviz: prefix `id` with `ve-`.
-5. **Set `--ve-accent` on `:root`**. Open: `python3 "$CLAUDE_PLUGIN_ROOT/scripts/amvcp-select.py" <file>.html`.
+5. **Theme** — embedded `<script type="text/design-md">` payloads MUST open/close with `---` fences (fail-fast parser; silent fallback to the built-in palette without them). Set `--ve-accent` on `:root`. Open: `python3 "$CLAUDE_PLUGIN_ROOT/scripts/amvcp-select.py" <file>.html`.
 
 ## Output
 

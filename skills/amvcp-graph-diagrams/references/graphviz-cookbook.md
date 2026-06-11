@@ -134,20 +134,24 @@ The graph SVG renders into a wrapper. Without page CSS to size it, browsers appl
 
 **Do NOT** set `max-height` on the SVG — it forces the SVG to fit-by-height and leaves the figure squeezed into a tall narrow strip with whitespace on the sides. The zoom viewport handles "graph too tall for the viewport" itself by allowing pan + zoom-out.
 
-For palette overrides, target `.ve-graph svg .node circle` / `polygon` / `ellipse` (the actual shapes Graphviz emits) for fill/stroke. The page-level `:hover` rules win over the runtime's brightness filter for colour-specific feedback:
+For palette overrides, target the actual shape elements Graphviz emits for fill/stroke. **Shape-element trap:** the element varies by node style — `style=rounded` boxes render as **`<path>`**, plain boxes as `<polygon>`, ovals/circles as `<ellipse>`/`<circle>`. Node CSS that targets only `polygon`/`ellipse` silently never applies to rounded boxes (the static DOT `fillcolor` presentation attribute shows instead, and it does NOT re-theme on a light/dark flip). Always include `path` in node shape selectors — including the `:hover` and `[data-ve-selected="1"]` mirrors. The page-level `:hover` rules win over the runtime's brightness filter for colour-specific feedback:
 
 ```css
+.ve-graph svg .node path,
 .ve-graph svg .node ellipse,
 .ve-graph svg .node polygon,
 .ve-graph svg .node circle      { fill: var(--surface); stroke: var(--accent); stroke-width: 2.5; }
 .ve-graph svg .edge path        { stroke: var(--text);  stroke-width: 1.4; fill: none; opacity: 0.9; }
 .ve-graph svg .edge polygon     { fill: var(--text);    stroke: var(--text); opacity: 0.9; }
+.ve-graph svg .node:hover path,
 .ve-graph svg .node:hover ellipse,
 .ve-graph svg .node:hover polygon,
 .ve-graph svg .node:hover circle{ stroke: var(--gold); stroke-width: 3; fill: var(--accent-dim); }
 .ve-graph svg .edge:hover path  { stroke: var(--gold); stroke-width: 2.2; opacity: 1; }
 .ve-graph svg .edge:hover polygon { stroke: var(--gold); fill: var(--gold); opacity: 1; }
 ```
+
+(The node `:hover path` rule is safe — a node group's only `path` IS its shape; the edge-blob trap below concerns **edge** paths, and the runtime's edge hit-twin `path[data-ve-hit="1"]` is force-hidden so neither rule can paint it.)
 
 **Trap to avoid** — never combine `path` and `polygon` in the same `:hover` rule with `fill: var(--gold)`:
 ```css
