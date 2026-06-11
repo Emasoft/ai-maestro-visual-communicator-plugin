@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- ════════════════════════════════════════════════════════════════════════
+     TEMPLATE: Chart / KPI-dashboard page (.ve-chart / amvcp-chart.js)
+     Peer of graphviz-diagram.html. Use for any data visualization — KPI
+     metric rows, bar / line / area / donut / funnel / heatmap charts — see
+     the routing table in skills/amvcp-charts-and-dashboards/SKILL.md.
+
+     HOW TO USE (content transplant — do NOT re-author the boilerplate):
+       1. Fill every  <!-- FILL: … -->  slot — replace the sample chart JSON
+          inside each fenced block with your real data (same envelope shape).
+       2. Optionally re-palette the DESIGN.md block (keep BOTH themes and
+          keep the `-​--` fences — parseDesignMd is fail-fast without them
+          and the page silently falls back to the built-in palette).
+       3. Copy scripts/amvcp-designmd.js + scripts/amvcp-runtime.js +
+          scripts/amvcp-chart.js next to the page (same dir), then open via
+          scripts/amvcp-select.py.
+
+     WHAT THE RUNTIME GIVES FOR FREE on .ve-chart: amvcp-chart.js finds each
+     fenced `chart:<type>@1` block, parses the JSON, validates it, and
+     REPLACES the <pre> with a <figure class="ve-chart"> of rendered SVG /
+     CSS / HTML. Every mark (a <rect>, <circle>, <div> KPI card, …) is
+     stamped with data-ve-id / data-ve-type="chart-point" / tabindex /
+     role="button"; click-to-select, tooltip, comment-handle, decision-pill
+     all wire automatically. Theme-driven colors re-paint on a live flip.
+
+     HARD-LEARNED TRAPS BAKED IN HERE:
+       • DESIGN.md payload MUST open/close with --- fences (line 1!).
+       • One fenced block = one chart. Title is REQUIRED (the insight, not a
+         label). Data lives in the fenced block as JSON — never hand-roll SVG.
+       • Never use a pie — `chart:pie@1` is auto-remapped to a sorted bar.
+       • No max-height anywhere; page expands, no nested scrollbars.
+       • NO custom outline/fill rules for hover/selected — the runtime owns
+         selection/hover brightness + glow (the NO-NEW-ELEMENTS rule below).
+     ════════════════════════════════════════════════════════════════════ -->
+<title><!-- FILL: page title --></title>
+<!-- FILL: font pairing (vary per page; never Inter/Roboto as body). Default: IBM Plex. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ve-accent: var(--vc-color-accent, #b8861f);   /* runtime hover glow */
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { overflow-x: auto; }                   /* page expands; no inner scrollers */
+  body {
+    background: var(--vc-color-canvas, #faf6ee);
+    color: var(--vc-color-content, #1f1a14);
+    font: 16px/1.55 var(--vc-font-body, 'IBM Plex Sans', system-ui, sans-serif);
+    -webkit-font-smoothing: antialiased;
+    /* blueprint grid atmosphere — delete for a flat canvas */
+    background-image:
+      linear-gradient(color-mix(in srgb, var(--vc-color-border, #e3dcc9) 42%, transparent) 1px, transparent 1px),
+      linear-gradient(90deg, color-mix(in srgb, var(--vc-color-border, #e3dcc9) 42%, transparent) 1px, transparent 1px);
+    background-size: 48px 48px;
+  }
+  code, .mono { font-family: var(--vc-font-mono, 'IBM Plex Mono', ui-monospace, monospace); font-size: 0.9em; }
+  main { max-width: 1180px; margin: 0 auto; padding: 48px 32px 96px; }
+
+  .hero { margin-bottom: 40px; }
+  .hero-eyebrow {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-family: var(--vc-font-mono, 'IBM Plex Mono', monospace);
+    font-size: 11px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--vc-color-accent, #b8861f);
+    border: 1px solid color-mix(in srgb, var(--vc-color-accent, #b8861f) 45%, transparent);
+    padding: 5px 12px; border-radius: 999px;
+    background: color-mix(in srgb, var(--vc-color-accent, #b8861f) 8%, transparent);
+  }
+  .hero-eyebrow .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--vc-color-accent, #b8861f); }
+  h1 { font-size: clamp(2rem, 4.5vw, 3rem); font-weight: 700; line-height: 1.12; margin: 18px 0 14px; letter-spacing: -0.015em; }
+  .hero-lede { max-width: 70ch; font-size: 1.0625rem; color: var(--vc-color-content-muted, #5b5343); }
+
+  /* ── dashboard grid ───────────────────────────────────────────────────
+     Charts auto-fit; each fenced block becomes one <figure class="ve-chart">.
+     A wide chart that needs the full row spans both columns via .span-2. */
+  .dash-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+    gap: 22px;
+    margin-top: 8px;
+  }
+  .dash-grid .span-2 { grid-column: 1 / -1; }
+
+  /* The card frame each chart sits in. The runtime swaps the inner <pre>
+     for a <figure class="ve-chart">; this wrapper gives it a surface. */
+  .chart-card {
+    border: 1px solid var(--vc-color-border, #e3dcc9);
+    background:
+      radial-gradient(900px 360px at 50% 0%,
+        color-mix(in srgb, var(--vc-color-info, #3464a8) 6%, transparent), transparent 70%),
+      var(--vc-color-surface-sunken, #f1ece0);
+    border-radius: var(--vc-radius-lg, 12px);
+    padding: 22px 20px 18px;
+  }
+  /* No inner scrollers — wide charts extend the page (the chart lib already
+     sets .ve-chart{overflow:visible}); never add max-height here. */
+  .ve-chart, .ve-chart-svg, .ve-chart-canvas { overflow: visible; max-width: none; }
+
+  /* NO-NEW-ELEMENTS RULE (do NOT add hover/selected paint here): the runtime
+     + the chart lib own selection state entirely. On select they stamp
+     data-ve-selected="1" on the EXISTING mark and apply the brightness
+     delta + accent stroke + hover glow; the figure gets an outer ring via
+     :has([data-ve-selected="1"]). Adding a page-side fill-tint stacks with
+     the runtime brightness and reads as mud; an outline on an SVG mark draws
+     its bounding-box rectangle. Re-theme only by editing the DESIGN.md
+     --vc-* tokens, never by hand-styling the marks. */
+
+  footer {
+    margin-top: 64px; padding-top: 18px;
+    border-top: 1px solid var(--vc-color-border, #e3dcc9);
+    font-family: var(--vc-font-mono, 'IBM Plex Mono', monospace);
+    font-size: 11px; color: var(--vc-color-content-subtle, #8a8170);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .hero, .chart-card { animation: fadeUp 0.5s var(--vc-easing-standard, cubic-bezier(0.16,1,0.3,1)) backwards; }
+    .chart-card:nth-child(2) { animation-delay: 0.06s; }
+    .chart-card:nth-child(3) { animation-delay: 0.12s; }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+  }
+</style>
+
+<!-- DESIGN.md — the --- fences are REQUIRED (fail-fast parser; without them
+     the engine silently falls back to the built-in palette). Keep BOTH
+     themes. FILL (optional): re-palette; keep key names exactly as-is. -->
+<script type="text/design-md" id="ve-designmd">
+---
+designmd_version: 1
+meta:
+  name: "Chart Dashboard"
+  default_theme: light
+colors:
+  light:
+    canvas: "#faf6ee"
+    surface: "#fffefb"
+    surface-raised: "#fffdf8"
+    surface-sunken: "#f1ece0"
+    content: "#1f1a14"
+    content-muted: "#5b5343"
+    content-subtle: "#8a8170"
+    border: "#e3dcc9"
+    border-strong: "#c9bfa3"
+    accent: "#b8861f"
+    on-accent: "#fffdf9"
+    success: "#3a6b5c"
+    warning: "#a8791f"
+    danger: "#a84a32"
+    info: "#3464a8"
+  dark:
+    canvas: "#16130d"
+    surface: "#211c14"
+    surface-raised: "#2a241a"
+    surface-sunken: "#0f0d09"
+    content: "#f3ecdd"
+    content-muted: "#b8ad96"
+    content-subtle: "#857c68"
+    border: "#3a3325"
+    border-strong: "#564c36"
+    accent: "#e0aa3e"
+    on-accent: "#16130d"
+    success: "#6fae9b"
+    warning: "#d8aa54"
+    danger: "#dd8068"
+    info: "#6f9bd8"
+typography:
+  font-heading: "IBM Plex Sans, system-ui, -apple-system, Segoe UI, sans-serif"
+  font-body: "IBM Plex Sans, system-ui, -apple-system, Segoe UI, sans-serif"
+  font-mono: "IBM Plex Mono, ui-monospace, Menlo, monospace"
+  scale: [12, 14, 16, 20, 24, 32, 48]
+  weight-regular: 400
+  weight-medium: 500
+  weight-bold: 700
+  line-height: 1.55
+spacing:
+  scale: [4, 8, 12, 16, 24, 32, 48, 64]
+radius:
+  none: 0
+  sm: 4
+  md: 8
+  lg: 12
+  xl: 16
+  full: 9999
+motion:
+  duration-fast: 160
+  duration-slow: 560
+  easing-standard: "cubic-bezier(0.16,1,0.3,1)"
+  easing-decel: "cubic-bezier(0,0,0,1)"
+---
+</script>
+
+<script src="amvcp-designmd.js"></script>
+<script src="amvcp-runtime.js"></script>
+<script src="amvcp-chart.js"></script>
+</head>
+<body>
+<main id="main">
+
+  <header class="hero">
+    <span class="hero-eyebrow"><span class="dot"></span><!-- FILL: eyebrow text --></span>
+    <h1><!-- FILL: headline --></h1>
+    <p class="hero-lede"><!-- FILL: one-paragraph lede --></p>
+  </header>
+
+  <!-- (1) KPI / metric-cards row — the "today's numbers at a glance" header.
+       Each card is a chart-point atom (label + big number + delta badge).
+       FILL: replace the data[] with your 3-8 headline KPIs. For "down is
+       good" metrics (churn/latency) flip the delta sign + trend per
+       chart-metric-cards.md. metric-cards spans the full row. -->
+  <section aria-label="key metrics">
+    <div class="chart-card span-2" style="background: var(--vc-color-surface-sunken, #f1ece0);">
+<pre><code class="language-chart:metric-cards@1">{
+  "title": "FILL: headline KPI row title",
+  "subtitle": "FILL: optional one-line context",
+  "series": [{ "label": "kpi", "data": [
+    {"label":"Revenue","value":48200,"delta":12,"trend":"up","unit":"$"},
+    {"label":"NPS","value":52,"delta":4,"trend":"up"},
+    {"label":"Churn","value":3.4,"delta":-0.6,"trend":"down","unit":"%"},
+    {"label":"Tickets","value":318,"delta":0,"trend":"flat"}
+  ] }]
+}</code></pre>
+    </div>
+  </section>
+
+  <section aria-label="charts">
+    <div class="dash-grid">
+
+      <!-- (2) Bar chart — compare magnitudes across categories.
+           FILL: replace title (the INSIGHT, not a label) + the data[]. Set
+           sortDescending for single-series to put the largest first. -->
+      <div class="chart-card">
+<pre><code class="language-chart:bar@1">{
+  "title": "FILL: the one-sentence insight the bars prove",
+  "series": [{ "label": "value", "data": [
+    {"x":"Alpha","y":2.4},
+    {"x":"Bravo","y":3.1},
+    {"x":"Charlie","y":2.8},
+    {"x":"Delta","y":3.6}
+  ] }],
+  "options": { "sortDescending": true, "valueLabels": true }
+}</code></pre>
+      </div>
+
+      <!-- (3) Area (or line) chart — trend over time, magnitude matters.
+           FILL: replace title + the data[]. Swap `area` → `line` for a bare
+           trend with no fill. Needs ≥4 points to look smooth. -->
+      <div class="chart-card">
+<pre><code class="language-chart:area@1">{
+  "title": "FILL: the trend the curve proves",
+  "series": [{ "label": "series", "data": [
+    {"x":"W1","y":1200},
+    {"x":"W2","y":1850},
+    {"x":"W3","y":1640},
+    {"x":"W4","y":2310},
+    {"x":"W5","y":2680}
+  ] }]
+}</code></pre>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- FILL (optional): more fenced chart blocks (donut, funnel, heatmap,
+       radar, waterfall, …) — one fence = one chart. See the routing table
+       in skills/amvcp-charts-and-dashboards/SKILL.md for the full type list.
+       Supporting prose/cards may carry data-ve-id / data-ve-type /
+       data-ve-label to be selectable; never stamp <button>/<a> or <body>. -->
+
+  <footer><!-- FILL: source line / provenance --></footer>
+
+</main>
+</body>
+</html>
