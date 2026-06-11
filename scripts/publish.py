@@ -287,50 +287,6 @@ def _gate_lint() -> bool:
     return True
 
 
-def _load_false_positive_allowlist() -> list[dict[str, str]]:
-    """Load the documented validator-false-positive allowlist from plugin.json.
-
-    Schema (each entry):
-      {
-        "file": "skills/foo/SKILL.md",          # relative to plugin root
-        "level": "MAJOR" | "MINOR" | "NIT" | "WARNING",
-        "message_substring": "...",              # case-sensitive substring
-        "upstream_bug": "#27",                   # informational
-        "rationale": "..."                       # informational
-      }
-
-    Returns [] if the field is absent (publish.py falls back to the bare
-    exit-code check in that case).
-    """
-    try:
-        data = json.loads(PLUGIN_JSON.read_text(encoding="utf-8"))
-    except (FileNotFoundError, json.JSONDecodeError):
-        return []
-    cpv = data.get("cpv") or {}
-    raw = cpv.get("_intentional_validator_false_positives") or []
-    if not isinstance(raw, list):
-        return []
-    out: list[dict[str, str]] = []
-    for entry in raw:
-        if not isinstance(entry, dict):
-            continue
-        # All three matcher fields must be present and non-empty strings.
-        file_ = entry.get("file")
-        level = entry.get("level")
-        msg_sub = entry.get("message_substring")
-        if not (isinstance(file_, str) and isinstance(level, str)
-                and isinstance(msg_sub, str)
-                and file_ and level and msg_sub):
-            continue
-        out.append({
-            "file": file_,
-            "level": level.upper(),
-            "message_substring": msg_sub,
-            "upstream_bug": str(entry.get("upstream_bug", "")),
-        })
-    return out
-
-
 def _extract_json_from_stdout(stdout: str) -> dict | None:
     """The remote launcher emits a `[REPO LINT]` banner BEFORE the JSON body
     on stdout. Find the first top-level `{` and json.loads from there.
@@ -346,60 +302,25 @@ def _extract_json_from_stdout(stdout: str) -> dict | None:
         return None
 
 
-def _finding_is_allowlisted(
-    finding: dict, allowlist: list[dict[str, str]]
-) -> dict | None:
-    """Return the matching allowlist entry if `finding` matches one, else None.
-
-    Match rule: file matches entry.file AND level == entry.level AND
-    entry.message_substring is a substring of finding.message.
-
-    File matching is glob-aware via fnmatch — if entry.file contains any
-    of the glob metacharacters `*`, `?`, or `[`, fnmatch.fnmatchcase is
-    used; otherwise plain string equality. This keeps the common case
-    (single-file allowlist entry) cheap AND lets a single entry like
-    `"file": "skills/**/*.md"` cover broad categories of recursive-self-
-    scan FPs without 60+ near-identical entries.
-
-    Both file and level are compared case-sensitively for file and
-    case-insensitively (uppercase-normalised) for level. Message is a
-    plain substring match — conservative, not regex / glob.
-    """
-    import fnmatch
-    f_file = (finding.get("file") or "").strip()
-    f_level = (finding.get("level") or "").strip().upper()
-    f_msg = finding.get("message") or ""
-    for entry in allowlist:
-        entry_file = entry["file"]
-        if any(c in entry_file for c in "*?["):
-            # Glob match — fnmatchcase keeps it case-sensitive.
-            if not fnmatch.fnmatchcase(f_file, entry_file):
-                continue
-        else:
-            if entry_file != f_file:
-                continue
-        if entry["level"] != f_level:
-            continue
-        if entry["message_substring"] not in f_msg:
-            continue
-        return entry
-    return None
-
-
 def _gate_validate() -> bool:
-    """G3: cpv-remote-validate plugin . --strict, with documented-known-
-    exception allowlist applied AFTER the validator returns.
+    """G3: cpv-remote-validate plugin . --strict — RAW, NO EXEMPTIONS.
 
-    The remote launcher exits 1-4 on CRITICAL/MAJOR/MINOR/NIT in --strict
-    mode; WARNINGs pass through (exit 5+). For findings the maintainer has
-    DOCUMENTED as upstream-validator-bug false positives (entries in
-    `plugin.json::cpv._intentional_validator_false_positives`), this gate
-    re-classifies them as PASSED and recomputes the severity tally. ALL
-    other findings still block as normal.
+    The previous allowlist mechanism (plugin.json::cpv.
+    `_intentional_validator_false_positives` consumed here) was ABOLISHED
+    by maintainer policy on 2026-06-11: a per-finding exempt list is an
+    attack surface — one compromised allowlist entry hides real malware
+    from every downstream scan, and the mechanism was demonstrably
+    exploitable by a malicious actor. There is no suppression path any
+    more. Every CRITICAL/MAJOR/MINOR/NIT finding blocks the publish:
 
-    Invoked via the remote launcher's `--json` mode so the post-processing
-    is structural (no ANSI / line-grep), and the maintainer's audit trail
-    on stderr lists every allowlist hit by file:level:msg-snippet.
+      - a REAL finding is fixed by DEVITALIZING the flagged content
+        (provably-inert rewrite) or REMOVING it;
+      - a FALSE POSITIVE is fixed UPSTREAM — file a detector issue on
+        the CPV repo (Emasoft/claude-plugins-validation) and wait for
+        the detection fix; never re-introduce an allowlist.
+
+    Invoked via the remote launcher's `--json` mode so the tally is
+    structural (no ANSI / line-grep).
     """
     _log("G3: validate plugin (cpv-remote-validate --strict --json)")
     if shutil.which("uvx") is None:
@@ -448,21 +369,13 @@ def _gate_validate() -> bool:
 
     results = payload.get("results") or []
     counts = payload.get("counts") or {}
-    allowlist = _load_false_positive_allowlist()
 
-    # Partition into blocking severities + allowlist hits.
+    # NO EXEMPTIONS: every blocking-severity finding blocks (see docstring).
     BLOCKING = {"CRITICAL", "MAJOR", "MINOR", "NIT"}
-    allowlisted: list[tuple[dict, dict]] = []
-    blocking: list[dict] = []
-    for f in results:
-        level = (f.get("level") or "").upper()
-        if level not in BLOCKING:
-            continue
-        match = _finding_is_allowlisted(f, allowlist)
-        if match is not None:
-            allowlisted.append((f, match))
-        else:
-            blocking.append(f)
+    blocking: list[dict] = [
+        f for f in results
+        if (f.get("level") or "").upper() in BLOCKING
+    ]
 
     # Always re-print the validator's lint banner so the maintainer sees
     # the per-file pass list, even when the gate goes green.
@@ -475,60 +388,33 @@ def _gate_validate() -> bool:
     if proc.stderr:
         print(proc.stderr, end="", file=sys.stderr)
 
-    # Recompute filtered tally for the maintainer's eye.
-    filtered_counts = {
-        "CRITICAL": sum(1 for f in blocking if (f.get("level") or "").upper() == "CRITICAL"),
-        "MAJOR":    sum(1 for f in blocking if (f.get("level") or "").upper() == "MAJOR"),
-        "MINOR":    sum(1 for f in blocking if (f.get("level") or "").upper() == "MINOR"),
-        "NIT":      sum(1 for f in blocking if (f.get("level") or "").upper() == "NIT"),
-    }
     raw_critical = int(counts.get("critical", 0))
     raw_major    = int(counts.get("major", 0))
     raw_minor    = int(counts.get("minor", 0))
     raw_nit      = int(counts.get("nit", 0))
     raw_warning  = int(counts.get("warning", 0))
-
     _log(
-        f"  raw      : CRITICAL={raw_critical} MAJOR={raw_major} "
+        f"  findings : CRITICAL={raw_critical} MAJOR={raw_major} "
         f"MINOR={raw_minor} NIT={raw_nit} WARNING={raw_warning}"
     )
-    _log(
-        f"  filtered : CRITICAL={filtered_counts['CRITICAL']} "
-        f"MAJOR={filtered_counts['MAJOR']} MINOR={filtered_counts['MINOR']} "
-        f"NIT={filtered_counts['NIT']} (allowlisted {len(allowlisted)})"
-    )
 
-    # Per-allowlist-hit audit trail. Three message snippets max per entry
-    # per the user's spec.
-    if allowlisted:
-        _log("  documented-known exceptions applied:")
-        by_bug: dict[str, list[tuple[dict, dict]]] = {}
-        for f, entry in allowlisted:
-            by_bug.setdefault(entry.get("upstream_bug", "(no bug)"), []).append((f, entry))
-        for bug, items in sorted(by_bug.items()):
-            _log(f"    {bug} — {len(items)} finding(s)")
-            for f, entry in items[:3]:
-                snippet = (f.get("message") or "")[:120]
-                _log(f"      • [{entry['level']}] {entry['file']} :: {snippet}")
-            if len(items) > 3:
-                _log(f"      • ... and {len(items) - 3} more")
-
-    if any(filtered_counts.values()):
+    if blocking:
         _log(
-            f"  CPV blocked the push: {sum(filtered_counts.values())} "
-            f"non-allowlisted finding(s) — see details above"
+            f"  CPV blocked the push: {len(blocking)} finding(s). "
+            "No exemption path exists — DEVITALIZE or REMOVE real findings; "
+            "file CPV detector issues for false positives."
         )
         # Show the first few blocking findings so the user knows what to fix.
-        for f in blocking[:5]:
+        for f in blocking[:10]:
             lvl = (f.get("level") or "").upper()
             file_ = f.get("file") or "?"
             msg = (f.get("message") or "")[:160]
             _log(f"    BLOCK [{lvl}] {file_} :: {msg}")
-        if len(blocking) > 5:
-            _log(f"    ... and {len(blocking) - 5} more")
+        if len(blocking) > 10:
+            _log(f"    ... and {len(blocking) - 10} more")
         return False
 
-    _log("  PASS (all blocking findings allowlisted via documented-known exceptions)")
+    _log("  PASS (zero blocking findings, no exemptions applied)")
     return True
 
 
