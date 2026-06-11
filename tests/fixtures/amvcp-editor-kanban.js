@@ -1,0 +1,1 @@
+../../scripts/amvcp-editor-kanban.js

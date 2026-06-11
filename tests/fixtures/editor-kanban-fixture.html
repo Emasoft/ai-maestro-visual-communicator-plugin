@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>editor-kanban test fixture</title>
+<!-- Exercises amvcp-editor-kanban.js:
+       1. columns + tickets render from the declarative JSON markup;
+       2. a pointer-drag (mouse AND touch) moves a ticket across columns;
+       3. the export entry pushed into window.veSelection carries the
+          full ordering as markdown (verified via the runtime's read-only
+          amvcpRuntime.buildSubmissionPayload hook);
+       4. a data-ve-theme flip re-paints (the column canvas var changes);
+       5. a completed drag adds NO new DOM elements (no-new-elements).
+
+     The tokens come from a FENCED embedded DESIGN.md parsed by
+     amvcp-designmd.js — NOT a hand-rolled <style> block. This is the
+     load-bearing pattern: the runtime auto-injects DESIGN.md tokens as
+     inline style on <html> (specificity 1,0,0,0), which would override
+     any plain html[data-ve-theme] CSS rule; only the designmd engine's
+     own light/dark token sets switch live on a data-ve-theme flip. The
+     light surface-sunken sentinel is #f1ece1. -->
+<style>
+  :root { --ve-accent: var(--vc-color-accent, #b8861f); }
+  * { box-sizing: border-box; }
+  html, body { overflow-x: auto; }
+  body {
+    margin: 0;
+    padding: 28px;
+    background: var(--vc-color-canvas, #faf6ee);
+    color: var(--vc-color-content, #1f1a14);
+    font: 15px/1.5 var(--vc-font-body, system-ui, sans-serif);
+  }
+  main { max-width: 980px; margin: 0 auto; }
+  h2 { font-size: 16px; margin: 0 0 18px; }
+</style>
+
+<script type="text/design-md" id="ve-designmd">
+---
+designmd_version: 1
+meta:
+  name: "Editor Kanban Fixture"
+  default_theme: light
+colors:
+  light:
+    canvas: "#faf6ee"
+    surface: "#fffefb"
+    surface-raised: "#fffdf8"
+    surface-sunken: "#f1ece1"
+    content: "#1f1a14"
+    content-muted: "#5b5343"
+    content-subtle: "#8a8170"
+    border: "#e3dcc9"
+    border-strong: "#c9bfa3"
+    accent: "#b8861f"
+    on-accent: "#fffdf9"
+    success: "#3a6b5c"
+    warning: "#a8791f"
+    danger: "#a84a32"
+    info: "#3464a8"
+  dark:
+    canvas: "#16130d"
+    surface: "#211c14"
+    surface-raised: "#2a241a"
+    surface-sunken: "#0f0d09"
+    content: "#f3ecdd"
+    content-muted: "#b8ad96"
+    content-subtle: "#857c68"
+    border: "#3a3325"
+    border-strong: "#564c36"
+    accent: "#e0aa3e"
+    on-accent: "#16130d"
+    success: "#6fae9b"
+    warning: "#d8aa54"
+    danger: "#dd8068"
+    info: "#6f9bd8"
+typography:
+  font-heading: "IBM Plex Sans, system-ui, sans-serif"
+  font-body: "IBM Plex Sans, system-ui, sans-serif"
+  font-mono: "IBM Plex Mono, ui-monospace, Menlo, monospace"
+  scale: [12, 14, 16, 20, 24, 32, 48]
+  weight-regular: 400
+  weight-medium: 500
+  weight-bold: 700
+  line-height: 1.55
+spacing:
+  scale: [4, 8, 12, 16, 24, 32, 48, 64]
+radius:
+  none: 0
+  sm: 4
+  md: 8
+  lg: 12
+  xl: 16
+  full: 9999
+motion:
+  duration-fast: 160
+  duration-slow: 560
+  easing-standard: "cubic-bezier(0.16,1,0.3,1)"
+  easing-decel: "cubic-bezier(0,0,0,1)"
+---
+</script>
+
+<!-- Load the DESIGN.md engine + runtime, then the widget module — exactly
+     as a composed page would. The designmd engine owns the --vc-* tokens
+     (and the live theme swap); the runtime supplies the selection channel
+     (window.veSelection + amvcpRuntime.buildSubmissionPayload) the export
+     rides on. The widget is loaded with manual-init so we boot it
+     deterministically AFTER the runtime has stamped its selection wiring. -->
+<script>window.__vcEditorKanbanManualInit = true;</script>
+<script src="amvcp-designmd.js"></script>
+<script src="amvcp-runtime.js"></script>
+<script src="amvcp-editor-kanban.js"></script>
+</head>
+<body>
+<main>
+  <h2>ticket triage board</h2>
+  <div class="ve-editor-kanban" data-ve-id="triage:demo">
+    <script type="application/json">
+      {
+        "label": "Sprint triage",
+        "columns": [
+          { "key": "now",   "label": "Now",   "tone": "best" },
+          { "key": "next",  "label": "Next",  "tone": "good" },
+          { "key": "later", "label": "Later", "tone": "fair" },
+          { "key": "cut",   "label": "Cut",   "tone": "weak" }
+        ],
+        "tickets": [
+          { "key": "auth",    "title": "Fix auth redirect loop", "column": "now",   "meta": "P0 · #412" },
+          { "key": "cache",   "title": "Add response cache",     "column": "now",   "meta": "P1 · #420" },
+          { "key": "logs",    "title": "Structured logging",     "column": "next",  "meta": "P2 · #433" },
+          { "key": "metrics", "title": "Latency metrics",        "column": "later", "meta": "P3 · #441" },
+          { "key": "darkmode","title": "Dark-mode polish",       "column": "later", "meta": "P3 · #455" },
+          { "key": "legacy",  "title": "Drop legacy export",     "column": "cut",   "meta": "P4 · #399" }
+        ]
+      }
+    </script>
+  </div>
+</main>
+
+<script>
+(function () {
+  function boot() {
+    try {
+      document.documentElement.setAttribute('data-ve-theme', 'light');
+      window.amvcpEditorKanban.injectStyles(document);
+      window.amvcpEditorKanban.init(document);
+      window.__vcFixtureReady = true;
+    } catch (e) {
+      window.__vcFixtureError = String(e && e.message || e);
+    }
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot);
+  } else { boot(); }
+})();
+</script>
+</body>
+</html>

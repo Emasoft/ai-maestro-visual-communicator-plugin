@@ -34,6 +34,8 @@ Matrix + comparison tables: N items x M criteria with pass/fail/partial glyphs, 
  > What the emphasis column communicates · The `data-ve-col-emphasis` attribute · Zero or one — never two · The two-column emphasis warning — fail-fast, console.warn · How the tint is applied — grid-walked column · The accent border-left + border-right · The 10% accent wash · Icon recoloring on the emphasis header · The 2-column anti-pattern → fix variant · Pairing emphasis with a deliberate row order · Sample HTML — 3-column recommendation · Sample HTML — 2-column before/after · DESIGN.md tokens consumed · Selection / comment / decision-mini notes · CSV-export contract
 6. **Decision matrix scaffold** — [decision-matrix-pattern.md](./references/decision-matrix-pattern.md).
  > The shape · Distinct from a coverage matrix · Distinct from a compare table · Rows are conditions; columns are properties of the outcome · The "default fallback" row · Inline `<code>` for technical conditions · Sample — chart-type decision matrix · Sample — HTTP status response matrix · Sample — sort tie-break decision matrix · Sample — error handling matrix · DESIGN.md tokens consumed · Selection / comment / decision-mini notes · CSV-export contract
+7. **Approaches comparison** (N code approaches side-by-side + inline trade-offs) — [approaches-comparison.md](./references/approaches-comparison.md).
+ > When this recipe vs the code-snippets E9 recipe · The two layouts — table-based vs card-grid · Layout A — the compare table (trade-offs are rows) · The recommended approach — the emphasis column · The code cell — a real code block inside a `<td>` · Inline trade-off callouts · Layout B — the free-form card grid · Selection atoms per approach · Sample HTML — table-based, 3 approaches · Sample HTML — card-grid, 3 approaches · DESIGN.md tokens consumed · Anti-patterns
 
 ## Output
 
@@ -72,6 +74,8 @@ Tables compose freely with every other amvcp-* skill on the page (R22). The only
 
 ## Resources
 
+- [approaches-comparison.md](./references/approaches-comparison.md)
+ > When this recipe vs the code-snippets E9 recipe · The two layouts — table-based vs card-grid · Layout A — the compare table (trade-offs are rows) · The recommended approach — the emphasis column · The code cell — a real code block inside a `<td>` · Inline trade-off callouts · Layout B — the free-form card grid · Selection atoms per approach · Sample HTML — table-based, 3 approaches · Sample HTML — card-grid, 3 approaches · DESIGN.md tokens consumed · Anti-patterns
 - [comparison-emphasis-column.md](./references/comparison-emphasis-column.md)
  > What the emphasis column communicates · The `data-ve-col-emphasis` attribute · Zero or one — never two · The two-column emphasis warning — fail-fast, console.warn · How the tint is applied — grid-walked column · The accent border-left + border-right · The 10% accent wash · Icon recoloring on the emphasis header · The 2-column anti-pattern → fix variant · Pairing emphasis with a deliberate row order · Sample HTML — 3-column recommendation · Sample HTML — 2-column before/after · DESIGN.md tokens consumed · Selection / comment / decision-mini notes · CSV-export contract
 - [coverage-audit-pattern.md](./references/coverage-audit-pattern.md)

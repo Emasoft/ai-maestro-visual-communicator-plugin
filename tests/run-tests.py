@@ -71,6 +71,24 @@ def sync_runtime_into_fixtures() -> None:
         # fixture loads it as a co-located <script src="…"> URL, so it
         # must sit beside the HTML the same way the runtime does.
         "amvcp-component-variants.js",
+        # concept-demo (manipulable explainer, TRDD-1627a698 gap #15) — the
+        # concept-demo fixture loads it via a bare <script src="…"> URL, so
+        # it must sit beside the HTML the same way the runtime does.
+        "amvcp-concept-demo.js",
+        # animation sandbox (TRDD-1627a698 gap #07) — the anim-sandbox
+        # fixture loads it as a co-located <script src="…"> URL, so it must
+        # sit beside the HTML the same way the runtime does.
+        "amvcp-anim-sandbox.js",
+        # feature-flag toggle editor (TRDD-1627a698 gap #19) — the
+        # editor-toggles fixture loads it as a co-located <script src="…">
+        # URL. fixtures/amvcp-editor-toggles.js is a symlink back to the
+        # source, so this sync is a no-op when present (the SameFile guard
+        # below skips it) and a real copy on a checkout without the symlink.
+        "amvcp-editor-toggles.js",
+        # ticket-triage kanban editor (TRDD-1627a698 gap #18) — the
+        # editor-kanban fixture loads it via a bare <script src="…">, so it
+        # must sit beside the HTML the same way the runtime does.
+        "amvcp-editor-kanban.js",
         # Phase 2 modules whose fixtures use bare-name <script src="…">
         # but whose fixtures/ entries are NON-SYMLINK copies committed
         # before the symlink convention was established. Without this
@@ -88,6 +106,10 @@ def sync_runtime_into_fixtures() -> None:
         # a clean checkout still work even if the contributor hasn't run
         # `bun run build:bundle` yet.
         "amvcp-pierre-diff.mjs",
+        # editor-template tuner (TRDD-1627a698 gap #20) — the
+        # editor-template fixture loads it via a bare <script src="…">,
+        # so it must sit beside the HTML the same way the runtime does.
+        "amvcp-editor-template.js",
     ):
         s = src / name
         d = FIXTURES / name
