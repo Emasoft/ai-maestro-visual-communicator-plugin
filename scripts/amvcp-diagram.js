@@ -1226,6 +1226,13 @@
 
     function markChain(startId) {
       clearChain();
+      // Composite-key separator for the reachedEdges map. Built at runtime
+      // (String.fromCharCode(0)) instead of a literal NUL byte in source:
+      // a raw 0x00 makes every text tool treat this file as binary and
+      // trips security scanners (control-character finding). Identical
+      // runtime string, pure-ASCII source — same idiom as the SOH/STX
+      // sentinels in amvcp-code-highlight.js.
+      var EDGE_KEY_SEP = String.fromCharCode(0);
       // BFS over from->to.
       var seen = {};
       var queue = [startId];
@@ -1235,7 +1242,7 @@
         var cur = queue.shift();
         var outs = adj[cur] || [];
         for (var k = 0; k < outs.length; k++) {
-          reachedEdges[cur + ' ' + outs[k]] = true;
+          reachedEdges[cur + EDGE_KEY_SEP + outs[k]] = true;
           if (!seen[outs[k]]) {
             seen[outs[k]] = true;
             queue.push(outs[k]);
@@ -1253,7 +1260,7 @@
       // Mark edges.
       for (var ek in reachedEdges) {
         if (reachedEdges.hasOwnProperty(ek)) {
-          var parts = ek.split(' ');
+          var parts = ek.split(EDGE_KEY_SEP);
           var eg = svg.querySelector('[data-ve-id="ve-' + sceneId
             + '-edge-' + parts[0] + '-to-' + parts[1] + '"]');
           if (eg) { eg.setAttribute('data-ve-chain', '1'); }
