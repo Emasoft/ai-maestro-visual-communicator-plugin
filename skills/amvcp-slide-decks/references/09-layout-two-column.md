@@ -142,7 +142,9 @@ Open this ref when:
   parallel evidence) and too thick for `content` (the bullet column
   alone is too sparse).
 - Building a "diagram + explanation" slide — left half text, right
-  half SVG/Mermaid diagram via the delegated `diagram` block.
+  half a scene-graph SVG or ASCII diagram via the delegated `diagram`
+  block (it renders scene-graph JSON + ASCII only — for Mermaid/Graphviz
+  use the `/amvcp-generate-web-diagram` command, not a delegated block).
 
 ## Don'ts
 

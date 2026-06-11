@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- ════════════════════════════════════════════════════════════════════════
+     TEMPLATE: Graphviz directed-graph page (.ve-graph / @viz-js WASM)
+     Peer of mermaid-flowchart.html. Use for any non-trivial directed graph
+     (9+ nodes, loops, forks, clusters) — see "Engine routing" in
+     references/interactive-selection-base.md.
+
+     HOW TO USE (content transplant — do NOT re-author the boilerplate):
+       1. Fill every  <!-- FILL: … -->  slot.
+       2. Optionally re-palette the DESIGN.md block (keep BOTH themes and
+          keep the `-​--` fences — parseDesignMd is fail-fast without them
+          and the page silently falls back to the built-in palette).
+       3. Copy scripts/amvcp-designmd.js + scripts/amvcp-runtime.js next to
+          the page (same dir), then open via scripts/amvcp-select.py.
+
+     WHAT THE RUNTIME GIVES FOR FREE on .ve-graph: layout via Graphviz dot
+     (WASM, lazy CDN), data-ve-id on every node/edge (from DOT ids/titles),
+     click-to-select, zoom/pan controls, edge hit-area widening, KaTeX for
+     $…$ labels.
+
+     HARD-LEARNED TRAPS BAKED IN HERE:
+       • DESIGN.md payload MUST open/close with --- fences (line 1!).
+       • style=rounded boxes render as <path>, plain boxes as <polygon>,
+         ovals as <ellipse> — node CSS below targets all three.
+       • Never paint path[data-ve-hit="1"] (the invisible edge hit twin).
+       • Mirror every :hover rule to [data-ve-selected="1"].
+       • No max-height on the SVG; page expands, no nested scrollbars.
+     ════════════════════════════════════════════════════════════════════ -->
+<title><!-- FILL: page title --></title>
+<!-- FILL: font pairing (vary per page; never Inter/Roboto as body). Default: IBM Plex. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ve-accent: var(--vc-color-accent, #b8861f);   /* runtime hover glow */
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { overflow-x: auto; }                   /* page expands; no inner scrollers */
+  body {
+    background: var(--vc-color-canvas, #faf6ee);
+    color: var(--vc-color-content, #1f1a14);
+    font: 16px/1.55 var(--vc-font-body, 'IBM Plex Sans', system-ui, sans-serif);
+    -webkit-font-smoothing: antialiased;
+    /* blueprint grid atmosphere — delete for a flat canvas */
+    background-image:
+      linear-gradient(color-mix(in srgb, var(--vc-color-border, #e3dcc9) 42%, transparent) 1px, transparent 1px),
+      linear-gradient(90deg, color-mix(in srgb, var(--vc-color-border, #e3dcc9) 42%, transparent) 1px, transparent 1px);
+    background-size: 48px 48px;
+  }
+  code, .mono { font-family: var(--vc-font-mono, 'IBM Plex Mono', ui-monospace, monospace); font-size: 0.9em; }
+  main { max-width: 1180px; margin: 0 auto; padding: 48px 32px 96px; }
+
+  .hero { margin-bottom: 40px; }
+  .hero-eyebrow {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-family: var(--vc-font-mono, 'IBM Plex Mono', monospace);
+    font-size: 11px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--vc-color-accent, #b8861f);
+    border: 1px solid color-mix(in srgb, var(--vc-color-accent, #b8861f) 45%, transparent);
+    padding: 5px 12px; border-radius: 999px;
+    background: color-mix(in srgb, var(--vc-color-accent, #b8861f) 8%, transparent);
+  }
+  .hero-eyebrow .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--vc-color-accent, #b8861f); }
+  h1 { font-size: clamp(2rem, 4.5vw, 3rem); font-weight: 700; line-height: 1.12; margin: 18px 0 14px; letter-spacing: -0.015em; }
+  .hero-lede { max-width: 70ch; font-size: 1.0625rem; color: var(--vc-color-content-muted, #5b5343); }
+
+  /* ── graph figure ─────────────────────────────────────────────────── */
+  .graph-card {
+    border: 1px solid var(--vc-color-border, #e3dcc9);
+    background:
+      radial-gradient(1100px 480px at 50% 0%,
+        color-mix(in srgb, var(--vc-color-info, #3464a8) 7%, transparent), transparent 70%),
+      var(--vc-color-surface-sunken, #f1ece0);
+    border-radius: var(--vc-radius-lg, 12px);
+    padding: 26px 22px 18px;
+  }
+  .ve-graph { display: block; width: 100%; overflow: visible; }
+  .ve-graph svg {
+    width: 100%; height: auto; display: block;        /* NEVER max-height */
+    shape-rendering: geometricPrecision; text-rendering: geometricPrecision;
+  }
+  /* ALL graph color comes from tokens (DOT carries only structure) so a
+     live theme flip re-paints the figure. Rounded boxes = <path>! */
+  .ve-graph svg text { fill: var(--vc-color-content, #1f1a14); font-family: var(--vc-font-mono, 'IBM Plex Mono', ui-monospace, monospace); }
+  .ve-graph svg .edge text { fill: var(--vc-color-content-muted, #5b5343); }
+  .ve-graph svg .node path, .ve-graph svg .node polygon, .ve-graph svg .node ellipse {
+    fill: var(--vc-color-surface, #fffefb);
+    stroke: var(--vc-color-border-strong, #c9bfa3);
+    stroke-width: 1.6;
+  }
+  .ve-graph svg .edge path    { stroke: var(--vc-color-content-subtle, #8a8170); stroke-width: 1.4; fill: none; opacity: 0.92; }
+  .ve-graph svg .edge polygon { fill: var(--vc-color-content-subtle, #8a8170); stroke: var(--vc-color-content-subtle, #8a8170); opacity: 0.92; }
+  .ve-graph svg .cluster polygon {
+    fill: color-mix(in srgb, var(--vc-color-surface-raised, #fffdf8) 40%, transparent);
+    stroke: var(--vc-color-border, #e3dcc9);
+    stroke-dasharray: 5 5; stroke-width: 1.2;
+  }
+  /* FILL (optional): per-node group coding — runtime stamps
+     data-ve-id="ve-node-<DOT-name>" on every node <g>. Example:
+  .ve-graph svg .node[data-ve-id="ve-node-alpha"] path { stroke: var(--vc-color-info, #3464a8); stroke-width: 2; }
+  .ve-graph svg .edge[data-ve-id="ve-edge-fail"] path  { stroke: var(--vc-color-danger, #a84a32); }
+  .ve-graph svg .edge[data-ve-id="ve-edge-fail"] polygon { fill: var(--vc-color-danger, #a84a32); stroke: var(--vc-color-danger, #a84a32); }
+  */
+  /* hover + selected — SAME paint (contract); never style path[data-ve-hit].
+     NO-NEW-ELEMENTS RULE: highlight/selection only re-paints the EXISTING
+     shapes (the runtime applies the brightness delta + hover glow); page
+     CSS re-colors the stroke ONLY. Never add fills/outlines/frames — a
+     page-side fill-tint stacks with the runtime brightness and reads as
+     mud, and any outline on an SVG group draws a bounding-box rectangle. */
+  .ve-graph svg .node:hover path, .ve-graph svg .node:hover polygon, .ve-graph svg .node:hover ellipse,
+  .ve-graph svg .node[data-ve-selected="1"] path, .ve-graph svg .node[data-ve-selected="1"] polygon, .ve-graph svg .node[data-ve-selected="1"] ellipse {
+    stroke: var(--vc-color-accent, #b8861f); stroke-width: 2.6;
+  }
+  .ve-graph svg .edge:hover path,
+  .ve-graph svg .edge[data-ve-selected="1"] path { stroke: var(--vc-color-accent, #b8861f); stroke-width: 2.2; opacity: 1; }
+  .ve-graph svg .edge:hover polygon,
+  .ve-graph svg .edge[data-ve-selected="1"] polygon { stroke: var(--vc-color-accent, #b8861f); fill: var(--vc-color-accent, #b8861f); opacity: 1; }
+
+  .graph-key {
+    display: flex; flex-wrap: wrap; gap: 16px; margin-top: 14px;
+    font-family: var(--vc-font-mono, 'IBM Plex Mono', monospace); font-size: 11px;
+    color: var(--vc-color-content-muted, #5b5343);
+  }
+  .graph-key span { display: inline-flex; align-items: center; gap: 6px; }
+  .graph-key i { width: 18px; height: 0; border-top: 2.5px solid; border-radius: 2px; }
+
+  footer {
+    margin-top: 64px; padding-top: 18px;
+    border-top: 1px solid var(--vc-color-border, #e3dcc9);
+    font-family: var(--vc-font-mono, 'IBM Plex Mono', monospace);
+    font-size: 11px; color: var(--vc-color-content-subtle, #8a8170);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .hero, .graph-card { animation: fadeUp 0.5s var(--vc-easing-standard, cubic-bezier(0.16,1,0.3,1)) backwards; }
+    .graph-card { animation-delay: 0.08s; }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+  }
+</style>
+
+<!-- DESIGN.md — the --- fences are REQUIRED (fail-fast parser; without them
+     the engine silently falls back to the built-in palette). Keep BOTH
+     themes. FILL (optional): re-palette; keep key names exactly as-is. -->
+<script type="text/design-md" id="ve-designmd">
+---
+designmd_version: 1
+meta:
+  name: "Graph Page"
+  default_theme: light
+colors:
+  light:
+    canvas: "#faf6ee"
+    surface: "#fffefb"
+    surface-raised: "#fffdf8"
+    surface-sunken: "#f1ece0"
+    content: "#1f1a14"
+    content-muted: "#5b5343"
+    content-subtle: "#8a8170"
+    border: "#e3dcc9"
+    border-strong: "#c9bfa3"
+    accent: "#b8861f"
+    on-accent: "#fffdf9"
+    success: "#3a6b5c"
+    warning: "#a8791f"
+    danger: "#a84a32"
+    info: "#3464a8"
+  dark:
+    canvas: "#16130d"
+    surface: "#211c14"
+    surface-raised: "#2a241a"
+    surface-sunken: "#0f0d09"
+    content: "#f3ecdd"
+    content-muted: "#b8ad96"
+    content-subtle: "#857c68"
+    border: "#3a3325"
+    border-strong: "#564c36"
+    accent: "#e0aa3e"
+    on-accent: "#16130d"
+    success: "#6fae9b"
+    warning: "#d8aa54"
+    danger: "#dd8068"
+    info: "#6f9bd8"
+typography:
+  font-heading: "IBM Plex Sans, system-ui, -apple-system, Segoe UI, sans-serif"
+  font-body: "IBM Plex Sans, system-ui, -apple-system, Segoe UI, sans-serif"
+  font-mono: "IBM Plex Mono, ui-monospace, Menlo, monospace"
+  scale: [12, 14, 16, 20, 24, 32, 48]
+  weight-regular: 400
+  weight-medium: 500
+  weight-bold: 700
+  line-height: 1.55
+spacing:
+  scale: [4, 8, 12, 16, 24, 32, 48, 64]
+radius:
+  none: 0
+  sm: 4
+  md: 8
+  lg: 12
+  xl: 16
+  full: 9999
+motion:
+  duration-fast: 160
+  duration-slow: 560
+  easing-standard: "cubic-bezier(0.16,1,0.3,1)"
+  easing-decel: "cubic-bezier(0,0,0,1)"
+---
+</script>
+
+<script src="amvcp-designmd.js"></script>
+<script src="amvcp-runtime.js"></script>
+</head>
+<body>
+<main id="main">
+
+  <header class="hero">
+    <span class="hero-eyebrow"><span class="dot"></span><!-- FILL: eyebrow text --></span>
+    <h1><!-- FILL: headline --></h1>
+    <p class="hero-lede"><!-- FILL: one-paragraph lede --></p>
+  </header>
+
+  <section aria-label="diagram">
+    <div class="graph-card">
+      <div class="ve-graph">
+digraph G {
+  rankdir   = TB;            // TB for complex graphs; LR only for short linear flows
+  splines   = spline;
+  bgcolor   = "transparent";
+  nodesep   = 0.42;
+  ranksep   = 0.52;
+
+  node [
+    shape    = box,
+    style    = "rounded,filled",
+    fillcolor= "#fffefb",    // structural only — page CSS re-paints via tokens
+    color    = "#c9bfa3",
+    penwidth = 1.6,
+    fontname = "Courier",    // mono metrics ≈ the page's mono webfont
+    fontsize = 15,
+    margin   = "0.24,0.14"
+  ];
+  edge [
+    color    = "#8a8170",
+    penwidth = 1.3,
+    arrowsize= 0.8,
+    fontname = "Courier",
+    fontsize = 12
+  ];
+
+  // FILL: nodes + edges. Give every node/edge the agent must address an
+  // explicit id starting with "ve-" (others get auto ids from DOT names).
+  // Multi-line labels use \n. $…$ labels render as KaTeX math.
+  a [id="ve-node-a", label="Node A\nfirst line of detail"];
+  b [id="ve-node-b", label="Node B"];
+  a -> b [id="ve-edge-ab", label=" example"];
+}
+      </div>
+      <div class="graph-key" aria-hidden="true">
+        <!-- FILL: legend entries, one span per stroke meaning, e.g.
+        <span><i style="border-color: var(--vc-color-info, #3464a8)"></i>stage</span>
+        <span><i style="border-top-style: dashed; border-color: var(--vc-color-danger, #a84a32)"></i>failure loop</span>
+        -->
+      </div>
+    </div>
+  </section>
+
+  <!-- FILL (optional): supporting sections — cards, tables, callouts.
+       Stamp meaningful blocks with data-ve-id / data-ve-type / data-ve-label
+       so they're selectable; never stamp <button>/<a> or whole <body>. -->
+
+  <footer><!-- FILL: source line / provenance --></footer>
+
+</main>
+</body>
+</html>

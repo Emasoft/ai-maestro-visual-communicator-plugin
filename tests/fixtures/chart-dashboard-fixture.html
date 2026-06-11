@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Filled copy of templates/chart-dashboard.html (the FILL slots only).
+     Exercises the template's load-bearing guarantees:
+       1. the FENCED embedded DESIGN.md actually drives the tokens
+          (regression: parseDesignMd is fail-fast; a fenceless block
+          silently falls back to the built-in palette). The fixture carries
+          a SENTINEL the built-in lacks: light surface-sunken = #f1ece1
+          (built-in: #f1ece0).
+       2. each fenced chart:<type>@1 block renders a non-empty <figure>;
+       3. a live data-ve-theme flip re-paints the page (warm-dark canvas);
+       4. clicking a chart atom selects it WITHOUT adding new elements. -->
+<title>chart dashboard fixture</title>
+<style>
+  :root {
+    --ve-accent: var(--vc-color-accent, #b8861f);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { overflow-x: auto; }
+  body {
+    background: var(--vc-color-canvas, #faf6ee);
+    color: var(--vc-color-content, #1f1a14);
+    font: 16px/1.55 var(--vc-font-body, system-ui, sans-serif);
+  }
+  main { max-width: 1180px; margin: 0 auto; padding: 48px 32px 96px; }
+  .dash-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+    gap: 22px;
+  }
+  .dash-grid .span-2 { grid-column: 1 / -1; }
+  .chart-card {
+    border: 1px solid var(--vc-color-border, #e3dcc9);
+    background: var(--vc-color-surface-sunken, #f1ece0);
+    border-radius: var(--vc-radius-lg, 12px);
+    padding: 22px 20px 18px;
+  }
+  .ve-chart, .ve-chart-svg, .ve-chart-canvas { overflow: visible; max-width: none; }
+  /* NO-NEW-ELEMENTS RULE: the runtime + chart lib own selection/hover paint
+     entirely (data-ve-selected="1" → brightness + accent stroke + glow,
+     figure outer ring via :has). No page-side mark styling here. */
+</style>
+
+<script type="text/design-md" id="ve-designmd">
+---
+designmd_version: 1
+meta:
+  name: "Chart Dashboard Fixture"
+  default_theme: light
+colors:
+  light:
+    canvas: "#faf6ee"
+    surface: "#fffefb"
+    surface-raised: "#fffdf8"
+    surface-sunken: "#f1ece1"
+    content: "#1f1a14"
+    content-muted: "#5b5343"
+    content-subtle: "#8a8170"
+    border: "#e3dcc9"
+    border-strong: "#c9bfa3"
+    accent: "#b8861f"
+    on-accent: "#fffdf9"
+    success: "#3a6b5c"
+    warning: "#a8791f"
+    danger: "#a84a32"
+    info: "#3464a8"
+  dark:
+    canvas: "#16130d"
+    surface: "#211c14"
+    surface-raised: "#2a241a"
+    surface-sunken: "#0f0d09"
+    content: "#f3ecdd"
+    content-muted: "#b8ad96"
+    content-subtle: "#857c68"
+    border: "#3a3325"
+    border-strong: "#564c36"
+    accent: "#e0aa3e"
+    on-accent: "#16130d"
+    success: "#6fae9b"
+    warning: "#d8aa54"
+    danger: "#dd8068"
+    info: "#6f9bd8"
+typography:
+  font-heading: "IBM Plex Sans, system-ui, sans-serif"
+  font-body: "IBM Plex Sans, system-ui, sans-serif"
+  font-mono: "IBM Plex Mono, ui-monospace, Menlo, monospace"
+  scale: [12, 14, 16, 20, 24, 32, 48]
+  weight-regular: 400
+  weight-medium: 500
+  weight-bold: 700
+  line-height: 1.55
+spacing:
+  scale: [4, 8, 12, 16, 24, 32, 48, 64]
+radius:
+  none: 0
+  sm: 4
+  md: 8
+  lg: 12
+  xl: 16
+  full: 9999
+motion:
+  duration-fast: 160
+  duration-slow: 560
+  easing-standard: "cubic-bezier(0.16,1,0.3,1)"
+  easing-decel: "cubic-bezier(0,0,0,1)"
+---
+</script>
+
+<script src="amvcp-designmd.js"></script>
+<script src="amvcp-runtime.js"></script>
+<script src="amvcp-chart.js"></script>
+</head>
+<body>
+<main id="main">
+
+  <section aria-label="key metrics">
+    <div class="chart-card span-2" style="background: var(--vc-color-surface-sunken, #f1ece1);">
+<pre><code class="language-chart:metric-cards@1">{
+  "title": "Headline KPIs — fixture",
+  "subtitle": "small sample data",
+  "series": [{ "label": "kpi", "data": [
+    {"label":"Revenue","value":48200,"delta":12,"trend":"up","unit":"$"},
+    {"label":"NPS","value":52,"delta":4,"trend":"up"},
+    {"label":"Churn","value":3.4,"delta":-0.6,"trend":"down","unit":"%"}
+  ] }]
+}</code></pre>
+    </div>
+  </section>
+
+  <section aria-label="charts">
+    <div class="dash-grid">
+
+      <div class="chart-card">
+<pre><code class="language-chart:bar@1">{
+  "title": "Delta led the sample categories",
+  "series": [{ "label": "value", "data": [
+    {"x":"Alpha","y":2.4},
+    {"x":"Bravo","y":3.1},
+    {"x":"Charlie","y":2.8},
+    {"x":"Delta","y":3.6}
+  ] }],
+  "options": { "sortDescending": true, "valueLabels": true }
+}</code></pre>
+      </div>
+
+      <div class="chart-card">
+<pre><code class="language-chart:area@1">{
+  "title": "Sample series more than doubled over five weeks",
+  "series": [{ "label": "series", "data": [
+    {"x":"W1","y":1200},
+    {"x":"W2","y":1850},
+    {"x":"W3","y":1640},
+    {"x":"W4","y":2310},
+    {"x":"W5","y":2680}
+  ] }]
+}</code></pre>
+      </div>
+
+    </div>
+  </section>
+
+</main>
+</body>
+</html>

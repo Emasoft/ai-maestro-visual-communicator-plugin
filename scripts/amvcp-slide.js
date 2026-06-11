@@ -121,9 +121,9 @@
   // Blocks delegated to a sibling renderer module. The slide module
   // calls `window.<module>.renderInto(el, spec)`; absent module → throw.
   var DELEGATED_BLOCKS = {
-    code: { global: 'amvcpCodeBlock', label: 'code-block (amvcp-codeblock.js)' },
-    diagram: { global: 'amvcpDiagram', label: 'diagram (amvcp-graphdiagram.js)' },
-    chart: { global: 'amvcpChart', label: 'chart (amvcp-charts.js)' }
+    code: { global: 'amvcpCodeHighlight', label: 'code-block (amvcp-code-highlight.js)' },
+    diagram: { global: 'amvcpDiagram', label: 'diagram (amvcp-diagram.js)' },
+    chart: { global: 'amvcpChart', label: 'chart (amvcp-chart.js)' }
   };
   // Callout tints — maps to a `--vc-color-*` semantic role.
   var CALLOUT_VARIANTS = {

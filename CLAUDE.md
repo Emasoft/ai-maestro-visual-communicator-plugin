@@ -64,6 +64,13 @@ differently when importing ideas:
   it.** An external example's own selection / drag / export / highlight UX is
   subordinate: map it onto OUR fixed interaction model (select → triple-feedback →
   comment/edit → re-emit), never adopt a foreign interaction paradigm in its place.
+  **NO-NEW-ELEMENTS RULE (user, 2026-06-11):** highlight and selection NEVER add
+  new visual elements on screen (no frames, rings, outlines, overlay rectangles)
+  — they only re-paint the EXISTING element: brightness delta + glow/shadow (+
+  stroke re-color for shapes). An `outline` on an SVG group renders as its
+  bounding-box rectangle — that is a new element; forbidden. And NEVER fix a
+  local contrast bug by swapping an approved palette — fix the contrast locally;
+  the palette is the user's call.
 
 - **Graphic Style Mode — VARIABLE. EDITABLE. Realtime.**
   Everything visual that is driven by **DESIGN.md** parameters/tokens: palette, type

@@ -2683,6 +2683,98 @@
   }
 
   // ──────────────────────────────────────────────────────────────────
+  //  renderInto — the slide-deck delegation entry point
+  //  (slide-spec.md §5.4 / §12.2; amvcp-slide.js renderDelegated)
+  // ──────────────────────────────────────────────────────────────────
+  //
+  // amvcp-slide.js OWNS the delegated calling convention and invokes
+  //   window.amvcpChart.renderInto(host, { chartType, data })
+  // where `data` is the Chart.js-shaped block payload the JSON deck
+  // contract documents: { labels:[…], datasets:[{ label, data:[…] }] }.
+  // Our native renderer (render/registry) instead consumes the
+  // chart-fence spec shape { title, series:[{ label, data:[{x,y}] }] }.
+  // So renderInto is a thin ADAPTER: it converts {labels,datasets} into
+  // the native {series} shape, then reuses render() — it does NOT
+  // re-implement any charting. The slide supplies the human finding as
+  // the slide heading, so the chart itself carries no title; we
+  // synthesise a non-blank placeholder only to satisfy the envelope
+  // validator (a real title may still be passed via data.title).
+  function renderInto(el, spec) {
+    // Fail-fast — never swallow; a broken delegated block must throw so
+    // the slide module surfaces it (slide-spec.md §5.4: no blank
+    // placeholders).
+    if (!el || el.nodeType !== 1) {
+      throw new Error('amvcp-chart.renderInto: first argument must be a '
+        + 'DOM element to render into');
+    }
+    if (!spec || typeof spec !== 'object') {
+      throw new Error('amvcp-chart.renderInto: spec must be an object '
+        + 'of the form { chartType, data }');
+    }
+    if (typeof spec.chartType !== 'string' || !spec.chartType) {
+      throw new Error('amvcp-chart.renderInto: spec.chartType '
+        + '(a chart-type string) is required');
+    }
+    if (!spec.data || typeof spec.data !== 'object') {
+      throw new Error('amvcp-chart.renderInto: spec.data '
+        + '(the chart data object) is required');
+    }
+    var native = _deckDataToSpec(spec.data);
+    return render(native, spec.chartType, el);
+  }
+
+  // Convert a Chart.js-shaped deck payload — { labels:[…], datasets:[
+  // { label, data:[…] }] } — into the native chart-fence spec the
+  // registry renderers consume: { title, series:[{ label, data:[{x,y}]
+  // }], options? }. Pairs labels[j] with each dataset's data[j]. Bare
+  // numeric data become {x:label, y:number}; data items that are
+  // already {x,y} objects pass through unchanged (so a caller MAY hand
+  // renderInto a native-shaped payload too). Fails fast on a malformed
+  // datasets array — the downstream validator only checks the result,
+  // so we guard the conversion's own preconditions here.
+  function _deckDataToSpec(data) {
+    if (!Array.isArray(data.datasets)) {
+      throw new Error('amvcp-chart.renderInto: spec.data.datasets must '
+        + 'be an array of { label, data } objects');
+    }
+    var labels = Array.isArray(data.labels) ? data.labels : [];
+    var series = [];
+    for (var i = 0; i < data.datasets.length; i++) {
+      var ds = data.datasets[i];
+      if (!ds || typeof ds !== 'object' || !Array.isArray(ds.data)) {
+        throw new Error('amvcp-chart.renderInto: '
+          + 'spec.data.datasets[' + i + '] must be an object with a '
+          + '"data" array');
+      }
+      var points = [];
+      for (var j = 0; j < ds.data.length; j++) {
+        var v = ds.data[j];
+        if (v && typeof v === 'object') {
+          points.push(v);                       // already {x,y}-shaped
+        } else {
+          var x = (j < labels.length) ? labels[j] : (j + 1);
+          points.push({ x: x, y: v });
+        }
+      }
+      series.push({ label: ds.label, data: points });
+    }
+    var native = {
+      // _validateEnvelope requires a title whose non-whitespace content
+      // is non-empty (it does title.replace(/\s/g,'')), so the default
+      // must be a real word, NOT a blank/space. The slide heading is the
+      // human-facing label; this internal title only satisfies the
+      // validator unless the payload carried its own real title.
+      title: (typeof data.title === 'string' && data.title.replace(/\s/g, ''))
+        ? data.title : 'Chart',
+      series: series
+    };
+    if (data.options && typeof data.options === 'object') {
+      native.options = data.options;
+    }
+    return native;
+  }
+
+  // ──────────────────────────────────────────────────────────────────
   //  parseFence — extract type/version + parse JSON from a <pre><code>
   //  (chart-spec.md §2 sub-technique 1)
   // ──────────────────────────────────────────────────────────────────
@@ -3213,6 +3305,7 @@
     injectChartCSS: injectChartCSS,
     scan: scan,
     render: render,
+    renderInto: renderInto,
     parseFence: parseFence,
     palette: palette,
     ramp: ramp,
@@ -3246,6 +3339,7 @@
       set REDUCED(v) { REDUCED = !!v; },
       scan: scan,
       render: render,
+      renderInto: renderInto,
       injectChartCSS: injectChartCSS,
       getSelection: getSelection,
       clearSelection: function () { _selection.length = 0; }

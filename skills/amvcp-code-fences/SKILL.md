@@ -102,9 +102,14 @@ Bob,bob@example.com,viewer
 </code></pre>
 ```
 
-The `language-csv` declaration tells the tokenizer to apply CSV-
-specific row/column styling; the gutter is suppressed because row
-numbers would duplicate the implicit row index.
+`language-csv` is a DATA-fence declaration, not a code language: the
+tokenizer has no CSV mode, so the block opts out of source-code
+highlighting and renders plain, byte-exact text — the deliberate
+behaviour for tabular data (see
+[csv-and-data-fences](references/csv-and-data-fences.md): CSV / YAML
+are declared as data, the tokenizer returns null, the block stays
+plain). `data-ve-no-gutter` suppresses the row gutter because CSV
+rows already carry their own implicit row index.
 
 **Example 2 — live JSON editor**
 

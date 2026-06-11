@@ -642,26 +642,40 @@
       // glow) MUST win over any DESIGN.md palette override. !important on
       // background-color / box-shadow / outline / filter so no preset can
       // mask the brightness direction or the hover glow.
-      '[data-ve-id]:not([data-ve-type="table-form"]):not(table):not(pre):hover {',
+      //
+      // `:not(svg *)` on every HTML state rule is LOAD-BEARING (the
+      // no-new-elements highlight rule): without it these rules also
+      // match SVG <g data-ve-id> groups — they out-specify the
+      // `svg [data-ve-id] … { outline:none }` suppression below
+      // ((0,3,2) vs (0,2,1), both !important), and Chromium renders an
+      // SVG outline as the group's BOUNDING-BOX RECTANGLE. The user saw
+      // an extra gold frame around selected nodes, and a huge truncated
+      // rectangle when a long bezier edge was selected (the edge bbox
+      // spans the whole graph). The g-level `filter` here ALSO stacked
+      // with the per-shape brightness below (double-darkening mud).
+      // Highlight/selection must only re-paint the EXISTING shapes —
+      // never draw new screen geometry. SVG state styling lives
+      // exclusively in the per-shape rules below.
+      '[data-ve-id]:not([data-ve-type="table-form"]):not(table):not(pre):not(svg *):hover {',
       '  outline:2px solid var(--ve-accent, currentColor) !important;',
       '  outline-offset:3px !important;',
       '  background-color: var(--ve-overlay-hover) !important;',
       '  box-shadow: var(--ve-glow-hover) !important;',
       '  filter: brightness(var(--ve-brightness-hover)) !important;',
       '}',
-      '[data-ve-id]:not([data-ve-type="table-form"]):not(table):not(pre):focus-visible {',
+      '[data-ve-id]:not([data-ve-type="table-form"]):not(table):not(pre):not(svg *):focus-visible {',
       '  outline:2px solid var(--ve-accent, currentColor) !important;',
       '  outline-offset:3px !important;',
       '}',
       // HTML selected: outline + smaller brightness + smaller bg tint, no glow.
-      '[data-ve-id]:not([data-ve-type="table-form"]):not(table):not(pre)[data-ve-selected="1"] {',
+      '[data-ve-id]:not([data-ve-type="table-form"]):not(table):not(pre):not(svg *)[data-ve-selected="1"] {',
       '  outline:2px solid var(--ve-accent, currentColor) !important;',
       '  outline-offset:3px !important;',
       '  background-color: var(--ve-overlay-selected) !important;',
       '  filter: brightness(var(--ve-brightness-selected)) !important;',
       '}',
       // Hover-on-selected: heavier overlay + heavier brightness + glow.
-      '[data-ve-id]:not([data-ve-type="table-form"]):not(table):not(pre)[data-ve-selected="1"]:hover {',
+      '[data-ve-id]:not([data-ve-type="table-form"]):not(table):not(pre):not(svg *)[data-ve-selected="1"]:hover {',
       '  background-color: var(--ve-overlay-hover) !important;',
       '  box-shadow: var(--ve-glow-hover) !important;',
       '  filter: brightness(var(--ve-brightness-hover)) !important;',
@@ -10111,10 +10125,19 @@
 
   function _veChartApplyThemeDefaults(config, colors) {
     config.options = config.options || {};
-    config.options.responsive = true;
-    if (config.options.maintainAspectRatio !== false) {
-      config.options.maintainAspectRatio = false;
-    }
+    // responsive:false — the runtime owns chart sizing, Chart.js must NOT
+    // attach its built-in responsive ResizeObserver. On composed pages (canvas
+    // charts nested in SVG <foreignObject>) that RO enters a non-converging
+    // resize loop the moment a relayout perturbs it — e.g. a live data-ve-theme
+    // flip re-resolving --vc-* — and with N charts the loop runs N-way in the
+    // browser's parallel layout pipeline, pegging the renderer multi-core and
+    // wedging the main thread (TRDD-ed5e8cc2; the A/B that no-ops ResizeObserver
+    // proves removing it is what fixes it; resizeDelay only SLOWED it). Instead
+    // the runtime sizes the canvas explicitly at mount (_veChartSizeCanvasToHost)
+    // and re-mounts on theme change AND on a debounced window resize
+    // (_bindChartWindowResize), so it never depends on Chart.js auto-resize.
+    config.options.responsive = false;
+    config.options.maintainAspectRatio = false;
     // Tooltip — always enabled (R40 a11y), DESIGN.md-themed.
     config.options.plugins = config.options.plugins || {};
     config.options.plugins.tooltip = Object.assign(
@@ -10156,6 +10179,24 @@
     return config;
   }
 
+  // Size a canvas's pixel BUFFER to its host's laid-out content box,
+  // devicePixelRatio-aware. Required because the runtime mounts charts with
+  // responsive:false (so Chart.js does not auto-size from CSS). Measured at
+  // (re-)mount time; a 300px square fallback covers a host that has not laid
+  // out yet (rect 0×0). Idempotent — safe to call on every re-mount.
+  function _veChartSizeCanvasToHost(host, canvas) {
+    var rect = host.getBoundingClientRect();
+    var w = Math.round(rect.width) || host.clientWidth || 0;
+    var h = Math.round(rect.height) || host.clientHeight || 0;
+    if (w < 1) { w = 300; }
+    if (h < 1) { h = 300; }
+    var dpr = (typeof window !== 'undefined' && window.devicePixelRatio) || 1;
+    canvas.style.width = w + 'px';
+    canvas.style.height = h + 'px';
+    canvas.width = Math.round(w * dpr);
+    canvas.height = Math.round(h * dpr);
+  }
+
   function _veChartMountOne(host, Chart) {
     if (host.__veChartMounted) {
       // Already mounted — destroy + rebuild for theme refresh.
@@ -10185,12 +10226,19 @@
     var canvas = document.createElement('canvas');
     canvas.setAttribute('role', 'img');
     canvas.setAttribute('aria-label', label);
-    canvas.style.cssText = 'display:block;width:100%;height:100%;';
-    // Host needs a defined height or Chart.js can't size.
+    canvas.style.cssText = 'display:block;';
+    // Host needs a defined height or it would collapse onto the (explicitly
+    // sized) canvas; keep the floor so a host with no authored height still
+    // has room before we measure it.
     if (!host.style.height && !host.style.minHeight) {
       host.style.minHeight = '300px';
     }
     host.appendChild(canvas);
+    // responsive:false (set in _veChartApplyThemeDefaults) means Chart.js paints
+    // at the canvas BUFFER size, not its CSS size — so size the buffer from the
+    // host's laid-out box, devicePixelRatio-aware, for a crisp chart that fills
+    // its container. Re-measured on every (re-)mount, including window resize.
+    _veChartSizeCanvasToHost(host, canvas);
     var colors = _veChartColors();
     var config = _veChartApplyThemeDefaults({
       type: type,
@@ -10200,7 +10248,13 @@
     try {
       host.__veChartInstance = new Chart(canvas, config);
       host.__veChartMounted = true;
-      _veChartInstances.push(host);
+      // Track each host ONCE. _veChartMountOne is also the RE-mount path (theme
+      // change + window resize), and an unguarded push would let the re-mount
+      // loops — which re-read _veChartInstances.length while this pushes to it —
+      // grow the array without bound (a latent infinite re-mount). Dedup here.
+      if (_veChartInstances.indexOf(host) === -1) {
+        _veChartInstances.push(host);
+      }
     } catch (e) {
       console.error('[ve-chart] Chart() construction failed:', e);
     }
@@ -10231,6 +10285,26 @@
     };
     document.addEventListener('vc:themechange', rebuild);
     document.addEventListener('themechange', rebuild);
+  }
+
+  // Restore window-resize responsiveness lost to responsive:false. On a
+  // DEBOUNCED window resize, re-mount every chart at its new container size
+  // (the same destroy+rebuild path used on theme change, via initAllCharts).
+  // There is NO ResizeObserver here, so a resize cannot feed back into a loop;
+  // the debounce coalesces a drag into one re-fit. Idempotent — binds once.
+  function _bindChartWindowResize() {
+    if (window.__veChartWindowResizeBound) { return; }
+    if (typeof window === 'undefined' || !window.addEventListener) { return; }
+    window.__veChartWindowResizeBound = true;
+    var timer = 0;
+    window.addEventListener('resize', function () {
+      if (timer) { clearTimeout(timer); }
+      timer = setTimeout(function () {
+        timer = 0;
+        if (!_veChartInstances.length) { return; }
+        initAllCharts();
+      }, 200);
+    }, { passive: true });
   }
 
   // R40 — auto-inject the skip-to-content link if no <main> + skip-link
@@ -11841,10 +11915,15 @@
     });
 
     // diagram — injectDiagramCSS + init renders every .ve-scene-graph
-    // host and styles every .ve-ascii-diagram. The diagram module
-    // ALSO binds its own `vc:themechange` / `themechange` listeners
-    // for theme hot-swap, so we do not need to re-scan it from
-    // bootThemeRescanListener below — it self-heals.
+    // host and styles every .ve-ascii-diagram. The diagram module paints
+    // NO colours of its own (0 inline fill/stroke, 0 hex, 0 var(--vc) in the
+    // module): every .ve-scene-graph / .ve-ascii-diagram element is coloured
+    // by host/injected CSS through --vc-* classes, so the graph re-themes via
+    // the CSS cascade with NO JS on a theme swap. That is why
+    // bootThemeRescanListener below does NOT re-scan it — re-running init
+    // would needlessly re-render the whole scene. (An earlier comment here
+    // wrongly claimed it self-binds a themechange listener; it does not —
+    // CSS handles it. TRDD-ed5e8cc2.)
     tryModule('amvcpDiagram', function (m) {
       if (typeof m.injectDiagramCSS === 'function') {
         m.injectDiagramCSS(document);
@@ -11918,11 +11997,17 @@
   // change. Those modules expose a `scan` / `refresh` / `reThemeAll`
   // entry-point that we re-call here.
   //
-  // diagram + wireframe install their own listeners for the same
-  // event — calling them again here would double-render but is safe
-  // (their re-render is idempotent on a stored scene JSON). For
-  // determinism we call only the modules that do NOT self-bind:
-  // chart, icon-svg, slide, report-doc.
+  // Two modules are intentionally NOT re-scanned here, for two DIFFERENT
+  // reasons:
+  //   • diagram — paints no inline colours; its .ve-scene-graph elements are
+  //     coloured by --vc-* CSS classes, so it re-themes via the cascade with
+  //     no JS. Re-running its init would needlessly re-render the whole scene.
+  //   • wireframe — self-binds its own `ve:themechange` listener (it computes
+  //     a greyscale desaturation in JS that must re-run), so re-scanning here
+  //     would double-render.
+  // The modules we DO re-scan below (chart, icon-svg, slide, report-doc) paint
+  // colours INLINE and neither self-bind nor re-theme via CSS, so they need
+  // this explicit re-call.
   //
   // The runtime ALSO dispatches `ve:themechange` (legacy alias)
   // alongside `vc:themechange` so the wireframe module's existing
@@ -12030,6 +12115,7 @@
     // atoms and lazy-load Chart.js if any are present. Pages without
     // chart atoms pay zero CDN cost. Re-renders on themechange.
     _bindChartThemeRescan();
+    _bindChartWindowResize();   // responsive:false -> re-fit charts on resize
     initAllCharts();
     // Test hook — expose openCommentModal so headless tests can open
     // the modal directly without going through the (now-removed)

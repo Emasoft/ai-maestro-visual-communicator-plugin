@@ -23,6 +23,7 @@ This is the **router** for the chart surface. The chart catalogue was split into
 
 ## Instructions
 
+0. **Fast path** — read `${CLAUDE_PLUGIN_ROOT}/references/QUICKSTART-chart-dashboard.md` and start from `templates/chart-dashboard.html`; fill the FILL slots (replace the sample JSON in each fenced `chart:<type>@1` block) instead of authoring boilerplate. Copy `amvcp-designmd.js` + `amvcp-runtime.js` + `amvcp-chart.js` next to the page and open via `amvcp-select.py`.
 1. Match the user's data shape to a row in the routing matrix.
 2. Load the matched sibling SKILL.md (often one row covers it; combine when needed).
 3. Always load [amvcp-dashboards](../amvcp-dashboards/SKILL.md) for the cross-cutting infrastructure (fence protocol, palette, selection contract, animations, tooltip, error degradation).

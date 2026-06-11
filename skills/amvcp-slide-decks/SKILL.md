@@ -27,7 +27,7 @@ Loads on requests for a presentation, slide deck, pitch deck, or "turn this into
 
 - The DESIGN.md engine (`amvcp-designmd.js`) loaded **before** the slide module — supplies the `--vc-*` tokens.
 - `amvcp-slide.js` ships beside the output HTML.
-- Optional sibling renderers when the deck uses delegated blocks: `amvcp-codeblock.js` (`code` block), `amvcp-graphdiagram.js` (`diagram` block), `amvcp-charts.js` (`chart` block). Absent module + delegated block → throws a clear error naming the missing module (fail-fast — never a broken placeholder).
+- Optional sibling renderers when the deck uses delegated blocks: `amvcp-code-highlight.js` (`code` block), `amvcp-diagram.js` (`diagram` block), `amvcp-chart.js` (`chart` block). Absent module + delegated block → throws a clear error naming the missing module (fail-fast — never a broken placeholder).
 - A `motion:` group in the DESIGN.md is **optional** — every CSS rule carries a canonical `--vc-*` fallback, so a token-less DESIGN.md still themes the deck correctly.
 
 ## Instructions
@@ -68,7 +68,7 @@ Single self-contained HTML file: embedded deck JSON + optional embedded preset D
 ## Error Handling
 
 - **Unknown block `type`** / **unknown `layout`** / **unknown `mood`/`transition`/`aspect`/`fit`** → fail-fast throw with the offending JSON path (e.g. `slides[3].blocks[1]: unknown block type "mermaidd"`).
-- **Delegated block + missing sibling module** → throw naming the module (`window.amvcpCodeBlock.renderInto is not available`).
+- **Delegated block + missing sibling module** → throw naming the module (`window.amvcpCodeHighlight.renderInto is not available`).
 - **Headline weak** → soft warning (`console.warn` + `data-vsd-headline-warn`); deck still renders. Stylistic judgement, not a structural error.
 - **Slide overflows density limits** → `data-vsd-overflow` attribute + a `densityWarnings` entry; no scrollbar is ever added.
 - **Reduced motion** → every entrance + transition substitutes to opacity-only / instant; no `animation:none` that leaves a block stuck at opacity 0.

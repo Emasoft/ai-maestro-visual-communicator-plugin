@@ -74,17 +74,25 @@ These are rendered directly by `amvcp-slide.js`:
 
 ### Block-level: the 3 DELEGATED types
 
-These dispatch to sibling renderer modules (`window.amvcpCodeBlock`,
+These dispatch to sibling renderer modules (`window.amvcpCodeHighlight`,
 `window.amvcpDiagram`, `window.amvcpChart`) via `renderInto(el, spec)`:
 
 | `type` | Required keys | Optional keys | Sibling module |
 |---|---|---|---|
-| `code` | `source` (string) | `lang` (string) | `amvcp-codeblock.js` |
-| `diagram` | `source` (string) | `notation` (string) | `amvcp-graphdiagram.js` |
-| `chart` | `chartType` (string) | `data` (object) | `amvcp-charts.js` |
+| `code` | `source` (string) | `lang` (string) | `amvcp-code-highlight.js` |
+| `diagram` | `source` (string) | `notation` (string) | `amvcp-diagram.js` |
+| `chart` | `chartType` (string) | `data` (object) | `amvcp-chart.js` |
 
 If the sibling module is missing, the renderer THROWS with a clear message
 naming the global it expected — never a blank placeholder.
+
+The `diagram` block's `amvcp-diagram.js` renderer supports only the
+**scene-graph JSON** model (`"notation": "scene-graph"` or `"json"`, the
+default) and **ASCII** art (`"notation": "ascii"`); a `mermaid` / `graphviz`
+/ `dot` notation fail-fasts ("no mermaid/graphviz parser"). For Mermaid or
+Graphviz diagrams use the `/amvcp-generate-web-diagram` command (the
+`amvcp-graph-diagrams` skill) — those are NOT available as slide delegated
+blocks.
 
 ## Scaffold to emit
 

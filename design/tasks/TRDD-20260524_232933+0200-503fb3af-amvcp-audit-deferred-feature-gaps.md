@@ -1,15 +1,62 @@
 ---
 trdd-id: 503fb3af-3363-4683-b658-06771f332356
 title: amvcp audit — deferred feature-level gaps (doc claims with no implementation)
-status: not-started
+status: in-progress
 created: 2026-05-24T23:29:33+0200
-updated: 2026-05-24T23:29:33+0200
+updated: 2026-06-10T12:19:00+0200
 ---
 
 # TRDD-503fb3af — amvcp audit: deferred feature-level gaps
 
 **Filename:** `design/tasks/TRDD-20260524_232933+0200-503fb3af-amvcp-audit-deferred-feature-gaps.md`
 **Tracked in:** this repo (design/tasks/ is git-tracked)
+
+## ⏵ STATE — READ THIS FIRST ON RESUME (authoritative; supersedes the body) — 2026-06-10
+
+**Per-gap status:**
+- **G1 (slide delegated-block renderInto) — ✅ DONE** via `TRDD-292ddcd9`
+  (branch `feat/audit-gap-fixes`). Verified the bug was REAL, implemented
+  option (A): added `renderInto(el,spec)` to amvcp-code-highlight.js /
+  amvcp-chart.js / amvcp-diagram.js, fixed the amvcp-slide.js global map,
+  reconciled 7 deck docs + 3 mermaid-notation docs, added test-slide-delegated
+  (4 tests). Full suite **386/386 PASS**.
+- **G4 (csv/yaml fence tokenization) — ✅ DONE** via `TRDD-292ddcd9`. The
+  audit's rec (A — implement a tokenizer) was WRONG: the plugin's own design
+  (csv-and-data-fences.md, SKILL.md:53) makes csv/yaml DATA fences that render
+  plain by design. Resolved as option (B): corrected the ONE false claim
+  (SKILL.md:105-107). YAML docs were already truthful — no change needed.
+- **G3 (touch parity) — 📋 PLANNED** via `TRDD-7114fb4e` (facts verified, design
+  written; ONE architecture decision pending — shared `amvcp-sortable.js` module
+  vs the deliberate dependency-free design; recommended first slice = Opt 3,
+  rank-list + tier-list inside amvcp-form-inputs.js, no fork).
+- **G2, G5, G6 — OPEN, need a USER product decision** (G2/G5 build needs touching
+  a do-not-touch file [amvcp-tokens.js / amvcp-runtime.js] or removing the doc
+  promise; G6 is keep/deprecate/remove).
+- **G7, G8 — OPEN** (low-priority hygiene; not started).
+
+**Load-bearing facts / gotchas:**
+- G2 (`mixDesignMds`) and G5 (twin-gutter diff) live in DO-NOT-TOUCH files
+  (amvcp-tokens.js / amvcp-runtime.js) — their natural fix is implement-in-
+  protected-file (needs a deliberate decision) OR doc-mark-unavailable (B).
+- The renderInto contract is `code{lang,source}` · `diagram{notation,source}`
+  · `chart{chartType,data}` (Chart.js-shaped `{labels,datasets}`). Mermaid/
+  Graphviz are NOT slide delegated blocks — they live in amvcp-graph-diagrams.
+- scripts/amvcp-diagram.js carries 2 pre-existing literal-NUL sentinels
+  (lines 1238/1256, composite-key delimiter) — REAL but benign, pre-existing
+  on main; CPV flags it MINOR. Cleanup deferred (see TRDD-292ddcd9).
+
+**NEXT ACTION:** none required for G1/G4 (done, awaiting user merge + publish).
+For the rest, take a per-gap implement-vs-doc-mark decision (G2/G5 first —
+they're HIGH and gated on the DO-NOT-TOUCH-file question).
+
+**SUPERSEDED — do NOT carry forward:** the body below still says G1/G4 are
+"broken / not implemented (HIGH)" with open A/B options — that was the state at
+audit time (2026-05-24). G1 and G4 are now DONE (above). The G1 symptom text
+names old globals (`amvcpCodeBlock`) — that's the historical bug description,
+not current code.
+
+**Durable artifacts:** `design/tasks/TRDD-20260610_115000+0200-292ddcd9-*.md`
+(the G1+G4 implementation TRDD); `reports/cpv/20260610_*-validate-gapfix.txt`.
 
 ## Context
 
@@ -31,7 +78,7 @@ Per-slice reports: `reports/plugin-audit/20260524_*-{slice}.md`
 
 ## Items (each needs a decision, then implementation)
 
-### G1 — Slide delegated-block API is broken end-to-end (HIGH)
+### G1 — Slide delegated-block API is broken end-to-end (HIGH) — ✅ DONE (TRDD-292ddcd9; option A implemented, 386/386 PASS)
 - **Symptom (verified):** `scripts/amvcp-slide.js:124` declares the `code`
   block global as `amvcpCodeBlock` and calls `mod.renderInto(host, spec)`
   at `:1012`. The real renderer is `window.amvcpCodeHighlight`
@@ -68,7 +115,7 @@ Per-slice reports: `reports/plugin-audit/20260524_*-{slice}.md`
 - **Recommendation:** (B) unless the multi-brand mixer is on the roadmap —
   it's a sizable token-algebra feature.
 
-### G3 — Touch parity: drag-reorder widgets desktop-only (HIGH)
+### G3 — Touch parity: drag-reorder widgets desktop-only (HIGH) — 📋 PLANNED (TRDD-7114fb4e; verified facts + design; one architecture decision pending: shared module vs dependency-free)
 - **Symptom:** `ve-rank-list` + `ve-tier-list` (`amvcp-form-inputs.js`)
   and kanban drag (`amvcp-interactive.js`) use HTML5 drag-and-drop, which
   is non-functional on touch devices. The audit brief explicitly calls out
@@ -78,7 +125,7 @@ Per-slice reports: `reports/plugin-audit/20260524_*-{slice}.md`
 - **Recommendation:** (A) — pointer-events reorder is reusable and removes
   a real mobile gap; single shared helper + tests.
 
-### G4 — CSV/YAML fence tokenization promised, not implemented (HIGH)
+### G4 — CSV/YAML fence tokenization promised, not implemented (HIGH) — ✅ DONE (TRDD-292ddcd9; option B — audit's "implement" rec corrected; csv/yaml are data fences by design)
 - **Symptom:** `amvcp-code-highlight.js` tokenizer registers only
   `js, python, json, bash, html, css, diff`. `csv`/`yaml` render plain,
   but `skills/amvcp-code-fences/SKILL.md:105` + `references/csv-and-data-fences.md`
