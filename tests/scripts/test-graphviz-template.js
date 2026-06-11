@@ -19,12 +19,20 @@
 
 const FIXTURE = "http://127.0.0.1:8767/graphviz-template-fixture.html";
 
-// The fixture's own DESIGN.md values (NOT the engine's built-in default).
-const DARK_CANVAS = "#0c1322";
-const DARK_SURFACE_RGB = "rgb(18, 28, 48)";    // #121c30
-const LIGHT_CANVAS = "#f5f7fa";
-const LIGHT_SURFACE_RGB = "rgb(255, 255, 255)"; // #ffffff
-const DANGER_DARK_RGB = "rgb(224, 82, 82)";     // #e05252
+// The fixture's own DESIGN.md values — the warm parchment family
+// (default_theme: light; the flip test asserts the warm dark slice).
+// The fixture's palette deliberately matches the engine's BUILT-IN
+// default family, so the canvas value alone can no longer prove the
+// embedded block parsed. The fixture therefore carries a SENTINEL token
+// the built-in does not have: light surface-sunken = #f1ece1 (built-in:
+// #f1ece0). Test 1 asserts the sentinel — a fenceless/malformed block
+// falls back to the built-in and the sentinel disappears.
+const LIGHT_CANVAS = "#faf6ee";
+const LIGHT_SENTINEL_SUNKEN = "#f1ece1";        // fixture-only sentinel
+const LIGHT_SURFACE_RGB = "rgb(255, 254, 251)"; // #fffefb
+const DARK_CANVAS = "#16130d";
+const DARK_SURFACE_RGB = "rgb(33, 28, 20)";     // #211c14
+const DANGER_LIGHT_RGB = "rgb(168, 74, 50)";    // #a84a32
 
 const results = [];
 function record(name, status, desc, detail) {
@@ -60,12 +68,16 @@ async function testEmbeddedDesignMdApplied(page) {
   const res = await page.evaluate(() => ({
     canvas: getComputedStyle(document.documentElement)
       .getPropertyValue('--vc-color-canvas').trim().toLowerCase(),
+    sunkenSentinel: getComputedStyle(document.documentElement)
+      .getPropertyValue('--vc-color-surface-sunken').trim().toLowerCase(),
     theme: document.documentElement.getAttribute('data-ve-theme')
   }));
-  const ok = res.canvas === '#0c1322' && res.theme === 'dark';
+  const ok = res.canvas === LIGHT_CANVAS
+    && res.sunkenSentinel === LIGHT_SENTINEL_SUNKEN
+    && res.theme === 'light';
   record('gvt_embedded_designmd_applied', ok ? 'PASS' : 'FAIL',
-    'fenced embedded DESIGN.md drives tokens (no built-in fallback)',
-    JSON.stringify(res) + ' expected canvas ' + '#0c1322');
+    'fenced embedded DESIGN.md drives tokens (sentinel proves no built-in fallback)',
+    JSON.stringify(res) + ' expected sentinel ' + LIGHT_SENTINEL_SUNKEN);
 }
 
 async function testRoundedNodeIsThemedPath(page) {
@@ -89,10 +101,10 @@ async function testRoundedNodeIsThemedPath(page) {
     };
   });
   const ok = res.nodePresent && res.shapeIsPath
-    && res.fill === DARK_SURFACE_RGB;
+    && res.fill === LIGHT_SURFACE_RGB;
   record('gvt_rounded_node_path_themed', ok ? 'PASS' : 'FAIL',
     'rounded node renders as <path> styled by tokens (fill = surface)',
-    JSON.stringify(res) + ' expected fill ' + DARK_SURFACE_RGB);
+    JSON.stringify(res) + ' expected fill ' + LIGHT_SURFACE_RGB);
 }
 
 async function testGraphStructureAndSelectionStamps(page) {
@@ -115,24 +127,24 @@ async function testGraphStructureAndSelectionStamps(page) {
     };
   });
   const ok = res.nodeCount === 4 && res.edgeCount === 4
-    && res.failEdgeStroke === DANGER_DARK_RGB;
+    && res.failEdgeStroke === DANGER_LIGHT_RGB;
   record('gvt_structure_and_stamps', ok ? 'PASS' : 'FAIL',
     '4 nodes + 4 edges stamped; ve-edge-fail painted danger',
-    JSON.stringify(res) + ' expected stroke ' + DANGER_DARK_RGB);
+    JSON.stringify(res) + ' expected stroke ' + DANGER_LIGHT_RGB);
 }
 
 async function testLiveThemeFlipRepaintsGraph(page) {
-  // 4 — flipping data-ve-theme re-paints the GRAPH from the light slice:
-  // canvas var flips to the fixture's light value and the rounded node's
-  // <path> fill becomes the light surface (both themes ship, both work).
+  // 4 — flipping data-ve-theme re-paints the GRAPH from the dark slice:
+  // canvas var flips to the fixture's warm-dark value and the rounded
+  // node's <path> fill becomes the dark surface (both themes ship/work).
   const s = await setup(page);
   if (!s.ok) {
     record('gvt_live_theme_flip', 'FAIL',
-      'data-ve-theme flip re-paints graph from light tokens', s.error);
+      'data-ve-theme flip re-paints graph from dark tokens', s.error);
     return;
   }
   const res = await page.evaluate(async () => {
-    document.documentElement.setAttribute('data-ve-theme', 'light');
+    document.documentElement.setAttribute('data-ve-theme', 'dark');
     await new Promise(r => setTimeout(r, 700));
     const path = document.querySelector(
       '.ve-graph svg .node[data-ve-id="ve-node-work"] path');
@@ -142,10 +154,54 @@ async function testLiveThemeFlipRepaintsGraph(page) {
       pathFill: path ? getComputedStyle(path).fill : null
     };
   });
-  const ok = res.canvas === LIGHT_CANVAS && res.pathFill === LIGHT_SURFACE_RGB;
+  const ok = res.canvas === DARK_CANVAS && res.pathFill === DARK_SURFACE_RGB;
   record('gvt_live_theme_flip', ok ? 'PASS' : 'FAIL',
-    'data-ve-theme flip → light canvas var + white node <path> fill',
-    JSON.stringify(res) + ' expected ' + LIGHT_CANVAS + ' / ' + LIGHT_SURFACE_RGB);
+    'data-ve-theme flip → warm-dark canvas var + dark node <path> fill',
+    JSON.stringify(res) + ' expected ' + DARK_CANVAS + ' / ' + DARK_SURFACE_RGB);
+}
+
+async function testSelectionAddsNoNewElements(page) {
+  // 5 — THE NO-NEW-ELEMENTS HIGHLIGHT RULE (user contract, 2026-06-11):
+  // selecting a node or an edge must only re-paint the EXISTING shapes
+  // (brightness/glow/stroke) — never draw new screen geometry. Chromium
+  // renders an SVG outline as the group's BOUNDING-BOX RECTANGLE, so a
+  // leaked HTML outline rule shows an extra frame around nodes and a
+  // huge truncated rectangle around long bezier edges. Regression-guards
+  // the runtime's `:not(svg *)` exclusion on the generic state rules.
+  const s = await setup(page);
+  if (!s.ok) {
+    record('gvt_selection_no_new_elements', 'FAIL',
+      'selected node/edge g: no bbox outline, no g-level filter, no new children', s.error);
+    return;
+  }
+  const res = await page.evaluate(() => {
+    const click = (el) => {
+      const r = el.getBoundingClientRect();
+      el.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true,
+        clientX: r.x + r.width / 2, clientY: r.y + r.height / 2 }));
+    };
+    const node = document.querySelector('.ve-graph svg .node[data-ve-id="ve-node-work"]');
+    const edge = document.querySelector('.ve-graph svg .edge[data-ve-id="ve-edge-fail"]');
+    const beforeChildren = node ? node.childElementCount : -1;
+    if (node) click(node);
+    if (edge) click(edge);
+    const gs = (el) => el ? getComputedStyle(el) : null;
+    const n = gs(node), e = gs(edge);
+    return {
+      nodeSelected: node && node.getAttribute('data-ve-selected') === '1',
+      edgeSelected: edge && edge.getAttribute('data-ve-selected') === '1',
+      nodeOutlineStyle: n ? n.outlineStyle : null,   // must be 'none' (no bbox rect)
+      edgeOutlineStyle: e ? e.outlineStyle : null,   // must be 'none' (no bbox rect)
+      nodeGroupFilter: n ? n.filter : null,          // must be 'none' (no double-brightness)
+      childrenUnchanged: node ? node.childElementCount === beforeChildren : false
+    };
+  });
+  const ok = res.nodeSelected && res.edgeSelected
+    && res.nodeOutlineStyle === 'none' && res.edgeOutlineStyle === 'none'
+    && res.nodeGroupFilter === 'none' && res.childrenUnchanged;
+  record('gvt_selection_no_new_elements', ok ? 'PASS' : 'FAIL',
+    'selected node/edge g: no bbox outline, no g-level filter, no new children',
+    JSON.stringify(res));
 }
 
 // ── Runner ──────────────────────────────────────────────────────────
@@ -154,7 +210,8 @@ const tests = [
   testEmbeddedDesignMdApplied,
   testRoundedNodeIsThemedPath,
   testGraphStructureAndSelectionStamps,
-  testLiveThemeFlipRepaintsGraph
+  testLiveThemeFlipRepaintsGraph,
+  testSelectionAddsNoNewElements
 ];
 
 const page = await browser.getPage("graphviz-template-tests");

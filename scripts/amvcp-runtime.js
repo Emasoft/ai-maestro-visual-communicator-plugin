@@ -642,26 +642,40 @@
       // glow) MUST win over any DESIGN.md palette override. !important on
       // background-color / box-shadow / outline / filter so no preset can
       // mask the brightness direction or the hover glow.
-      '[data-ve-id]:not([data-ve-type="table-form"]):not(table):not(pre):hover {',
+      //
+      // `:not(svg *)` on every HTML state rule is LOAD-BEARING (the
+      // no-new-elements highlight rule): without it these rules also
+      // match SVG <g data-ve-id> groups — they out-specify the
+      // `svg [data-ve-id] … { outline:none }` suppression below
+      // ((0,3,2) vs (0,2,1), both !important), and Chromium renders an
+      // SVG outline as the group's BOUNDING-BOX RECTANGLE. The user saw
+      // an extra gold frame around selected nodes, and a huge truncated
+      // rectangle when a long bezier edge was selected (the edge bbox
+      // spans the whole graph). The g-level `filter` here ALSO stacked
+      // with the per-shape brightness below (double-darkening mud).
+      // Highlight/selection must only re-paint the EXISTING shapes —
+      // never draw new screen geometry. SVG state styling lives
+      // exclusively in the per-shape rules below.
+      '[data-ve-id]:not([data-ve-type="table-form"]):not(table):not(pre):not(svg *):hover {',
       '  outline:2px solid var(--ve-accent, currentColor) !important;',
       '  outline-offset:3px !important;',
       '  background-color: var(--ve-overlay-hover) !important;',
       '  box-shadow: var(--ve-glow-hover) !important;',
       '  filter: brightness(var(--ve-brightness-hover)) !important;',
       '}',
-      '[data-ve-id]:not([data-ve-type="table-form"]):not(table):not(pre):focus-visible {',
+      '[data-ve-id]:not([data-ve-type="table-form"]):not(table):not(pre):not(svg *):focus-visible {',
       '  outline:2px solid var(--ve-accent, currentColor) !important;',
       '  outline-offset:3px !important;',
       '}',
       // HTML selected: outline + smaller brightness + smaller bg tint, no glow.
-      '[data-ve-id]:not([data-ve-type="table-form"]):not(table):not(pre)[data-ve-selected="1"] {',
+      '[data-ve-id]:not([data-ve-type="table-form"]):not(table):not(pre):not(svg *)[data-ve-selected="1"] {',
       '  outline:2px solid var(--ve-accent, currentColor) !important;',
       '  outline-offset:3px !important;',
       '  background-color: var(--ve-overlay-selected) !important;',
       '  filter: brightness(var(--ve-brightness-selected)) !important;',
       '}',
       // Hover-on-selected: heavier overlay + heavier brightness + glow.
-      '[data-ve-id]:not([data-ve-type="table-form"]):not(table):not(pre)[data-ve-selected="1"]:hover {',
+      '[data-ve-id]:not([data-ve-type="table-form"]):not(table):not(pre):not(svg *)[data-ve-selected="1"]:hover {',
       '  background-color: var(--ve-overlay-hover) !important;',
       '  box-shadow: var(--ve-glow-hover) !important;',
       '  filter: brightness(var(--ve-brightness-hover)) !important;',

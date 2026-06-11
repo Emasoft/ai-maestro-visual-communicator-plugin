@@ -13,44 +13,43 @@
 <title>graphviz template fixture</title>
 <style>
   :root {
-    --ve-accent: var(--vc-color-accent, #d4a73a);
+    --ve-accent: var(--vc-color-accent, #b8861f);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body { overflow-x: auto; }
   body {
-    background: var(--vc-color-canvas, #0c1322);
-    color: var(--vc-color-content, #e8edf6);
+    background: var(--vc-color-canvas, #faf6ee);
+    color: var(--vc-color-content, #1f1a14);
     font: 16px/1.55 var(--vc-font-body, system-ui, sans-serif);
   }
   main { max-width: 1180px; margin: 0 auto; padding: 48px 32px 96px; }
   .graph-card {
-    border: 1px solid var(--vc-color-border, #23314d);
-    background: var(--vc-color-surface-sunken, #080d18);
+    border: 1px solid var(--vc-color-border, #e3dcc9);
+    background: var(--vc-color-surface-sunken, #f1ece0);
     border-radius: var(--vc-radius-lg, 12px);
     padding: 26px 22px 18px;
   }
   .ve-graph { display: block; width: 100%; overflow: visible; }
   .ve-graph svg { width: 100%; height: auto; display: block; }
-  .ve-graph svg text { fill: var(--vc-color-content, #e8edf6); font-family: var(--vc-font-mono, ui-monospace, monospace); }
-  .ve-graph svg .edge text { fill: var(--vc-color-content-muted, #9fadc4); }
+  .ve-graph svg text { fill: var(--vc-color-content, #1f1a14); font-family: var(--vc-font-mono, ui-monospace, monospace); }
+  .ve-graph svg .edge text { fill: var(--vc-color-content-muted, #5b5343); }
   .ve-graph svg .node path, .ve-graph svg .node polygon, .ve-graph svg .node ellipse {
-    fill: var(--vc-color-surface, #121c30);
-    stroke: var(--vc-color-border-strong, #33476b);
+    fill: var(--vc-color-surface, #fffefb);
+    stroke: var(--vc-color-border-strong, #c9bfa3);
     stroke-width: 1.6;
   }
-  .ve-graph svg .edge path    { stroke: var(--vc-color-content-subtle, #64748b); stroke-width: 1.4; fill: none; opacity: 0.92; }
-  .ve-graph svg .edge polygon { fill: var(--vc-color-content-subtle, #64748b); stroke: var(--vc-color-content-subtle, #64748b); opacity: 0.92; }
-  .ve-graph svg .edge[data-ve-id="ve-edge-fail"] path    { stroke: var(--vc-color-danger, #e05252); }
-  .ve-graph svg .edge[data-ve-id="ve-edge-fail"] polygon { fill: var(--vc-color-danger, #e05252); stroke: var(--vc-color-danger, #e05252); }
+  .ve-graph svg .edge path    { stroke: var(--vc-color-content-subtle, #8a8170); stroke-width: 1.4; fill: none; opacity: 0.92; }
+  .ve-graph svg .edge polygon { fill: var(--vc-color-content-subtle, #8a8170); stroke: var(--vc-color-content-subtle, #8a8170); opacity: 0.92; }
+  .ve-graph svg .edge[data-ve-id="ve-edge-fail"] path    { stroke: var(--vc-color-danger, #a84a32); }
+  .ve-graph svg .edge[data-ve-id="ve-edge-fail"] polygon { fill: var(--vc-color-danger, #a84a32); stroke: var(--vc-color-danger, #a84a32); }
   .ve-graph svg .node:hover path, .ve-graph svg .node:hover polygon, .ve-graph svg .node:hover ellipse,
   .ve-graph svg .node[data-ve-selected="1"] path, .ve-graph svg .node[data-ve-selected="1"] polygon, .ve-graph svg .node[data-ve-selected="1"] ellipse {
-    stroke: var(--vc-color-accent, #d4a73a); stroke-width: 2.6;
-    fill: color-mix(in srgb, var(--vc-color-accent, #d4a73a) 12%, var(--vc-color-surface, #121c30));
+    stroke: var(--vc-color-accent, #b8861f); stroke-width: 2.6;
   }
   .ve-graph svg .edge:hover path,
-  .ve-graph svg .edge[data-ve-selected="1"] path { stroke: var(--vc-color-accent, #d4a73a); stroke-width: 2.2; opacity: 1; }
+  .ve-graph svg .edge[data-ve-selected="1"] path { stroke: var(--vc-color-accent, #b8861f); stroke-width: 2.2; opacity: 1; }
   .ve-graph svg .edge:hover polygon,
-  .ve-graph svg .edge[data-ve-selected="1"] polygon { stroke: var(--vc-color-accent, #d4a73a); fill: var(--vc-color-accent, #d4a73a); opacity: 1; }
+  .ve-graph svg .edge[data-ve-selected="1"] polygon { stroke: var(--vc-color-accent, #b8861f); fill: var(--vc-color-accent, #b8861f); opacity: 1; }
 </style>
 
 <script type="text/design-md" id="ve-designmd">
@@ -58,40 +57,40 @@
 designmd_version: 1
 meta:
   name: "Graph Template Fixture"
-  default_theme: dark
+  default_theme: light
 colors:
-  dark:
-    canvas: "#0c1322"
-    surface: "#121c30"
-    surface-raised: "#18253e"
-    surface-sunken: "#080d18"
-    content: "#e8edf6"
-    content-muted: "#9fadc4"
-    content-subtle: "#64748b"
-    border: "#23314d"
-    border-strong: "#33476b"
-    accent: "#d4a73a"
-    on-accent: "#0c1322"
-    success: "#34a37f"
-    warning: "#d9913a"
-    danger: "#e05252"
-    info: "#5b9bd5"
   light:
-    canvas: "#f5f7fa"
-    surface: "#ffffff"
-    surface-raised: "#fbfcfe"
-    surface-sunken: "#eaeef4"
-    content: "#15243c"
-    content-muted: "#46587a"
-    content-subtle: "#7c8aa5"
-    border: "#d8e0ec"
-    border-strong: "#b9c6da"
-    accent: "#a8821f"
-    on-accent: "#ffffff"
-    success: "#1f7a5c"
-    warning: "#b06f12"
-    danger: "#c23b3b"
-    info: "#1e4f8f"
+    canvas: "#faf6ee"
+    surface: "#fffefb"
+    surface-raised: "#fffdf8"
+    surface-sunken: "#f1ece1"
+    content: "#1f1a14"
+    content-muted: "#5b5343"
+    content-subtle: "#8a8170"
+    border: "#e3dcc9"
+    border-strong: "#c9bfa3"
+    accent: "#b8861f"
+    on-accent: "#fffdf9"
+    success: "#3a6b5c"
+    warning: "#a8791f"
+    danger: "#a84a32"
+    info: "#3464a8"
+  dark:
+    canvas: "#16130d"
+    surface: "#211c14"
+    surface-raised: "#2a241a"
+    surface-sunken: "#0f0d09"
+    content: "#f3ecdd"
+    content-muted: "#b8ad96"
+    content-subtle: "#857c68"
+    border: "#3a3325"
+    border-strong: "#564c36"
+    accent: "#e0aa3e"
+    on-accent: "#16130d"
+    success: "#6fae9b"
+    warning: "#d8aa54"
+    danger: "#dd8068"
+    info: "#6f9bd8"
 typography:
   font-heading: "IBM Plex Sans, system-ui, sans-serif"
   font-body: "IBM Plex Sans, system-ui, sans-serif"
@@ -136,15 +135,15 @@ digraph G {
   node [
     shape    = box,
     style    = "rounded,filled",
-    fillcolor= "#121c30",
-    color    = "#33476b",
+    fillcolor= "#fffefb",
+    color    = "#c9bfa3",
     penwidth = 1.6,
     fontname = "Courier",
     fontsize = 15,
     margin   = "0.24,0.14"
   ];
   edge [
-    color    = "#64748b",
+    color    = "#8a8170",
     penwidth = 1.3,
     arrowsize= 0.8,
     fontname = "Courier",

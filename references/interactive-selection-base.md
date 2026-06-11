@@ -26,6 +26,22 @@ If no Chromium-based browser is found, the script falls back to the user's defau
 
 ### Page CSS contract (multi-select)
 
+**THE NO-NEW-ELEMENTS HIGHLIGHT RULE (user contract, 2026-06-11):** highlight
+and selection must NEVER add new visual elements on screen — no extra frames,
+rings, overlay rectangles, or injected geometry. They may only re-paint the
+EXISTING element: a brightness delta, a glow/shadow, and (for shapes) a stroke
+re-color. Two concrete consequences:
+
+- **SVG groups must never receive an `outline`** — Chromium renders an SVG
+  outline as the group's BOUNDING-BOX RECTANGLE, which reads as an extra frame
+  around nodes and as a huge (often viewport-clipped) rectangle around long
+  bezier edges. The runtime's generic HTML state rules carry `:not(svg *)`
+  for exactly this reason; never re-introduce an outline on SVG content from
+  page CSS.
+- **Don't stack page-side fill-tints on top of the runtime's brightness
+  filter** — the two multiply into a muddy tone. Page CSS re-colors strokes;
+  the runtime owns the brightness/glow state deltas.
+
 Hover and selected use the **same accent colour**; only a runtime-injected `drop-shadow` glow tells the user "this is hover, not selected". Two CSS contracts must be honoured:
 
 **1. Set `--ve-accent` on `:root` (one line per palette)**

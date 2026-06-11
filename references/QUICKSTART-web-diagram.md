@@ -28,7 +28,14 @@ parallel tool-call message — never serially.
 | Force / radial layout | `.ve-graph` + `data-ve-graph-engine="neato|sfdp|circo|twopi"` |
 | Positions carry physical meaning | `.ve-tikz` manual grid |
 
-## 2. The five traps (each cost a real debug round-trip once)
+## 2. The six traps (each cost a real debug round-trip once)
+
+0. **No-new-elements highlight rule** — hover/selection only re-paint the
+   EXISTING element (brightness + glow + stroke re-color). Never add frames,
+   rings, fills-on-top, or outlines; an `outline` on an SVG group renders as
+   its bounding-box RECTANGLE (extra frame on nodes; a huge clipped rectangle
+   on long bezier edges). Page CSS re-colors strokes only — the runtime owns
+   the brightness/glow state deltas (a page fill-tint stacks into mud).
 
 1. **DESIGN.md fences** — the embedded `<script type="text/design-md">`
    payload MUST open with `---` on line 1 and close with `---`.
