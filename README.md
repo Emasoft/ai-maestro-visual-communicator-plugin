@@ -81,6 +81,28 @@ the page renderer (`scripts/render-interactive-report.py`), and the
 selection server (`scripts/amvcp-select.py`). Windows users no longer need
 WSL2 — the plugin runs natively on every OS that has Python 3.12+.
 
+## Dependency
+
+amvcp depends on the **`ai-maestro-plugin`** base plugin for the
+PRRD/TRDD/kanban tasks pillar scripts (`get-prrd.py`, `prrd-edit.py`,
+`findprrd.py`, `findtrdd.py`, `kanban.py`, `bootstrap_design.py`,
+`prrd_lib.py`). These scripts are **not** vendored here — they are
+resolved at runtime via `scripts/prrd-trdd/resolve_pillar_scripts.sh`,
+a dependency-free POSIX shim that prints the absolute path of the
+installed base plugin's pillar directory (no hard-coded cache path):
+
+```sh
+DIR="$(sh scripts/prrd-trdd/resolve_pillar_scripts.sh)" || exit 1
+python3 "$DIR/kanban.py"          # render the TRDD kanban board
+python3 "$DIR/get-prrd.py" --list # list this project's PRRD rules
+```
+
+Install the `ai-maestro-plugin` base (or set
+`AI_MAESTRO_PRRD_SCRIPTS_DIR`) so the resolver can find the scripts.
+The project's rules live in `design/requirements/PRRD.md` and its task
+backlog in the `design/` zone tree (`proposals/`, `tasks/`,
+`archived/`, `refused/`).
+
 ## License
 
 MIT. Forked from [`nicobailon/visual-explainer`](https://github.com/nicobailon/visual-explainer) v0.8.0; see `CHANGELOG.md`.
