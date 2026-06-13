@@ -24,6 +24,9 @@
     "mermaid",
     "regex-vis"
   ],
+  "dependencies": [
+    { "name": "ai-maestro-plugin", "version": "^2.6.0" }
+  ],
   "cpv": {
     "max_lines": 800,
     "max_chars": 4000,
