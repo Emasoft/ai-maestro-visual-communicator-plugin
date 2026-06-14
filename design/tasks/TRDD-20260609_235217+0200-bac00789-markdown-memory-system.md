@@ -1,9 +1,10 @@
 ---
 trdd-id: bac00789-95b9-43d6-9c49-9ea679edf8b6
 title: Adopt the markdown memory system — memory-protocol rule + recall/write skills
-column: complete
+column: superseded
+superseded-by: [TRDD-371558fd]
 created: 2026-06-09T23:52:17+0200
-updated: 2026-06-10T00:25:00+0200
+updated: 2026-06-14T22:21:39+0200
 current-owner: amvcp-dev
 assignee: amvcp-dev
 priority: 3
@@ -39,6 +40,16 @@ external-refs: ["github.com/Emasoft/ai-maestro-visual-communicator-plugin/issues
 
 **Filename:** `design/tasks/TRDD-20260609_235217+0200-bac00789-markdown-memory-system.md`
 **Tracked in:** this repo (`design/tasks/` is git-tracked)
+
+## ⏵ SUPERSEDED — do NOT act on this TRDD — 2026-06-14
+
+This TRDD's deliverables (the per-plugin `rules/memory-protocol.md` +
+`skills/amvcp-memory-{recall,write}/` + `tests/test-memory-skills.py` +
+`tests/fixtures/memory/` + the `run_memory_suite()` runner hook) were **REMOVED**
+by **TRDD-371558fd** (issue #3), which migrates amvcp to the global
+janitor-hosted 3-scope wiki memory. The pieces listed below NO LONGER EXIST in
+the tree — they remain here only as the historical record of the issue-#2
+adoption. For the current memory system see TRDD-371558fd.
 
 ## What
 

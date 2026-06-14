@@ -1,9 +1,9 @@
 ---
 trdd-id: 371558fd-8d50-47da-a4cf-241556a335d8
 title: Migrate amvcp to the global janitor-hosted 3-scope wiki memory system
-column: dev
+column: testing
 created: 2026-06-14T18:13:30+0200
-updated: 2026-06-14T18:13:30+0200
+updated: 2026-06-14T22:21:39+0200
 current-owner: ai-maestro-visual-communicator-plugin
 assignee: ai-maestro-visual-communicator-plugin
 priority: 3
@@ -18,7 +18,7 @@ feature-branch: feat/memory-migration
 merge-strategy: squash
 relevant-rules: [6]
 impacts: [config-schema]
-supersedes: []
+supersedes: [TRDD-bac00789]
 parent-trdd: null
 implementation-commits: []
 external-refs: ["Emasoft/ai-maestro-visual-communicator-plugin#2", "Emasoft/ai-maestro-visual-communicator-plugin#3", "Emasoft/ai-maestro-janitor"]
@@ -55,7 +55,7 @@ Day-to-day legs are the GLOBAL skills `/janitor-memory-{recall,write,update}`
   add .claude/` stages ONLY the 2 memory files; `settings.json` / `history.jsonl`
   stay ignored — no over-broad leak.
 
-**⏳ PHASE B — SPECIFIED, GATED (do NOT execute until the gate below clears):**
+**✅ PHASE B — DONE (gate cleared via rule-sync; this branch). Steps executed:**
 1. `git rm rules/memory-protocol.md`
 2. `git rm -r skills/amvcp-memory-recall/ skills/amvcp-memory-write/`
 3. `git rm tests/test-memory-skills.py` and `git rm -r tests/fixtures/memory/`
@@ -78,31 +78,31 @@ Day-to-day legs are the GLOBAL skills `/janitor-memory-{recall,write,update}`
    feedback; runtime/test gotchas → reference after autopsy; composition
    decisions → capture WHY) + a pointer to the global skills & recall rule.
 
-**🚧 THE MERGE GATE (why Phase B is deferred, not done now):**
-The memory system shipped **today** (0.8.5). The INSTALLED recall rule
-`~/.claude/rules/markdown-memory-recall.md` (mtime 06-14 01:39) is **STALE** — it
-still names the OLD roots (`<git-root>/memory/`, `~/.claude/memory/`) while the
-**cached** 0.8.5 rule (mtime 17:33) + both skills name the NEW roots
-(`.claude/project/memory/`, janitor data dir). This is a local propagation lag,
-NOT a janitor release bug (0.8.5 is internally consistent). Phase B rips out
-amvcp's *still-working* per-plugin skills — do it only AFTER:
-  (a) the janitor confirms `.claude/project/memory/` is final (coordination on
-      amvcp#3 / janitor repo), AND/OR
-  (b) the installed `~/.claude/rules/markdown-memory-recall.md` re-syncs to the
-      0.8.5 roots (proves the design settled on this machine).
-The old per-plugin skills coexist harmlessly with the new PROJECT scope until
-then (different dirs; both degrade to grep). No urgency — the OWNER merges this
-branch (no-direct-push), so nothing is live before the gate clears.
+**✅ THE GATE — CLEARED (2026-06-14 ~22:04):** the cutover was gated on either
+(a) the janitor confirming `.claude/project/memory/` is final, OR (b) the installed
+`~/.claude/rules/markdown-memory-recall.md` re-syncing to the new roots. **(b) is
+met** — the installed rule is now IDENTICAL to the 0.8.10 cache (PROJECT =
+`.claude/project/memory`, USER = janitor data dir), and the design held stable
+across 0.8.5→0.8.7→0.8.8→0.8.10 (4 releases). The rule auto-refreshing is also the
+empirical answer to janitor#37's core question (it DOES auto-refresh, on a session
+reload). janitor#37 stayed unanswered (0c) but (b) is the stronger signal.
 
-**NEXT ACTION:** coordinate with the janitor (report the sync-lag + confirm the
-design is final). When the gate clears → execute Phase B exactly as specified →
-re-run `tests/run-tests.py` clean → commit → the OWNER merges
-`feat/memory-migration` after `feat/3-pillars-adoption`.
+**Phase B catch (recheck saved this):** the first reference scan used a malformed
+`grep -rnED` (the `-D` flag swallowed the pattern) → false "no external refs". A
+correct re-scan found two MISSED references, both now handled: (1) `CLAUDE.md`
+(the memory bullet — rewritten to the global system + the folded amvcp wiring),
+and (2) `TRDD-bac00789` (the issue-#2 per-plugin adoption, ALREADY on main) —
+marked `superseded` with `superseded-by: [TRDD-371558fd]` (bidirectional).
+
+**NEXT ACTION:** verify `tests/run-tests.py` runs clean (memory suite removed) →
+commit Phase B on `feat/memory-migration` → the OWNER merges after
+`feat/3-pillars-adoption` (no-direct-push) → close the loop on amvcp#3 + janitor#37.
 
 **Load-bearing facts / gotchas:**
-- Base = `main` (f348b5d). `design/tasks/` does not exist on main (it is
-  introduced by `feat/3-pillars-adoption`); this branch adds ONLY
-  `design/tasks/TRDD-371558fd-*.md`, so a merge of both branches UNIONS
+- Base = `main` (f348b5d). `design/tasks/` ALREADY exists on main (it holds
+  `TRDD-bac00789` — the earlier "only 3-pillars introduces design/tasks/" note was
+  WRONG, caught by the recheck). This branch adds `TRDD-371558fd` + edits bac00789;
+  `feat/3-pillars-adoption` adds its own distinct TRDDs, so a merge UNIONS
   `design/tasks/` with no conflict (different files). `.gitignore`, `CLAUDE.md`,
   `README.md` overlap: 3-pillars touched README.md (+22 lines, different section)
   but NOT `.gitignore` / `CLAUDE.md` — so order the merge 3-pillars → memory and
