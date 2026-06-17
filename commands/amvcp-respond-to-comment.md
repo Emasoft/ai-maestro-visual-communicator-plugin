@@ -107,7 +107,7 @@ silently miss each other and the modal sits forever waiting.
 2. **Set `VE_COMMENT_DIR` explicitly** in the shell that launches each
    half:
    ```bash
-   export VE_COMMENT_DIR=/Users/me/work/proj-A/.ve-comments
+   export VE_COMMENT_DIR=~/work/proj-A/.ve-comments
    ```
    Both `amvcp-select.py` and this command honour the env var
    unconditionally.

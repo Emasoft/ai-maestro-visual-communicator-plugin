@@ -84,9 +84,9 @@ JSONL/JSON files under a **queue directory**. The default is
 single most common silent-failure vector in the workflow:
 
 - **Failure mode** — if `/amvcp-interactive-report` runs from
-  `/Users/me/work/proj-A` but the agent that runs
-  `/amvcp-respond-to-comment` runs from `/Users/me`, the responder
-  polls `/Users/me/.ve-comments/` and never sees the user's comment.
+  `~/work/proj-A` but the agent that runs
+  `/amvcp-respond-to-comment` runs from `~`, the responder
+  polls `~/.ve-comments/` and never sees the user's comment.
   The modal sits forever on "Waiting for Claude to reply…".
 
 - **The contract** — both halves of the flow MUST resolve to the SAME
@@ -100,7 +100,7 @@ single most common silent-failure vector in the workflow:
   2. **Set `VE_COMMENT_DIR` explicitly** in BOTH shells before
      launching either half:
      ```bash
-     export VE_COMMENT_DIR=/Users/me/work/proj-A/.ve-comments
+     export VE_COMMENT_DIR=~/work/proj-A/.ve-comments
      ```
      Both `amvcp-select.py` (renderer) and
      `amvcp-respond-to-comment` (responder) honour this env var

@@ -4,6 +4,13 @@
 
 </div>
 
+A Claude Code plugin that gives an agent a palette of visual-element
+skills — each generates a self-contained, interactive HTML artifact
+(charts, diagrams, tables, slide decks, code views, wireframes, agent
+reports). Every element is editable, commentable, stylizable (light +
+dark), and exportable, and any element can be composed inside any other
+via nested HTML + SVG.
+
 ## Features
 
 - **Interactive HTML output** — every diagram, table, card and chart point is clickable; the click returns a typed selection to the agent and the browser closes itself.

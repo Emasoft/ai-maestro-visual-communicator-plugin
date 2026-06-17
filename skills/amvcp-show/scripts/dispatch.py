@@ -95,7 +95,7 @@ def _read_head(path: pathlib.Path, max_bytes: int = 4096) -> str:
 
 
 def _json_top_level_is_array(head: str) -> bool:
-    stripped = head.lstrip("\ufeff \t\r\n")
+    stripped = head.lstrip(chr(0xFEFF) + " \t\r\n")
     return stripped.startswith("[")
 
 
