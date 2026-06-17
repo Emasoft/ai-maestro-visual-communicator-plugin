@@ -1,5 +1,22 @@
 # Node primitive — external (dashed rounded rect)
 
+## Table of Contents
+
+- [What it renders](#what-it-renders)
+- [Scaffold](#scaffold)
+- [Variants](#variants)
+- [Lib function](#lib-function)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Selection / comment / decision-mini](#selection--comment--decision-mini)
+- [When to use](#when-to-use)
+- [When NOT to use](#when-not-to-use)
+- [Common authoring patterns](#common-authoring-patterns)
+  - [Single external boundary (a single vendor in a system diagram)](#single-external-boundary-a-single-vendor-in-a-system-diagram)
+  - [Two externals (upstream + downstream)](#two-externals-upstream--downstream)
+  - [External + process pair (vendor → our handler)](#external--process-pair-vendor--our-handler)
+- [What NOT to do](#what-not-to-do)
+- [Visual verification](#visual-verification)
+
 The `external` node marks a SYSTEM BOUNDARY: something outside the
 diagrammed scope. A vendor API, a third-party service, a user-side
 device, an upstream input the team doesn't own. Visually identical to

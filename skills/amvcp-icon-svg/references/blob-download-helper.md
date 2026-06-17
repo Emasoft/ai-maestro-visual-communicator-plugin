@@ -1,5 +1,17 @@
 # Single-SVG download helper — 6-line Blob + `<a download>`
 
+## Table of Contents
+
+- [The 6-line helper](#the-6-line-helper)
+- [Usage](#usage)
+- [Combined with the inline-style block pattern](#combined-with-the-inline-style-block-pattern)
+- [Why a Blob, not a data URI?](#why-a-blob-not-a-data-uri)
+- [The MIME type](#the-mime-type)
+- [Browser compatibility](#browser-compatibility)
+- [Filename suggestions](#filename-suggestions)
+- [What NOT to do](#what-not-to-do)
+- [Visual verification](#visual-verification)
+
 A standalone helper to export a single inline SVG as a downloadable
 `.svg` file. Six lines, no dependencies. The pattern mined from the
 `10-svg-illustrations.html` reference demo. Useful for "Download

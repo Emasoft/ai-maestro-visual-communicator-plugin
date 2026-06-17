@@ -1,5 +1,21 @@
 # Scene-graph JSON contract
 
+## Table of Contents
+
+- [The authoring surface](#the-authoring-surface)
+  - [Form A — `<script type="application/icon-svg+json">`](#form-a--script-typeapplicationicon-svgjson)
+  - [Form B — fenced code block](#form-b--fenced-code-block)
+- [SceneGraph schema](#scenegraph-schema)
+- [Primitive — three kinds](#primitive--three-kinds)
+  - [type: "process" / "database" / "decision" / "external" / "network"](#type-process--database--decision--external--network)
+  - [type: "logo", kind: ...](#type-logo-kind-)
+  - [type: "shape", kind: ...](#type-shape-kind-)
+- [Validation — fail-fast](#validation--fail-fast)
+- [Auto-fixes (silent — no throw)](#auto-fixes-silent--no-throw)
+- [A worked example — five-node showcase](#a-worked-example--five-node-showcase)
+- [The `<defs><use>` reuse pass](#the-defsuse-reuse-pass)
+- [The selection / comment / decision-pill scaffold](#the-selection--comment--decision-pill-scaffold)
+
 The declarative input to `buildSceneSvg(scene)`. The agent emits this
 document; `amvcp-icon-svg.js` compiles it to a themed, lint-clean,
 `data-ve-id`-tagged `<svg>` string. Pure function — no DOM, no

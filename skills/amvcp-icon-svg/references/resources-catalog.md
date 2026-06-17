@@ -1,0 +1,502 @@
+# Icon-SVG — Reference Catalog
+
+The `skills/amvcp-icon-svg/references/` folder contains 42 self-sufficient
+technique references organized into eight groups. Each entry below links the
+reference file and embeds that file's complete Table of Contents (every `##` /
+`###` heading, verbatim) so you can pick the exact reference without opening it.
+
+## Table of Contents
+
+- [Contract (4)](#contract-4)
+- [Node primitives (5)](#node-primitives-5)
+- [Logo blocks (6)](#logo-blocks-6)
+- [Decorative shapes (6)](#decorative-shapes-6)
+- [Device frames (4)](#device-frames-4)
+- [Annotation + reuse + scaffolding (6)](#annotation--reuse--scaffolding-6)
+- [Patterns + helpers (7)](#patterns--helpers-7)
+- [Invariants + exclusions (4)](#invariants--exclusions-4)
+
+## Contract (4)
+
+- [dispatch-decision-tree](dispatch-decision-tree.md)
+  - The 60-second routing answer
+  - The boundary contracts (cross-skill seams)
+  - Negative routing — what icon-svg is NOT
+  - Choosing a sub-technique inside icon-svg
+  - Selection / comment / decision-pill integration
+  - When in doubt
+- [scene-graph-contract](scene-graph-contract.md)
+  - The authoring surface
+  - SceneGraph schema
+  - Primitive — three kinds
+  - Validation — fail-fast
+  - Auto-fixes (silent — no throw)
+  - A worked example — five-node showcase
+  - The `<defs><use>` reuse pass
+  - The selection / comment / decision-pill scaffold
+- [theming-tokens](theming-tokens.md)
+  - The 13 canonical color tokens
+  - The 3 derived tint tiers (color-mix off accent)
+  - The 2 special non-token values
+  - The semantic-role variant ladder
+  - Light + dark themes
+  - The no-engine fallback contract
+  - How tokens flow into the compiled SVG
+  - Special token use in non-color attributes
+  - What does NOT belong in the palette
+- [lint-c1-to-c7](lint-c1-to-c7.md)
+  - The 7 constraints
+  - Auto-fix vs throw — the boundary
+  - The `<mask>` exemption
+  - The C4 semantic-role collapse
+  - The C7 mixed-theming check
+  - The 13-diagram-types NON-clause
+  - Return shape
+  - Calling lintSvg directly (Node / test harness)
+  - Dev-mode lint
+  - A worked example — every rule in one bad scene
+
+## Node primitives (5)
+
+- [node-process-rect](node-process-rect.md)
+  - What it renders
+  - Scaffold
+  - Variants
+  - Geometry — what `w` and `h` mean
+  - Lib function (directly callable)
+  - DESIGN.md tokens consumed
+  - Selection / comment / decision-mini
+  - Common authoring patterns
+  - What NOT to do
+  - Visual verification
+- [node-database-cylinder](node-database-cylinder.md)
+  - What it renders
+  - Scaffold
+  - Geometry — width, height, ry
+  - Variants
+  - Lib function
+  - DESIGN.md tokens consumed
+  - Selection / comment / decision-mini
+  - When to use
+  - When NOT to use
+  - Common authoring patterns
+  - What NOT to do
+  - Visual verification
+- [node-decision-diamond](node-decision-diamond.md)
+  - What it renders
+  - Scaffold
+  - Geometry — keep w = h for a true diamond
+  - Why `decision` is hand-drawn as `<polygon>`, not a rotated rect
+  - Variants
+  - Lib function
+  - DESIGN.md tokens consumed
+  - Selection / comment / decision-mini
+  - When to use
+  - When NOT to use
+  - Common authoring patterns
+  - What NOT to do
+  - Visual verification
+- [node-external-dashed](node-external-dashed.md)
+  - What it renders
+  - Scaffold
+  - Variants
+  - Lib function
+  - DESIGN.md tokens consumed
+  - Selection / comment / decision-mini
+  - When to use
+  - When NOT to use
+  - Common authoring patterns
+  - What NOT to do
+  - Visual verification
+- [node-network-cloud](node-network-cloud.md)
+  - What it renders
+  - Scaffold
+  - Geometry — width-to-height ratio
+  - Variants
+  - Lib function
+  - DESIGN.md tokens consumed
+  - Selection / comment / decision-mini
+  - When to use
+  - When NOT to use
+  - Common authoring patterns
+  - What NOT to do
+  - Visual verification
+
+## Logo blocks (6)
+
+- [logo-mask-cutout](logo-mask-cutout.md)
+  - What it renders
+  - Scaffold
+  - Geometry
+  - C7 implications — accent + mask = explicit token only
+  - The mask `#fff` / `#000` lint exemption
+  - Lib function
+  - DESIGN.md tokens consumed
+  - Selection / comment / decision-mini
+  - When to use
+  - When NOT to use
+  - Common authoring patterns
+  - What NOT to do
+  - Visual verification
+- [logo-arc-bite](logo-arc-bite.md)
+  - What it renders
+  - Scaffold
+  - Geometry
+  - Why a `<path>`, not a mask?
+  - Lib function
+  - DESIGN.md tokens consumed
+  - When to use
+  - When NOT to use
+  - Common authoring patterns
+  - What NOT to do
+  - Visual verification
+- [logo-zig-zag](logo-zig-zag.md)
+  - What it renders
+  - Scaffold
+  - Geometry
+  - Why 6 teeth, not parametric?
+  - Lib function
+  - DESIGN.md tokens consumed
+  - When to use
+  - When NOT to use
+  - Common authoring patterns
+  - What NOT to do
+  - Visual verification
+- [logo-stacked-rects](logo-stacked-rects.md)
+  - What it renders
+  - Scaffold
+  - Geometry
+  - Visual reading
+  - Lib function
+  - DESIGN.md tokens consumed
+  - Selection / comment / decision-mini
+  - When to use
+  - When NOT to use
+  - Common authoring patterns
+  - What NOT to do
+  - Visual verification
+- [logo-tint-hierarchy](logo-tint-hierarchy.md)
+  - What it renders
+  - Scaffold
+  - Geometry
+  - Visual reading
+  - Lib function
+  - DESIGN.md tokens consumed
+  - Selection / comment / decision-mini
+  - When to use
+  - When NOT to use
+  - Common authoring patterns
+  - What NOT to do
+  - Visual verification
+- [logo-current-color](logo-current-color.md)
+  - What it renders
+  - Scaffold
+  - Why the diamond shape?
+  - The C7 constraint — why this mark MUST live in its own scene
+  - Lib function
+  - DESIGN.md tokens consumed
+  - Selection / comment / decision-mini
+  - When to use
+  - When NOT to use
+  - Common authoring patterns
+  - What NOT to do
+  - Visual verification
+
+## Decorative shapes (6)
+
+- [shape-triangle-up](shape-triangle-up.md)
+  - What it renders
+  - Two authoring paths
+  - Fill options (scene-graph path)
+  - DESIGN.md tokens consumed
+  - Selection / comment / decision-mini (scene-graph path)
+  - When to use
+  - When NOT to use
+  - Common authoring patterns
+  - What NOT to do
+  - Visual verification
+- [shape-arrow-right](shape-arrow-right.md)
+  - What it renders
+  - Two authoring paths
+  - Fill options
+  - DESIGN.md tokens consumed
+  - When to use
+  - When NOT to use
+  - Common authoring patterns
+  - What NOT to do
+  - Visual verification
+- [shape-chevron](shape-chevron.md)
+  - What it renders
+  - Two authoring paths
+  - Fill options
+  - When to use
+  - When NOT to use
+  - Common authoring patterns
+  - What NOT to do
+  - Visual verification
+- [shape-parallelogram](shape-parallelogram.md)
+  - What it renders
+  - Two authoring paths
+  - Fill options
+  - When to use
+  - When NOT to use
+  - Common authoring patterns
+  - What NOT to do
+  - Visual verification
+- [shape-hexagon](shape-hexagon.md)
+  - What it renders
+  - Two authoring paths
+  - Fill options
+  - When to use
+  - When NOT to use
+  - Common authoring patterns
+  - What NOT to do
+  - Visual verification
+- [shape-star](shape-star.md)
+  - What it renders
+  - Two authoring paths
+  - Fill options
+  - When to use
+  - When NOT to use
+  - Common authoring patterns
+  - What NOT to do
+  - Visual verification
+
+## Device frames (4)
+
+- [device-frame-ios](device-frame-ios.md)
+  - What it renders
+  - Two authoring paths
+  - Required parameters (JS path)
+  - Status bar glyphs
+  - The home indicator
+  - Dynamic Island
+  - CSS-only path classes
+  - DESIGN.md tokens consumed
+  - The `.isvg-frame-content` overflow: auto carve-out
+  - Selection / comment / decision-mini
+  - When to use
+  - When NOT to use
+  - What NOT to do
+  - Visual verification
+- [device-frame-android](device-frame-android.md)
+  - What it renders
+  - Two authoring paths
+  - Required parameters (JS path)
+  - The punch-hole camera
+  - The gesture bar
+  - CSS-only path classes
+  - DESIGN.md tokens consumed
+  - Selection / comment / decision-mini
+  - When to use
+  - When NOT to use
+  - What NOT to do
+  - Visual verification
+- [device-frame-mac](device-frame-mac.md)
+  - What it renders
+  - Two authoring paths
+  - Required parameters (JS path)
+  - The traffic lights
+  - CSS-only path classes
+  - DESIGN.md tokens consumed
+  - Selection / comment / decision-mini
+  - When to use
+  - When NOT to use
+  - What NOT to do
+  - Visual verification
+- [device-frame-browser](device-frame-browser.md)
+  - What it renders
+  - Two authoring paths
+  - Required parameters (JS path)
+  - The URL bar
+  - The tab label
+  - CSS-only path classes
+  - DESIGN.md tokens consumed
+  - Selection / comment / decision-mini
+  - When to use
+  - When NOT to use
+  - What NOT to do
+  - Visual verification
+
+## Annotation + reuse + scaffolding (6)
+
+- [hotspot-annotation](hotspot-annotation.md)
+  - What it renders
+  - The `--x` / `--y` contract
+  - CSS contract (injected by amvcp-icon-svg.js)
+  - Hover state (reduced-motion-aware)
+  - Why `<span role="button">` and NOT `<button>`?
+  - Selection / comment / decision-mini integration
+  - When to use
+  - When NOT to use
+  - Common authoring patterns
+  - DESIGN.md tokens consumed
+  - What NOT to do
+  - Visual verification
+- [defs-use-reuse-pass](defs-use-reuse-pass.md)
+  - When the pass fires
+  - The output structure
+  - Why the threshold is N > 2
+  - When the pass does NOT fire
+  - What the geometry key collapses
+  - A worked example
+  - When NOT to expect reuse
+  - Selection / comment / decision-mini behavior
+  - What NOT to do
+  - Visual verification
+- [variant-semantic-stroke](variant-semantic-stroke.md)
+  - The 5 variants
+  - The exception — external default
+  - How to use
+  - Conventional variant choice per node type
+  - Fail-fast — unknown variant
+  - Why no `accent` variant?
+  - Variants vs shapes
+  - C4 lint interaction — the semantic-role collapse
+  - DESIGN.md tokens consumed
+  - Visual verification
+- [data-ve-id-selection](data-ve-id-selection.md)
+  - The 4 data-ve-* attributes
+  - The selection scaffold per primitive
+  - The id uniqueness contract
+  - The scene `id` synthesis
+  - Runtime integration — what the runtime does on click
+  - Hotspots are also selection atoms
+  - The keyboard comment fallback (Ctrl-+)
+  - How to disable selection on an atom
+  - Visual verification
+- [decision-mini-pill](decision-mini-pill.md)
+  - What it renders
+  - Where the wiring lives
+  - The atoms that get pills
+  - Defensive integration
+  - Public re-attachment surface
+  - DESIGN.md tokens consumed
+  - Why "independent of selection state"?
+  - When pills are NOT attached
+  - Visual verification
+- [error-placeholder](error-placeholder.md)
+  - What it renders
+  - When it appears
+  - What triggers the placeholder
+  - Why the placeholder uses the danger token
+  - Font choice — monospace
+  - What the placeholder does NOT do
+  - How to recover from a placeholder
+  - DESIGN.md tokens consumed
+  - Selection / comment / decision-mini
+  - Visual verification
+  - What if the placeholder ITSELF throws?
+
+## Patterns + helpers (7)
+
+- [junction-dot-primitive](junction-dot-primitive.md)
+  - What it renders
+  - How to author one
+  - Why icon-svg doesn't have a junction primitive
+  - When you DO need a junction in icon-svg (the edge case)
+  - Cross-skill seam — junction dots in the `diagram` skill
+  - Visual verification
+  - Why this reference exists
+- [inline-style-block-export](inline-style-block-export.md)
+  - The pattern
+  - Why this matters for icon-svg
+  - How to inject the embedded style at export time
+  - When this pattern is overkill
+  - When to use this pattern
+  - Cross-skill seam — chart skill also adopts this
+  - Visual verification
+  - What NOT to do
+- [blob-download-helper](blob-download-helper.md)
+  - The 6-line helper
+  - Usage
+  - Combined with the inline-style block pattern
+  - Why a Blob, not a data URI?
+  - The MIME type
+  - Browser compatibility
+  - Filename suggestions
+  - What NOT to do
+  - Visual verification
+- [inline-thumbnail-pattern](inline-thumbnail-pattern.md)
+  - The pattern
+  - Why short class names
+  - Cross-skill seam — gallery indexes
+  - DESIGN.md tokens consumed
+  - When to use
+  - When NOT to use
+  - What NOT to do
+  - Visual verification
+- [svg-ornament-marks](svg-ornament-marks.md)
+  - The canonical pattern (from `09-slide-deck.html`)
+  - Variants
+  - When to use
+  - When NOT to use
+  - Why a custom mark and not a primitive?
+  - DESIGN.md tokens to use
+  - Class naming convention
+  - Visual verification
+- [named-port-anchors](named-port-anchors.md)
+  - Why this matters for icon-svg
+  - The TikZ source pattern (for reference)
+  - The HTML/SVG analog
+  - Where this pattern actually lives in this plugin
+  - When the pattern would extend icon-svg
+  - Documented as an idea, not a feature
+  - When you actually need this
+  - What if I really must in icon-svg?
+- [empty-state-illustration](empty-state-illustration.md)
+  - The canonical anatomy
+  - The visual grammar
+  - When to use
+  - When NOT to use
+  - How icon-svg can help (or not)
+  - DESIGN.md tokens to use
+  - CSS sizing
+  - Common variants
+  - What NOT to do
+  - Visual verification
+
+## Invariants + exclusions (4)
+
+- [reduced-motion-substitutes](reduced-motion-substitutes.md)
+  - The contract
+  - The implemented case — hotspot hover
+  - Why "no-preference" not the default
+  - When to apply this pattern
+  - What kinds of substitutes work
+  - Testing
+  - DESIGN.md tokens consumed
+  - Why this matters
+  - Visual verification
+- [no-build-no-dep-invariant](no-build-no-dep-invariant.md)
+  - What the invariant means
+  - Why this is a hard invariant
+  - What this rules out
+  - What this DOES allow
+  - Sister modules with the same invariant
+  - What changes if the runtime EVER needs a dep
+  - Visual verification
+  - The Node export — for testing
+- [canvas-pixel-art-exclusion](canvas-pixel-art-exclusion.md) (IS-05 SKIP)
+  - Why it's out of scope
+  - The use cases pixel art ostensibly serves
+  - When a user REALLY wants pixel art
+  - What would the runtime gain by including pixel art?
+  - The C5 lint constraint informs this exclusion
+  - What if the project DID want pixel art
+  - Cross-skill seam — none
+  - Visual verification
+  - Source citation
+- [fontkit-glyph-exclusion](fontkit-glyph-exclusion.md) (IS-08 SKIP)
+  - Why it's out of scope
+  - What fontkit + Playwright would BUY
+  - Why it's the wrong tradeoff for visual-communicator
+  - The use cases IS-08 ostensibly serves
+  - When a user REALLY wants this
+  - What about KaTeX / MathJax?
+  - Cross-skill seam — typography
+  - The no-dep invariant informs this exclusion
+  - What if the project DID want offline path embedding
+  - Cross-skill seam — none
+  - Visual verification
+  - Source citation

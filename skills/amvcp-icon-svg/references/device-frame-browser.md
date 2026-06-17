@@ -1,5 +1,22 @@
 # Device frame — Browser
 
+## Table of Contents
+
+- [What it renders](#what-it-renders)
+- [Two authoring paths](#two-authoring-paths)
+  - [Path A — JS API](#path-a--js-api)
+  - [Path B — direct markup](#path-b--direct-markup)
+- [Required parameters (JS path)](#required-parameters-js-path)
+- [The URL bar](#the-url-bar)
+- [The tab label](#the-tab-label)
+- [CSS-only path classes](#css-only-path-classes)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Selection / comment / decision-mini](#selection--comment--decision-mini)
+- [When to use](#when-to-use)
+- [When NOT to use](#when-not-to-use)
+- [What NOT to do](#what-not-to-do)
+- [Visual verification](#visual-verification)
+
 The `browser` device frame wraps content in a themed browser-window
 mockup — title bar with traffic lights + a tab label + URL bar +
 content area. Visually similar to the `mac` frame but with an URL

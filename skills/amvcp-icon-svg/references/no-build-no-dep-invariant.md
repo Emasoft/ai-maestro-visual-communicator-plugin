@@ -1,5 +1,16 @@
 # No-build / no-dependency invariant
 
+## Table of Contents
+
+- [What the invariant means](#what-the-invariant-means)
+- [Why this is a hard invariant](#why-this-is-a-hard-invariant)
+- [What this rules out](#what-this-rules-out)
+- [What this DOES allow](#what-this-does-allow)
+- [Sister modules with the same invariant](#sister-modules-with-the-same-invariant)
+- [What changes if the runtime EVER needs a dep](#what-changes-if-the-runtime-ever-needs-a-dep)
+- [Visual verification](#visual-verification)
+- [The Node export — for testing](#the-node-export--for-testing)
+
 The icon-svg module is DEPENDENCY-FREE. Pure ES5-style vanilla JS,
 one self-contained file, no toolchain, no npm runtime dep, no CDN,
 no WASM, no XML parser. The CSS is injected as a string from the

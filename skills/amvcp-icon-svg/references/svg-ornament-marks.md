@@ -1,5 +1,19 @@
 # SVG ornament marks — title-mark / divider-mark / accent-mark
 
+## Table of Contents
+
+- [The canonical pattern (from `09-slide-deck.html`)](#the-canonical-pattern-from-09-slide-deckhtml)
+- [Variants](#variants)
+  - [Title-mark — circle + dot](#title-mark--circle--dot)
+  - [Divider-mark — three dots in a row](#divider-mark--three-dots-in-a-row)
+  - [Accent-mark — arc + dot](#accent-mark--arc--dot)
+- [When to use](#when-to-use)
+- [When NOT to use](#when-not-to-use)
+- [Why a custom mark and not a primitive?](#why-a-custom-mark-and-not-a-primitive)
+- [DESIGN.md tokens to use](#designmd-tokens-to-use)
+- [Class naming convention](#class-naming-convention)
+- [Visual verification](#visual-verification)
+
 A pattern mined from `09-slide-deck.html`: a 56 x 56 inline SVG of
 some minimalist combination (circle + cross + center dot; arc + dot;
 three dots in a row) used as a TITLE ORNAMENT or DIVIDER. Replaces

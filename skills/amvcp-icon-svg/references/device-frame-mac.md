@@ -1,5 +1,21 @@
 # Device frame — Mac (macOS window)
 
+## Table of Contents
+
+- [What it renders](#what-it-renders)
+- [Two authoring paths](#two-authoring-paths)
+  - [Path A — JS API](#path-a--js-api)
+  - [Path B — direct markup](#path-b--direct-markup)
+- [Required parameters (JS path)](#required-parameters-js-path)
+- [The traffic lights](#the-traffic-lights)
+- [CSS-only path classes](#css-only-path-classes)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Selection / comment / decision-mini](#selection--comment--decision-mini)
+- [When to use](#when-to-use)
+- [When NOT to use](#when-not-to-use)
+- [What NOT to do](#what-not-to-do)
+- [Visual verification](#visual-verification)
+
 The `mac` device frame wraps content in a themed macOS desktop window
 mockup — title bar with traffic-light buttons + title text +
 content area. No URL bar (that's the `browser` frame). The classic

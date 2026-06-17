@@ -1,5 +1,18 @@
 # The variant ladder — semantic stroke roles
 
+## Table of Contents
+
+- [The 5 variants](#the-5-variants)
+- [The exception — external default](#the-exception--external-default)
+- [How to use](#how-to-use)
+- [Conventional variant choice per node type](#conventional-variant-choice-per-node-type)
+- [Fail-fast — unknown variant](#fail-fast--unknown-variant)
+- [Why no `accent` variant?](#why-no-accent-variant)
+- [Variants vs shapes](#variants-vs-shapes)
+- [C4 lint interaction — the semantic-role collapse](#c4-lint-interaction--the-semantic-role-collapse)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Visual verification](#visual-verification)
+
 Every node primitive (`process`, `database`, `decision`, `external`,
 `network`) accepts an optional `variant` field. The variant changes
 ONLY the stroke color — not the shape, not the fill (except for

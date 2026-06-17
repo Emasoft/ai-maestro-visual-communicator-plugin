@@ -1,5 +1,20 @@
 # fontkit / Playwright glyph embedding (IS-08) — out of scope
 
+## Table of Contents
+
+- [Why it's out of scope](#why-its-out-of-scope)
+- [What fontkit + Playwright would BUY](#what-fontkit--playwright-would-buy)
+- [Why it's the wrong tradeoff for visual-communicator](#why-its-the-wrong-tradeoff-for-visual-communicator)
+- [The use cases IS-08 ostensibly serves](#the-use-cases-is-08-ostensibly-serves)
+- [When a user REALLY wants this](#when-a-user-really-wants-this)
+- [What about KaTeX / MathJax?](#what-about-katex--mathjax)
+- [Cross-skill seam — typography](#cross-skill-seam--typography)
+- [The no-dep invariant informs this exclusion](#the-no-dep-invariant-informs-this-exclusion)
+- [What if the project DID want offline path embedding](#what-if-the-project-did-want-offline-path-embedding)
+- [Cross-skill seam — none](#cross-skill-seam--none)
+- [Visual verification](#visual-verification)
+- [Source citation](#source-citation)
+
 The original IS-08 source proposed using `fontkit` (npm package) to
 extract variable font paths and embed them in SVG, with Playwright
 (headless browser) capturing ground-truth glyph layouts at 2x DPR

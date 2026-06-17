@@ -1,5 +1,19 @@
 # Visible error placeholder — fail-soft at the page boundary
 
+## Table of Contents
+
+- [What it renders](#what-it-renders)
+- [When it appears](#when-it-appears)
+- [What triggers the placeholder](#what-triggers-the-placeholder)
+- [Why the placeholder uses the danger token](#why-the-placeholder-uses-the-danger-token)
+- [Font choice — monospace](#font-choice--monospace)
+- [What the placeholder does NOT do](#what-the-placeholder-does-not-do)
+- [How to recover from a placeholder](#how-to-recover-from-a-placeholder)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Selection / comment / decision-mini](#selection--comment--decision-mini)
+- [Visual verification](#visual-verification)
+- [What if the placeholder ITSELF throws?](#what-if-the-placeholder-itself-throws)
+
 The icon-svg module is FAIL-FAST at the API level (`buildSceneSvg()`
 throws on invalid input) AND FAIL-SOFT at the page level (`init()`
 replaces a bad fenced block with a visible red error SVG instead of

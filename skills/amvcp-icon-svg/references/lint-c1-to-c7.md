@@ -1,5 +1,18 @@
 # The C1..C7 lint contract (lintSvg)
 
+## Table of Contents
+
+- [The 7 constraints](#the-7-constraints)
+- [Auto-fix vs throw — the boundary](#auto-fix-vs-throw--the-boundary)
+- [The `<mask>` exemption](#the-mask-exemption)
+- [The C4 semantic-role collapse](#the-c4-semantic-role-collapse)
+- [The C7 mixed-theming check](#the-c7-mixed-theming-check)
+- [The 13-diagram-types NON-clause](#the-13-diagram-types-non-clause)
+- [Return shape](#return-shape)
+- [Calling lintSvg directly (Node / test harness)](#calling-lintsvg-directly-node--test-harness)
+- [Dev-mode lint](#dev-mode-lint)
+- [A worked example — every rule in one bad scene](#a-worked-example--every-rule-in-one-bad-scene)
+
 `lintSvg(svgString)` is the icon-svg style-contract checker enforced
 on every compiled SVG. It's a pure function (Node-testable, no DOM),
 returns `{ ok, violations: [{rule, detail, at}], autofixed: [{rule,

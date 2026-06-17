@@ -1,5 +1,17 @@
 # Canvas pixel art (IS-05) — out of scope
 
+## Table of Contents
+
+- [Why it's out of scope](#why-its-out-of-scope)
+- [The use cases pixel art ostensibly serves](#the-use-cases-pixel-art-ostensibly-serves)
+- [When a user REALLY wants pixel art](#when-a-user-really-wants-pixel-art)
+- [What would the runtime gain by including pixel art?](#what-would-the-runtime-gain-by-including-pixel-art)
+- [The C5 lint constraint informs this exclusion](#the-c5-lint-constraint-informs-this-exclusion)
+- [What if the project DID want pixel art](#what-if-the-project-did-want-pixel-art)
+- [Cross-skill seam — none](#cross-skill-seam--none)
+- [Visual verification](#visual-verification)
+- [Source citation](#source-citation)
+
 The original IS-05 source proposed a `<canvas>`-based pixel-art
 rendering library: `drawPixelRect(ctx, x, y, w, h, color, scale)`,
 `drawSprite(ctx, sprite, x, y, scale)`, `drawText8x8(ctx, text, x,

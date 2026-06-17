@@ -1,5 +1,22 @@
 # Device frame — Android
 
+## Table of Contents
+
+- [What it renders](#what-it-renders)
+- [Two authoring paths](#two-authoring-paths)
+  - [Path A — JS API](#path-a--js-api)
+  - [Path B — direct markup](#path-b--direct-markup)
+- [Required parameters (JS path)](#required-parameters-js-path)
+- [The punch-hole camera](#the-punch-hole-camera)
+- [The gesture bar](#the-gesture-bar)
+- [CSS-only path classes](#css-only-path-classes)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Selection / comment / decision-mini](#selection--comment--decision-mini)
+- [When to use](#when-to-use)
+- [When NOT to use](#when-not-to-use)
+- [What NOT to do](#what-not-to-do)
+- [Visual verification](#visual-verification)
+
 The `android` device frame wraps content in a themed Android phone
 mockup — bezel + screen + punch-hole camera + status bar + gesture
 bar. Visually distinguished from the iOS frame by:

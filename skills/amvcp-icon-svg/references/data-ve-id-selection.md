@@ -1,5 +1,17 @@
 # Selection atoms — data-ve-id contract
 
+## Table of Contents
+
+- [The 4 data-ve-* attributes](#the-4-data-ve--attributes)
+- [The selection scaffold per primitive](#the-selection-scaffold-per-primitive)
+- [The id uniqueness contract](#the-id-uniqueness-contract)
+- [The scene `id` synthesis](#the-scene-id-synthesis)
+- [Runtime integration — what the runtime does on click](#runtime-integration--what-the-runtime-does-on-click)
+- [Hotspots are also selection atoms](#hotspots-are-also-selection-atoms)
+- [The keyboard comment fallback (Ctrl-+)](#the-keyboard-comment-fallback-ctrl-)
+- [How to disable selection on an atom](#how-to-disable-selection-on-an-atom)
+- [Visual verification](#visual-verification)
+
 Every primitive icon-svg emits is automatically wrapped in a
 `<g data-ve-id="...">` selection atom. The runtime's
 `amvcp-runtime.js` listens for clicks on `[data-ve-id]` elements,

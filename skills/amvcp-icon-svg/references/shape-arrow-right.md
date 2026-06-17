@@ -1,5 +1,21 @@
 # Decorative shape — arrow-right
 
+## Table of Contents
+
+- [What it renders](#what-it-renders)
+- [Two authoring paths](#two-authoring-paths)
+  - [Path A — scene-graph shape primitive](#path-a--scene-graph-shape-primitive)
+  - [Path B — CSS-only class](#path-b--css-only-class)
+- [Fill options](#fill-options)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [When to use](#when-to-use)
+- [When NOT to use](#when-not-to-use)
+- [Common authoring patterns](#common-authoring-patterns)
+  - [CSS-only step separator](#css-only-step-separator)
+  - [Scene-graph wide-arrow hero](#scene-graph-wide-arrow-hero)
+- [What NOT to do](#what-not-to-do)
+- [Visual verification](#visual-verification)
+
 The `arrow-right` shape is the universal rightward arrow — flow
 direction, "next" affordance, progression marker, time advances,
 result-of operator. A 7-point polygon — a rectangular shaft with a

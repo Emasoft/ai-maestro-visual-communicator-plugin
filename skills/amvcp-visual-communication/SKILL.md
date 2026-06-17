@@ -56,76 +56,25 @@ Every category ships its own [SKILL](SKILL.md), a `references/` folder with 30+ 
 
 There are also **supporting skills** outside this routing matrix — they bolt on a specialized engine, design element, or layer (Mermaid/Graphviz, form-tables, modal-comments, KaTeX/TikZ math, regex-vis, Pierre diff, token/component sheets) plus five interactive-editor skills, rather than scaffold a generic visual. What each adds + when to reach for it (and each one's path) is in [supporting-skills](./references/supporting-skills.md); they also appear in the `## Resources` sibling-skill index below.
 - [supporting-skills](./references/supporting-skills.md) — the supporting skills (engines / elements / layers), what each adds, and the trigger to reach for it
-  > Supporting skills — engines / elements / layers outside the 13-category routing
+  - [Supporting skills](./references/supporting-skills.md#supporting-skills)
 
 ## Decision matrix — content shape → category
 
-This is the heart of the umbrella. When you're about to add a visual, find the row that matches the user's content shape and route to that category. If two rows match, pick the one with the most specific data shape (a "process with steps" beats a "list of things").
-
-| If the user's content is … | Route to |
-|---|---|
-| A **data table** with rows × cols, possibly sortable | tables |
-| A **comparison** of N options (before/after, anti-pattern→fix, plan A vs B vs C) | tables (`compare` mode) |
-| A **coverage matrix** — N items × M criteria with pass/fail/partial | tables (`matrix` mode) |
-| **Hundreds+ rows** of tabular data | tables (`virtual` mode) |
-| A **form-style table** asking the user to pick (radio/checkbox per row) | choice-tables (NOT tables) |
-| A **quantitative comparison** across categories (one number per category) | charts-and-dashboards (`bar`) |
-| A **trend over time** | charts-and-dashboards (`line` / `area` / `step-area`) |
-| A **part-of-whole** breakdown | charts-and-dashboards (`donut` / `segmented-bar` / `mekko`) — never `pie` (auto-remapped) |
-| **KPIs at the top of a status report** | charts-and-dashboards (`metric-cards`) |
-| A **conversion funnel** or stage drop-off | charts-and-dashboards (`funnel`) |
-| A **profit bridge** / cumulative gain-loss | charts-and-dashboards (`waterfall`) |
-| A **2-D intensity grid** (errors by hour × weekday, GitHub contributions) | charts-and-dashboards (`heatmap` / `activity-heatmap`) |
-| **Multi-criterion radar** (compare items on N axes) | charts-and-dashboards (`radar` / `harvey-ball`) |
-| A **value vs target** | charts-and-dashboards (`bullet` / `gauge`) |
-| **Process steps** with order (linear or branching) | diagram (`process-flow`) |
-| **System architecture** (services / data stores / external) | diagram (`architecture-canvas`) |
-| **Phases with dependencies** | diagram (`phase-graph` + chain-highlight) |
-| **Sequence / interaction over time between actors** | diagram (`sequence`) or graph-diagrams (Mermaid `sequenceDiagram`) |
-| **State machine** (states + transitions) | diagram (`state-machine`) or graph-diagrams (Mermaid `stateDiagram`) |
-| **Sankey / proportional flow bands** | diagram (`sankey-flow-diagram`) |
-| **Tree** (org chart, file tree, taxonomy) or **mind map** | diagram (`tree-hierarchy` / `mind-map-radial`) |
-| **Timeline / Gantt / roadmap** | diagram (`timeline-diagram` / `gantt-style-bars`) |
-| **Auto-layout graph with 9+ nodes** (Mermaid terse syntax preferred) | graph-diagrams (Mermaid / Graphviz) |
-| A **UI mockup / lo-fi screen / clickable prototype** | wireframe |
-| A **device frame** (iPhone / Android / browser / Mac) around content | wireframe (frame only) or icon-svg (frame as art) or layout (page-level mockup) |
-| An **inline icon, logo, SVG glyph** | icon-svg |
-| An **annotated image with hotspots** | icon-svg (hotspot mode) |
-| A **code block** with syntax highlight | code-highlight |
-| A **diff** (split or unified) / **PR review** | code-highlight (`diff` mode) |
-| A **rich/high-fidelity diff** — huge file, merge conflicts, streaming code, accept/reject UI | pierre-diff (vendored Pierre `<diffs-container>`) — use when code-highlight's lightweight diff is not enough |
-| A **regex to visualize, explain, debug, or interactively edit** | regex-vis (vendored `.ve-regex` tree + editor) |
-| A **tabbed code sample** (JSON / YAML / curl variants) | code-highlight (`tabs` mode) — pairs with interactive-controls for the tab strip |
-| A **slide deck** / **presentation** / **pitch** / **talk slides** | slide-decks |
-| A **long-form static document** (executive summary, RFC, ADR, postmortem, case study, retro, whitepaper, design-system doc, essay) | prose-pages |
-| Any **inline math, equation, chemistry reaction, TikZ figure** | math-and-latex |
-| **Tabs / accordion / filter pills / segmented control / kanban / TOC / scroll-spy / theme toggle / search box / lightbox / modal / popover / before-after slider / copy button** | interactive-controls |
-| **Entry animation, scroll reveal, count-up, skeleton, parallax, spring, hover lift, SVG line-draw** | animation |
-| **The look of the page itself** (color ramp, type scale, elevation, motion tokens, brand preset, anti-slop check) | design-tokens |
-| **Every state / size / variant of ONE component on a sheet** (button states, card treatments, input sizes × states) | component-variant-matrix |
-| A **drag triage board** the USER reorders + exports (Now/Next/Later/Cut tickets → markdown) | editor-kanban |
-| A **feature-flag editor** (grouped toggles, dependency warnings, copy-diff export) | editor-toggles |
-| A **prompt/template tuner** (editable {{var}} slots, live re-render, export template+values) | editor-template |
-| An **animation sandbox** (one transition isolated, live duration/easing sliders, export tuned values) | anim-sandbox |
-| A **manipulable concept demo** (param sliders driving a live SVG + values table + glossary) | concept-demo |
-| **Compare N code APPROACHES side-by-side with trade-offs** | tables (`approaches-comparison` reference) + code-highlight |
-| **Page chrome** — sidebar shell, KPI row layout, A4 print, sticky header, hero background, dashboard grid | layout |
-| **Type system** — fluid clamp() scale, font pairing, drop-cap, lead, pull quote, footnote, kbd | typography |
-| **Render an existing report as a commentable interactive HTML page** | prose-pages (scaffold) + modal-comments (per-element threads) |
-| **Auto-discover what visual to use** (the user dumped raw content and said "make it visual") | start with prose-pages (it documents the technique-picker) and route from there |
-| **Lint / verify / QA-check an already-rendered page** | prose-pages (it owns `runGates` — nested-scrollbars, contrast, motion, print, semantic, banned-color, banned-font) |
+This is the heart of the umbrella: a ~52-row lookup mapping the user's content shape to the owning category (every name resolves in the `## The 13 categories` table above). When you're about to add a visual, find the row that matches the content shape and route there. If two rows match, pick the most specific data shape (a "process with steps" beats a "list of things"). The full matrix lives in the reference (moved here verbatim to keep this routing layer scannable):
+- [decision-matrix](./references/decision-matrix.md) — content shape → category, the complete ~52-row lookup
+  - [Decision matrix — content shape → category](./references/decision-matrix.md#decision-matrix--content-shape--category)
 
 ## Scaffolding contract — how the agent uses this skill
 
 The 6-step author-and-run loop (shape → candidates → read category SKILL + refs → emit scaffold → run `amvcp-select.py` → verify both themes) plus the SPEED RULES:
 - [scaffolding-contract](./references/scaffolding-contract.md) — the 6-step author-and-run loop (shape match, candidate suggestion, SPEED RULES, scaffold emission, runner, visual verification)
-  > Scaffolding contract — how the agent uses this skill
+  - [Scaffolding contract](./references/scaffolding-contract.md#scaffolding-contract)
 
 ## Phase 2.5 contract — atom-emitting techniques
 
 Every visual MUST surface itself to the runtime as a click-to-select **atom**; the runtime then layers four standard affordances (3-state selection, comment handle, decision-mini pill, leader-line, 9-level text multi-click) on it with zero per-category code:
 - [atom-contract](./references/atom-contract.md) — the four runtime affordances, the `data-ve-*` stamp each reads, and the atom cross-references
-  > Phase 2.5 contract — atom-emitting techniques
+  - [Phase 2.5 contract](./references/atom-contract.md#phase-25-contract)
 
 ## Theme contract
 
@@ -137,10 +86,9 @@ The [amvcp-design-tokens](../amvcp-design-tokens/SKILL.md) skill owns this vocab
 
 Three end-to-end worked examples (request → category → scaffold, with the exact markup emitted) are in:
 - [worked-examples](./references/worked-examples.md) — chart Q1 revenue → bar; compare three deployment plans → emphasis-column table; implementation plan → slide deck
-  > Worked examples — request → category → scaffold
-  > Example 1 — "chart Q1 revenue by region"
-  > Example 2 — "compare three deployment plans, B is recommended"
-  > Example 3 — "turn this implementation plan into slides"
+  - [Example 1 — "chart Q1 revenue by region"](./references/worked-examples.md#example-1--chart-q1-revenue-by-region)
+  - [Example 2 — "compare three deployment plans, B is recommended"](./references/worked-examples.md#example-2--compare-three-deployment-plans-b-is-recommended)
+  - [Example 3 — "turn this implementation plan into slides"](./references/worked-examples.md#example-3--turn-this-implementation-plan-into-slides)
 
 ## Aggressive triggering note
 
@@ -153,7 +101,7 @@ A self-contained interactive HTML file at `$CLAUDE_PROJECT_ROOT/reports/visual-c
 ## Error Handling
 
 - Visual broken in light or dark theme → that's a correctness defect; fix DESIGN.md or the scaffold's token usage, never hardcode a color.
-- Runner/render failures (no Chromium, page opened via file://, timeout without a click, `surf` missing, Mermaid/TikZ/MathJax failures, Vercel deploy errors) → see the `troubleshooting` reference listed under `## Resources` (its complete TOC is embedded there).
+- Runner/render failures (no Chromium, page opened via file://, timeout without a click, `surf` missing, Mermaid/TikZ/MathJax failures, Vercel deploy errors) → see the [troubleshooting](./references/troubleshooting.md) reference (indexed under `## Resources` → [more-references](./references/more-references.md), with its complete section list).
 
 ## Modes
 
@@ -165,34 +113,11 @@ This skill IS the orchestrator — by definition it composes the other amvcp-* s
 
 ## Resources
 
-Project-root shared references (loaded via `${CLAUDE_PLUGIN_ROOT}/references/`):
+The project-root shared references (runtime contract, diagram types, styling guide, anti-patterns, css-patterns, libraries — loaded via `${CLAUDE_PLUGIN_ROOT}/references/`) and the per-skill walk-throughs (authoring-workflow, environment-and-runner, example-flows, troubleshooting, quality-checklist — loaded via `./references/`) are consolidated, each with its own section-list preview, in:
+- [more-references](./references/more-references.md) — the project-root shared references + the per-skill walk-throughs, each with its TOC preview
+  - [Project-root shared references](./references/more-references.md#project-root-shared-references)
+  - [Per-skill walk-throughs](./references/more-references.md#per-skill-walk-throughs)
 
-- [interactive-selection-base](../../references/interactive-selection-base.md) — runtime contract, selection payload, atom stamps
-  > How it works & Page Setup · The selection payload · Selectable Elements · Engine routing — read this BEFORE generating a graph · Runtime & Process Caveats
-- [diagram-types](../../references/diagram-types.md) — every diagram archetype the plugin supports
-  > Diagrams (Mermaid + CSS) · Data Visualizations · Documentation Layouts · Prose Accent Elements
-- [styling-guide](../../references/styling-guide.md) — aesthetic directions, typography + color, surfaces + hierarchy
-  > Aesthetic directions · Typography & Color · Surfaces, Hierarchy & Animation · Engines & Illustrations
-- [anti-patterns](../../references/anti-patterns.md) — the slop test, banned colors, banned fonts
-  > Typography · Color Palette · Section Headers · Layout & Hierarchy · Template Patterns · The Slop Test
-- [css-patterns](../../references/css-patterns.md) — theme + atmosphere, layout, content blocks, visual components
-  > Theme & Atmosphere · Layout & Containers · Visual Components · Prose Page Elements · Generated Images
-- [libraries](../../references/libraries.md) — when (and when NOT) to reach for Mermaid, Chart.js, anime.js, Google Fonts
-  > Mermaid.js — Diagramming Engine · Chart.js — Data Visualizations · anime.js — Orchestrated Animations · Google Fonts — Typography
-
-Per-skill walk-throughs (loaded via `./references/`):
-
-- [authoring-workflow](./references/authoring-workflow.md) — the 5-step author-and-run loop in long form
-  > Step 1 — Pick a direction (5 seconds) · Step 2 — Read the reference material · Step 3 — Author the page · Step 4 — Open with the interactive runner (always) · Step 5 — React to the selection · Output: file location, format, stdout shape
-- [environment-and-runner](./references/environment-and-runner.md) — `amvcp-select.py` CLI, env vars, optional deps
-  > Prerequisites · Environment variables · Runner CLI · Timeout knob — explanatory vs interrogative pages · Optional dependencies · External libraries (CDN, optional)
-- [example-flows](./references/example-flows.md) — four end-to-end flows (architecture, comparison, agent report, slide deck)
-  > Example 1 — Quick architecture diagram · Example 2 — Comparison table that asks a question · Example 3 — Agent report as a commentable interactive page · Example 4 — Slide deck from a plan
-- [troubleshooting](./references/troubleshooting.md) — Chromium missing, file:// direct, timeouts, render failures
-  > No Chromium browser found · Page opened directly via file:// (not via the runner) · Timeout without a click · `surf` CLI missing · Mermaid render failure · TikZ / MathJax silent failures · Vercel deploy errors (`/amvcp-share-page`) · Always check the browser console first
-- [quality-checklist](./references/quality-checklist.md) — squint test, swap test, both themes, no overflow, anti-patterns
-  > The squint test · The swap test · Both themes · Information completeness · No overflow · Mermaid zoom controls · No anti-patterns · File opens cleanly
-
-Sibling skills the umbrella dispatches to (the 13 routing categories live in `## The 13 categories` above with their JS libs + "Owns"; the 9 supporting skills live in [supporting-skills](./references/supporting-skills.md) with their triggers). The flat one-line index across ALL 21 dispatchable skills + `amvcp-self-debug-rules` is in [skill-index](./references/skill-index.md).
+Sibling skills the umbrella dispatches to (the 13 routing categories live in `## The 13 categories` above with their JS libs + "Owns"; the 9 supporting skills live in [supporting-skills](./references/supporting-skills.md) with their triggers). The flat one-line index across ALL 21 dispatchable skills + `amvcp-self-debug-rules` is in:
 - [skill-index](./references/skill-index.md) — every amvcp-* skill the umbrella dispatches to, one line each (the 13 categories, the 9 supporting skills, and the self-debug-rules verification skill)
-  > Sibling-skill index — every amvcp-* skill the umbrella dispatches to
+  - [Sibling-skill index](./references/skill-index.md#sibling-skill-index)

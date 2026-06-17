@@ -1,5 +1,21 @@
 # Decorative shape — hexagon
 
+## Table of Contents
+
+- [What it renders](#what-it-renders)
+- [Two authoring paths](#two-authoring-paths)
+  - [Path A — scene-graph](#path-a--scene-graph)
+  - [Path B — CSS-only class](#path-b--css-only-class)
+- [Fill options](#fill-options)
+- [When to use](#when-to-use)
+- [When NOT to use](#when-not-to-use)
+- [Common authoring patterns](#common-authoring-patterns)
+  - [Single hexagon hero (a platform badge)](#single-hexagon-hero-a-platform-badge)
+  - [CSS-only honeycomb tile pattern](#css-only-honeycomb-tile-pattern)
+  - [Hexagon as a chemistry mark](#hexagon-as-a-chemistry-mark)
+- [What NOT to do](#what-not-to-do)
+- [Visual verification](#visual-verification)
+
 The `hexagon` shape is the universal 6-sided badge: chemistry, hex
 grid game tiles, "platform" / "service" mark, badge / award glyph,
 sci-fi UI ornament. A 6-point polygon — a regular-ish hexagon with

@@ -1,5 +1,22 @@
 # Logo block — stacked-rects
 
+## Table of Contents
+
+- [What it renders](#what-it-renders)
+- [Scaffold](#scaffold)
+- [Geometry](#geometry)
+- [Visual reading](#visual-reading)
+- [Lib function](#lib-function)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Selection / comment / decision-mini](#selection--comment--decision-mini)
+- [When to use](#when-to-use)
+- [When NOT to use](#when-not-to-use)
+- [Common authoring patterns](#common-authoring-patterns)
+  - [Single stacked-rects (a 3-tier brand mark)](#single-stacked-rects-a-3-tier-brand-mark)
+  - [Stacked-rects + tint-hierarchy (sibling marks)](#stacked-rects--tint-hierarchy-sibling-marks)
+- [What NOT to do](#what-not-to-do)
+- [Visual verification](#visual-verification)
+
 The `stacked-rects` logo block is THREE rounded rectangles stacked
 top-to-bottom, each one slightly narrower than the one above (22%
 narrower per step), and each one in a DIFFERENT tint tier — top is

@@ -1,5 +1,23 @@
 # Node primitive — decision (diamond)
 
+## Table of Contents
+
+- [What it renders](#what-it-renders)
+- [Scaffold](#scaffold)
+- [Geometry — keep w = h for a true diamond](#geometry--keep-w--h-for-a-true-diamond)
+- [Why `decision` is hand-drawn as `<polygon>`, not a rotated rect](#why-decision-is-hand-drawn-as-polygon-not-a-rotated-rect)
+- [Variants](#variants)
+- [Lib function](#lib-function)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Selection / comment / decision-mini](#selection--comment--decision-mini)
+- [When to use](#when-to-use)
+- [When NOT to use](#when-not-to-use)
+- [Common authoring patterns](#common-authoring-patterns)
+  - [Process → decision → two processes](#process--decision--two-processes)
+  - [Standalone decision (a question on a slide)](#standalone-decision-a-question-on-a-slide)
+- [What NOT to do](#what-not-to-do)
+- [Visual verification](#visual-verification)
+
 The `decision` node is the flowchart yes/no fork: a diamond drawn as
 a `<polygon>` with 4 points on the 4-unit grid. Outline-only,
 hairline-stroked. Conventionally tinted `warning` to mark "the reader

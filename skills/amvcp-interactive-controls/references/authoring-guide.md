@@ -5,6 +5,15 @@ contract, the error-handling table, and a concrete worked scaffold for
 the Interactive Controls category. SKILL.md keeps the routing/decision
 tables; consult this file when you are actually emitting a widget.
 
+## Table of Contents
+
+- [Full widget catalogue](#full-widget-catalogue)
+- [Instructions](#instructions)
+- [Output](#output)
+- [Error Handling](#error-handling)
+- [Examples](#examples)
+- [Concrete scaffold — filter pills + sortable table](#concrete-scaffold--filter-pills--sortable-table)
+
 ## Full widget catalogue
 
 The category emits scaffoldable, DESIGN.md-themed HTML control widgets —

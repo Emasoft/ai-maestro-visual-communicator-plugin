@@ -1,5 +1,20 @@
 # Empty-state spot illustration
 
+## Table of Contents
+
+- [The canonical anatomy](#the-canonical-anatomy)
+- [The visual grammar](#the-visual-grammar)
+- [When to use](#when-to-use)
+- [When NOT to use](#when-not-to-use)
+- [How icon-svg can help (or not)](#how-icon-svg-can-help-or-not)
+- [DESIGN.md tokens to use](#designmd-tokens-to-use)
+- [CSS sizing](#css-sizing)
+- [Common variants](#common-variants)
+  - [Single-document spot](#single-document-spot)
+  - [Empty inbox](#empty-inbox)
+- [What NOT to do](#what-not-to-do)
+- [Visual verification](#visual-verification)
+
 A pattern mined from `02-exploration-visual-designs.html` (variant
 B): a small (~120-200px) geometric SVG that anchors the eye and
 explains the object model in an empty-state placeholder. Typically

@@ -1,5 +1,11 @@
 # Sibling-skill index — every amvcp-* skill the umbrella dispatches to
 
+## Table of Contents
+
+- [Sibling-skill index](#sibling-skill-index)
+
+## Sibling-skill index
+
 Sibling skills the umbrella dispatches to (loaded via plugin skill index). The 13 routing categories also appear in the umbrella's `## The 13 categories` table with their JS libs + "Owns" columns; the supporting skills also appear in `references/supporting-skills.md` with their triggers. This is the flat one-line index across all of them.
 
 - [amvcp-design-tokens](../../amvcp-design-tokens/SKILL.md) — DESIGN.md token vocabulary + 13 presets + anti-slop gate

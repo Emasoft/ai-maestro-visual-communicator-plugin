@@ -1,5 +1,18 @@
 # The `<defs><use>` reuse pass
 
+## Table of Contents
+
+- [When the pass fires](#when-the-pass-fires)
+- [The output structure](#the-output-structure)
+- [Why the threshold is N > 2](#why-the-threshold-is-n--2)
+- [When the pass does NOT fire](#when-the-pass-does-not-fire)
+- [What the geometry key collapses](#what-the-geometry-key-collapses)
+- [A worked example](#a-worked-example)
+- [When NOT to expect reuse](#when-not-to-expect-reuse)
+- [Selection / comment / decision-mini behavior](#selection--comment--decision-mini-behavior)
+- [What NOT to do](#what-not-to-do)
+- [Visual verification](#visual-verification)
+
 The icon-svg compiler runs a SECOND PASS over the scene's primitives
 before emitting any markup. If a node `type` + `size` + `variant` +
 `label` appears MORE THAN TWICE in the scene, the compiler hoists

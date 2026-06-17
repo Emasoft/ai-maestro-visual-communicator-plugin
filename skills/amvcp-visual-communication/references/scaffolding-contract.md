@@ -1,5 +1,11 @@
 # Scaffolding contract — how the agent uses this skill
 
+## Table of Contents
+
+- [Scaffolding contract](#scaffolding-contract)
+
+## Scaffolding contract
+
 1. **Identify the content shape** — read what the user typed plus any pasted data. Match against the decision matrix above.
 2. **Suggest 1-3 category candidates** if the shape is ambiguous. State the trade-off in one line each. Wait for the user's pick if the choice is non-obvious.
 3. **Read the picked category's [SKILL](../SKILL.md)** plus 1–2 of its references (the specific technique you'll use). Do NOT load all 30+ references for the category — progressive discovery means you load only what you need. **SPEED RULES (the user expects pixels in seconds):** batch ALL the reads of a generation flow into ONE parallel tool-call message — never read serially; start from a ready template in `templates/` (and the matching `references/QUICKSTART-*.md`) when one exists, transplanting content instead of authoring boilerplate; for multi-visual jobs spawn one subagent per artifact in parallel.

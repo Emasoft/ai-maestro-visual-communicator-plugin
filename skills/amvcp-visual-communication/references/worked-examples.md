@@ -1,5 +1,11 @@
 # Worked examples — request → category → scaffold
 
+## Table of Contents
+
+- [Example 1 — "chart Q1 revenue by region"](#example-1--chart-q1-revenue-by-region)
+- [Example 2 — "compare three deployment plans, B is recommended"](#example-2--compare-three-deployment-plans-b-is-recommended)
+- [Example 3 — "turn this implementation plan into slides"](#example-3--turn-this-implementation-plan-into-slides)
+
 Worked examples — each shows how the agent matches a user request to one of the 13 categories, loads the right SKILL.md, and emits the canonical scaffold.
 
 

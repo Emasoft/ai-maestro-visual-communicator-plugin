@@ -1,5 +1,11 @@
 # Phase 2.5 contract — atom-emitting techniques
 
+## Table of Contents
+
+- [Phase 2.5 contract](#phase-25-contract)
+
+## Phase 2.5 contract
+
 Every visual the agent emits MUST surface itself to the runtime as a click-to-select **atom**. The runtime then layers four standard affordances on top with zero per-category code:
 
 | Affordance | Stamp on the atom | Reads | Mounted by |

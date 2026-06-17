@@ -1,5 +1,22 @@
 # Logo block — current-color (the all-currentColor mark)
 
+## Table of Contents
+
+- [What it renders](#what-it-renders)
+- [Scaffold](#scaffold)
+- [Why the diamond shape?](#why-the-diamond-shape)
+- [The C7 constraint — why this mark MUST live in its own scene](#the-c7-constraint--why-this-mark-must-live-in-its-own-scene)
+- [Lib function](#lib-function)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Selection / comment / decision-mini](#selection--comment--decision-mini)
+- [When to use](#when-to-use)
+- [When NOT to use](#when-not-to-use)
+- [Common authoring patterns](#common-authoring-patterns)
+  - [Single current-color (a runtime-tintable mark)](#single-current-color-a-runtime-tintable-mark)
+  - [Sequence — current-color in its own scene, sibling scenes with other logos](#sequence--current-color-in-its-own-scene-sibling-scenes-with-other-logos)
+- [What NOT to do](#what-not-to-do)
+- [Visual verification](#visual-verification)
+
 The `current-color` logo block is THE ONE MARK in the entire icon-svg
 catalog that uses `currentColor` instead of an explicit `--vc-*`
 token. The whole mark inherits its color from the wrapper's CSS

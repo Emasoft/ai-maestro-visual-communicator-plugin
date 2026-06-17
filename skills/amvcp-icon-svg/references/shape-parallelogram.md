@@ -1,5 +1,20 @@
 # Decorative shape — parallelogram
 
+## Table of Contents
+
+- [What it renders](#what-it-renders)
+- [Two authoring paths](#two-authoring-paths)
+  - [Path A — scene-graph](#path-a--scene-graph)
+  - [Path B — CSS-only class](#path-b--css-only-class)
+- [Fill options](#fill-options)
+- [When to use](#when-to-use)
+- [When NOT to use](#when-not-to-use)
+- [Common authoring patterns](#common-authoring-patterns)
+  - [CSS-only data-card decoration](#css-only-data-card-decoration)
+  - [Scene-graph stylized data block](#scene-graph-stylized-data-block)
+- [What NOT to do](#what-not-to-do)
+- [Visual verification](#visual-verification)
+
 The `parallelogram` shape is a 4-point slanted quadrilateral, leaning
 to the LEFT. The classic flowchart "input/output" shape, the
 universal "data card" stack glyph, and a common editorial

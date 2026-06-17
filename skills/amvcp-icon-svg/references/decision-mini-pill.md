@@ -1,5 +1,17 @@
 # Per-atom decision mini-pill (Skip / Approve / Deny)
 
+## Table of Contents
+
+- [What it renders](#what-it-renders)
+- [Where the wiring lives](#where-the-wiring-lives)
+- [The atoms that get pills](#the-atoms-that-get-pills)
+- [Defensive integration](#defensive-integration)
+- [Public re-attachment surface](#public-re-attachment-surface)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Why "independent of selection state"?](#why-independent-of-selection-state)
+- [When pills are NOT attached](#when-pills-are-not-attached)
+- [Visual verification](#visual-verification)
+
 Phase 2.5 User Requirement #10: every selection atom on the page gets
 a 3-radio Skip / Approve / Deny mini-pill from the runtime,
 INDEPENDENT of selection state. The mini-pill is rendered by

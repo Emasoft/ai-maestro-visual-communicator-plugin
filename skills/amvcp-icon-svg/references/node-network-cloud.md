@@ -1,5 +1,23 @@
 # Node primitive — network (cloud silhouette)
 
+## Table of Contents
+
+- [What it renders](#what-it-renders)
+- [Scaffold](#scaffold)
+- [Geometry — width-to-height ratio](#geometry--width-to-height-ratio)
+- [Variants](#variants)
+- [Lib function](#lib-function)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Selection / comment / decision-mini](#selection--comment--decision-mini)
+- [When to use](#when-to-use)
+- [When NOT to use](#when-not-to-use)
+- [Common authoring patterns](#common-authoring-patterns)
+  - [Single cloud hero](#single-cloud-hero)
+  - [Three clouds (multi-region edge)](#three-clouds-multi-region-edge)
+  - [Process → network mini-architecture](#process--network-mini-architecture)
+- [What NOT to do](#what-not-to-do)
+- [Visual verification](#visual-verification)
+
 The `network` node is the cloud / CDN / distributed-system mark: a
 cloud silhouette drawn as a single `<path>` of three overlapping arcs
 that form a classic puff-pastry skyline at the bottom of the node

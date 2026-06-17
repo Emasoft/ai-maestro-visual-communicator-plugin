@@ -1,5 +1,17 @@
 # Theming — the --vc-* token palette
 
+## Table of Contents
+
+- [The 13 canonical color tokens](#the-13-canonical-color-tokens)
+- [The 3 derived tint tiers (color-mix off accent)](#the-3-derived-tint-tiers-color-mix-off-accent)
+- [The 2 special non-token values](#the-2-special-non-token-values)
+- [The semantic-role variant ladder](#the-semantic-role-variant-ladder)
+- [Light + dark themes](#light--dark-themes)
+- [The no-engine fallback contract](#the-no-engine-fallback-contract)
+- [How tokens flow into the compiled SVG](#how-tokens-flow-into-the-compiled-svg)
+- [Special token use in non-color attributes](#special-token-use-in-non-color-attributes)
+- [What does NOT belong in the palette](#what-does-not-belong-in-the-palette)
+
 Every fill, stroke, font, radius, and shadow the icon-svg module emits
 is a `var(--vc-*, <fallback-hex>)` expression. The DESIGN.md token
 engine (`scripts/amvcp-designmd.js`) supplies the live values, and a

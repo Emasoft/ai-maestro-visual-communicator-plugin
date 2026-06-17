@@ -1,5 +1,16 @@
 # Each SVG carries its own `<defs><style>` block — standalone export
 
+## Table of Contents
+
+- [The pattern](#the-pattern)
+- [Why this matters for icon-svg](#why-this-matters-for-icon-svg)
+- [How to inject the embedded style at export time](#how-to-inject-the-embedded-style-at-export-time)
+- [When this pattern is overkill](#when-this-pattern-is-overkill)
+- [When to use this pattern](#when-to-use-this-pattern)
+- [Cross-skill seam — chart skill also adopts this](#cross-skill-seam--chart-skill-also-adopts-this)
+- [Visual verification](#visual-verification)
+- [What NOT to do](#what-not-to-do)
+
 A best practice mined from the `10-svg-illustrations.html` reference
 demo: every authored SVG carries its own EMBEDDED `<defs><style>`
 block so the SVG stands alone when downloaded or copied out of the

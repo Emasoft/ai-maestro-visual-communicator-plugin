@@ -1,5 +1,23 @@
 # Image hotspot annotation (.isvg-annotated + .isvg-hotspot)
 
+## Table of Contents
+
+- [What it renders](#what-it-renders)
+- [The `--x` / `--y` contract](#the---x----y-contract)
+- [CSS contract (injected by amvcp-icon-svg.js)](#css-contract-injected-by-amvcp-icon-svgjs)
+- [Hover state (reduced-motion-aware)](#hover-state-reduced-motion-aware)
+- [Why `<span role="button">` and NOT `<button>`?](#why-span-rolebutton-and-not-button)
+- [Selection / comment / decision-mini integration](#selection--comment--decision-mini-integration)
+- [When to use](#when-to-use)
+- [When NOT to use](#when-not-to-use)
+- [Common authoring patterns](#common-authoring-patterns)
+  - [Numbered annotations](#numbered-annotations)
+  - [Letter annotations](#letter-annotations)
+  - [Colored hotspots (override accent locally)](#colored-hotspots-override-accent-locally)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [What NOT to do](#what-not-to-do)
+- [Visual verification](#visual-verification)
+
 The hotspot annotation system places absolutely-positioned, themed,
 selectable markers on top of an image (`<img>`, inline `<svg>`, or
 any block element). Each marker is a `<span class="isvg-hotspot">`

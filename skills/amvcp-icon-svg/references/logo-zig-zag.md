@@ -1,5 +1,21 @@
 # Logo block — zig-zag
 
+## Table of Contents
+
+- [What it renders](#what-it-renders)
+- [Scaffold](#scaffold)
+- [Geometry](#geometry)
+- [Why 6 teeth, not parametric?](#why-6-teeth-not-parametric)
+- [Lib function](#lib-function)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [When to use](#when-to-use)
+- [When NOT to use](#when-not-to-use)
+- [Common authoring patterns](#common-authoring-patterns)
+  - [Single zig-zag (a ticket-style brand mark)](#single-zig-zag-a-ticket-style-brand-mark)
+  - [Zig-zag in a logo gallery](#zig-zag-in-a-logo-gallery)
+- [What NOT to do](#what-not-to-do)
+- [Visual verification](#visual-verification)
+
 The `zig-zag` logo block is a single `<path>` with a SAW-TOOTHED
 bottom edge. Six teeth alternating up/down across the bottom 22% of
 the rect; the top 78% is a plain accent-filled rectangle. Reads as a

@@ -1,5 +1,23 @@
 # Node primitive — database (cylinder)
 
+## Table of Contents
+
+- [What it renders](#what-it-renders)
+- [Scaffold](#scaffold)
+- [Geometry — width, height, ry](#geometry--width-height-ry)
+- [Variants](#variants)
+- [Lib function](#lib-function)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Selection / comment / decision-mini](#selection--comment--decision-mini)
+- [When to use](#when-to-use)
+- [When NOT to use](#when-not-to-use)
+- [Common authoring patterns](#common-authoring-patterns)
+  - [Single database hero](#single-database-hero)
+  - [Two databases side-by-side (primary + replica)](#two-databases-side-by-side-primary--replica)
+  - [Process → database mini-flow](#process--database-mini-flow)
+- [What NOT to do](#what-not-to-do)
+- [Visual verification](#visual-verification)
+
 The `database` node is the canonical SQL / KV / cache mark: a
 cylindrical container drawn as a single `<path>` (two arcs for the
 top ellipse + two side lines + one arc for the bottom front). Filled

@@ -1,5 +1,11 @@
 # Supporting skills — engines / elements / layers outside the 13-category routing
 
+## Table of Contents
+
+- [Supporting skills](#supporting-skills)
+
+## Supporting skills
+
 These skills are **not** in the 13-category routing matrix because they bolt on a specialized engine, design element, or layer rather than scaffold a generic visual. The agent reaches for them by name (the flat skill index in the umbrella's `## Resources` section lists every one). Each exports its edited state back through the standard selection round-trip.
 
 | Supporting skill | What it adds | Reach for it when |

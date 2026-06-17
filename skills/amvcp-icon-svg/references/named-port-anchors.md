@@ -1,5 +1,16 @@
 # Named port anchors — re-usable shape with semantic terminals
 
+## Table of Contents
+
+- [Why this matters for icon-svg](#why-this-matters-for-icon-svg)
+- [The TikZ source pattern (for reference)](#the-tikz-source-pattern-for-reference)
+- [The HTML/SVG analog](#the-htmlsvg-analog)
+- [Where this pattern actually lives in this plugin](#where-this-pattern-actually-lives-in-this-plugin)
+- [When the pattern would extend icon-svg](#when-the-pattern-would-extend-icon-svg)
+- [Documented as an idea, not a feature](#documented-as-an-idea-not-a-feature)
+- [When you actually need this](#when-you-actually-need-this)
+- [What if I really must in icon-svg?](#what-if-i-really-must-in-icon-svg)
+
 A pattern mined from kleemans `tikzlibrarysignalflowoperators` /
 `tikzlibrarysignalflowblocks`: define a complex shape once with
 SEMANTIC PORT names (`.in1`, `.out`, `.outl`, `.dots`) on its

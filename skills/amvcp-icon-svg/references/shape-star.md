@@ -1,5 +1,21 @@
 # Decorative shape — star
 
+## Table of Contents
+
+- [What it renders](#what-it-renders)
+- [Two authoring paths](#two-authoring-paths)
+  - [Path A — scene-graph](#path-a--scene-graph)
+  - [Path B — CSS-only class](#path-b--css-only-class)
+- [Fill options](#fill-options)
+- [When to use](#when-to-use)
+- [When NOT to use](#when-not-to-use)
+- [Common authoring patterns](#common-authoring-patterns)
+  - [CSS-only rating row](#css-only-rating-row)
+  - [Scene-graph hero star (a single big achievement mark)](#scene-graph-hero-star-a-single-big-achievement-mark)
+  - [Featured content sticker](#featured-content-sticker)
+- [What NOT to do](#what-not-to-do)
+- [Visual verification](#visual-verification)
+
 The `star` shape is the universal 5-point star: rating, favorite,
 featured, achievement, accolade. A 10-point polygon (alternating
 outer + inner vertices around a circle) — a classic 5-pointed star

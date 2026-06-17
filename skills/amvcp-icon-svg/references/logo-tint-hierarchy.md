@@ -1,5 +1,23 @@
 # Logo block — tint-hierarchy
 
+## Table of Contents
+
+- [What it renders](#what-it-renders)
+- [Scaffold](#scaffold)
+- [Geometry](#geometry)
+- [Visual reading](#visual-reading)
+- [Lib function](#lib-function)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [Selection / comment / decision-mini](#selection--comment--decision-mini)
+- [When to use](#when-to-use)
+- [When NOT to use](#when-not-to-use)
+- [Common authoring patterns](#common-authoring-patterns)
+  - [Single tint-hierarchy (a trinity brand mark)](#single-tint-hierarchy-a-trinity-brand-mark)
+  - [Tint-hierarchy + stacked-rects (sibling marks)](#tint-hierarchy--stacked-rects-sibling-marks)
+  - [Tint-hierarchy as a comparison piece](#tint-hierarchy-as-a-comparison-piece)
+- [What NOT to do](#what-not-to-do)
+- [Visual verification](#visual-verification)
+
 The `tint-hierarchy` logo block is THREE filled CIRCLES arranged in a
 triangular ladder: ONE hero circle dominating the top center, plus
 TWO smaller supporting circles flanking the bottom. The hero uses

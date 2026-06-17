@@ -1,5 +1,21 @@
 # Decorative shape — chevron
 
+## Table of Contents
+
+- [What it renders](#what-it-renders)
+- [Two authoring paths](#two-authoring-paths)
+  - [Path A — scene-graph](#path-a--scene-graph)
+  - [Path B — CSS-only class](#path-b--css-only-class)
+- [Fill options](#fill-options)
+- [When to use](#when-to-use)
+- [When NOT to use](#when-not-to-use)
+- [Common authoring patterns](#common-authoring-patterns)
+  - [Pagination glyph](#pagination-glyph)
+  - [Breadcrumb separator](#breadcrumb-separator)
+  - [Scene-graph hero chevron](#scene-graph-hero-chevron)
+- [What NOT to do](#what-not-to-do)
+- [Visual verification](#visual-verification)
+
 The `chevron` shape is the universal rightward chevron — pagination
 "next" arrow, navigation breadcrumb separator, "go deeper" affordance,
 sidebar collapse glyph. A 6-point polygon with a "V" notch carved out

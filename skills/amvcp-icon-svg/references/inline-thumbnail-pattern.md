@@ -1,5 +1,16 @@
 # Inline thumbnail SVGs — shared-class catalogue pattern
 
+## Table of Contents
+
+- [The pattern](#the-pattern)
+- [Why short class names](#why-short-class-names)
+- [Cross-skill seam — gallery indexes](#cross-skill-seam--gallery-indexes)
+- [DESIGN.md tokens consumed](#designmd-tokens-consumed)
+- [When to use](#when-to-use)
+- [When NOT to use](#when-not-to-use)
+- [What NOT to do](#what-not-to-do)
+- [Visual verification](#visual-verification)
+
 A density-maximizing pattern mined from the catalogue index of the
 HTML-effectiveness mining reference (`10-svg-illustrations.html` /
 `index.html`): every catalogue card has a tiny inline SVG thumbnail
