@@ -25,7 +25,7 @@ parallel tool-call message — never serially.
 |---|---|
 | Non-trivial directed graph (9+ nodes, loops, forks, clusters) | `.ve-graph` (Graphviz `dot`) — the template |
 | Quick flowchart / simple state machine (≤10 nodes) | Mermaid (`templates/mermaid-flowchart.html`) |
-| Force / radial layout | `.ve-graph` + `data-ve-graph-engine="neato|sfdp|circo|twopi"` |
+| Force / radial layout | `.ve-graph` + `data-ve-graph-engine="neato\|sfdp\|circo\|twopi"` |
 | Positions carry physical meaning | `.ve-tikz` manual grid |
 
 ## 2. The six traps (each cost a real debug round-trip once)

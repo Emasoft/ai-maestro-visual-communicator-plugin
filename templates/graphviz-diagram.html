@@ -24,13 +24,13 @@
 
      HARD-LEARNED TRAPS BAKED IN HERE:
        • DESIGN.md payload MUST open/close with --- fences (line 1!).
-       • style=rounded boxes render as <path>, plain boxes as <polygon>,
-         ovals as <ellipse> — node CSS below targets all three.
+       • style=rounded boxes render as `path`, plain boxes as `polygon`,
+         ovals as `ellipse` — node CSS below targets all three.
        • Never paint path[data-ve-hit="1"] (the invisible edge hit twin).
        • Mirror every :hover rule to [data-ve-selected="1"].
        • No max-height on the SVG; page expands, no nested scrollbars.
      ════════════════════════════════════════════════════════════════════ -->
-<title><!-- FILL: page title --></title>
+<title>FILL: page title</title>
 <!-- FILL: font pairing (vary per page; never Inter/Roboto as body). Default: IBM Plex. -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">

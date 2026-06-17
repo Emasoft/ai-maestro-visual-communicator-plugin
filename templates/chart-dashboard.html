@@ -20,9 +20,9 @@
           scripts/amvcp-select.py.
 
      WHAT THE RUNTIME GIVES FOR FREE on .ve-chart: amvcp-chart.js finds each
-     fenced `chart:<type>@1` block, parses the JSON, validates it, and
-     REPLACES the <pre> with a <figure class="ve-chart"> of rendered SVG /
-     CSS / HTML. Every mark (a <rect>, <circle>, <div> KPI card, …) is
+     fenced `chart:TYPE@1` block, parses the JSON, validates it, and
+     REPLACES the `pre` with a `figure.ve-chart` of rendered SVG /
+     CSS / HTML. Every mark (a `rect`, `circle`, `div` KPI card, …) is
      stamped with data-ve-id / data-ve-type="chart-point" / tabindex /
      role="button"; click-to-select, tooltip, comment-handle, decision-pill
      all wire automatically. Theme-driven colors re-paint on a live flip.
@@ -36,7 +36,7 @@
        • NO custom outline/fill rules for hover/selected — the runtime owns
          selection/hover brightness + glow (the NO-NEW-ELEMENTS rule below).
      ════════════════════════════════════════════════════════════════════ -->
-<title><!-- FILL: page title --></title>
+<title>FILL: page title</title>
 <!-- FILL: font pairing (vary per page; never Inter/Roboto as body). Default: IBM Plex. -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">

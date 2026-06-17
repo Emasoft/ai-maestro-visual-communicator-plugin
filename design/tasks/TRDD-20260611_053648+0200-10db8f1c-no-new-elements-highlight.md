@@ -84,7 +84,7 @@ while the navy dark mode was "ugly".
   interaction mode), templates/graphviz-diagram.html (comment), memory note
   `feedback_no_new_elements_highlight`.
 - **Regression test**: `gvt_selection_no_new_elements` (real clicks on a node
-  + an edge; asserts computed outline-style none on both groups, no g-level
+  and an edge; asserts computed outline-style none on both groups, no g-level
   filter, no injected children).
 
 ## Verification
