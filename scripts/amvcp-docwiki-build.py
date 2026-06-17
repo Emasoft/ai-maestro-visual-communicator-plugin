@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
-"""amvcp-docwiki-build.py — Phase 2 of the navigable document wiki (TRDD-103a53e0).
+"""amvcp-docwiki-build.py — navigable document wiki (TRDD-103a53e0), Phases 2 + 3.
 
-Scans `design/tasks/TRDD-*.md` (+ optional `design/requirements/PRRD.md`), parses
-the grep-friendly v2 frontmatter WITHOUT a yaml dependency, renders each doc with a
-small pure-python markdown->HTML converter, wires cross-links (TRDD-<8hex> ->
-`#/trdd/<8hex>`, `PRRD G/S<n>` -> `#/prrd#G<n>`) as plain `<a data-ve-navigate>`
-anchors, and emits ONE self-contained `.html` wiki that opens via `file://` and is
-driven by the Phase-1 shell (`scripts/amvcp-docwiki.js`, inlined verbatim).
+Scans `design/tasks/TRDD-*.md` (+ optional `design/requirements/PRRD.md`, + optional
+wikimem `--mem-dir` note folders), parses the grep-friendly v2 frontmatter WITHOUT a
+yaml dependency, renders each doc with a small pure-python markdown->HTML converter,
+wires cross-links (TRDD-<8hex> -> `#/trdd/<8hex>`, `PRRD G/S<n>` -> `#/prrd#G<n>`,
+`[[mem]]` -> `#/mem/<name>`) as plain `<a data-ve-navigate>` anchors, builds a
+`#/kanban` board page (14-stage lanes of TRDD cards), and emits ONE self-contained
+`.html` wiki that opens via `file://` and is driven by the Phase-1 shell
+(`scripts/amvcp-docwiki.js`, inlined verbatim).
 
 Stdlib only. No markdown / yaml / jinja imports. No network. No `uv --with`.
 
@@ -69,7 +71,8 @@ _RE_TRDD_TOKEN = re.compile(r"\bTRDD-([0-9a-f]{8})(?![0-9a-f])")
 _RE_HASH_TOKEN = re.compile(r"(?<![0-9a-zA-Z_])#([0-9a-f]{8})(?![0-9a-f])")
 # `PRRD G64` / `PRRD S70.3` -> rule number is the key (letter is for humans).
 _RE_PRRD_CITE = re.compile(r"\bPRRD\s+([GS])(\d+)(?:\.\d+)?\b")
-# wikimem `[[name]]` (Phase 3 will route these; for now -> bold text).
+# wikimem `[[name]]` / `[[name|label]]`. Routed to `#/mem/<name>` when a mem set is
+# built (Phase 3); rendered as bold text when no mem set is present (Phase-2 fallback).
 _RE_WIKIMEM = re.compile(r"\[\[([^\]]+)\]\]")
 
 # A PRRD rule bullet:  `- **G64.1** — text`  /  `- **S70.3** — text`
@@ -222,6 +225,101 @@ def parse_trdd(path: Path) -> Trdd:
     t.title = _derive_title(path, fields, t.body)
     t.column = _derive_column(fields, t.body)
     return t
+
+
+# ── wikimem note model (Phase 3) ─────────────────────────────────────────────
+
+# Index files that are NOT notes — never rendered as a `#/mem/<name>` page.
+_MEM_SKIP_NAMES = {"MEMORY.md", "memory-index.md"}
+
+
+class MemNote:
+    """One parsed wikimem note: stable `name`, description, tier/type, body markdown."""
+
+    __slots__ = ("path", "name", "description", "tier", "type", "body")
+
+    def __init__(self, path: Path):
+        self.path = path
+        self.name = ""
+        self.description = ""
+        self.tier = ""
+        self.type = ""
+        self.body = ""
+
+
+def _parse_mem_frontmatter(block: str) -> dict[str, str]:
+    """Parse a wikimem note's frontmatter into name/description/tier/type.
+
+    Handles BOTH the nested form (`metadata:` then indented `tier:`/`type:`) and
+    a flat `tier:`/`type:` at column 0. Stdlib only — no yaml. Only the four keys
+    this renderer needs are extracted; everything else is ignored."""
+    out: dict[str, str] = {}
+    in_metadata = False
+    for raw in block.splitlines():
+        if not raw.strip() or raw.lstrip().startswith("#"):
+            continue
+        # a column-0 key ends any preceding nested `metadata:` block
+        top = re.match(r"^([A-Za-z0-9_-]+):[ \t]*(.*)$", raw)
+        if top:
+            key, val = top.group(1), top.group(2).strip()
+            if key == "metadata":
+                in_metadata = True
+                continue
+            in_metadata = False
+            if key in ("name", "description"):
+                out[key] = _unquote(val)
+            elif key in ("tier", "type"):  # tolerate a flat tier:/type:
+                out.setdefault(key, _unquote(val))
+            continue
+        # an indented key under `metadata:`
+        if in_metadata:
+            nested = re.match(r"^[ \t]+([A-Za-z0-9_-]+):[ \t]*(.*)$", raw)
+            if nested and nested.group(1) in ("tier", "type"):
+                # nested metadata wins over any flat value
+                out[nested.group(1)] = _unquote(nested.group(2).strip())
+    return out
+
+
+def parse_mem_note(path: Path) -> MemNote:
+    """Read + parse one wikimem `*.md` note. Fail-fast only on an unreadable file."""
+    try:
+        text = path.read_text(encoding="utf-8")
+    except OSError as exc:
+        raise SystemExit(f"FATAL: cannot read memory file {path}: {exc}") from exc
+    block, body = _split_frontmatter(text)
+    fm = _parse_mem_frontmatter(block)
+    note = MemNote(path)
+    note.name = fm.get("name", "").strip() or path.stem
+    note.description = fm.get("description", "").strip()
+    note.tier = fm.get("tier", "").strip()
+    note.type = fm.get("type", "").strip()
+    note.body = body if block else text
+    return note
+
+
+def collect_mem_notes(mem_dirs: list[Path]) -> list[MemNote]:
+    """Parse every `*.md` (minus MEMORY.md / memory-index.md) across the dirs.
+
+    De-dup by `name` (first wins) so two notes can't claim the same `#/mem/<name>`
+    route. A missing dir is fatal (matches the --trdd-dir contract)."""
+    seen: set[str] = set()
+    result: list[MemNote] = []
+    for d in mem_dirs:
+        if not d.exists():
+            raise SystemExit(f"FATAL: --mem-dir does not exist: {d}")
+        if not d.is_dir():
+            raise SystemExit(f"FATAL: --mem-dir is not a directory: {d}")
+        for path in sorted(d.glob("*.md")):
+            if path.name in _MEM_SKIP_NAMES:
+                continue
+            note = parse_mem_note(path)
+            if note.name in seen:
+                sys.stderr.write(
+                    f"WARN: duplicate mem name {note.name!r} ({path.name}) — keeping first\n")
+                continue
+            seen.add(note.name)
+            result.append(note)
+    return result
 
 
 # ── markdown -> HTML (focused, stdlib-only) ──────────────────────────────────
@@ -503,19 +601,31 @@ def _render_list(lines: list[str], i: int) -> tuple[str, int]:
 
 # ── cross-link wiring (run on rendered HTML, outside code blocks) ─────────────
 
-def _wire_links_outside_code(html_frag: str, hex_set: set[str], have_prrd: bool) -> str:
+def _wire_links_outside_code(
+    html_frag: str,
+    hex_set: set[str],
+    have_prrd: bool,
+    mem_names: set[str] | None = None,
+) -> str:
     """Replace TRDD/PRRD/wikimem tokens with anchors, but NEVER inside <pre>/<code>.
 
     We split on <pre>...</pre> and <code>...</code> spans and only transform the
-    text between them, so verbatim code is left untouched.
+    text between them, so verbatim code is left untouched. `mem_names` (Phase 3):
+    when given, `[[target]]` routes to `#/mem/<target>` (in-set) or plain text +
+    "(not in set)"; when None (TRDD/PRRD builds with no mem set) `[[…]]` stays bold.
     """
     parts = re.split(r"(<pre>.*?</pre>|<code>.*?</code>)", html_frag, flags=re.DOTALL)
     for idx in range(0, len(parts), 2):  # even indices = text outside code
-        parts[idx] = _wire_tokens(parts[idx], hex_set, have_prrd)
+        parts[idx] = _wire_tokens(parts[idx], hex_set, have_prrd, mem_names)
     return "".join(parts)
 
 
-def _wire_tokens(text: str, hex_set: set[str], have_prrd: bool) -> str:
+def _wire_tokens(
+    text: str,
+    hex_set: set[str],
+    have_prrd: bool,
+    mem_names: set[str] | None = None,
+) -> str:
     """Wire TRDD-<8hex>, #<8hex>, PRRD G/S<n>, and [[name]] in a plain-text run.
 
     Avoids rewriting tokens already inside an <a ...>…</a> (the markdown link pass
@@ -533,7 +643,11 @@ def _wire_tokens(text: str, hex_set: set[str], have_prrd: bool) -> str:
         else:
             # no PRRD page in this build -> leave the citation as plain text
             pass
-        s = _RE_WIKIMEM.sub(r"<strong>[[\1]]</strong>", s)
+        if mem_names is not None:
+            s = _RE_WIKIMEM.sub(lambda m: _mem_link(m.group(1), mem_names), s)
+        else:
+            # no mem set in this build -> keep the Phase-2 bold rendering
+            s = _RE_WIKIMEM.sub(r"<strong>[[\1]]</strong>", s)
         segs[j] = s
     return "".join(segs)
 
@@ -544,6 +658,27 @@ def _trdd_link(hex8: str, label: str, hex_set: set[str]) -> str:
     if hex8 in hex_set:
         return '<a href="#/trdd/%s" data-ve-navigate>%s</a>' % (hex8, label)
     return '%s <span class="docwiki-notinset">(not in set)</span>' % label
+
+
+def _mem_link(inner: str, mem_names: set[str]) -> str:
+    """Wire a wikimem `[[target]]` / `[[target|label]]` token (Phase 3).
+
+    `inner` arrives ALREADY HTML-escaped (the body text was escaped before link
+    wiring). Unescape just for the name lookup + href, then re-escape the visible
+    label. In-set -> `#/mem/<target>` link; out-of-set -> plain label + muted
+    "(not in set)" (NEVER a dangling link — same contract as `_trdd_link`)."""
+    raw = html.unescape(inner)
+    if "|" in raw:
+        target, label = raw.split("|", 1)
+    else:
+        target = label = raw
+    target = target.strip()
+    label = label.strip()
+    if target in mem_names:
+        return ('<a href="#/mem/%s" data-ve-navigate>%s</a>'
+                % (_esc(target), _esc(label)))
+    return ('%s <span class="docwiki-notinset">(not in set)</span>'
+            % _esc(label))
 
 
 # ── page rendering ───────────────────────────────────────────────────────────
@@ -631,13 +766,14 @@ def _token_to_hex8(tok: str) -> str:
     return ""
 
 
-def render_trdd_page(t: Trdd, hex_set: set[str], have_prrd: bool) -> str:
+def render_trdd_page(t: Trdd, hex_set: set[str], have_prrd: bool,
+                     mem_names: set[str] | None = None) -> str:
     """One `<section data-ve-doc="trdd/<8hex>">` page: card + xrefs + body."""
     title = "TRDD-%s — %s" % (t.hex8, t.title) if t.hex8 else t.title
     card = _render_card(t)
     xrefs = _render_xrefs(t, hex_set, have_prrd)
     body_html = markdown_to_html(t.body, heading_offset=1)
-    body_html = _wire_links_outside_code(body_html, hex_set, have_prrd)
+    body_html = _wire_links_outside_code(body_html, hex_set, have_prrd, mem_names)
     return (
         '<section data-ve-doc="trdd/%s" data-doc-title="%s">\n'
         "<h1>%s</h1>\n%s%s%s\n</section>"
@@ -647,7 +783,8 @@ def render_trdd_page(t: Trdd, hex_set: set[str], have_prrd: bool) -> str:
     )
 
 
-def render_prrd_page(prrd_md: str, hex_set: set[str]) -> str:
+def render_prrd_page(prrd_md: str, hex_set: set[str],
+                     mem_names: set[str] | None = None) -> str:
     """Render `design/requirements/PRRD.md`.
 
     Rule bullets `- **G64.1** — text` become `<div class="prrd-rule" id="G64">…</div>`
@@ -661,7 +798,7 @@ def render_prrd_page(prrd_md: str, hex_set: set[str]) -> str:
     def flush_buf() -> None:
         if buf:
             frag = markdown_to_html("\n".join(buf), heading_offset=1)
-            frag = _wire_links_outside_code(frag, hex_set, True)
+            frag = _wire_links_outside_code(frag, hex_set, True, mem_names)
             out.append(frag)
             buf.clear()
 
@@ -671,7 +808,7 @@ def render_prrd_page(prrd_md: str, hex_set: set[str]) -> str:
             flush_buf()
             letter, number, version, text = rm.group(1), rm.group(2), rm.group(3), rm.group(4)
             body = _wire_links_outside_code(
-                _render_inline(_esc(text.strip())), hex_set, True)
+                _render_inline(_esc(text.strip())), hex_set, True, mem_names)
             out.append(
                 '<div class="prrd-rule" id="G%s">'
                 '<span class="prrd-rule-id">%s%s.%s</span> %s</div>'
@@ -690,8 +827,80 @@ def render_prrd_page(prrd_md: str, hex_set: set[str]) -> str:
     )
 
 
-def render_home_page(trdds: list[Trdd], have_prrd: bool, wiki_title: str) -> str:
-    """The index: TRDDs grouped by column (14-stage order; only non-empty groups)."""
+def render_kanban_page(trdds: list[Trdd]) -> str:
+    """`<section data-ve-doc="kanban">` — the 14-stage board (Phase 3).
+
+    Reuses the same column grouping as the home index, but lays the non-empty
+    columns out as horizontal lanes (pipeline order), each holding one clickable
+    card per TRDD. The board may extend past the viewport width — per the
+    no-nested-scrollbars rule the PAGE expands (document scrollbar); there is NO
+    inner overflow:auto on the board. Cards wrap vertically within a lane."""
+    by_col: dict[str, list[Trdd]] = {}
+    for t in trdds:
+        by_col.setdefault(t.column, []).append(t)
+
+    lanes: list[str] = []
+    order = COLUMN_ORDER + [_OTHER_KEY]  # `_other` trailing so no card is lost
+    for col in order:
+        group = by_col.get(col)
+        if not group:  # only non-empty columns become lanes
+            continue
+        group_sorted = sorted(group, key=lambda x: x.title.lower())
+        cards: list[str] = []
+        for t in group_sorted:
+            cards.append(
+                '<a class="dw-card" href="#/trdd/%s" data-ve-navigate>'
+                '<span class="dw-card-id">%s</span>'
+                '<span class="dw-card-title">%s</span></a>'
+                % (t.hex8, _esc("TRDD-" + t.hex8), _esc(t.title)))
+        lanes.append(
+            '<div class="dw-lane"><div class="dw-lane-head">%s '
+            '<span class="dw-lane-count">(%d)</span></div>'
+            '<div class="dw-lane-cards">%s</div></div>'
+            % (_esc(COLUMN_LABEL.get(col, col)), len(group_sorted), "".join(cards)))
+
+    return (
+        '<section data-ve-doc="kanban" data-doc-title="Kanban — the board">\n'
+        "<h1>Kanban — the board</h1>\n"
+        '<p class="docwiki-lead">%d task%s across %d column%s. '
+        "Click any card to open its TRDD.</p>\n"
+        '<div class="dw-board">%s</div>\n</section>'
+        % (len(trdds), "" if len(trdds) == 1 else "s",
+           len(lanes), "" if len(lanes) == 1 else "s", "".join(lanes))
+    )
+
+
+def render_mem_page(note: MemNote, hex_set: set[str], have_prrd: bool,
+                    mem_names: set[str]) -> str:
+    """One `<section data-ve-doc="mem/<name>">` page (Phase 3): a frontmatter card
+    (name / tier / type / description) + the body markdown, with `[[…]]` wikilinks
+    routed to `#/mem/<target>` (or plain text when the target is not in the set)."""
+    title = "%s — %s" % (note.name, note.description) if note.description else note.name
+    # frontmatter card (only non-empty rows)
+    rows = [("Name", note.name), ("Tier", note.tier),
+            ("Type", note.type), ("Description", note.description)]
+    card_rows = "".join(
+        "<tr><th>%s</th><td>%s</td></tr>" % (_esc(lbl), _esc(val))
+        for lbl, val in rows if val)
+    card = ('<table class="docwiki-fm"><caption class="docwiki-sr">Frontmatter'
+            "</caption><tbody>%s</tbody></table>" % card_rows) if card_rows else ""
+
+    body_html = markdown_to_html(note.body, heading_offset=1)
+    body_html = _wire_links_outside_code(body_html, hex_set, have_prrd, mem_names)
+    return (
+        '<section data-ve-doc="mem/%s" data-doc-title="%s">\n'
+        "<h1>%s</h1>\n%s\n%s\n</section>"
+        % (_esc(note.name), _esc(title), _esc(title), card,
+           '<div class="docwiki-body">%s</div>' % body_html)
+    )
+
+
+def render_home_page(trdds: list[Trdd], have_prrd: bool, wiki_title: str,
+                     mem_notes: list[MemNote] | None = None,
+                     have_kanban: bool = False) -> str:
+    """The index: TRDDs grouped by column (14-stage order; only non-empty groups),
+    plus optional Board-view + PRRD links in the header and a Memory group."""
+    mem_notes = mem_notes or []
     by_col: dict[str, list[Trdd]] = {}
     for t in trdds:
         by_col.setdefault(t.column, []).append(t)
@@ -703,10 +912,15 @@ def render_home_page(trdds: list[Trdd], have_prrd: bool, wiki_title: str) -> str
         "back / forward and the breadcrumb track your trail.</p>"
         % (len(trdds), "" if len(trdds) == 1 else "s"),
     ]
+    nav = []
+    if have_kanban:
+        nav.append('<a href="#/kanban" data-ve-navigate><strong>▢ Board view</strong> — '
+                   "the kanban</a>")
     if have_prrd:
-        parts.append(
-            '<p><a href="#/prrd" data-ve-navigate><strong>PRRD</strong> — '
-            "project requirements &amp; rules</a></p>")
+        nav.append('<a href="#/prrd" data-ve-navigate><strong>PRRD</strong> — '
+                   "project requirements &amp; rules</a>")
+    for link in nav:
+        parts.append("<p>%s</p>" % link)
 
     order = COLUMN_ORDER + [_OTHER_KEY]
     for col in order:
@@ -723,6 +937,19 @@ def render_home_page(trdds: list[Trdd], have_prrd: bool, wiki_title: str) -> str
             parts.append('<li><a href="#/trdd/%s" data-ve-navigate>%s</a></li>'
                          % (t.hex8, _esc(label)))
         parts.append("</ul></section>")
+
+    if mem_notes:
+        mem_sorted = sorted(mem_notes, key=lambda x: x.name.lower())
+        parts.append('<section class="docwiki-group">')
+        parts.append("<h2>Memory <span class=\"docwiki-count\">(%d)</span></h2>"
+                     % len(mem_sorted))
+        parts.append("<ul>")
+        for note in mem_sorted:
+            label = "%s — %s" % (note.name, note.description) if note.description else note.name
+            parts.append('<li><a href="#/mem/%s" data-ve-navigate>%s</a></li>'
+                         % (_esc(note.name), _esc(label)))
+        parts.append("</ul></section>")
+
     parts.append("</section>")
     return "\n".join(parts)
 
@@ -791,6 +1018,27 @@ DOC_CSS = """
   .prrd-rule:target{outline:2px solid var(--vc-color-accent);outline-offset:2px;}
   /* visually-hidden caption */
   .docwiki-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);}
+  /* kanban board: horizontal lanes; PAGE expands past viewport (no inner scroll
+     — project no-nested-scrollbars rule). Cards wrap vertically within a lane. */
+  .dw-board{display:flex;flex-direction:row;align-items:flex-start;gap:var(--vc-space-4,.75rem);
+    overflow:visible;max-width:none;margin:.8em 0;}
+  .dw-lane{flex:0 0 16rem;display:flex;flex-direction:column;
+    background:var(--vc-color-surface);border:1px solid var(--vc-color-border);
+    border-radius:var(--vc-radius-md,8px);padding:var(--vc-space-3,.5rem);}
+  .dw-lane-head{font-family:var(--vc-font-heading);font-weight:var(--vc-weight-bold,600);
+    color:var(--vc-color-content);padding:.1em .2em .4em;
+    border-bottom:1px solid var(--vc-color-border);margin-bottom:.5em;}
+  .dw-lane-count{color:var(--vc-color-content-muted);font-weight:400;font-size:.85em;}
+  .dw-lane-cards{display:flex;flex-direction:column;gap:var(--vc-space-2,.4rem);}
+  /* card: surface bg + border; hover = brightness lift only, no new geometry */
+  .dw-card{display:block;text-decoration:none;background:var(--vc-color-surface-raised);
+    border:1px solid var(--vc-color-border);border-radius:var(--vc-radius-sm,4px);
+    padding:.45em .6em;transition:filter .12s ease;}
+  .dw-card:hover{filter:brightness(1.08);text-decoration:none;}
+  html[data-ve-theme="dark"] .dw-card:hover{filter:brightness(1.25);}
+  .dw-card-id{display:block;font-family:var(--vc-font-mono);font-size:.78em;
+    color:var(--vc-color-accent);}
+  .dw-card-title{display:block;color:var(--vc-color-content);font-size:.92em;line-height:1.35;}
   .theme-toggle{position:fixed;right:.5rem;bottom:.5rem;z-index:2000;font:inherit;
     padding:.4em .7em;border-radius:6px;cursor:pointer;
     background:var(--ve-control-bg);color:var(--ve-control-fg);border:1px solid var(--ve-control-border);}
@@ -884,15 +1132,18 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("out", help="output .html path")
     ap.add_argument("--trdd-dir", action="append", default=[],
                     metavar="DIR", help="directory of TRDD-*.md (repeatable)")
+    ap.add_argument("--mem-dir", action="append", default=[],
+                    metavar="DIR", help="directory of wikimem *.md notes (repeatable)")
     ap.add_argument("--prrd", metavar="PATH", help="path to PRRD.md (optional)")
     ap.add_argument("--title", default="Design Wiki", help="wiki <title> / home heading")
     args = ap.parse_args(argv)
 
     trdd_dirs = [Path(d) for d in args.trdd_dir]
+    mem_dirs = [Path(d) for d in args.mem_dir]
     prrd_path = Path(args.prrd) if args.prrd else None
 
-    if not trdd_dirs and not prrd_path:
-        ap.error("at least one source is required: pass --trdd-dir and/or --prrd")
+    if not trdd_dirs and not mem_dirs and not prrd_path:
+        ap.error("at least one source is required: pass --trdd-dir, --mem-dir and/or --prrd")
 
     # locate the Phase-1 shell relative to this script (self-contained, inlined)
     shell_path = Path(__file__).resolve().parent / "amvcp-docwiki.js"
@@ -901,6 +1152,7 @@ def main(argv: list[str] | None = None) -> int:
     shell_js = shell_path.read_text(encoding="utf-8")
 
     trdds = collect_trdds(trdd_dirs)
+    mem_notes = collect_mem_notes(mem_dirs)
 
     have_prrd = False
     prrd_md = ""
@@ -913,16 +1165,26 @@ def main(argv: list[str] | None = None) -> int:
             raise SystemExit(f"FATAL: cannot read PRRD file {prrd_path}: {exc}") from exc
         have_prrd = True
 
-    if not trdds and not have_prrd:
-        raise SystemExit("FATAL: no TRDD pages produced and no PRRD — nothing to build.")
+    if not trdds and not mem_notes and not have_prrd:
+        raise SystemExit("FATAL: no TRDD/mem pages produced and no PRRD — nothing to build.")
 
     hex_set = {t.hex8 for t in trdds}
+    # `None` keeps Phase-2 bold rendering of `[[…]]`; a real set routes them to mem.
+    mem_names: set[str] | None = {n.name for n in mem_notes} if mem_notes else None
+    have_kanban = bool(trdds)  # the board page exists whenever ≥1 TRDD was built
 
-    pages: list[str] = [render_home_page(trdds, have_prrd, args.title)]
+    pages: list[str] = [
+        render_home_page(trdds, have_prrd, args.title, mem_notes, have_kanban)
+    ]
+    if have_kanban:
+        pages.append(render_kanban_page(trdds))
     if have_prrd:
-        pages.append(render_prrd_page(prrd_md, hex_set))
+        pages.append(render_prrd_page(prrd_md, hex_set, mem_names))
     for t in trdds:
-        pages.append(render_trdd_page(t, hex_set, have_prrd))
+        pages.append(render_trdd_page(t, hex_set, have_prrd, mem_names))
+    for note in mem_notes:
+        # mem_names is non-None here (mem_notes is non-empty)
+        pages.append(render_mem_page(note, hex_set, have_prrd, mem_names or set()))
 
     out_html = build_html("\n\n".join(pages), shell_js, args.title)
 
@@ -932,8 +1194,9 @@ def main(argv: list[str] | None = None) -> int:
     out_path.write_text(out_html, encoding="utf-8")
 
     sys.stderr.write(
-        "built %s: %d TRDD page(s), PRRD=%s\n"
-        % (out_path, len(trdds), "yes" if have_prrd else "no"))
+        "built %s: %d TRDD page(s), %d mem page(s), kanban=%s, PRRD=%s\n"
+        % (out_path, len(trdds), len(mem_notes),
+           "yes" if have_kanban else "no", "yes" if have_prrd else "no"))
     return 0
 
 
