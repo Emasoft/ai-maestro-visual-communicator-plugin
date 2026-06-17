@@ -65,7 +65,7 @@ The selected sibling skill produces the wireframe. This router produces only the
 |---|---|
 | Unsure which sibling to pick | Re-read the table above — match your task verb (pick fidelity, wrap in bezel, wire screens, pick archetype). |
 | Need cross-sibling composition | Follow the "How to combine the siblings" workflow above. |
-| Sibling not found | Verify the sibling directory exists at `skills/amvcp-wf-{fidelity,devices,screens,archetypes}/SKILL.md`. |
+| Sibling not found | Verify the sibling directory exists: `skills/amvcp-wf-fidelity`, `skills/amvcp-wf-devices`, `skills/amvcp-wf-screens`, or `skills/amvcp-wf-archetypes` (each has a SKILL.md). |
 
 ## Examples
 
