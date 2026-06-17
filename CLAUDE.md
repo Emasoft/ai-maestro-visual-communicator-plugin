@@ -116,7 +116,7 @@ When asked to "implement"/"integrate" an external set of artifacts (a zip of exa
 HTML, a gallery, another plugin, a blog's companion repo, …):
 
 1. **Check for malicious code FIRST** — external scripts, `fetch`/XHR/WebSocket/
-   `sendBeacon` exfil, `eval`/`new Function`, `document.cookie`, obfuscated blobs,
+   `sendBeacon` exfil, `eval`/`new Function`, cookie/storage reads, obfuscated blobs,
    meta-refresh, external form actions. Distinguish *executed* JS from *displayed*
    example code. Do not proceed until clean.
 2. **Investigate each item in depth** — understand what thing it visualizes and how.
