@@ -1,6 +1,6 @@
 ---
 name: amvcp-editor-toggles
-description: "Feature-flag editor — a self-contained, DESIGN.md-themed panel of grouped toggle switches with dependency warnings (flag X requires Y) and a copy-diff export of changed-vs-default flags. The diff export rides the runtime selection channel (lands in window.veSelection); selection/highlight/comment come from the runtime, never reinvented. Switches are keyboard-accessible (role=switch); style is --vc-* token-driven, light + dark; the warning row is pre-rendered and class-toggled (no injected geometry). Use when editing feature flags, toggling config options, or building a settings/flags panel with dependency rules. Trigger with 'feature flags', 'feature-flag editor', 'flag toggles', 'config toggles', 'settings toggles', 'toggle editor', 'flag dependencies', 'copy diff of flags'."
+description: "Feature-flag editor — a self-contained, DESIGN.md-themed panel of grouped toggle switches with dependency warnings (flag X requires Y) and a copy-diff export of changed-vs-default flags. The diff exports through the runtime selection channel; light + dark, keyboard-accessible switches. Use when editing feature flags, toggling config options, or building a settings/flags panel with dependency rules. Trigger with 'feature flags', 'feature-flag editor', 'flag toggles', 'config toggles', 'settings toggles', 'toggle editor', 'flag dependencies', 'copy diff of flags'."
 license: MIT
 metadata:
   author: Emasoft
@@ -9,6 +9,34 @@ metadata:
 # Feature-Flag Toggle Editor
 
 > **Parent umbrella:** [`skills/amvcp-visual-communication/SKILL.md`](../amvcp-visual-communication/SKILL.md). **Sibling editor skills:** [amvcp-editor-template](../amvcp-editor-template/SKILL.md) (template/prompt tuner), [amvcp-editor-kanban](../amvcp-editor-kanban/SKILL.md) (drag triage board). **Form widgets (single-flag toggles):** [amvcp-form-inputs](../amvcp-form-inputs/SKILL.md). **Selection wire-format:** [`references/interactive-selection-base.md`](../../references/interactive-selection-base.md).
+
+Complete TOC of `interactive-selection-base.md`:
+- ## Table of contents
+- ## How it works & Page Setup
+  - ### How it works (one paragraph)
+  - ### Page CSS contract (multi-select)
+  - ### Mandatory boilerplate
+- ## The selection payload
+  - ### Phase 2 — multi-click text selection inside `[data-ve-prose]`
+    - #### Phase 3 — block-level depths 4-7 (paragraph / section / chapter / all)
+    - #### Phase 3 — math grammar (sub-formula depths 1-3 inside `.ve-math`)
+    - #### Phase 3 — code grammar (token / line / block depths 1-3 inside `<pre>`)
+    - #### Phase 4 — drag text selection toggles entries (the only deselect path)
+    - #### Phase 5 — table row/column handles
+    - #### Phase 6 — code line-number gutter
+    - #### Phase 7 — touch / mobile compatibility
+    - #### Interactive agent reports — `kind:"finding-reply"` (TRDD-eff1aa87)
+    - #### Interactive agent reports v2 — modal comment threads
+  - ### Required follow-up
+- ## Selectable Elements
+  - ### What to make selectable
+  - ### Marking elements
+- ## Engine routing — read this BEFORE generating a graph
+- ## Runtime & Process Caveats
+  - ### Runner-process pitfalls (Chrome `--app=URL` mode)
+  - ### Anti-patterns (selection-system author errors)
+  - ### Inlining the runtime (single-file portability)
+  - ### Future extensions (not yet implemented)
 
 ## Overview
 

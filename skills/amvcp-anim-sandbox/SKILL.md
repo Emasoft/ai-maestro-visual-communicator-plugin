@@ -1,6 +1,6 @@
 ---
 name: amvcp-anim-sandbox
-description: "Animation sandbox — ONE transition shown in isolation with live duration + easing tuners, a Replay button, and an export of the tuned {duration, easing} values. A DESIGN.md-themed stage runs a demo element through a from→to transition; a slider tunes duration and a select picks the easing, and moving either re-runs it live. Selection / highlight / comment / export all ride the runtime, never reinvented. Respects prefers-reduced-motion; fully --vc-* token-driven, light + dark both. Use when tuning a transition, dialling in animation timing, picking an easing curve, or building an easing/duration playground. Trigger with 'animation sandbox', 'tune a transition', 'easing tuner', 'duration slider', 'easing playground', 'transition timing', 'isolate a transition', 'pick an easing curve'."
+description: "Animation sandbox — ONE transition shown in isolation with live duration + easing tuners, a Replay button, and an export of the tuned {duration, easing} values. Moving the slider or easing select re-runs the transition live; the tuned values export through the runtime selection channel. Light + dark, reduced-motion-aware. Use when tuning a transition, dialling in animation timing, picking an easing curve, or building an easing/duration playground. Trigger with 'animation sandbox', 'tune a transition', 'easing tuner', 'duration slider', 'easing playground', 'pick an easing curve'."
 license: MIT
 metadata:
   author: Emasoft
