@@ -1,10 +1,5 @@
 # Icon-SVG — Reference Catalog
 
-The `skills/amvcp-icon-svg/references/` folder contains 42 self-sufficient
-technique references organized into eight groups. Each entry below links the
-reference file and embeds that file's complete Table of Contents (every `##` /
-`###` heading, verbatim) so you can pick the exact reference without opening it.
-
 ## Table of Contents
 
 - [Contract (4)](#contract-4)
@@ -16,19 +11,31 @@ reference file and embeds that file's complete Table of Contents (every `##` /
 - [Patterns + helpers (7)](#patterns--helpers-7)
 - [Invariants + exclusions (4)](#invariants--exclusions-4)
 
+The `skills/amvcp-icon-svg/references/` folder holds 42 self-sufficient technique references in eight groups. Each entry below links the reference file and embeds that file's complete Table of Contents (every `##`/`###` heading, verbatim) so you can pick the exact reference without opening it.
+
 ## Contract (4)
 
 - [dispatch-decision-tree](dispatch-decision-tree.md)
   - The 60-second routing answer
   - The boundary contracts (cross-skill seams)
+    - Boundary with `diagram`
+    - Boundary with `wireframe`
+    - Boundary with `chart`
+    - Boundary with `interactive-control`
+    - Boundary with `report-doc`
   - Negative routing — what icon-svg is NOT
   - Choosing a sub-technique inside icon-svg
   - Selection / comment / decision-pill integration
   - When in doubt
 - [scene-graph-contract](scene-graph-contract.md)
   - The authoring surface
+    - Form A — `<script type="application/icon-svg+json">`
+    - Form B — fenced code block
   - SceneGraph schema
   - Primitive — three kinds
+    - type: "process" / "database" / "decision" / "external" / "network"
+    - type: "logo", kind: ...
+    - type: "shape", kind: ...
   - Validation — fail-fast
   - Auto-fixes (silent — no throw)
   - A worked example — five-node showcase
@@ -67,6 +74,9 @@ reference file and embeds that file's complete Table of Contents (every `##` /
   - DESIGN.md tokens consumed
   - Selection / comment / decision-mini
   - Common authoring patterns
+    - One process — a labelled rect for a hero figure
+    - Three processes — a manual lane
+    - Eight identical processes — the `<defs><use>` path
   - What NOT to do
   - Visual verification
 - [node-database-cylinder](node-database-cylinder.md)
@@ -80,6 +90,9 @@ reference file and embeds that file's complete Table of Contents (every `##` /
   - When to use
   - When NOT to use
   - Common authoring patterns
+    - Single database hero
+    - Two databases side-by-side (primary + replica)
+    - Process → database mini-flow
   - What NOT to do
   - Visual verification
 - [node-decision-diamond](node-decision-diamond.md)
@@ -94,6 +107,8 @@ reference file and embeds that file's complete Table of Contents (every `##` /
   - When to use
   - When NOT to use
   - Common authoring patterns
+    - Process → decision → two processes
+    - Standalone decision (a question on a slide)
   - What NOT to do
   - Visual verification
 - [node-external-dashed](node-external-dashed.md)
@@ -106,6 +121,9 @@ reference file and embeds that file's complete Table of Contents (every `##` /
   - When to use
   - When NOT to use
   - Common authoring patterns
+    - Single external boundary (a single vendor in a system diagram)
+    - Two externals (upstream + downstream)
+    - External + process pair (vendor → our handler)
   - What NOT to do
   - Visual verification
 - [node-network-cloud](node-network-cloud.md)
@@ -119,6 +137,9 @@ reference file and embeds that file's complete Table of Contents (every `##` /
   - When to use
   - When NOT to use
   - Common authoring patterns
+    - Single cloud hero
+    - Three clouds (multi-region edge)
+    - Process → network mini-architecture
   - What NOT to do
   - Visual verification
 
@@ -136,6 +157,8 @@ reference file and embeds that file's complete Table of Contents (every `##` /
   - When to use
   - When NOT to use
   - Common authoring patterns
+    - Single mask-cutout hero
+    - Mask-cutout next to other logo blocks (same scene, all explicit)
   - What NOT to do
   - Visual verification
 - [logo-arc-bite](logo-arc-bite.md)
@@ -148,6 +171,8 @@ reference file and embeds that file's complete Table of Contents (every `##` /
   - When to use
   - When NOT to use
   - Common authoring patterns
+    - Single arc-bite (a moon-phase mark)
+    - Arc-bite in a logo gallery (with siblings)
   - What NOT to do
   - Visual verification
 - [logo-zig-zag](logo-zig-zag.md)
@@ -160,6 +185,8 @@ reference file and embeds that file's complete Table of Contents (every `##` /
   - When to use
   - When NOT to use
   - Common authoring patterns
+    - Single zig-zag (a ticket-style brand mark)
+    - Zig-zag in a logo gallery
   - What NOT to do
   - Visual verification
 - [logo-stacked-rects](logo-stacked-rects.md)
@@ -173,6 +200,8 @@ reference file and embeds that file's complete Table of Contents (every `##` /
   - When to use
   - When NOT to use
   - Common authoring patterns
+    - Single stacked-rects (a 3-tier brand mark)
+    - Stacked-rects + tint-hierarchy (sibling marks)
   - What NOT to do
   - Visual verification
 - [logo-tint-hierarchy](logo-tint-hierarchy.md)
@@ -186,6 +215,9 @@ reference file and embeds that file's complete Table of Contents (every `##` /
   - When to use
   - When NOT to use
   - Common authoring patterns
+    - Single tint-hierarchy (a trinity brand mark)
+    - Tint-hierarchy + stacked-rects (sibling marks)
+    - Tint-hierarchy as a comparison piece
   - What NOT to do
   - Visual verification
 - [logo-current-color](logo-current-color.md)
@@ -199,6 +231,8 @@ reference file and embeds that file's complete Table of Contents (every `##` /
   - When to use
   - When NOT to use
   - Common authoring patterns
+    - Single current-color (a runtime-tintable mark)
+    - Sequence — current-color in its own scene, sibling scenes with other logos
   - What NOT to do
   - Visual verification
 
@@ -207,58 +241,85 @@ reference file and embeds that file's complete Table of Contents (every `##` /
 - [shape-triangle-up](shape-triangle-up.md)
   - What it renders
   - Two authoring paths
+    - Path A — scene-graph shape primitive
+    - Path B — CSS-only class (zero SVG, zero JS)
   - Fill options (scene-graph path)
   - DESIGN.md tokens consumed
   - Selection / comment / decision-mini (scene-graph path)
   - When to use
   - When NOT to use
   - Common authoring patterns
+    - CSS-only icon row (a sortable-column glyph)
+    - Scene-graph selectable hero triangle
   - What NOT to do
   - Visual verification
 - [shape-arrow-right](shape-arrow-right.md)
   - What it renders
   - Two authoring paths
+    - Path A — scene-graph shape primitive
+    - Path B — CSS-only class
   - Fill options
   - DESIGN.md tokens consumed
   - When to use
   - When NOT to use
   - Common authoring patterns
+    - CSS-only step separator
+    - Scene-graph wide-arrow hero
   - What NOT to do
   - Visual verification
 - [shape-chevron](shape-chevron.md)
   - What it renders
   - Two authoring paths
+    - Path A — scene-graph
+    - Path B — CSS-only class
   - Fill options
   - When to use
   - When NOT to use
   - Common authoring patterns
+    - Pagination glyph
+    - Breadcrumb separator
+    - Scene-graph hero chevron
   - What NOT to do
   - Visual verification
 - [shape-parallelogram](shape-parallelogram.md)
   - What it renders
   - Two authoring paths
+    - Path A — scene-graph
+    - Path B — CSS-only class
   - Fill options
   - When to use
   - When NOT to use
   - Common authoring patterns
+    - CSS-only data-card decoration
+    - Scene-graph stylized data block
   - What NOT to do
   - Visual verification
 - [shape-hexagon](shape-hexagon.md)
   - What it renders
   - Two authoring paths
+    - Path A — scene-graph
+    - Path B — CSS-only class
   - Fill options
   - When to use
   - When NOT to use
   - Common authoring patterns
+    - Single hexagon hero (a platform badge)
+    - CSS-only honeycomb tile pattern
+    - Hexagon as a chemistry mark
   - What NOT to do
   - Visual verification
 - [shape-star](shape-star.md)
   - What it renders
   - Two authoring paths
+    - Path A — scene-graph
+    - Path B — CSS-only class
   - Fill options
   - When to use
   - When NOT to use
   - Common authoring patterns
+    - CSS-only rating row
+    - Scene-graph hero star (a single big achievement mark)
+    - Featured content sticker
   - What NOT to do
   - Visual verification
 
@@ -267,6 +328,8 @@ reference file and embeds that file's complete Table of Contents (every `##` /
 - [device-frame-ios](device-frame-ios.md)
   - What it renders
   - Two authoring paths
+    - Path A — JS API
+    - Path B — direct markup (uses the injected CSS)
   - Required parameters (JS path)
   - Status bar glyphs
   - The home indicator
@@ -282,6 +345,8 @@ reference file and embeds that file's complete Table of Contents (every `##` /
 - [device-frame-android](device-frame-android.md)
   - What it renders
   - Two authoring paths
+    - Path A — JS API
+    - Path B — direct markup
   - Required parameters (JS path)
   - The punch-hole camera
   - The gesture bar
@@ -295,6 +360,8 @@ reference file and embeds that file's complete Table of Contents (every `##` /
 - [device-frame-mac](device-frame-mac.md)
   - What it renders
   - Two authoring paths
+    - Path A — JS API
+    - Path B — direct markup
   - Required parameters (JS path)
   - The traffic lights
   - CSS-only path classes
@@ -307,6 +374,8 @@ reference file and embeds that file's complete Table of Contents (every `##` /
 - [device-frame-browser](device-frame-browser.md)
   - What it renders
   - Two authoring paths
+    - Path A — JS API
+    - Path B — direct markup
   - Required parameters (JS path)
   - The URL bar
   - The tab label
@@ -330,6 +399,9 @@ reference file and embeds that file's complete Table of Contents (every `##` /
   - When to use
   - When NOT to use
   - Common authoring patterns
+    - Numbered annotations
+    - Letter annotations
+    - Colored hotspots (override accent locally)
   - DESIGN.md tokens consumed
   - What NOT to do
   - Visual verification
@@ -429,6 +501,9 @@ reference file and embeds that file's complete Table of Contents (every `##` /
 - [svg-ornament-marks](svg-ornament-marks.md)
   - The canonical pattern (from `09-slide-deck.html`)
   - Variants
+    - Title-mark — circle + dot
+    - Divider-mark — three dots in a row
+    - Accent-mark — arc + dot
   - When to use
   - When NOT to use
   - Why a custom mark and not a primitive?
@@ -453,6 +528,8 @@ reference file and embeds that file's complete Table of Contents (every `##` /
   - DESIGN.md tokens to use
   - CSS sizing
   - Common variants
+    - Single-document spot
+    - Empty inbox
   - What NOT to do
   - Visual verification
 
