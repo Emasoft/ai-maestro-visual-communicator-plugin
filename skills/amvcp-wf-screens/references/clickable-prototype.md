@@ -19,20 +19,6 @@ each other and each screen MIMICS the real interactive behavior of
 the final app. No JS framework, no signed builds — just `<a href>`,
 `:target`, and clever `wf-screen` structure.
 
-## Table of contents
-
-- [The clickable contract — what makes it "feel real"](#the-clickable-contract--what-makes-it-feel-real)
-- [Pattern 1 — Hub-and-spoke (one home, many sub-flows)](#pattern-1--hub-and-spoke-one-home-many-sub-flows)
-- [Pattern 2 — Linear flow (cart → payment → confirm)](#pattern-2--linear-flow-cart--payment--confirm)
-- [Pattern 3 — Branching flow (a yes/no decision splits paths)](#pattern-3--branching-flow-a-yesno-decision-splits-paths)
-- [Pattern 4 — Modal-over-screen (overlay pattern)](#pattern-4--modal-over-screen-overlay-pattern)
-- [Pattern 5 — Multi-step wizard with back-stop](#pattern-5--multi-step-wizard-with-back-stop)
-- [Pattern 6 — Stateful mocks (toggle, expand, filter)](#pattern-6--stateful-mocks-toggle-expand-filter)
-- [The "happy path + 1 error" rule](#the-happy-path--1-error-rule)
-- [Annotated callouts — show design rationale](#annotated-callouts--show-design-rationale)
-- [Open-questions panel — collect feedback inline](#open-questions-panel--collect-feedback-inline)
-- [Screen inventory — name every screen up front](#screen-inventory--name-every-screen-up-front)
-
 ---
 
 ## The clickable contract — what makes it "feel real"
@@ -144,7 +130,7 @@ different sub-flow. The user returns to the hub between flows.
 </div>
 ```
 
-### Notes
+**Notes:**
 
 - Paged nav (`data-wf-nav="paged"`) — only one screen visible at
   a time.
@@ -202,7 +188,7 @@ A sequential flow — each screen leads to the next, no branching.
 </div>
 ```
 
-### Notes
+**Notes:**
 
 - Each screen has a "← Back" link (except the first and last).
 - Each screen has a "Continue →" / "Place order" / similar primary
@@ -296,7 +282,7 @@ A decision point — the user chooses, and the flow branches.
 </div>
 ```
 
-### Notes
+**Notes:**
 
 - The decision screen shows TWO cards, each linking to a different
   flow.
@@ -384,7 +370,7 @@ back-navigation closes the modal.
 </div>
 ```
 
-### Notes
+**Notes:**
 
 - The modal screen DUPLICATES the underlying screen markup but
   dims it via `filter: brightness(0.5)` + `pointer-events: none`.
@@ -484,7 +470,7 @@ step is a screen.
 </div>
 ```
 
-### Notes
+**Notes:**
 
 - Each step has Back + Continue links. Step 1 has Cancel (not
   Back) — there's no step 0.
@@ -585,7 +571,7 @@ non-obvious choices. The reviewer learns the WHY without asking.
 </aside>
 ```
 
-### Notes
+**Notes:**
 
 - Yellow / amber / blue tinted (semantic color is fine — they
   desaturate at wireframe-fi to a clear grey background).
@@ -646,7 +632,7 @@ for the reviewer.
 </aside>
 ```
 
-### Notes
+**Notes:**
 
 - Borderless box with sunken background.
 - Header is small + uppercase + tracked.
@@ -702,7 +688,7 @@ its purpose, and its IDs.
 </section>
 ```
 
-### Notes
+**Notes:**
 
 - Numbered list of every screen.
 - Each entry has the screen ID (linked) + a one-line description.

@@ -1,5 +1,10 @@
 # Composition examples
 
+## Table of Contents
+
+- [Example 1 — tabbed multi-perspective code panel](#example-1--tabbed-multi-perspective-code-panel)
+- [Example 2 — collapsed walkthrough (one step open at a time)](#example-2--collapsed-walkthrough-one-step-open-at-a-time)
+
 Minimal copy-paste skeletons for the two most common code-snippet
 compositions. Each is the smallest markup that wires the pattern; the
 full pattern detail lives in the per-pattern reference files cited

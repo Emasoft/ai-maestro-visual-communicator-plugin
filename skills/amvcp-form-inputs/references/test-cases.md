@@ -1,5 +1,12 @@
 # Reference test cases
 
+## Table of Contents
+
+- [Test functions](#test-functions)
+- [Fixture](#fixture)
+
+## Test functions
+
 See `tests/scripts/test-form-inputs.js`:
 
 - `form_inputs_all_init` — every kind mounts (radio, multi, numeric,
@@ -46,6 +53,8 @@ See `tests/scripts/test-form-inputs.js`:
   selection + emits.
 - `form_inputs_tier_list` — tier-list mounts S-D + unranked; drag
   moves item between buckets + emits assignment map.
+
+## Fixture
 
 The fixture is `tests/fixtures/form-inputs-fixture.html` (one of
 each widget kind).

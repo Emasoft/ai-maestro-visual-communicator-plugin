@@ -30,8 +30,8 @@ via `--vc-doc-measure`. See
 
 ## Incident postmortem
 
-`incident-postmortem-shape` over `vc-doc--technical-report`. SEV pill
-+ slate TL;DR + typed-dot timeline + impact mini-table + action-items
+`incident-postmortem-shape` over `vc-doc--technical-report`. SEV pill +
+slate TL;DR + typed-dot timeline + impact mini-table + action-items
 checklist + fixed-right TOC.
 
 ## Implementation plan

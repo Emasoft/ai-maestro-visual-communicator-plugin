@@ -1,5 +1,10 @@
 # Authoring rules + verification checklist
 
+## Table of Contents
+
+- [Authoring rules (HARD invariants — apply to every ref AND to every sibling layout skill)](#authoring-rules-hard-invariants--apply-to-every-ref-and-to-every-sibling-layout-skill)
+- [Verification checklist](#verification-checklist)
+
 ## Authoring rules (HARD invariants — apply to every ref AND to every sibling layout skill)
 
 - **Spacing tokens only.** Every length is `var(--vc-space-N)`, `var(--la-*)`, or `ch` (reading measures only). NO literal pixel values for layout sizing. Documented exceptions: `768px` (the single mobile breakpoint — see ref 12), `16mm` (the print page margin — owned by sibling amvcp-layout-print-hero).

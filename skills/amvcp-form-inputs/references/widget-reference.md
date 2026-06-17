@@ -1,5 +1,27 @@
 # The nineteen widgets — HTML schemas + emit payloads
 
+## Table of Contents
+
+- [`ve-quiz-radio` — single-select](#ve-quiz-radio--single-select)
+- [`ve-quiz-multi` — multi-select](#ve-quiz-multi--multi-select)
+- [`ve-numeric-input` — number + unit dropdown](#ve-numeric-input--number--unit-dropdown)
+- [`ve-date-input` — native date picker](#ve-date-input--native-date-picker)
+- [`ve-color-input` — native color picker + hex readout](#ve-color-input--native-color-picker--hex-readout)
+- [`ve-slider` — themed range slider with optional ticks](#ve-slider--themed-range-slider-with-optional-ticks)
+- [`ve-toggle` — themed boolean switch](#ve-toggle--themed-boolean-switch)
+- [`ve-rating` — 1-N star (or dot) rating](#ve-rating--1-n-star-or-dot-rating)
+- [`ve-card-picker` — rich single-select cards](#ve-card-picker--rich-single-select-cards)
+- [`ve-tag-input` — typed tags with chip display + suggestions](#ve-tag-input--typed-tags-with-chip-display--suggestions)
+- [`ve-text-input` — single-line text with optional pattern validation](#ve-text-input--single-line-text-with-optional-pattern-validation)
+- [`ve-text-area` — multi-line with character counter](#ve-text-area--multi-line-with-character-counter)
+- [`ve-url-input` — URL with live validation and preview link](#ve-url-input--url-with-live-validation-and-preview-link)
+- [`ve-tree-picker` — hierarchical single-select](#ve-tree-picker--hierarchical-single-select)
+- [`ve-password-input` — masked text with strength meter](#ve-password-input--masked-text-with-strength-meter)
+- [`ve-currency-input` — monetary amount + currency switcher](#ve-currency-input--monetary-amount--currency-switcher)
+- [`ve-gallery-picker` — single-select from N image cards](#ve-gallery-picker--single-select-from-n-image-cards)
+- [`ve-tier-list` — drag items into S/A/B/C/D tier zones](#ve-tier-list--drag-items-into-sabcd-tier-zones)
+- [`ve-rank-list` — drag-to-reorder](#ve-rank-list--drag-to-reorder)
+
 Per-widget JSON model and `ve-form-change` payload for each of the
 nineteen form-input widgets. Pick the widget from the matrix in
 SKILL.md ("When to use this skill"), then copy the matching schema

@@ -60,8 +60,8 @@ skill territory.
 ## Architecture
 
 `amvcp-report-doc.js` is the runtime (1538 LOC, dependency-free,
-dual-export `window.amvcpReportDoc` + `module.exports`): injected CSS
-+ the 7-gate QA pipeline. The skill body is `SKILL.md`; the 37
+dual-export `window.amvcpReportDoc` + `module.exports`): injected CSS +
+the 7-gate QA pipeline. The skill body is `SKILL.md`; the 37
 progressive-discovery references (document shapes, structural
 primitives, document chrome, composition + QA) are catalogued in the
 [resources-index](references/resources-index.md) — see the "Resources"
@@ -218,7 +218,7 @@ each entry there carries its own embedded TOC.
 - [interactive-selection-base](../../references/interactive-selection-base.md) — wire format, depths 1-7
   > How it works & Page Setup · The selection payload · Selectable Elements · Engine routing — read this BEFORE generating a graph · Runtime & Process Caveats
 - [css-patterns](../../references/css-patterns.md) — Prose Page Elements (lead, pullquote, callout)
-  > Theme & Atmosphere · Layout & Containers · Content Blocks · Visual Components · Prose Page Elements
+  > Theme & Atmosphere · Layout & Containers · Visual Components · Prose Page Elements · Generated Images
 - [styling-guide](../../references/styling-guide.md) — Editorial / Paper-ink directions
   > Aesthetic directions · Typography & Color · Surfaces, Hierarchy & Animation · Engines & Illustrations
 - [libraries](../../references/libraries.md) — Typography by Voice
