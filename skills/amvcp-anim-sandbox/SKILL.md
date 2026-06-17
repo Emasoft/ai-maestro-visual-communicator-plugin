@@ -1,6 +1,6 @@
 ---
 name: amvcp-anim-sandbox
-description: "Animation sandbox — ONE transition shown in isolation with live duration + easing tuners, a Replay button, and an export of the tuned values. A DESIGN.md-themed stage runs a demo element through a from→to transition; a range slider tunes duration (ms) and a select picks the easing (the five DESIGN.md motion curves + CSS keywords), and moving either re-runs it live. Export rides the runtime selection channel (the {duration, easing} lands in window.veSelection as a kind:element entry — selection / highlight / triple-state feedback / comment come from the runtime, never reinvented). Respects prefers-reduced-motion (controls render; preview gated to explicit Replay); fully --vc-* token-driven, light + dark both. Use when tuning a transition, dialling in animation timing, picking an easing curve, or building an easing/duration playground. Trigger with 'animation sandbox', 'tune a transition', 'easing tuner', 'duration slider', 'easing playground', 'transition timing', 'isolate a transition', 'pick an easing curve'."
+description: "Animation sandbox — ONE transition shown in isolation with live duration + easing tuners, a Replay button, and an export of the tuned {duration, easing} values. A DESIGN.md-themed stage runs a demo element through a from→to transition; a slider tunes duration and a select picks the easing, and moving either re-runs it live. Selection / highlight / comment / export all ride the runtime, never reinvented. Respects prefers-reduced-motion; fully --vc-* token-driven, light + dark both. Use when tuning a transition, dialling in animation timing, picking an easing curve, or building an easing/duration playground. Trigger with 'animation sandbox', 'tune a transition', 'easing tuner', 'duration slider', 'easing playground', 'transition timing', 'isolate a transition', 'pick an easing curve'."
 license: MIT
 metadata:
   author: Emasoft
@@ -9,6 +9,35 @@ metadata:
 # Animation Sandbox
 
 > **Parent umbrella:** [`skills/amvcp-visual-communication/SKILL.md`](../amvcp-visual-communication/SKILL.md). **Animation category:** [amvcp-animation](../amvcp-animation/SKILL.md) (router) · [amvcp-anim-foundation](../amvcp-anim-foundation/SKILL.md) (motion-token + easing contract). **Sibling editor skills:** [amvcp-editor-template](../amvcp-editor-template/SKILL.md), [amvcp-editor-toggles](../amvcp-editor-toggles/SKILL.md). **Selection wire-format:** [`references/interactive-selection-base.md`](../../references/interactive-selection-base.md).
+
+Complete TOC of `interactive-selection-base.md`:
+- # Interactive Selection — Base Contract
+  - ## Table of contents
+  - ## How it works & Page Setup
+    - ### How it works (one paragraph)
+    - ### Page CSS contract (multi-select)
+    - ### Mandatory boilerplate
+  - ## The selection payload
+    - ### Phase 2 — multi-click text selection inside `[data-ve-prose]`
+      - #### Phase 3 — block-level depths 4-7 (paragraph / section / chapter / all)
+      - #### Phase 3 — math grammar (sub-formula depths 1-3 inside `.ve-math`)
+      - #### Phase 3 — code grammar (token / line / block depths 1-3 inside `<pre>`)
+      - #### Phase 4 — drag text selection toggles entries (the only deselect path)
+      - #### Phase 5 — table row/column handles
+      - #### Phase 6 — code line-number gutter
+      - #### Phase 7 — touch / mobile compatibility
+      - #### Interactive agent reports — `kind:"finding-reply"` (TRDD-eff1aa87)
+      - #### Interactive agent reports v2 — modal comment threads
+    - ### Required follow-up
+  - ## Selectable Elements
+    - ### What to make selectable
+    - ### Marking elements
+  - ## Engine routing — read this BEFORE generating a graph
+  - ## Runtime & Process Caveats
+    - ### Runner-process pitfalls (Chrome `--app=URL` mode)
+    - ### Anti-patterns (selection-system author errors)
+    - ### Inlining the runtime (single-file portability)
+    - ### Future extensions (not yet implemented)
 
 ## Overview
 
@@ -93,7 +122,22 @@ Two modes, kept strictly separate (project CLAUDE.md §4):
    button runs the transition (the user explicitly asked). The root
    carries `data-ve-reduced="1"`. Per
    [amvcp-anim-foundation](../amvcp-anim-foundation/references/reduced-motion-gate.md):
-   substitute, never silently disable.
+   substitute, never silently disable. Complete TOC of `reduced-motion-gate.md`:
+   - # Reduced-motion gate — the substitute pattern, never `animation: none`
+     - ## Table of Contents
+     - ## Why substitute (not disable)
+     - ## The two categories — information-bearing vs decorative
+       - ### Information-bearing — substitute with a meaning-preserving fade
+       - ### Decorative-only — substitute with REMOVAL
+     - ## OS detection at runtime
+     - ## Live OS-preference updates
+     - ## CSS pattern — every animation, twice
+     - ## JS pattern — read `REDUCED` once per call
+     - ## DESIGN.md `motion.scale: 0` is ORTHOGONAL, not equivalent
+     - ## The decision-tree for "what substitute do I write?"
+     - ## Diagnostics
+     - ## Visual verification
+     - ## Selection / decision integration
 6. **Export rides the selection channel** — the **Export values** button
    calls `window.veToggle`, landing a `kind:"element"` / `type:"anim-tuning"`
    entry in `window.veSelection` whose `data` carries

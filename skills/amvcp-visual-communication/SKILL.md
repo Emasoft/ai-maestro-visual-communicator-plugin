@@ -15,15 +15,15 @@ This is the **routing layer** for the AI Maestro Visual Communicator plugin. The
 
 > **1 agent → 13 category skills (+ 6 supporting skills) → 500+ reference files**
 
-You (the agent) load this umbrella whenever you are about to add any visual to a document. It does not emit HTML itself — it tells you **which** category skill owns the visual the user is asking for, and points you at the right SKILL.md + references for the technique you'll scaffold.
+You (the agent) load this umbrella whenever you are about to add any visual to a document. It emits no HTML itself — it tells you **which** category skill owns the requested visual and points you at the right SKILL.md + references for the technique.
 
 **Be proactive — render, don't ASCII.** Before emitting an ASCII/box table, indented tree, hand-aligned diagram, fenced "diff", or long bullet hierarchy in chat, route here instead: rows × columns → HTML table; process/architecture → diagram; quantitative comparison → chart; before/after code → diff view. The terminal can't render hierarchy, color, or click-to-act; a generated page can, and it's selectable + comment-able.
 
 ## Prerequisites
 
 - Read this SKILL.md to know which of the 13 category skills owns the requested visual.
-- The plugin's runtime scripts (`amvcp-designmd.js`, `amvcp-runtime.js`, plus the per-category JS lib) must be loaded by the emitted HTML; the category skills tell you which to copy next to the page.
-- For the Python opener (`amvcp-select.py`) and the iTerm preview pane, Python 3.12+ and iTerm2 are needed.
+- The emitted HTML must load the runtime scripts (`amvcp-designmd.js`, `amvcp-runtime.js`, plus the per-category JS lib — the category skills name which to copy next to the page).
+- Python 3.12+ for the `amvcp-select.py` opener; iTerm2 for the preview pane.
 
 ## Instructions
 
@@ -54,7 +54,9 @@ Every category ships its own [SKILL](SKILL.md), a `references/` folder with 30+ 
 | 12 | **slide-decks** | `scripts/amvcp-slide.js` | Presentation HTML — 16 layouts, 5 entrance moods, 4 transitions, fixed-aspect letterbox | [amvcp-slide-decks](../amvcp-slide-decks/SKILL.md) |
 | 13 | **prose-pages** (`report-doc`) | `scripts/amvcp-report-doc.js` | Long-form HTML reports — exec summary, RFC, ADR, postmortem, retrospective, plus QA gates | [amvcp-prose-pages](../amvcp-prose-pages/SKILL.md) |
 
-There are also supporting skills not in the 13-category routing matrix because they bolt on a specialized engine, design element, or layer rather than scaffold a generic visual: `amvcp-graph-diagrams` (Mermaid + Graphviz alternative engine for the diagram category), `amvcp-choice-tables` (form-mode `<table>` for `data-ve-type="table-form"` only), `amvcp-modal-comments` (the per-element comment-thread layer, mounted by the runtime), `amvcp-math-and-latex` (KaTeX + TikZJax for equations / chemistry / TikZ figures), `amvcp-regex-vis` (the vendored interactive regex visualizer + editor — `.ve-regex`), `amvcp-pierre-diff` (the high-fidelity vendored Pierre diff viewer — Shiki highlight, merge-conflict resolver, huge-file virtualizer; reach for it when `amvcp-code-highlight`'s lightweight diff isn't enough), `amvcp-tokens-contact-sheet` (the DESIGN.md "living design page" sheeting every *token* visually), `amvcp-component-variant-matrix` (a sheet of every size · state · intent of ONE *component* — distinct from the token contact sheet), and the five **interactive-editor skills** from the html-effectiveness import — `amvcp-editor-kanban` (drag triage board → markdown export), `amvcp-editor-toggles` (feature-flag editor + dependency warnings + copy-diff), `amvcp-editor-template` (prompt/template tuner with live {{var}} re-render), `amvcp-anim-sandbox` (live duration/easing tuner for one transition), and `amvcp-concept-demo` (manipulable concept explainer) — each exporting its edited state back through the standard selection round-trip.
+There are also **supporting skills** outside this routing matrix — they bolt on a specialized engine, design element, or layer (Mermaid/Graphviz, form-tables, modal-comments, KaTeX/TikZ math, regex-vis, Pierre diff, token/component sheets) plus five interactive-editor skills, rather than scaffold a generic visual. What each adds + when to reach for it (and each one's path) is in [supporting-skills](./references/supporting-skills.md); they also appear in the `## Resources` sibling-skill index below.
+- [supporting-skills](./references/supporting-skills.md) — the supporting skills (engines / elements / layers), what each adds, and the trigger to reach for it
+  > Supporting skills — engines / elements / layers outside the 13-category routing
 
 ## Decision matrix — content shape → category
 
@@ -115,93 +117,34 @@ This is the heart of the umbrella. When you're about to add a visual, find the r
 
 ## Scaffolding contract — how the agent uses this skill
 
-1. **Identify the content shape** — read what the user typed plus any pasted data. Match against the decision matrix above.
-2. **Suggest 1-3 category candidates** if the shape is ambiguous. State the trade-off in one line each. Wait for the user's pick if the choice is non-obvious.
-3. **Read the picked category's [SKILL](SKILL.md)** plus 1–2 of its references (the specific technique you'll use). Do NOT load all 30+ references for the category — progressive discovery means you load only what you need. **SPEED RULES (the user expects pixels in seconds):** batch ALL the reads of a generation flow into ONE parallel tool-call message — never read serially; start from a ready template in `templates/` (and the matching `references/QUICKSTART-*.md`) when one exists, transplanting content instead of authoring boilerplate; for multi-visual jobs spawn one subagent per artifact in parallel.
-4. **Emit the scaffold** — one self-contained HTML file with the runtime + designmd + the category's JS lib loaded in this order: `amvcp-designmd.js` → `amvcp-runtime.js` → category lib (e.g. `amvcp-chart.js`). The category SKILL.md spells out the exact `<figure>`/`<table>`/`<pre>` markup contract.
-5. **Run** `python3 "$CLAUDE_PLUGIN_ROOT/scripts/amvcp-select.py" <file>.html` if the page is interactive (waits for click + returns selection JSON), or just open it for explanatory pages.
-6. **Verify visually** per [amvcp-self-debug-rules](../amvcp-self-debug-rules/SKILL.md) — light + dark theme screenshots, no nested scrollbars, atom-contract stamps present. Every visual change MUST be screenshot-tested in BOTH themes.
+The 6-step author-and-run loop (shape → candidates → read category SKILL + refs → emit scaffold → run `amvcp-select.py` → verify both themes) plus the SPEED RULES:
+- [scaffolding-contract](./references/scaffolding-contract.md) — the 6-step author-and-run loop (shape match, candidate suggestion, SPEED RULES, scaffold emission, runner, visual verification)
+  > Scaffolding contract — how the agent uses this skill
 
 ## Phase 2.5 contract — atom-emitting techniques
 
-Every visual the agent emits MUST surface itself to the runtime as a click-to-select **atom**. The runtime then layers four standard affordances on top with zero per-category code:
-
-| Affordance | Stamp on the atom | Reads | Mounted by |
-|---|---|---|---|
-| **3-state selection** (none → selected → hover preview) | `data-ve-id` + `data-ve-type` | Runtime CSS in `amvcp-runtime.js` | Runtime auto |
-| **Comment handle** (28 px gold pill at the figure's left edge) | One+ atoms selected inside a figure | `.ve-comment-handle` class | Runtime auto |
-| **Decision-mini pill** (S / A / D — Skip / Approve / Decline, 3-state) | `data-ve-id` on a row / paragraph / chart-point | `.ve-decision-mini-*` classes | Runtime auto |
-| **Leader-line** (anchor in prose → visual) | `data-ve-leader-from` / `data-ve-leader-to` | `.ve-leader-line` SVG path | Runtime auto |
-| **9-level multi-click for text** (paragraph → sentence → word → char etc.) | Plain prose, no extra stamp | Runtime drag-paint detector | Runtime auto |
-
-Cross-references for the atom contract:
-- `${CLAUDE_PLUGIN_ROOT}/references/interactive-selection-base.md` — the canonical payload + selection model
-- `${CLAUDE_PLUGIN_ROOT}/skills/amvcp-modal-comments/SKILL.md` — the per-element comment-thread layer
-- `${CLAUDE_PLUGIN_ROOT}/skills/amvcp-self-debug-rules/SKILL.md` — visual verification
-
-If a category SKILL.md tells you to emit `<figure data-ve-id="…" data-ve-type="chart">` or `<tr data-ve-id="…" data-ve-type="row">`, that is the atom contract — those stamps make the four affordances above appear automatically.
+Every visual MUST surface itself to the runtime as a click-to-select **atom**; the runtime then layers four standard affordances (3-state selection, comment handle, decision-mini pill, leader-line, 9-level text multi-click) on it with zero per-category code:
+- [atom-contract](./references/atom-contract.md) — the four runtime affordances, the `data-ve-*` stamp each reads, and the atom cross-references
+  > Phase 2.5 contract — atom-emitting techniques
 
 ## Theme contract
 
 Every scaffold consumes only the `--vc-*` (and a small set of `--ve-*`) CSS custom properties. **Never hardcode a color, font-size, gap, radius, duration, or z-index in any scaffold.** The DESIGN.md engine (`amvcp-designmd.js`) is the single source of truth: a theme swap re-themes every chart, table, diagram, slide, and report on the page with zero re-render. To change the look, edit DESIGN.md — never the scaffold.
 
-The `amvcp-design-tokens` skill ([amvcp-design-tokens](../amvcp-design-tokens/SKILL.md)) owns this vocabulary: 13 named dual-theme presets, the OKLCH color ramp, the phi spacing scale, the MD3 elevation scale, the motion library, the 9-level z-index scale, and the consolidated anti-AI-slop gate. Read it once before authoring DESIGN.md from scratch.
+The [amvcp-design-tokens](../amvcp-design-tokens/SKILL.md) skill owns this vocabulary (13 dual-theme presets, OKLCH color ramp, phi spacing scale, MD3 elevation scale, motion library, 9-level z-index scale, anti-AI-slop gate) — read it once before authoring DESIGN.md from scratch.
 
 ## Examples
 
-Worked examples — each shows how the agent matches a user request to one of the 13 categories, loads the right SKILL.md, and emits the canonical scaffold.
-
-
-### Example 1 — "chart Q1 revenue by region"
-1. Match the matrix: "quantitative comparison across categories" → **charts-and-dashboards (`bar`)**.
-2. Read [amvcp-charts-and-dashboards](../amvcp-charts-and-dashboards/SKILL.md) plus [chart-bar](../amvcp-charts-bar/references/chart-bar.md).
-  > When to choose `bar` · Authoring shape · Options · Examples · What the runtime emits · Lib functions called · DESIGN.md tokens used · Selection / comments / decision-mini · Anti-patterns and pitfalls · Visual verification
-3. Emit a fenced `chart:bar@1` block inside a `<figure class="ve-chart">`:
-   ```html
-   <figure class="ve-chart" data-ve-chart-type="bar"><pre><code class="language-chart:bar@1">
-   {"title":"Q1 revenue by region","series":[{"label":"USD","data":[
-     {"x":"NA","y":48200},{"x":"EU","y":32100},{"x":"APAC","y":18700},{"x":"LATAM","y":9400}
-   ]}]}
-   </code></pre></figure>
-   ```
-4. Load `amvcp-designmd.js` + `amvcp-runtime.js` + `amvcp-chart.js`. Open the file. Done.
-
-### Example 2 — "compare three deployment plans, B is recommended"
-1. Match the matrix: "comparison of N options" → **tables (`compare` mode)**.
-2. Read [amvcp-tables](../amvcp-tables/SKILL.md) plus [comparison-emphasis-column](../amvcp-tables-matrix-compare/references/comparison-emphasis-column.md) and [icon-headers-unicode](../amvcp-tables-cells-badges/references/icon-headers-unicode.md).
-  > What the emphasis column communicates · The `data-ve-col-emphasis` attribute · Zero or one — never two · The two-column emphasis warning — fail-fast, console.warn · How the tint is applied — grid-walked column · The accent border-left + border-right · The 10% accent wash · Icon recoloring on the emphasis header · The 2-column anti-pattern → fix variant · Pairing emphasis with a deliberate row order · Sample HTML — 3-column recommendation · Sample HTML — 2-column before/after · DESIGN.md tokens consumed · Selection / comment / decision-mini notes · CSV-export contract
-  > The job an icon header does · The hard rule — Unicode geometric marks only · Pairing icons — open vs filled, the rank signal · The canonical 4-icon palette · Mode-specific icon idioms · The injection — span before the header text · Color is per emphasis state · Why no icons on the row-label column · Sample HTML · Choosing an icon set for a specific comparison · DESIGN.md tokens consumed · Selection / comment / decision-mini notes · CSV-export contract
-3. Emit `<table data-ve-table="compare">` with three option `<th>`s carrying `data-ve-col-icon` Unicode glyphs and `data-ve-col-emphasis="1"` on the B column.
-4. Load `amvcp-designmd.js` + `amvcp-runtime.js` + `amvcp-tables.js`. Done.
-
-### Example 3 — "turn this implementation plan into slides"
-1. Match the matrix: "presentation / talk slides / pitch" → **slide-decks**.
-2. Read [amvcp-slide-decks](../amvcp-slide-decks/SKILL.md) plus 1–2 layout references for the layouts you'll pick.
-3. Emit a single HTML file containing the deck JSON + `amvcp-slide.js`. The renderer auto-letterboxes every slide to a fixed aspect.
-4. The same plan could ALSO be emitted as a process-flow diagram (route to **diagram**) if the user wants ONE picture instead of a deck. State the trade-off and let the user pick.
+Three end-to-end worked examples (request → category → scaffold, with the exact markup emitted) are in:
+- [worked-examples](./references/worked-examples.md) — chart Q1 revenue → bar; compare three deployment plans → emphasis-column table; implementation plan → slide deck
+  > Worked examples — request → category → scaffold
+  > Example 1 — "chart Q1 revenue by region"
+  > Example 2 — "compare three deployment plans, B is recommended"
+  > Example 3 — "turn this implementation plan into slides"
 
 ## Aggressive triggering note
 
-Trigger this umbrella whenever you are about to add ANY visual to a document. The cost of an extra umbrella read is one round-trip; the cost of skipping it is shipping a chart with hardcoded colors, a table with no atom contract, or a diagram in a category that ships an off-the-shelf preset for exactly the shape the user asked for. When in doubt, load this skill first.
-
-## Cross-skill references
-
-- `${CLAUDE_PLUGIN_ROOT}/references/interactive-selection-base.md` — runtime contract, selection payload, atom stamps
-- `${CLAUDE_PLUGIN_ROOT}/references/diagram-types.md` — every diagram archetype the plugin supports
-- `${CLAUDE_PLUGIN_ROOT}/references/styling-guide.md` — aesthetic directions, typography + color, surfaces + hierarchy
-- `${CLAUDE_PLUGIN_ROOT}/references/anti-patterns.md` — the slop test, banned colors, banned fonts
-- `${CLAUDE_PLUGIN_ROOT}/references/css-patterns.md` — theme + atmosphere, layout, content blocks, visual components
-- `${CLAUDE_PLUGIN_ROOT}/references/libraries.md` — when (and when NOT) to reach for Mermaid, Chart.js, anime.js, Google Fonts
-- [authoring-workflow](./references/authoring-workflow.md) — the 5-step author-and-run loop in long form
-  > Step 1 — Pick a direction (5 seconds) · Step 2 — Read the reference material · Step 3 — Author the page · Step 4 — Open with the interactive runner (always) · Step 5 — React to the selection · Output: file location, format, stdout shape
-- [environment-and-runner](./references/environment-and-runner.md) — `amvcp-select.py` CLI, env vars, optional deps
-  > Prerequisites · Environment variables · Runner CLI · Timeout knob — explanatory vs interrogative pages · Optional dependencies · External libraries (CDN, optional)
-- [example-flows](./references/example-flows.md) — four end-to-end flows (architecture, comparison, agent report, slide deck)
-  > Example 1 — Quick architecture diagram · Example 2 — Comparison table that asks a question · Example 3 — Agent report as a commentable interactive page · Example 4 — Slide deck from a plan
-- [troubleshooting](./references/troubleshooting.md) — Chromium missing, file:// direct, timeouts, render failures
-  > No Chromium browser found · Page opened directly via file:// (not via the runner) · Timeout without a click · `surf` CLI missing · Mermaid render failure · TikZ / MathJax silent failures · Vercel deploy errors (`/amvcp-share-page`) · Always check the browser console first
-- [quality-checklist](./references/quality-checklist.md) — squint test, swap test, both themes, no overflow, anti-patterns
-  > The squint test · The swap test · Both themes · Information completeness · No overflow · Mermaid zoom controls · No anti-patterns · File opens cleanly
+Trigger this umbrella whenever you are about to add ANY visual to a document. The cost of an extra umbrella read is one round-trip; the cost of skipping it is a chart with hardcoded colors, a table with no atom contract, or a diagram authored from scratch when a category ships an off-the-shelf preset for that exact shape. When in doubt, load this skill first.
 
 ## Output
 
@@ -209,10 +152,8 @@ A self-contained interactive HTML file at `$CLAUDE_PROJECT_ROOT/reports/visual-c
 
 ## Error Handling
 
-- No Chromium → falls back to default browser; auto-close may not fire (click the page's Done button).
-- Page opened directly via file:// → the selection POST is lost; always run via `amvcp-select.py`.
-- Timeout without a click → raise `--timeout`; default is short on purpose for question-shaped pages.
 - Visual broken in light or dark theme → that's a correctness defect; fix DESIGN.md or the scaffold's token usage, never hardcode a color.
+- Runner/render failures (no Chromium, page opened via file://, timeout without a click, `surf` missing, Mermaid/TikZ/MathJax failures, Vercel deploy errors) → see the `troubleshooting` reference listed under `## Resources` (its complete TOC is embedded there).
 
 ## Modes
 
@@ -252,25 +193,6 @@ Per-skill walk-throughs (loaded via `./references/`):
 - [quality-checklist](./references/quality-checklist.md) — squint test, swap test, both themes, no overflow, anti-patterns
   > The squint test · The swap test · Both themes · Information completeness · No overflow · Mermaid zoom controls · No anti-patterns · File opens cleanly
 
-Sibling skills the umbrella dispatches to (loaded via plugin skill index):
-
-- [amvcp-design-tokens](../amvcp-design-tokens/SKILL.md) — DESIGN.md token vocabulary + 13 presets + anti-slop gate
-- [amvcp-layout](../amvcp-layout/SKILL.md) — grids, sidebars, IDE shells, KPI rows, sticky headers
-- [amvcp-typography](../amvcp-typography/SKILL.md) — fluid type scale, drop-cap, lists, footnotes, kbd
-- [amvcp-animation](../amvcp-animation/SKILL.md) — entry, scroll-reveal, count-up, skeleton, parallax, spring
-- [amvcp-interactive-controls](../amvcp-interactive-controls/SKILL.md) — tabs, accordion, filter pills, kanban, copy-button
-- [amvcp-tables](../amvcp-tables/SKILL.md) — sortable, matrix, comparison, CSV export
-- [amvcp-code-highlight](../amvcp-code-highlight/SKILL.md) — syntax highlight, line numbers, diff, PR review
-- [amvcp-charts-and-dashboards](../amvcp-charts-and-dashboards/SKILL.md) — bar/line/donut/radar/funnel/heatmap/sparkline
-- [amvcp-diagram](../amvcp-diagram/SKILL.md) — process flow, architecture canvas, sankey, mind map, Gantt
-- [amvcp-icon-svg](../amvcp-icon-svg/SKILL.md) — inline SVG icons, device frames, image hotspots
-- [amvcp-wireframe](../amvcp-wireframe/SKILL.md) — lo-fi UI mockups, fidelity ramp
-- [amvcp-slide-decks](../amvcp-slide-decks/SKILL.md) — presentation HTML, 16 layouts, 4 transitions
-- [amvcp-prose-pages](../amvcp-prose-pages/SKILL.md) — long-form HTML reports, RFC / ADR / postmortem shapes
-- [amvcp-graph-diagrams](../amvcp-graph-diagrams/SKILL.md) — Mermaid + Graphviz alternative engine
-- [amvcp-modal-comments](../amvcp-modal-comments/SKILL.md) — per-element comment-thread layer
-- [amvcp-math-and-latex](../amvcp-math-and-latex/SKILL.md) — KaTeX + TikZJax for equations / figures
-- [amvcp-regex-vis](../amvcp-regex-vis/SKILL.md) — vendored interactive regex visualizer + editor (`.ve-regex`)
-- [amvcp-pierre-diff](../amvcp-pierre-diff/SKILL.md) — vendored Pierre high-fidelity diff viewer (Shiki, merge conflicts, huge files)
-- [amvcp-component-variant-matrix](../amvcp-component-variant-matrix/SKILL.md) — a sheet of every size · state · intent of ONE component
-- [amvcp-self-debug-rules](../amvcp-self-debug-rules/SKILL.md) — R1-R41 verification rules every skill must pass
+Sibling skills the umbrella dispatches to (the 13 routing categories live in `## The 13 categories` above with their JS libs + "Owns"; the 9 supporting skills live in [supporting-skills](./references/supporting-skills.md) with their triggers). The flat one-line index across ALL 21 dispatchable skills + `amvcp-self-debug-rules` is in [skill-index](./references/skill-index.md).
+- [skill-index](./references/skill-index.md) — every amvcp-* skill the umbrella dispatches to, one line each (the 13 categories, the 9 supporting skills, and the self-debug-rules verification skill)
+  > Sibling-skill index — every amvcp-* skill the umbrella dispatches to

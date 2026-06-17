@@ -43,15 +43,10 @@ Each ref linked in the Resources section below with its full TOC embedded.
 
 ## Authoring rules (HARD invariants — apply to every ref above AND to every sibling layout skill)
 
-- **Spacing tokens only.** Every length is `var(--vc-space-N)`, `var(--la-*)`, or `ch` (reading measures only). NO literal pixel values for layout sizing. Documented exceptions: `768px` (the single mobile breakpoint — see ref 12), `16mm` (the print page margin — owned by sibling amvcp-layout-print-hero).
-- **Engine tokens only for colour.** Every colour is a `--vc-color-*` engine token. Light + dark fall out for free.
-- **Logical properties only.** Every directional declaration is logical (`margin-inline`, `inset-block-start`, `inline-size`). `dir="rtl"` mirrors everything with zero extra CSS. See ref 31.
-- **No nested scrollbars.** No primitive ships `overflow:auto` / `overflow:scroll`. Wide content widens the document via `.la-article__wide` / `__bleed`. Decorative clips use `overflow: clip` (not `hidden`). See ref 32.
-- **`min-width: 0` on every grid child.** Without this, wide content (table, code block) inside a grid cell forces the WHOLE GRID past the viewport. The shipped presets already do this; custom grids must too.
-- **Selection contract.** Every layout-shaped element is a selectable atom via `markLayoutAtoms()` (ref 33). The 3-segment decision-mini pill (`✘` ﹅ `✔︎`) attaches to each.
-- **Alias layer, not duplicate token ladder.** Define `--la-*` aliases over `--vc-space-N` — never a parallel `--space-*` scale. See ref 02.
-- **Named gaps over arbitrary spacing.** Use the named-gap map (ref 03) to pick the right `--la-gap*` for the context (cardrow vs sidebar vs section vs page).
-- **Reading measure in `ch`, not `px`.** A text container's `max-inline-size` is `68ch` (canonical) or `92ch` (wide variant) — never a pixel value. See ref 04.
+The nine HARD invariants (tokens-only lengths · token colours · logical properties · no nested scrollbars · `min-width:0` on grid children · selection contract · alias-not-duplicate-ladder · named gaps · `ch` reading measure) plus the per-build checklist live here — read before authoring any layout:
+
+- [authoring-rules](references/authoring-rules.md) — the HARD invariants + the verification checklist.
+  > Authoring rules + verification checklist · Authoring rules (HARD invariants — apply to every ref AND to every sibling layout skill) · Verification checklist
 
 ## Instructions
 
@@ -59,19 +54,7 @@ Each ref linked in the Resources section below with its full TOC embedded.
 2. Paste the scaffold from the ref (each ref includes a complete `<html>` + `<style>` snippet).
 3. Set `data-ve-id` on every region (auto-stamped by `markLayoutAtoms()` for SHAPES classes; hand-stamp for custom containers).
 4. Verify with the visual-verification section of each ref — every ref ends with a `Visual verification` section pointing at [amvcp-self-debug-rules](../amvcp-self-debug-rules/SKILL.md).
-
-Copy this checklist and track your progress:
-
-- [ ] Chose the right grid preset (2-1 / 3-1 / subgrid cardrow / auto-fill / article)
-- [ ] All lengths via `var(--vc-space-N)` / `var(--la-*)` / `ch` — no literal px (except documented exceptions)
-- [ ] All colors via `--vc-color-*` tokens — no hardcoded `#NNN` / `rgb()`
-- [ ] All directional declarations logical (`margin-inline`, `inset-block-start`, …)
-- [ ] No `overflow: auto` / `overflow: scroll` introduced
-- [ ] `min-width: 0` set on every custom grid child
-- [ ] `data-ve-id` stamped on every region
-- [ ] Verified BOTH light and dark themes (per `amvcp-self-debug-rules` R10)
-- [ ] Verified RTL via `dir="rtl"` on root (mirrors correctly without extra CSS)
-- [ ] Verified mobile reflow at 768px breakpoint
+5. Track progress against the per-build checklist in [authoring-rules](references/authoring-rules.md) (copy it and tick each item: right preset · tokens-only lengths · token colours · logical props · no inner scroll · `min-width:0` · `data-ve-id` · light+dark · RTL · 768px reflow).
 
 ## Output
 
@@ -91,30 +74,10 @@ Self-contained HTML: one `<style>` (or `<link href="amvcp-layout.css">`) carryin
 
 ## Examples
 
-Input: user asks for a content+sidebar article page with a sticky sidebar TOC.
-Output: a `.la-grid--2-1` wrapping the `.la-article` body + a sticky sidebar:
+Worked example (a `.la-grid--2-1` wrapping a `.la-article` body + sticky sidebar TOC, with the full `<html>` snippet) plus four more (long-form article with `__wide`/`__bleed`, magazine subgrid cardrow, auto-fill gallery, RTL article) live in [examples](references/examples.md).
 
-```html
-<div class="la-grid--2-1" data-ve-id="page">
-  <article class="la-article" data-ve-id="body">
-    <h1>Title</h1>
-    <p>The lead paragraph…</p>
-    <figure class="la-article__wide" data-ve-id="chart">
-      <img src="chart.png" alt="…">
-    </figure>
-  </article>
-  <aside data-ve-id="sidebar" style="align-self: start; position: sticky; inset-block-start: var(--la-space-3);">
-    <nav class="la-toc">…</nav>
-  </aside>
-</div>
-```
-
-More examples:
-
-- A long-form article: `.la-article` (3-col grid) with `.la-article__wide` for a chart and `.la-article__bleed` for a full-bleed hero image.
-- A magazine cardrow: `.la-cardrow` of 3 `.la-card`s using subgrid to align titles, bodies, and footers across cards.
-- A gallery: `auto-fill` grid with `minmax(min(316px, 100%), 1fr)` — reflows naturally from many-across to one-across on phones.
-- An RTL article (Arabic): same scaffold, just `dir="rtl"` on the root — every logical property mirrors automatically.
+- [examples](references/examples.md) — the content+sidebar `<html>` walkthrough + four more layout examples.
+  > Examples
 
 ## Modes
 

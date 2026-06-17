@@ -125,4 +125,19 @@ The 4 sibling skills. Each is a complete, self-contained surface:
 - **[amvcp-code-syntax](../amvcp-code-syntax/SKILL.md)** — the substrate: tokenizer + 12-token palette + per-line gutter + copy button + drag-paint selection + integrity probe + visual chrome (block 3-state, blueprint theme, slate-bg, file-path / tab-bar headers, inline chip, hand-wrap palette, keyword highlight) + cross-cutting discipline (author-vs-runtime boundary, light-dark mirror). 18 reference files.
 - **[amvcp-code-diff](../amvcp-code-diff/SKILL.md)** — diff blocks (unified + split), twin-column gutter (old/new line numbers + hunk headers), diff tints via `color-mix` over semantic tokens, PR review pages, PR write-ups, postmortem code panels, live diff sidebar. 8 reference files.
 - **[amvcp-code-snippets](../amvcp-code-snippets/SKILL.md)** — collapsed walkthroughs, code snippet on diagram hover, architecture-explainer callstack, feature-explainer tabbed config samples, click-step-to-code side panel, tabbed multi-perspective panel, 2-col implementation-plan code grid, N-column compare-approaches layout (the read-each-approach card narrative; for the matrix-scan table variant — code-in-a-cell + trade-off rows + an emphasis column — see [approaches-comparison.md](../amvcp-tables-matrix-compare/references/approaches-comparison.md)). 8 reference files.
+  - TOC of [approaches-comparison.md](../amvcp-tables-matrix-compare/references/approaches-comparison.md):
+    - Approaches comparison — N code approaches side-by-side with inline trade-offs
+    - Table of contents
+    - When this recipe vs the code-snippets E9 recipe
+    - The two layouts — table-based vs card-grid
+    - Layout A — the compare table (trade-offs are rows)
+    - The recommended approach — the emphasis column
+    - The code cell — a real code block inside a `<td>`
+    - Inline trade-off callouts
+    - Layout B — the free-form card grid
+    - Selection atoms per approach
+    - Sample HTML — table-based, 3 approaches
+    - Sample HTML — card-grid, 3 approaches
+    - DESIGN.md tokens consumed
+    - Anti-patterns
 - **[amvcp-code-fences](../amvcp-code-fences/SKILL.md)** — CSV / JSON / YAML data fences (code-vs-data discipline), `data-ve-no-gutter` opt-out attribute, contenteditable code editor (TreeWalker caret save/restore, Enter-intercept, paste-as-plain, RAF-debounced re-highlight), JSON editor with live validate. 4 reference files.

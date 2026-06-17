@@ -108,5 +108,32 @@ Composes with `amvcp-design-tokens` (the DESIGN.md / preset that themes it), `am
 
 ## Resources
 
-- [`references/interactive-selection-base.md`](../../references/interactive-selection-base.md) — the selection-wire-format contract the export rides (the `selections[]` payload, the agent's follow-up by `kind`).
+- [`references/interactive-selection-base.md`](../../references/interactive-selection-base.md) — the selection-wire-format contract the export rides (the `selections[]` payload, the agent's follow-up by `kind`). Complete TOC:
+  - Interactive Selection — Base Contract
+    - Table of contents
+    - How it works & Page Setup
+      - How it works (one paragraph)
+      - Page CSS contract (multi-select)
+      - Mandatory boilerplate
+    - The selection payload
+      - Phase 2 — multi-click text selection inside `[data-ve-prose]`
+        - Phase 3 — block-level depths 4-7 (paragraph / section / chapter / all)
+        - Phase 3 — math grammar (sub-formula depths 1-3 inside `.ve-math`)
+        - Phase 3 — code grammar (token / line / block depths 1-3 inside `<pre>`)
+        - Phase 4 — drag text selection toggles entries (the only deselect path)
+        - Phase 5 — table row/column handles
+        - Phase 6 — code line-number gutter
+        - Phase 7 — touch / mobile compatibility
+        - Interactive agent reports — `kind:"finding-reply"` (TRDD-eff1aa87)
+        - Interactive agent reports v2 — modal comment threads
+      - Required follow-up
+    - Selectable Elements
+      - What to make selectable
+      - Marking elements
+    - Engine routing — read this BEFORE generating a graph
+    - Runtime & Process Caveats
+      - Runner-process pitfalls (Chrome `--app=URL` mode)
+      - Anti-patterns (selection-system author errors)
+      - Inlining the runtime (single-file portability)
+      - Future extensions (not yet implemented)
 - [`scripts/amvcp-editor-template.js`](../../scripts/amvcp-editor-template.js) — the tuner module. Public API: `init`, `initEditor`, `readModel`, `renderTemplate`, `slotKeys`, `exportSelection`, `injectStyles`.

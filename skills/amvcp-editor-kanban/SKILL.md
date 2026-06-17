@@ -1,6 +1,6 @@
 ---
 name: amvcp-editor-kanban
-description: "Ticket-triage kanban editor — a self-contained, DESIGN.md-themed board whose tickets the user drags between Now / Next / Later / Cut columns, then EXPORTS the resulting priority ordering as markdown back to the agent. Drag is mouse + touch + pen; state lives only in existing classes + the runtime's brightness/glow (no new frames/ghosts/outlines); export rides the runtime selection channel (a kind:element entry whose data.markdown carries the ordering); fully DESIGN.md-themed, light + dark both. Use when triaging tickets, prioritizing a backlog, sorting work into priority buckets, or building a drag triage board. Trigger with 'triage board', 'triage tickets', 'prioritize backlog', 'Now/Next/Later/Cut', 'drag tickets between columns', 'kanban triage'."
+description: "Self-contained, DESIGN.md-themed ticket-triage kanban editor whose tickets the user drags between Now / Next / Later / Cut columns, then exports the resulting priority ordering as markdown back to the agent. Use when triaging tickets, prioritizing a backlog, sorting work into priority buckets, or building a drag triage board. Trigger with 'triage board', 'triage tickets', 'prioritize backlog', 'Now/Next/Later/Cut', 'drag tickets between columns', 'kanban triage'."
 license: MIT
 metadata:
   author: Emasoft
@@ -90,3 +90,39 @@ Composes with `amvcp-design-tokens` (the source DESIGN.md / preset that themes t
 
 - [editor-kanban-markup.md](./references/editor-kanban-markup.md) — the input schema, the `data-ve-*` atom contract, the EXPORT wire-format, the pointer-drag model, and the no-new-elements rule.
   > API · Markup contract · Ticket + column schema · The export contract (rides the selection channel) · Pointer-drag (mouse + touch + pen) · No-new-elements · DESIGN.md theming · No nested scrollbars · Self-contained output
+  - API
+  - Markup contract
+  - Ticket + column schema
+  - Export contract
+  - Pointer-drag
+  - No-new-elements
+  - DESIGN.md theming
+  - No nested scrollbars
+  - Self-contained output
+- [interactive-selection-base.md](../../references/interactive-selection-base.md) — the cross-cutting selection-wire-format contract the export rides on (`submit` / `exit` / `selections[]`, the `kind:"element"` payload, engine routing, runtime caveats).
+  > How it works & Page Setup · The selection payload · Selectable Elements · Engine routing — read this BEFORE generating a graph · Runtime & Process Caveats
+  - How it works & Page Setup
+    - How it works (one paragraph)
+    - Page CSS contract (multi-select)
+    - Mandatory boilerplate
+  - The selection payload
+    - Phase 2 — multi-click text selection inside `[data-ve-prose]`
+      - Phase 3 — block-level depths 4-7 (paragraph / section / chapter / all)
+      - Phase 3 — math grammar (sub-formula depths 1-3 inside `.ve-math`)
+      - Phase 3 — code grammar (token / line / block depths 1-3 inside `<pre>`)
+      - Phase 4 — drag text selection toggles entries (the only deselect path)
+      - Phase 5 — table row/column handles
+      - Phase 6 — code line-number gutter
+      - Phase 7 — touch / mobile compatibility
+      - Interactive agent reports — `kind:"finding-reply"` (TRDD-eff1aa87)
+      - Interactive agent reports v2 — modal comment threads
+    - Required follow-up
+  - Selectable Elements
+    - What to make selectable
+    - Marking elements
+  - Engine routing — read this BEFORE generating a graph
+  - Runtime & Process Caveats
+    - Runner-process pitfalls (Chrome `--app=URL` mode)
+    - Anti-patterns (selection-system author errors)
+    - Inlining the runtime (single-file portability)
+    - Future extensions (not yet implemented)

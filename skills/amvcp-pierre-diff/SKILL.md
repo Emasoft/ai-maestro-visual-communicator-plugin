@@ -35,7 +35,7 @@ For the full PR-review chrome TOC the agent must discover via the
 linked file:
 
 - [pr-review-page](../amvcp-code-diff/references/pr-review-page.md)
- > E3.1 The shape · E3.2 The header · E3.3 The risk-map chips · E3.4 The per-file diff card · E3.5 The comment bubble — `::before` rotated-square trick · E3.6 Anchoring comments to line numbers · E3.7 Collapsed safe files · E3.8 The next-steps checklist · E3.9 Cross-references · E3.10 Light + dark verification · E3.11 Tokens consumed · E3.12 Mined source attribution
+ > E3.1 The shape · E3.2 The header · E3.3 The risk-map chips · E3.3b The risk legend · E3.4 The per-file diff card · E3.4b The per-file risk-tag badge · E3.5 The comment bubble — `::before` rotated-square trick · E3.6 Anchoring comments to line numbers · E3.7 Collapsed safe files · E3.8 The next-steps checklist · E3.9 Cross-references · E3.10 Light + dark verification · E3.11 Tokens consumed · E3.12 Mined source attribution
 
 **When to pick this over amvcp-code-diff.**
 
@@ -124,7 +124,7 @@ When the user adds an inline comment via the Pierre annotation UI, the entry's `
 - [layout-choice](./references/layout-choice.md) — split vs stacked decision tree
  > Decision table · Inheriting the page's design tokens · Tradeoffs vs amvcp-code-diff
 - [streaming-codeview](./references/streaming-codeview.md) — `FileStream` for live-generated code
- > When to pick FileStream over FileDiff · Minimal example · Append semantics · Performance — when to virtualize · Cursor & input · Stream + annotations · Selection payload · Cross-references
+ > When to pick `FileStream` over `FileDiff` · Minimal example · Append semantics · Performance — when to virtualize · Cursor & input · Stream + annotations · Selection payload · Cross-references
 - [merge-conflict](./references/merge-conflict.md) — `UnresolvedFile` for `<<<<<<<` resolution
  > When to use · Minimal example · Resolution UI · Three-way (diff3) conflict markers · Selection / Submit payload · Streaming resolution to the agent · Performance · Cross-references
 - [virtualizer-tradeoffs](./references/virtualizer-tradeoffs.md) — when to enable `VirtualizedFileDiff`

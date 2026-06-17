@@ -1,6 +1,6 @@
 ---
 name: amvcp-concept-demo
-description: "Concept explainer as a LIVE manipulable demo — parameter sliders driving an inline-SVG visual (bars/dial/curve) that re-paints instantly, paired with a live values table and a glossary. The interactive sibling of a written explainer: prose tells, this lets the reader turn the knobs and watch the mapping respond. The demo container is a runtime selection atom (selection / highlight / triple-state / comment from the runtime, never reinvented); graphic style is fully DESIGN.md-driven, light + dark both; the current parameter set exports onto the existing selection wire. Use for an interactive concept demo, a manipulable explainer, a 'play with the parameters' widget, or an interactive figure that teaches a relationship. Trigger with 'interactive concept demo', 'manipulable explainer', 'live demo widget', 'let me tune the parameters', 'show how X changes with Y', 'interactive figure'."
+description: "Concept explained as a LIVE manipulable demo — parameter sliders drive an inline-SVG visual (bars/dial/curve) that re-paints instantly, beside a live values table and glossary. The interactive sibling of a written explainer: prose tells, this lets the reader turn the knobs and watch the mapping respond. Use for an interactive concept demo, a manipulable explainer, a 'play with the parameters' widget, or an interactive figure that teaches a relationship. Trigger with 'interactive concept demo', 'manipulable explainer', 'live demo widget', 'let me tune the parameters', 'show how X changes with Y', 'interactive figure'."
 license: MIT
 metadata:
   author: Emasoft
@@ -8,7 +8,37 @@ metadata:
 
 # Concept Demo — the manipulable explainer
 
-> **Parent umbrella:** [`skills/amvcp-visual-communication/SKILL.md`](../amvcp-visual-communication/SKILL.md) — load the umbrella first to route between the category skills. **Sibling (static) explainer:** [amvcp-prose-pages](../amvcp-prose-pages/SKILL.md) — long-form written documents; this is its *interactive* counterpart. **Selection wire-format contract:** [`references/interactive-selection-base.md`](../../references/interactive-selection-base.md).
+> **Parent umbrella:** [`skills/amvcp-visual-communication/SKILL.md`](../amvcp-visual-communication/SKILL.md) — load the umbrella first to route between the category skills. **Sibling (static) explainer:** [amvcp-prose-pages](../amvcp-prose-pages/SKILL.md) — long-form written documents; this is its *interactive* counterpart.
+
+**Selection wire-format contract:** [`references/interactive-selection-base.md`](../../references/interactive-selection-base.md) — the cross-cutting selection-wire-format contract every sub-skill shares; the demo's export rides this wire. Complete TOC:
+
+- Interactive Selection — Base Contract
+  - Table of contents
+  - How it works & Page Setup
+    - How it works (one paragraph)
+    - Page CSS contract (multi-select)
+    - Mandatory boilerplate
+  - The selection payload
+    - Phase 2 — multi-click text selection inside `[data-ve-prose]`
+      - Phase 3 — block-level depths 4-7 (paragraph / section / chapter / all)
+      - Phase 3 — math grammar (sub-formula depths 1-3 inside `.ve-math`)
+      - Phase 3 — code grammar (token / line / block depths 1-3 inside `<pre>`)
+      - Phase 4 — drag text selection toggles entries (the only deselect path)
+      - Phase 5 — table row/column handles
+      - Phase 6 — code line-number gutter
+      - Phase 7 — touch / mobile compatibility
+      - Interactive agent reports — `kind:"finding-reply"` (TRDD-eff1aa87)
+      - Interactive agent reports v2 — modal comment threads
+    - Required follow-up
+  - Selectable Elements
+    - What to make selectable
+    - Marking elements
+  - Engine routing — read this BEFORE generating a graph
+  - Runtime & Process Caveats
+    - Runner-process pitfalls (Chrome `--app=URL` mode)
+    - Anti-patterns (selection-system author errors)
+    - Inlining the runtime (single-file portability)
+    - Future extensions (not yet implemented)
 
 ## Overview
 
