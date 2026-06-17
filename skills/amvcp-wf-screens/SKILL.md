@@ -13,7 +13,7 @@ metadata:
 
 ## Overview
 
-The multi-screen story layer. One `.wf-root` holds N `.wf-screen` blocks; plain `<a href="#screen-id">` anchors jump between them. Two navigation modes — `scroll` (default; every screen stacked, fragment scrolls to it) and `paged` (pure CSS `:target`; only the targeted screen is visible). Domain screen libraries supply patterns INSIDE one screen — mobile (feed, detail, profile, compose), ecommerce (catalog, PDP, cart, checkout), auth (login, signup, reset), email (inbox, conversation, compose), content/CMS (article, editor, media library), onboarding (wizard, tour, skeleton, success). The wireframe-from-spec workflow translates a written spec to a screen inventory in 5 steps. Selection + comments stamp every block as a `data-ve-id` atom so reviewers can approve/deny per screen.
+The multi-screen story layer. One `.wf-root` holds N `.wf-screen` blocks; plain `<a href="#screen-id">` anchors jump between them, in either `scroll` or `paged` navigation mode (step 2). Domain screen libraries supply patterns INSIDE one screen — mobile, ecommerce, auth, email/messaging, content/CMS, and onboarding (each library's full pattern list is in its Resources TOC). The wireframe-from-spec workflow translates a written spec to a screen inventory in 5 steps. Every block is a selectable `data-ve-id` atom so reviewers can approve/deny per screen (step 6).
 
 ## Prerequisites
 
@@ -23,33 +23,26 @@ The multi-screen story layer. One `.wf-root` holds N `.wf-screen` blocks; plain 
 
 ## Instructions
 
-1. **Inventory screens** — every distinct page or modal state is one `.wf-screen` with `id="screen-<purpose>"`. See [`wireframe-from-spec.md`](references/wireframe-from-spec.md).
-  > The translation workflow (5 steps) · Step 1 — Identify screens · Step 2 — Map screens to archetypes · Step 3 — Pick blocks per screen · Step 4 — Wire navigation · Step 5 — Add states (loading / error / empty) · Translating common spec phrases · The "minimum viable wireframe" budget · Sample translation walkthrough · What to clarify with the spec author
-2. **Pick navigation mode** on the `.wf-root` — `data-wf-nav="scroll"` (stacked, default) or `data-wf-nav="paged"` (one at a time via `:target`). See [`multi-screen-navigation.md`](references/multi-screen-navigation.md).
-  > The two modes — scroll vs paged · Mode `scroll` — every screen stacked, fragment scrolls · Mode `paged` — pure CSS `:target`, one screen at a time · Anchor patterns — back, next, modal, drawer · No-fragment fallback — `:has(...)` for the first screen · Naming convention — `id="screen-<purpose>"` · Deep-linking — sharable screen URLs · The `data-ve-id` overlap question · Screen-level vs block-level selection · JS-off accessibility
+Each step's reference (with its embedded TOC) is in the **Resources** list below.
+
+1. **Inventory screens** — every distinct page or modal state is one `.wf-screen` with `id="screen-<purpose>"` (→ `wireframe-from-spec.md`).
+2. **Pick navigation mode** on the `.wf-root` — `data-wf-nav="scroll"` (stacked, default) or `data-wf-nav="paged"` (one at a time via `:target`) (→ `multi-screen-navigation.md`).
 3. **Wire anchors** — `<a href="#screen-payment">Continue</a>` advances; `<a href="#screen-cart">Back</a>` retreats.
-4. **Drop domain patterns** inside each screen — pick from `mobile-screens.md`, `ecommerce-screens.md`, `auth-and-onboarding.md`, `email-and-messaging-screens.md`, `content-and-cms-screens.md`, `landing-page-patterns.md`, `onboarding-flows.md`.
-5. **Add rationale panels** when the prototype needs design notes / open questions / decision cards. See [`rationale-and-design-notes.md`](references/rationale-and-design-notes.md).
-  > The "prototype + rationale + open questions" three-panel shape · Inline design notes (the eyebrow panel) · Before/after comparison (two states side-by-side) · Decision-card pattern (option A vs B vs C) · Pros / cons table per option · Tradeoff matrix (cost × benefit per choice) · Open-questions panel — formal review questions · Risk register (per-screen risks + mitigations) · Source / inspiration provenance · Reviewer worksheet
-6. **Make every block selectable** — `data-ve-id` + `data-ve-type` per block. See [`selection-and-comments.md`](references/selection-and-comments.md).
-  > The selection contract — 5 attributes on every atom · Auto-stamp — what the engine adds for you · The 4 visual states (normal, hover, selected, focused) · Per-atom decision mini-pill (Skip / Approve / Deny) · Comment thread per atom (Ctrl-+) · Group-handle pattern (selected child → outlined parent) · Atom naming convention · Atom-types in the wireframe skill · When NOT to make something an atom · Comment thread lifecycle
-7. **Verify a11y** — focus order, ARIA, contrast, keyboard map. See [`accessibility-and-keyboard.md`](references/accessibility-and-keyboard.md).
-  > The accessibility-first commitments built into the kit · Semantic HTML — what each kit class maps to · Focus order — the tab key path · Focus rings — visible at every fidelity · Keyboard map per pattern · ARIA roles and properties — when to add them · Color contrast — verified at every fidelity · Reduced motion — the universal opt-out · Screen reader testing checklist · The "every atom is keyboard-focusable" auto-stamp
-8. **Screenshot** every screen in BOTH themes. See [`visual-verification.md`](references/visual-verification.md) for the 8-image matrix.
-  > The screenshot-test rule · The 8-image matrix per wireframe · Using the dev-browser plugin · Capturing programmatically with `applyFidelity` · Visual diff — comparing before / after · What to look for in each screenshot · Common visual bugs caught by the screenshot test · When to skip the screenshot test (rarely) · Storing screenshots for review · Self-debug rules cross-reference
-9. **For clickable prototypes** — hub-and-spoke, linear, branching, modal-over, wizard, stateful mocks. See [`clickable-prototype.md`](references/clickable-prototype.md).
-  > The clickable contract — what makes it "feel real" · Pattern 1 — Hub-and-spoke (one home, many sub-flows) · Pattern 2 — Linear flow (cart → payment → confirm) · Pattern 3 — Branching flow (a yes/no decision splits paths) · Pattern 4 — Modal-over-screen (overlay pattern) · Pattern 5 — Multi-step wizard with back-stop · Pattern 6 — Stateful mocks (toggle, expand, filter) · The "happy path + 1 error" rule · Annotated callouts — show design rationale · Open-questions panel — collect feedback inline · Screen inventory — name every screen up front
-10. **When stuck** — symptom → fix index in [`troubleshooting-and-debugging.md`](references/troubleshooting-and-debugging.md).
-  > Symptom: brand color leaks at fidelity=wireframe · Symptom: the fidelity slider does nothing · Symptom: the wireframe looks broken on dark theme · Symptom: an inner scrollbar appears in a device frame · Symptom: clicking a wireframe block does nothing (no selection) · Symptom: nested wireframes paint wrong (undefined behavior) · Symptom: amvcpWireframe.init() throws · Symptom: layout collapses unexpectedly on mobile · Symptom: a chip / button paints in the wrong color · Symptom: ramp's last column looks identical to the third · Symptom: anchor click does nothing in paged mode · Symptom: theme flip doesn't update the wireframe · Visual verification — the screenshot-test rule · Sanity checks before shipping a wireframe
+4. **Drop domain patterns** inside each screen — pick a `*-screens.md` / `landing-page-patterns.md` / `onboarding-flows.md` library.
+5. **Add rationale panels** when the prototype needs design notes / open questions / decision cards (→ `rationale-and-design-notes.md`).
+6. **Make every block selectable** — `data-ve-id` + `data-ve-type` per block (→ `selection-and-comments.md`).
+7. **Verify a11y** — focus order, ARIA, contrast, keyboard map (→ `accessibility-and-keyboard.md`).
+8. **Screenshot** every screen in BOTH themes — the 8-image matrix (→ `visual-verification.md`).
+9. **For clickable prototypes** — hub-and-spoke, linear, branching, modal-over, wizard, stateful mocks (→ `clickable-prototype.md`).
+10. **When stuck** — symptom → fix index (→ `troubleshooting-and-debugging.md`).
 
-Copy this checklist and track your progress:
+Progress checklist:
 
-- [ ] Every distinct UI state is a `.wf-screen` with a unique `id`
-- [ ] Navigation mode chosen (`scroll` or `paged`)
-- [ ] Anchor links wire the user flow
+- [ ] Each UI state is a `.wf-screen` with a unique `id`
+- [ ] Navigation mode chosen; anchors wire the flow
 - [ ] Every block carries `data-ve-id` + `data-ve-type`
 - [ ] Both themes screenshotted
-- [ ] A11y walkthrough done (tab order, focus rings, ARIA)
+- [ ] A11y walkthrough done
 
 ## Output
 
@@ -57,35 +50,19 @@ A multi-screen wireframe page where the reviewer can click between screens, appr
 
 ## Error Handling
 
-| Symptom | Fix |
-|---|---|
-| Anchor click does nothing in paged mode | Missing `:target` rule — set `data-wf-nav="paged"` on the `.wf-root`. |
-| First screen blank when no fragment | Add the `:has(...)` no-fragment fallback (auto-shows first screen). |
-| Clicking a block does nothing | Missing `data-ve-id` or `data-ve-type` — auto-stamp via `selection-and-comments` contract. |
-| Focus ring missing on a block | Not focusable — every kit block gets `tabindex="0"` auto-stamped; check the runtime is loaded. |
-| Long screen creates inner scrollbar | An ancestor set `overflow:auto` — must be `visible` (no nested scrollbars). |
+The full symptom → fix table lives in [`troubleshooting-and-debugging.md`](references/troubleshooting-and-debugging.md) (every symptom is in its TOC, embedded in Resources).
 
 ## Examples
 
-**Input:** "wireframe a 3-screen checkout flow."
-
-**Output:** one `.wf-root` with `data-wf-nav="paged"` containing three `.wf-screen` blocks (`screen-cart`, `screen-payment`, `screen-confirm`); Continue/Back anchors wire forward/back. See `ecommerce-screens.md` for the per-screen patterns and `clickable-prototype.md` for the linear-flow shape.
-
-**Input:** "translate this spec into a wireframe."
-
-**Output:** the 5-step `wireframe-from-spec.md` workflow — identify screens → map archetypes → pick blocks → wire navigation → add states.
+Worked input → output examples (3-screen checkout, spec → wireframe) are in [`authoring-examples.md`](references/authoring-examples.md) (TOC embedded in Resources).
 
 ## Visual verification
 
-Per `skills/amvcp-self-debug-rules/SKILL.md` (R41 — dev-browser visible mode). Screenshot every screen in BOTH themes. The 8-image matrix in `visual-verification.md` is the minimum bar.
+Screenshot every screen in BOTH themes (step 8; 8-image matrix in `visual-verification.md`). Governed by `amvcp-self-debug-rules` R41 (dev-browser visible mode).
 
-## Modes
+## Modes & composability
 
-Supports `data-ve-mode="readonly"` (review-only) and `data-ve-mode="choice"`/`single`/`multi`/`max-N` (per-block 3-state decision pill so reviewers can approve/deny each block) (R20/R23).
-
-## Composability
-
-Composes with every sibling wireframe skill (fidelity, devices, archetypes) and every other amvcp-* skill on the page (R22). The only exclusive skill is the overlay-runtime (R24).
+Supports `data-ve-mode="readonly"` and `data-ve-mode="choice"`/`single`/`multi`/`max-N` (per-block 3-state approve/deny pill) (R20/R23). Composes with every sibling wireframe skill (fidelity, devices, archetypes) and every other amvcp-* skill on the page (R22); the only exclusive skill is the overlay-runtime (R24).
 
 ## Resources
 
@@ -121,3 +98,5 @@ Composes with every sibling wireframe skill (fidelity, devices, archetypes) and 
   > Symptom: brand color leaks at fidelity=wireframe · Symptom: the fidelity slider does nothing · Symptom: the wireframe looks broken on dark theme · Symptom: an inner scrollbar appears in a device frame · Symptom: clicking a wireframe block does nothing (no selection) · Symptom: nested wireframes paint wrong (undefined behavior) · Symptom: amvcpWireframe.init() throws · Symptom: layout collapses unexpectedly on mobile · Symptom: a chip / button paints in the wrong color · Symptom: ramp's last column looks identical to the third · Symptom: anchor click does nothing in paged mode · Symptom: theme flip doesn't update the wireframe · Visual verification — the screenshot-test rule · Sanity checks before shipping a wireframe
 - [integration-with-other-skills.md](references/integration-with-other-skills.md) — composition with engine, runtime, layout, charts, diagrams, slides.
   > The plugin architecture (which skill does what) · Integration 1 — DESIGN.md engine (`amvcp-design-tokens`) · Integration 2 — Runtime selection + comments (`amvcp-runtime` / `amvcp-modal-comments`) · Integration 3 — Layout grid primitives (`amvcp-layout`) · Integration 4 — Interactive controls (`amvcp-interactive-controls`) · Integration 5 — Charts inside wireframes (`amvcp-charts-and-dashboards`) · Integration 6 — Diagrams inside wireframes (`amvcp-diagram`) · Integration 7 — Tables inside wireframes (`amvcp-tables`) · Integration 8 — Animation (`amvcp-animation`) · Integration 9 — Slide decks (`amvcp-slide-decks`) · Loading order — what must be initialized first
+- [authoring-examples.md](references/authoring-examples.md) — worked input → output examples (checkout flow, spec → wireframe).
+  > Example — wireframe a 3-screen checkout flow · Example — translate a written spec into a wireframe

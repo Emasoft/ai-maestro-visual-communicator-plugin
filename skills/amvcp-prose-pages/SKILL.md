@@ -59,60 +59,13 @@ skill territory.
 
 ## Architecture
 
-```
-amvcp-report-doc.js   — the runtime + injected CSS + 7-gate QA pipeline
-                         (1538 LOC, dependency-free, dual-export
-                          window.amvcpReportDoc + module.exports)
-
-skills/amvcp-prose-pages/
-├── SKILL.md           ← this file
-└── references/        ← 37 progressive-discovery references
-    ├── prose-mode.md                 — paragraph numbering + text snippets
-    ├── responsive-nav.md             — sticky-TOC / scroll-spy / mobile bar
-    │
-    ├── DOCUMENT SHAPES (15+):
-    ├── implementation-plan-shape.md
-    ├── status-report-shape.md
-    ├── incident-postmortem-shape.md
-    ├── pr-review-reviewer-side-shape.md
-    ├── pr-writeup-author-side-shape.md
-    ├── architecture-explainer-shape.md
-    ├── feature-explainer-shape.md
-    ├── concept-explainer-shape.md
-    ├── compare-n-approaches-shape.md
-    ├── visual-design-exploration-shape.md
-    ├── rfc-shape.md
-    ├── adr-decision-log-shape.md
-    ├── retrospective-shape.md
-    ├── design-system-doc-shape.md
-    ├── change-log-document-shape.md
-    │
-    ├── STRUCTURAL PRIMITIVES:
-    ├── document-header-byline-subtitle.md
-    ├── tldr-summary-card.md
-    ├── callout-admonition-blocks.md
-    ├── pull-quote-cap-one-per-page.md
-    ├── metrics-stat-band.md
-    ├── quality-rubric-scored-matrix.md
-    ├── metadata-keypill-strip.md
-    ├── timeline-typed-dots.md
-    ├── action-items-checklist.md
-    ├── glossary-and-hover-linked-terms.md
-    ├── abstract-keywords-block.md
-    ├── appendix-and-references-bibliography.md
-    │
-    ├── DOCUMENT CHROME:
-    ├── toc-and-anchor-system.md
-    ├── section-numbering-leading-zero.md
-    ├── template-presets-six-shapes.md
-    ├── print-stylesheet-and-back-to-top.md
-    ├── provenance-footer-and-autopill.md
-    │
-    └── COMPOSITION + QA:
-        ├── output-qa-pipeline-7-gates.md
-        ├── request-routing-decision-tree.md
-        └── composing-with-other-skills.md
-```
+`amvcp-report-doc.js` is the runtime (1538 LOC, dependency-free,
+dual-export `window.amvcpReportDoc` + `module.exports`): injected CSS
++ the 7-gate QA pipeline. The skill body is `SKILL.md`; the 37
+progressive-discovery references (document shapes, structural
+primitives, document chrome, composition + QA) are catalogued in the
+[resources-index](references/resources-index.md) — see the "Resources"
+section below for the full embedded TOC.
 
 ## Prerequisites
 
@@ -154,73 +107,26 @@ The skill has three workflows. Run them in this order:
 
 Start with "Pick the right path" above to confirm this is the right skill for the input; then proceed through steps 1-3 in order.
 
-## Instructions — scaffold a document
+## Instructions — scaffold a document, write prose
 
-1. **Pick a template** — `executive-summary`, `technical-report`,
-   `case-study`, `proposal`, `whitepaper`, `design-system-doc`. Each
-   is a `.vc-doc--<name>` modifier on `<article class="vc-doc">`.
-   See [template-presets-six-shapes](references/template-presets-six-shapes.md) for the picker.
-     > When to pick which template · What each template adds · Picking the right template — decision tree · Template stacking · Template + shape mapping · DESIGN.md tokens consumed · Composition · Lib API · Anti-patterns
-2. **Pick a shape** — what KIND of deliverable is this? See the 15+
-   shape references in `references/*-shape.md`. Each shape pins the
-   section sequence and tells you which element skills to embed.
-3. **Wrap the body** in `<article class="vc-doc vc-doc--<template>">`,
-   with a `<header class="vc-doc-header">` carrying eyebrow + h1 +
-   subtitle + byline. See
-   [document-header-byline-subtitle](references/document-header-byline-subtitle.md).
-     > When to add each element · Scaffold · CSS contract (already injected by the runtime) · The eyebrow's job · Title-writing discipline · Subtitle discipline · Byline discipline · DESIGN.md tokens consumed · Composition · Selection / comment notes · Anti-patterns
-4. **Add structural blocks as needed** —
-   `<aside class="vc-callout vc-callout--<variant>">`,
-   `<table class="vc-rubric">`, `<blockquote class="vc-pullquote">`,
-   `<div class="vc-metrics">`, `<aside class="vc-tldr">`,
-   `<div class="vc-pill-row">`, etc. See the per-primitive
-   references.
-5. **Add a TOC** for documents with 4+ `<h2>` sections — see
-   [toc-and-anchor-system](references/toc-and-anchor-system.md). The runtime auto-spies the
-     > When to add a TOC · Scaffold (default — single-column doc) · CSS (already injected by the runtime) · The scroll-spy (already implemented in `init`) · Variants by layout · DESIGN.md tokens consumed · The heading-anchor offset · Composition with other skills · Lib functions called · Selection / comment notes · Anti-patterns
-   active section.
-6. **Load the runtime** — `<script src="amvcp-designmd.js"></script>`
-   then `<script src="amvcp-report-doc.js"></script>`. The skill
-   self-injects its CSS and wires the scroll-spy on
-   `DOMContentLoaded` unless `window.__vcReportDocManualInit` is set.
-7. **Always run the QA pipeline** before handing the page back — see
-   [output-qa-pipeline-7-gates](references/output-qa-pipeline-7-gates.md).
-     > When to run the QA pipeline · The 7 gates · Calling the pipeline · Gate output shape · The loop-detection (failedTwice) · DESIGN.md tokens consumed (by Gate 2) · Banned lists (Gates 6 + 7) · Lib API surface · Visual verification · Anti-patterns
-
-## Instructions — prose / article pages
-
-1. Wrap: `<article data-ve-prose>` with real `<h1>`/`<h2>`/`<h3>`/
-   `<p>`. Never hand-number — `amvcp-runtime.js` assigns
-   `1.2.1`-style ids automatically.
-2. `<aside class="callout">` for tips; `<blockquote class="pullquote">`
-   ≤1 per page. Sticky-TOC if 4+ sections.
-3. Open: `python3 "$CLAUDE_PLUGIN_ROOT/scripts/amvcp-select.py"
-   page.html` to react to user selections.
-4. Paragraph clicks → `kind:"element"`/`type:"paragraph"`. Text
-   highlights → `kind:"text"` with `paragraphId` + surrounding
-   text. See [prose-mode](references/prose-mode.md).
-     > Paragraph numbering + text-snippet selection · Text-snippet selection · Why opt-in via `data-ve-prose` · Authoring rules for prose pages · Reference response patterns
+Steps 1 (scaffold a document — pick template, pick shape, wrap body,
+add structural blocks, add a TOC, load the runtime, run QA) and 2
+(write prose / article pages — `data-ve-prose`, callouts, the
+`amvcp-select.py` round-trip, paragraph vs text selection) are in
+[instructions-scaffold-and-prose](references/instructions-scaffold-and-prose.md).
+  > Scaffold a document · Prose / article pages
 
 ## Instructions — run the QA pipeline
 
-```js
-// Browser — DOM mode (computed styles available, definitive verdicts)
-const report = window.amvcpReportDoc.runGates(document, "page-id");
-
-// Browser or Node — static mode (HTML string, regex / parsed-DESIGN.md)
-const report = window.amvcpReportDoc.runGatesOnHtml(htmlText, "page-id");
-```
-
-Each report has shape `{ ok, mode, gates: [...], loop: { gate,
-failedTwice } }`. `ok` is `true` iff every P1 gate PASSed. The 7
-gates (P1 unless noted): `no-nested-scrollbars`, `wcag-contrast`,
-`reduced-motion`, `print-css`, `semantic-html` (P2), `banned-color`,
-`banned-font`. WARN-level results are advisory (static-mode
-degradations); only a P1 FAIL flips `ok` to `false`.
-`loop.failedTwice` becomes `true` on the second consecutive fail of
-the same gate for the same `pageId` — escalate, do not auto-retry.
-
-Full coverage: [output-qa-pipeline-7-gates](references/output-qa-pipeline-7-gates.md).
+Call `window.amvcpReportDoc.runGates(document, "page-id")` (browser
+DOM mode, definitive verdicts) or `runGatesOnHtml(htmlText, "page-id")`
+(static mode). The report is `{ ok, mode, gates, loop: { gate,
+failedTwice } }`; `ok` is `true` iff every P1 gate PASSed.
+`loop.failedTwice` flips on the second consecutive fail of the same
+gate for the same `pageId` — escalate, do not auto-retry. Full call
+signatures, the 7 gates, gate output shape, banned lists, and the
+loop-detection contract are in
+[output-qa-pipeline-7-gates](references/output-qa-pipeline-7-gates.md).
   > When to run the QA pipeline · The 7 gates · Calling the pipeline · Gate output shape · The loop-detection (failedTwice) · DESIGN.md tokens consumed (by Gate 2) · Banned lists (Gates 6 + 7) · Lib API surface · Visual verification · Anti-patterns
 
 ## Output
@@ -270,60 +176,18 @@ Full composition contract + interaction patterns:
 
 ## Error Handling
 
-- **Doc shell unstyled** → `amvcp-report-doc.js` not loaded; check
-  the `<script>` tag and that `injectReportDocCSS(document)` was
-  called (or that you did not opt out via
-  `__vcReportDocManualInit` without re-injecting).
-- **TOC links don't highlight** → no IntersectionObserver, OR the
-  targets are missing ids. Links still work — only the active
-  highlight degrades.
-- **Callout colors look identical in both themes** → the engine
-  isn't applying `--vc-color-*`; verify `amvcpDesignMd.applyTokens`
-  ran.
-- **QA gate WARNs in static mode that it cannot resolve tokens** →
-  load `amvcp-designmd.js` so the static check can parse the
-  embedded DESIGN.md.
-- **`failedTwice` never flips** → you're calling `runGates` without
-  a `pageId`, OR the call between fails passed; loop state keys on
-  `pageId`.
-- **Prose page numbering collides** → manual `data-ve-id` on `<p>`
-  collides with auto `ve-para-X.Y.Z`. Drop the manual id.
-- **Pull-quote fades into body** → cap at one per page; >1 loses
-  impact.
-- **Banned-font Gate 7 fails on the runtime's own default
-  DESIGN.md** → known finding (Inter is on the banned list).
-  Belongs to design-tokens reconciliation, not report-doc;
-  report-doc's job is to *report*, not silently exempt.
+Failure modes (doc shell unstyled, TOC links don't highlight, theme-
+identical callouts, static-mode token WARNs, `failedTwice` never
+flips, prose numbering collisions, faded pull-quote, banned-font Gate
+7) and their fixes are in [error-handling](references/error-handling.md).
+  > Doc shell unstyled · TOC links don't highlight · Callout colors look identical in both themes · QA gate WARNs in static mode that it cannot resolve tokens · `failedTwice` never flips · Prose page numbering collides · Pull-quote fades into body · Banned-font Gate 7 fails on the runtime's own default DESIGN.md
 
 ## Examples
 
-1. **Technical report** — `<article class="vc-doc vc-doc--technical-
-   report">` with a `vc-doc-header`, four `<h2>` sections, two
-   `<aside class="vc-callout vc-callout--warning">` blocks, one
-   `<table class="vc-rubric">`. Run `runGates(document)` afterward —
-   every P1 gate should PASS, ok:true.
-2. **Whitepaper with auto-numbered sections** —
-   `vc-doc--whitepaper` adds `01`, `02`, `03` leading-zero counters
-   before each h2, decimal-leading-zero formatting, accent-color
-   marker. The whole document fits in the 64ch reading measure the
-   template sets via `--vc-doc-measure`. See
-   [section-numbering-leading-zero](references/section-numbering-leading-zero.md).
-     > When to use leading-zero numbering · The whitepaper template's auto-numbering · Cross-referencing by name, not number · Multi-level numbering (sections + subsections) · The standalone `vc-num` eyebrow (alternative) · DESIGN.md tokens consumed · Composition · Selection / comment notes · Anti-patterns
-3. **Incident postmortem** — `incident-postmortem-shape` over
-   `vc-doc--technical-report`. SEV pill + slate TL;DR + typed-dot
-   timeline + impact mini-table + action-items checklist + fixed-
-   right TOC.
-4. **Implementation plan** — `implementation-plan-shape` over
-   `vc-doc--proposal`. 4-stat band → milestone timeline → data-flow
-   SVG → paired mockups → 2-col code → risk table → open-questions
-   callouts → provenance footer.
-5. **Essay with selectable paragraphs** — `<article data-ve-prose>`;
-   runtime auto-numbers; double-click insight →
-   `{kind:"text", paragraphId:"2.1.3"}`.
-6. **QA-only invocation** — agent inherited a generated HTML file
-   from elsewhere. Load it in a browser, call
-   `window.amvcpReportDoc.runGates(document, "inherited-1")` —
-   every FAILing gate's `fixHint` tells you what to change.
+Six end-to-end invocations (technical report, auto-numbered
+whitepaper, incident postmortem, implementation plan, selectable-
+paragraph essay, QA-only) are in [worked-examples](references/worked-examples.md).
+  > Technical report · Whitepaper with auto-numbered sections · Incident postmortem · Implementation plan · Essay with selectable paragraphs · QA-only invocation
 
 ## Visual verification
 
@@ -346,7 +210,7 @@ runtime APIs — lives in its own file so this SKILL.md stays under
 the progressive-disclosure budget. Open it to navigate the catalog;
 each entry there carries its own embedded TOC.
 
-- [resources-index](./references/resources-index.md) — full 37-reference catalog
+- [resources-index](references/resources-index.md) — full 37-reference catalog
   > Document shapes · Structural primitives · Document chrome · Composition and QA
 
 ### Cross-cutting / shared
