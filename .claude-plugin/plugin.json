@@ -25,9 +25,6 @@
     "regex-vis"
   ],
   "cpv": {
-    "max_lines": 800,
-    "max_chars": 4000,
-    "skill_size_severity": "warning",
     "installer_severity": "off",
     "allow_orchestrator_traversal": [
       "skills/..",
