@@ -72,6 +72,18 @@
       '[data-docwiki] [data-ve-doc]{display:none;overflow:visible;' +
         'max-width:none;padding:var(--vc-space-5,1rem) var(--vc-space-4,.75rem);}' +
       '[data-docwiki] [data-ve-doc].is-active{display:block;}' +
+      '.docwiki-results{display:flex;flex-direction:column;gap:var(--vc-space-4,.75rem);margin-top:var(--vc-space-4,.75rem);}' +
+      '.docwiki-result{padding:var(--vc-space-3,.5rem) var(--vc-space-4,.75rem);' +
+        'background:var(--vc-color-surface,#f4f4f5);border:1px solid var(--vc-color-border,#ddd);' +
+        'border-radius:var(--vc-radius-md,8px);}' +
+      '.docwiki-result-title{font-weight:var(--vc-weight-bold,600);color:var(--vc-color-accent,#2563eb);text-decoration:none;}' +
+      '.docwiki-result-title:hover{text-decoration:underline;}' +
+      '.docwiki-chip{display:inline-block;margin-left:.5em;padding:.05em .5em;font-size:.72em;' +
+        'letter-spacing:.04em;border-radius:var(--vc-radius-full,999px);vertical-align:middle;' +
+        'background:var(--ve-control-bg,var(--vc-color-surface-raised,#eee));' +
+        'color:var(--vc-color-content-muted,#666);border:1px solid var(--vc-color-border,#ddd);}' +
+      '.docwiki-snippet{margin:.3em 0 0;color:var(--vc-color-content-muted,#555);font-size:.92em;}' +
+      '.docwiki-lead{color:var(--vc-color-content-muted,#666);}' +
       '.docwiki-missing{color:var(--vc-color-danger,#b91c1c);padding:var(--vc-space-5,1rem);}';
     var el = doc.createElement('style');
     el.id = STYLE_ID;
@@ -174,6 +186,8 @@
         if (home && r !== 'home') { addClass(home, 'is-active'); page = home; r = 'home'; }
         else if (!home) { showMissing(doc, root, r); }
       }
+      if (r === 'search' && page) { renderSearch(doc, page, parsed.q); }
+      if (root.__docwikiSearch && r === 'search') { root.__docwikiSearch.value = parsed.q || ''; }
       updateTrail(r, titleOf(page, r));
       if (crumbsEl) renderCrumbs(doc, crumbsEl);
       if (global.scrollTo) { try { global.scrollTo(0, 0); } catch (e) {} }
@@ -201,6 +215,90 @@
       ev.initCustomEvent('docwiki:navigate', true, false, { route: route, q: q, page: page });
     }
     root.dispatchEvent(ev);
+  }
+
+  // ── client-side search (over the embedded section text — self-contained) ─────
+  // Indexes the doc pages already embedded in the SPA (no separate index, no
+  // server): match all whitespace-split terms (AND, case-insensitive) against each
+  // page's title + visible text; rank title-hits above body-hits.
+  function searchablePages(root) {
+    var list = pages(root), out = [], i, r;
+    for (i = 0; i < list.length; i++) {
+      r = list[i].getAttribute('data-ve-doc');
+      if (r === 'home' || r === 'search' || r === 'kanban') continue; // not content docs
+      out.push(list[i]);
+    }
+    return out;
+  }
+
+  function renderSearch(doc, section, q) {
+    q = (q || '').replace(/^\s+|\s+$/g, '');
+    while (section.firstChild) section.removeChild(section.firstChild);
+    var h = doc.createElement('h1');
+    h.textContent = 'Search';
+    section.appendChild(h);
+    if (!q) {
+      var lead = doc.createElement('p');
+      lead.className = 'docwiki-lead';
+      lead.textContent = 'Type a query in the search box above and press Enter.';
+      section.appendChild(lead);
+      return;
+    }
+    var terms = q.toLowerCase().split(/\s+/);
+    var root = section.parentNode;
+    var cands = searchablePages(root), results = [], i, j;
+    for (i = 0; i < cands.length; i++) {
+      var pg = cands[i];
+      var title = (pg.getAttribute('data-doc-title') || '').toLowerCase();
+      var text = (pg.textContent || '').toLowerCase();
+      var ok = true, score = 0;
+      for (j = 0; j < terms.length; j++) {
+        var t = terms[j];
+        if (title.indexOf(t) !== -1) score += 10;
+        else if (text.indexOf(t) !== -1) score += 1;
+        else { ok = false; break; }
+      }
+      if (ok) results.push({ route: pg.getAttribute('data-ve-doc'),
+        title: pg.getAttribute('data-doc-title') || pg.getAttribute('data-ve-doc'),
+        text: pg.textContent || '', score: score });
+    }
+    results.sort(function (a, b) { return b.score - a.score; });
+    var count = doc.createElement('p');
+    count.className = 'docwiki-lead';
+    count.textContent = results.length + (results.length === 1 ? ' result' : ' results') + ' for «' + q + '»';
+    section.appendChild(count);
+    var listEl = doc.createElement('div');
+    listEl.className = 'docwiki-results';
+    for (i = 0; i < results.length; i++) {
+      var res = results[i];
+      var row = doc.createElement('div');
+      row.className = 'docwiki-result';
+      var a = doc.createElement('a');
+      a.className = 'docwiki-result-title';
+      a.href = '#/' + res.route;
+      a.setAttribute('data-ve-navigate', '');
+      a.textContent = res.title;
+      row.appendChild(a);
+      var chip = doc.createElement('span');
+      chip.className = 'docwiki-chip';
+      chip.textContent = (res.route.indexOf('/') === -1 ? res.route : res.route.split('/')[0]).toUpperCase();
+      row.appendChild(chip);
+      var snip = doc.createElement('p');
+      snip.className = 'docwiki-snippet';
+      snip.textContent = makeSnippet(res.text, terms);
+      row.appendChild(snip);
+      listEl.appendChild(row);
+    }
+    section.appendChild(listEl);
+  }
+
+  function makeSnippet(text, terms) {
+    var lc = text.toLowerCase(), pos = -1, i, p;
+    for (i = 0; i < terms.length; i++) { p = lc.indexOf(terms[i]); if (p !== -1 && (pos === -1 || p < pos)) pos = p; }
+    if (pos === -1) pos = 0;
+    var start = pos - 60; if (start < 0) start = 0;
+    var snip = text.slice(start, start + 220).replace(/\s+/g, ' ').replace(/^\s+|\s+$/g, '');
+    return (start > 0 ? '… ' : '') + snip + (text.length > start + 220 ? ' …' : '');
   }
 
   function addClass(el, c) { if (el.className.indexOf(c) === -1) el.className = (el.className + ' ' + c).replace(/\s+/g, ' ').trim(); }
@@ -238,6 +336,7 @@
       var q = input.value.replace(/^\s+|\s+$/g, '');
       global.location.hash = q ? '#/search?q=' + encodeURIComponent(q) : '#/home';
     };
+    root.__docwikiSearch = input; // referenced by the router to prefill on #/search
 
     bar.appendChild(navbtns);
     bar.appendChild(crumbs);

@@ -1174,7 +1174,10 @@ def main(argv: list[str] | None = None) -> int:
     have_kanban = bool(trdds)  # the board page exists whenever ≥1 TRDD was built
 
     pages: list[str] = [
-        render_home_page(trdds, have_prrd, args.title, mem_notes, have_kanban)
+        render_home_page(trdds, have_prrd, args.title, mem_notes, have_kanban),
+        # Empty search results page; the shell fills it live from the embedded
+        # section text on each #/search?q=… navigation (client-side, self-contained).
+        '<section data-ve-doc="search" data-doc-title="Search"></section>',
     ]
     if have_kanban:
         pages.append(render_kanban_page(trdds))
