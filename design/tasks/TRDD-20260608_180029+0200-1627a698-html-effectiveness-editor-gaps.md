@@ -1,9 +1,9 @@
 ---
 trdd-id: 1627a698-c822-4729-9d1a-1b3296327623
 title: Build the 6 remaining html-effectiveness gaps — 5 interactive-editor skills + approaches-comparison
-column: backburner
+column: dev
 created: 2026-06-08T18:00:29+0200
-updated: 2026-06-08T18:00:29+0200
+updated: 2026-06-18T16:37:19+0200
 current-owner: amvcp-dev
 assignee: null
 priority: 5
@@ -23,14 +23,29 @@ test-requirements: [dev-browser-headless]
 review-requirements: [human-review]
 runtime-targets: [macos]
 impacts: []
-attempts: 0
+attempts: 1
 last-test-result: not-run
+implementation-commits: [c886a6a, c19c1b1]
 ---
 
 # TRDD-1627a698 — Build the 6 remaining html-effectiveness gaps
 
 **Filename:** `design/tasks/TRDD-20260608_180029+0200-1627a698-html-effectiveness-editor-gaps.md`
 **Tracked in:** this repo (`design/tasks/` is git-tracked)
+
+## ⏵ STATE — READ THIS FIRST ON RESUME (authoritative; supersedes the body) — 2026-06-18
+
+- **Implementation LANDED** (was wrongly parked at `backburner`): the 6 gap skills +
+  approaches-comparison were built in `c886a6a` and wired into the umbrella in
+  `c19c1b1` (both on branch `fix/ed5e8cc2-chartjs-resize-wedge`, reachable from current HEAD).
+- **NOT verified, NOT shipped** — column is `dev`, not `complete`: `last-test-result: not-run`
+  (the `dev-browser-headless` test-requirement has NOT run), `human-review` not done, and
+  `release-via: publish` is gated behind the SAME wall as the rest of amvcp (the CPV `--strict`
+  gate + owner merge+publish — see [[project_amvcp_cpv_gate_blocked]] / `project_no_direct_push`).
+- **NEXT ACTION** to advance: dev-browser-headless screenshot-test the 6 new skills (light + dark)
+  → on green, `dev → testing → ai_review → human_review`. Do NOT mark `complete` until tests +
+  review actually pass. This is a priority-5 / severity-LOW backlog feature — verify+ship on the
+  owner's go, or keep as accurate backlog (it is no longer mis-filed as `backburner`).
 
 ## Why this TRDD exists
 
