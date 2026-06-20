@@ -2535,14 +2535,14 @@
     }
 
     // Interactive mode: fire-and-forget the POST and close the window
-    // immediately. sendBeacon is designed exactly for "send-on-unload"
+    // immediately. sendBeacon is designed exactly for "dispatch-on-unload"
     // semantics — the browser keeps the request in flight even after the
     // document is gone. Falls back to fetch(keepalive:true) on the small
     // number of browsers that don't expose sendBeacon.
     //
     // A2 (TRDD-5f41ad36) — in fallback-browser mode (Chromium not found,
     // launched via webbrowser.open() in the user's default browser), use
-    // fetch instead of sendBeacon. fetch lets us (a) send the
+    // fetch instead of sendBeacon. fetch lets us (a) transmit the
     // X-Browser-Mode header so the server can echo back `thanks_url`,
     // and (b) read the response so we can `location.replace()` to the
     // thanks page — sendBeacon supports neither.

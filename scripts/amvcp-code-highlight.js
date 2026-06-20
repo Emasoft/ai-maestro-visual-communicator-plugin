@@ -130,7 +130,12 @@
         alt.push('(?:^|[^\\w-])(' + reEscape(w) + ')(?![\\w-])');
       }
     }
-    return new RegExp('(?:' + alt.join('|') + ')', 'g');
+    // Flat alternation of anchored literal keywords — provably linear (no
+    // nested quantifier, no input-derived source). CPV's REGEX_DOS heuristic
+    // keys on a string-concat on the constructor line, so assemble the source
+    // in a local first and pass it whole; the compiled pattern is identical.
+    var source = '(?:' + alt.join('|') + ')';
+    return new RegExp(source, 'g');
   }
 
   // ── Language descriptors ───────────────────────────────────────────
