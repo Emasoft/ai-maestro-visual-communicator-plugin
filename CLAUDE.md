@@ -132,6 +132,16 @@ thing, and the palette has exactly one entry per thing.
 
 ## Other standing rules (see ~/.claude memory for detail)
 
+- **Memory: recall before you render, write after you learn** — uses the global
+  janitor wiki memory (`/janitor-memory-recall` · `/janitor-memory-write` ·
+  `/janitor-memory-update`; protocol in `~/.claude/rules/markdown-memory-recall.md`;
+  PROJECT-scope notes git-tracked in-repo at `.claude/project/memory/`). RECALL
+  (indexed by the symptom, not the answer) before: generating any visual
+  (house-style / confirmed prefs — themes, density, palette), debugging a recurring
+  runtime/test gotcha (wedged chart, leaked page, missing selection payload), or a
+  familiar design decision (theming, composition, export shape). WRITE after: a
+  confirmed style preference (→ feedback), a runtime/test gotcha solved (→ reference,
+  after the autopsy), or a composition decision worth its WHY.
 - **Always ship light + dark** for every visual; single-theme is a correctness defect.
 - **Screenshot-test every visual change** (dev-browser, light + dark).
 - The runtime (`scripts/amvcp-runtime.js`) is exempt from the CPV LOC cap — don't split

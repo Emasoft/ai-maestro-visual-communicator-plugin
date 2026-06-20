@@ -56,6 +56,29 @@ Every page is a single self-contained HTML file. On Submit, the
 page closes itself and the agent receives the multi-select payload
 (picked items + comment threads + decision toggles).
 
+## Memory (recall before you render)
+
+The plugin uses the AI-Maestro **global janitor-hosted** wiki memory —
+durable project facts live as symptom-indexed markdown notes across three
+scopes: LOCAL (`~/.claude/projects/<slug>/memory/`), PROJECT (in-repo at
+`.claude/project/memory/`, git-tracked + shared), and USER (cross-project).
+The protocol lives in `~/.claude/rules/markdown-memory-recall.md`; the
+day-to-day legs are the global `/janitor-memory-recall`,
+`/janitor-memory-write`, and `/janitor-memory-update` skills (search runs on
+`memgrep`, degrading to plain `grep` when the binary is absent).
+
+VISUAL-COMMUNICATOR workflow wiring:
+
+- **Before generating any page**, recall house-style and confirmed-preference
+  notes (themes, density, palettes) so prior decisions shape the output
+  without re-asking.
+- **After a confirmed preference or a solved gotcha**, write one
+  symptom-indexed note (plus its `MEMORY.md` index line) for future sessions.
+
+`memgrep` is optional: install it once from the `ai-maestro-janitor` repo
+(`cargo install --path <…>/ai-maestro-janitor/scripts/memgrep`); until then
+recall falls back to `grep` — it degrades, never breaks.
+
 ## Platform requirements
 
 **Supported OSes**: macOS, Linux, and Windows. Python 3.12+ required.

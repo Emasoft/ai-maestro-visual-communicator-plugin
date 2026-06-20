@@ -38,8 +38,12 @@ env/
 # Rechecker plugin runtime state
 /.rechecker/
 
-# Claude Code session artefacts (chat history, scheduled crons, lock files)
-/.claude/
+# Claude Code session artefacts (chat history, scheduled crons, lock files).
+# Deep form (/.claude/** — NOT a bare /.claude/) so the PROJECT-scope memory
+# wiki under .claude/project/memory/ can be re-included via the exception block
+# at the end of this file. A bare /.claude/ prunes the whole tree, which makes
+# any !.claude/project/memory/** re-include inert (git never descends).
+/.claude/**
 
 # tldr CLI runtime state + per-project ignore file
 /.tldr/
@@ -101,3 +105,16 @@ node_modules/
 /.codegraph/**
 **/node_modules/**
 **/dist/**
+
+# ---------------------------------------------------------------------------
+# PROJECT-scope memory wiki (janitor wikimem) — MUST be tracked + pushed
+# ---------------------------------------------------------------------------
+# The PROJECT memory scope lives in-repo under .claude/project/memory/ and is the
+# shared, cross-dev memory wiki (see the janitor's /janitor-memory-bootstrap and
+# ~/.claude/rules/markdown-memory-recall.md). These exceptions re-include it past
+# the /.claude/** ignores above — order matters: re-include each parent dir
+# first, then the whole subtree. The bare /.claude/ above was widened to
+# /.claude/** precisely so these re-includes take effect.
+!.claude/project/
+!.claude/project/memory/
+!.claude/project/memory/**
