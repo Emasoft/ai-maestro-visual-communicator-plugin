@@ -341,9 +341,9 @@ column. All via CSS — no JS.
 Consumes:
 - [diff-blocks-unified.md](./diff-blocks-unified.md) — diffs inside
   the file-by-file tour
-- [slate-bg-code-panel.md](../../amvcp-code-syntax/references/slate-bg-code-panel.md) — code panels for
+- [slate-bg-code-panel.md](../../amvcp-code-syntax-chrome/references/slate-bg-code-panel.md) — code panels for
   inlined code samples
-- [inline-code-chip.md](../../amvcp-code-syntax/references/inline-code-chip.md) — for inline
+- [inline-code-chip.md](../../amvcp-code-syntax-chrome/references/inline-code-chip.md) — for inline
   identifier mentions
 - [diff-blocks-unified.md](./diff-blocks-unified.md) §D1.6 — the
   line-through-on-del strike-through variant for "historical removal"

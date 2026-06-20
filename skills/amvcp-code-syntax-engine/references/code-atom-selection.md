@@ -33,7 +33,7 @@ code lines exactly as it does to prose.
 - **3-state block visual.** The wrapping `.ve-code-block` reads
   `:has(.ve-code-line[data-ve-pressed="1"])` to switch its outline
   state between normal / hover-unselected / selected / hover-over-
-  selected. See [block-3-state-model.md](./block-3-state-model.md).
+  selected. See [block-3-state-model.md](../../amvcp-code-syntax-chrome/references/block-3-state-model.md).
 - **Token-yield CSS.** Selected lines force every descendant
   `.ve-tok-*` span to `color: inherit` so tokens read against the
   selection bg. See [token-roles-palette.md](./token-roles-palette.md)
@@ -197,5 +197,5 @@ the selection-readable colour.
 - `--ve-glow-hover` — the hover ring on a selected block (the 3-state
   model)
 
-See [block-3-state-model.md](./block-3-state-model.md) for the visual
+See [block-3-state-model.md](../../amvcp-code-syntax-chrome/references/block-3-state-model.md) for the visual
 state machine the selection drives.

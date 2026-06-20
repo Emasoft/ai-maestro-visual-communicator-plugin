@@ -44,7 +44,7 @@ ancestor.
 |---|---|
 | The `<pre>` is INSIDE the regex graph (`.ve-regex`) | The regex skill has its own per-token renderer — the runtime's tokenizer would double-render |
 | The `<pre>` is in an overlay popup (a snippet preview in a comment bubble) | Overlay popups should be minimal; the gutter / copy button add visual noise |
-| The author is using the 4-class inline hand-wrap (see [inline-4class-handwrap.md](../../amvcp-code-syntax/references/inline-4class-handwrap.md)) | `<code>.children.length > 0` would make the runtime skip anyway, but the explicit opt-out is clearer |
+| The author is using the 4-class inline hand-wrap (see [inline-4class-handwrap.md](../../amvcp-code-syntax-chrome/references/inline-4class-handwrap.md)) | `<code>.children.length > 0` would make the runtime skip anyway, but the explicit opt-out is clearer |
 | The `<pre>` is data (CSV / TSV) not code, and the file-path / language-tag conventions don't apply | Treats the `<pre>` as a quoted data block instead of source code |
 | The `<pre>` is generated content (e.g. test output, log lines) | No need for syntax color or copy button |
 | The `<pre>` is a tiny inline figure (a single ASCII-art diagram) | Gutter overlay would crowd a small block |

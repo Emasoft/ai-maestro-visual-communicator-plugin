@@ -208,7 +208,7 @@ the recommendation.
 
 ## E9.7 The "code panel per column" discipline
 
-Each column uses the SLATE-BG code panel (see [slate-bg-code-panel.md](../../amvcp-code-syntax/references/slate-bg-code-panel.md)). The dark panels read as load-bearing
+Each column uses the SLATE-BG code panel (see [slate-bg-code-panel.md](../../amvcp-code-syntax-chrome/references/slate-bg-code-panel.md)). The dark panels read as load-bearing
 content; the prose / chips around them are supporting.
 
 The 3 code blocks should be ROUGHLY SAME-HEIGHT — pick implementations
@@ -234,7 +234,7 @@ of context.
 
 ## E9.9 Cross-references
 
-- [slate-bg-code-panel.md](../../amvcp-code-syntax/references/slate-bg-code-panel.md) — the code-panel
+- [slate-bg-code-panel.md](../../amvcp-code-syntax-chrome/references/slate-bg-code-panel.md) — the code-panel
   visual
 - `amvcp-tables` `compare` mode — the Pro/Con sub-table is a small-
   scale compare-mode table
@@ -261,7 +261,7 @@ of context.
 
 ## E9.12 Tokens consumed
 
-- All from [slate-bg-code-panel.md](../../amvcp-code-syntax/references/slate-bg-code-panel.md)
+- All from [slate-bg-code-panel.md](../../amvcp-code-syntax-chrome/references/slate-bg-code-panel.md)
 - `--vc-color-success` (Pro dot) / `--ve-accent` (Con dot,
   recommendation)
 - `--vc-color-neutral-100` / `-700` / `-900` (chip neutrals)

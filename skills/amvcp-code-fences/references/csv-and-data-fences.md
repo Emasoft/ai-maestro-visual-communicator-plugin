@@ -106,7 +106,7 @@ A `language-diff` block IS code-with-data — the markers (`+`, `-`,
 ## H3.7 The "is this fence DATA-WITH-PROVENANCE?" check
 
 Even when a `<pre>` is data, it might still benefit from the file-path
-label pattern (see [code-block-with-file-path.md](../../amvcp-code-syntax/references/code-block-with-file-path.md)) — e.g. "here's the `limits.yaml` content from
+label pattern (see [code-block-with-file-path.md](../../amvcp-code-syntax-chrome/references/code-block-with-file-path.md)) — e.g. "here's the `limits.yaml` content from
 production":
 
 ```html
@@ -194,9 +194,9 @@ based on their language declaration — no new tokens here.
 
 ## H3.14 Cross-references
 
-- [language-resolution.md](../../amvcp-code-syntax/references/language-resolution.md) — registered
+- [language-resolution.md](../../amvcp-code-syntax-engine/references/language-resolution.md) — registered
   language ids and aliases
-- [code-block-with-file-path.md](../../amvcp-code-syntax/references/code-block-with-file-path.md) —
+- [code-block-with-file-path.md](../../amvcp-code-syntax-chrome/references/code-block-with-file-path.md) —
   file-path label for provenance
 - [opting-out-pre.md](./opting-out-pre.md) — when to fully opt out
 - `amvcp-tables` `data` mode — when CSV should be a real table

@@ -137,7 +137,7 @@ every `.ve-code-block` it builds from a `<pre><code class="language-
 …">` — including ones nested in table cells — adding the gutter,
 per-line selection, copy button, and syntax color. Authors write ONLY
 the plain source between the tags (see
-[author-vs-runtime-boundary.md](../../amvcp-code-syntax/references/author-vs-runtime-boundary.md)).
+[author-vs-runtime-boundary.md](../../amvcp-code-syntax-chrome/references/author-vs-runtime-boundary.md)).
 For the dark "load-bearing code" look, wrap the `<pre>` in
 `<div class="ve-code-panel-slate">…</div>`.
 
@@ -220,7 +220,7 @@ recommended for ≥ 3 approaches.
 ## Selection atoms per approach
 
 **Do not hand-stamp selection atoms** — the runtime owns them (see
-[code-atom-selection.md](../../amvcp-code-syntax/references/code-atom-selection.md)
+[code-atom-selection.md](../../amvcp-code-syntax-engine/references/code-atom-selection.md)
 and [comparison-emphasis-column.md](./comparison-emphasis-column.md#selection--comment--decision-mini-notes)):
 
 - **Table layout (A).** The runtime stamps every body `<td>` as a

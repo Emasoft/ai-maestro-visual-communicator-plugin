@@ -8,7 +8,7 @@
        1. the FENCED embedded DESIGN.md actually drives the tokens
           (regression: parseDesignMd is fail-fast; a fenceless block
           silently falls back to the built-in palette);
-       2. rounded-box nodes (<path>) are themed by the token CSS;
+       2. rounded-box nodes (path elements) are themed by the token CSS;
        3. a live data-ve-theme flip re-paints the graph. -->
 <title>graphviz template fixture</title>
 <style>
@@ -151,7 +151,7 @@ digraph G {
   ];
 
   start [id="ve-node-start", shape=ellipse, label="START"];
-  work  [id="ve-node-work",  label="WORK\nrounded box = <path>"];
+  work  [id="ve-node-work",  label="WORK\nrounded box = path element"];
   gate  [id="ve-node-gate",  label="GATE\ntesting"];
   done  [id="ve-node-done",  label="DONE"];
 

@@ -77,7 +77,7 @@ Self-contained HTML: one `<style>` (or `<link href="amvcp-layout.css">`) carryin
 Worked example (a `.la-grid--2-1` wrapping a `.la-article` body + sticky sidebar TOC, with the full `<html>` snippet) plus four more (long-form article with `__wide`/`__bleed`, magazine subgrid cardrow, auto-fill gallery, RTL article) live in [examples](references/examples.md).
 
 - [examples](references/examples.md) — the content+sidebar `<html>` walkthrough + four more layout examples.
-  > Examples
+  > Content + sidebar article page · More examples
 
 ## Modes
 

@@ -149,13 +149,13 @@ reader where to find the source. Format:
 The line range is **informational** — the actual line numbers in the
 gutter restart at 1 (or whatever the runtime renders). To preserve the
 source line numbers, see the `data-ve-line-start` opt-in pattern in
-[gutter-anatomy.md](./gutter-anatomy.md) (line-start offset).
+[gutter-anatomy.md](../../amvcp-code-syntax-engine/references/gutter-anatomy.md) (line-start offset).
 
 ## B4.6 Multi-language file paths
 
 A `tsx` path correctly named: `src/components/Button.tsx`. The icon is
 the JS-family curly-braces (since `tsx` shares the `js` table — see
-[language-resolution.md](./language-resolution.md)). The language class
+[language-resolution.md](../../amvcp-code-syntax-engine/references/language-resolution.md)). The language class
 on the `<code>` is `language-tsx` for clarity.
 
 A multi-language file (e.g. an HTML file with embedded `<script>` and

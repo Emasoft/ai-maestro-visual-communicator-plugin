@@ -111,6 +111,9 @@ contracts in [dispatch-decision-tree](references/dispatch-decision-tree.md):
      - When to use
      - When NOT to use
      - Common authoring patterns
+       - Numbered annotations
+       - Letter annotations
+       - Colored hotspots (override accent locally)
      - DESIGN.md tokens consumed
      - What NOT to do
      - Visual verification
@@ -121,8 +124,13 @@ The full JSON schema, every type, every kind, every variant is in
 [scene-graph-contract](references/scene-graph-contract.md):
 
   - The authoring surface
+    - Form A — `<script type="application/icon-svg+json">`
+    - Form B — fenced code block
   - SceneGraph schema
   - Primitive — three kinds
+    - type: "process" / "database" / "decision" / "external" / "network"
+    - type: "logo", kind: ...
+    - type: "shape", kind: ...
   - Validation — fail-fast
   - Auto-fixes (silent — no throw)
   - A worked example — five-node showcase

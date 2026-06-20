@@ -309,10 +309,12 @@ patterns see these sibling skills (complete TOC embedded after each):
 
 The per-test descriptions for `tests/scripts/test-form-inputs.js`
 (all 23 cases) live in
-[references/test-cases.md](references/test-cases.md). Complete TOC:
+[references/test-cases.md](references/test-cases.md).
 
-- [Reference test cases](references/test-cases.md)
-  - Reference test cases
+Complete TOC of `test-cases.md`:
+
+- Test functions
+- Fixture
 
 The fixture is `tests/fixtures/form-inputs-fixture.html` (one of
 each widget kind).

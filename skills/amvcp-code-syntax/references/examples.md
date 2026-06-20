@@ -29,7 +29,7 @@ queue:
 ```
 
 The `<span class="path">` header pattern marks the file provenance; see
-[code-block-with-file-path](code-block-with-file-path.md).
+[code-block-with-file-path](../../amvcp-code-syntax-chrome/references/code-block-with-file-path.md).
 
 ## Example 3 — inline code chip in prose
 
@@ -38,4 +38,4 @@ The `<span class="path">` header pattern marks the file provenance; see
 ```
 
 A short mono chip with bg + 4px radius; see
-[inline-code-chip](inline-code-chip.md).
+[inline-code-chip](../../amvcp-code-syntax-chrome/references/inline-code-chip.md).

@@ -23,7 +23,7 @@ catalog #12).
 
 A postmortem has these sections, top to bottom:
 1. INC-ID header + h1 + meta-pills (SEV-2, Resolved, Duration)
-2. Slate-bg TL;DR card (ivory text — see [slate-bg-code-panel.md](../../amvcp-code-syntax/references/slate-bg-code-panel.md))
+2. Slate-bg TL;DR card (ivory text — see [slate-bg-code-panel.md](../../amvcp-code-syntax-chrome/references/slate-bg-code-panel.md))
 3. Timeline (dotted vertical with typed dots)
 4. **Root cause** — the slate-bg diff code panel showing the buggy
    line + the fix (THIS reference)
@@ -188,7 +188,7 @@ each in its own slate panel, each with its own file-path label.
 
 ## E5.11 Tokens consumed
 
-- All from [slate-bg-code-panel.md](../../amvcp-code-syntax/references/slate-bg-code-panel.md)
+- All from [slate-bg-code-panel.md](../../amvcp-code-syntax-chrome/references/slate-bg-code-panel.md)
 - All from [diff-blocks-unified.md](./diff-blocks-unified.md)
 - `--ve-code-comment` — for the hunk header colour inside the diff
 - `--vc-font-mono` — for the file-path label and impact table values

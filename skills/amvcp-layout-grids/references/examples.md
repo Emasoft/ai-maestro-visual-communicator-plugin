@@ -1,5 +1,12 @@
 # Examples
 
+## Table of contents
+
+- [Content + sidebar article page](#content--sidebar-article-page)
+- [More examples](#more-examples)
+
+## Content + sidebar article page
+
 Input: user asks for a content+sidebar article page with a sticky sidebar TOC.
 Output: a `.la-grid--2-1` wrapping the `.la-article` body + a sticky sidebar:
 
@@ -18,7 +25,7 @@ Output: a `.la-grid--2-1` wrapping the `.la-article` body + a sticky sidebar:
 </div>
 ```
 
-More examples:
+## More examples
 
 - A long-form article: `.la-article` (3-col grid) with `.la-article__wide` for a chart and `.la-article__bleed` for a full-bleed hero image.
 - A magazine cardrow: `.la-cardrow` of 3 `.la-card`s using subgrid to align titles, bodies, and footers across cards.

@@ -210,7 +210,7 @@ agent receiving the comment can:
 
 ## E8.9 Cross-references
 
-- [code-block-with-file-path.md](../../amvcp-code-syntax/references/code-block-with-file-path.md) —
+- [code-block-with-file-path.md](../../amvcp-code-syntax-chrome/references/code-block-with-file-path.md) —
   every column has a file-path label
 - [diff-blocks-split.md](../../amvcp-code-diff/references/diff-blocks-split.md) — alternative for
   before/after pairs (not the "independent pieces" pattern)
@@ -225,7 +225,7 @@ agent receiving the comment can:
 
 ## E8.11 Tokens consumed
 
-- All from [code-block-with-file-path.md](../../amvcp-code-syntax/references/code-block-with-file-path.md)
+- All from [code-block-with-file-path.md](../../amvcp-code-syntax-chrome/references/code-block-with-file-path.md)
 - `--vc-space-3` (gap between columns)
 
 ## E8.12 Mined source attribution

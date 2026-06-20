@@ -11,7 +11,7 @@ metadata:
 > **Parent umbrella:** [`skills/amvcp-visual-communication/SKILL.md`](../amvcp-visual-communication/SKILL.md). **Animation category:** [amvcp-animation](../amvcp-animation/SKILL.md) (router) · [amvcp-anim-foundation](../amvcp-anim-foundation/SKILL.md) (motion-token + easing contract). **Sibling editor skills:** [amvcp-editor-template](../amvcp-editor-template/SKILL.md), [amvcp-editor-toggles](../amvcp-editor-toggles/SKILL.md). **Selection wire-format:** [`references/interactive-selection-base.md`](../../references/interactive-selection-base.md).
 
 Complete TOC of `interactive-selection-base.md`:
-- # Interactive Selection — Base Contract
+- Interactive Selection — Base Contract
   - ## Table of contents
   - ## How it works & Page Setup
     - ### How it works (one paragraph)
@@ -123,7 +123,7 @@ Two modes, kept strictly separate (project CLAUDE.md §4):
    carries `data-ve-reduced="1"`. Per
    [amvcp-anim-foundation](../amvcp-anim-foundation/references/reduced-motion-gate.md):
    substitute, never silently disable. Complete TOC of `reduced-motion-gate.md`:
-   - # Reduced-motion gate — the substitute pattern, never `animation: none`
+   - Reduced-motion gate — the substitute pattern, never `animation: none`
      - ## Table of Contents
      - ## Why substitute (not disable)
      - ## The two categories — information-bearing vs decorative

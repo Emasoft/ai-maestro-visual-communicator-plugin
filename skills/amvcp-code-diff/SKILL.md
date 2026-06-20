@@ -94,6 +94,11 @@ Two copy-paste starting points — a unified diff (`data-ve-lang="diff"`
 markers inferred per line) and a split diff with a line-anchored PR
 comment bubble — live in [references/diff-examples.md](references/diff-examples.md).
 
+Complete TOC of `diff-examples.md`:
+
+- Example 1 — unified diff
+- Example 2 — split diff with PR comment bubble
+
 ## Visual verification
 
 Every diff technique MUST be screenshot-tested in BOTH light AND dark

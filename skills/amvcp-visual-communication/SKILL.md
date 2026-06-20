@@ -102,6 +102,15 @@ A self-contained interactive HTML file at `$CLAUDE_PROJECT_ROOT/reports/visual-c
 
 - Visual broken in light or dark theme → that's a correctness defect; fix DESIGN.md or the scaffold's token usage, never hardcode a color.
 - Runner/render failures (no Chromium, page opened via file://, timeout without a click, `surf` missing, Mermaid/TikZ/MathJax failures, Vercel deploy errors) → see the [troubleshooting](./references/troubleshooting.md) reference (indexed under `## Resources` → [more-references](./references/more-references.md), with its complete section list).
+  Complete TOC of `troubleshooting.md`:
+  - No Chromium browser found
+  - Page opened directly via file:// (not via the runner)
+  - Timeout without a click
+  - `surf` CLI missing
+  - Mermaid render failure
+  - TikZ / MathJax silent failures
+  - Vercel deploy errors (`/amvcp-share-page`)
+  - Always check the browser console first
 
 ## Modes
 

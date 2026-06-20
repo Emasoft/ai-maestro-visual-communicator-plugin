@@ -243,7 +243,7 @@ default is correct.
 - `--ve-accent` — gutter cell selection / hover (same as default)
 - `--ve-code-comment` — hunk header colour
 - `currentColor` — the gutter divider tinting (via `color-mix`)
-- All from [gutter-anatomy.md](../../amvcp-code-syntax/references/gutter-anatomy.md) and
+- All from [gutter-anatomy.md](../../amvcp-code-syntax-engine/references/gutter-anatomy.md) and
   [diff-blocks-unified.md](./diff-blocks-unified.md)
 
 ## D3.13 Author rules

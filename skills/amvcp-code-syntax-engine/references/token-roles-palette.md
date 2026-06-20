@@ -203,7 +203,7 @@ For every new code-display fixture:
 - [ ] Copy the block — the clipboard payload is byte-exact source (no extra characters from token-span text content)
 - [ ] On a DESIGN.md without a `code` group — the fallbacks render (page still readable)
 
-See [light-dark-mirror-discipline.md](./light-dark-mirror-discipline.md)
+See [light-dark-mirror-discipline.md](../../amvcp-code-syntax-chrome/references/light-dark-mirror-discipline.md)
 for the full theming verification loop and
 [../amvcp-self-debug-rules/SKILL.md](../../amvcp-self-debug-rules/SKILL.md)
 for the dev-browser screenshot procedure.

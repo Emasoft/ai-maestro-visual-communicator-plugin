@@ -192,7 +192,7 @@ so the agent knows which component variant the snippet is for.
 
 ## G2.11 Tokens consumed
 
-- All from [slate-bg-code-panel.md](../../amvcp-code-syntax/references/slate-bg-code-panel.md)
+- All from [slate-bg-code-panel.md](../../amvcp-code-syntax-chrome/references/slate-bg-code-panel.md)
 - The user-controlled tokens (`--card-pad`, `--card-border`, etc.) are
   declared on `:root` by the JS handler — these are CONSUMED by the
   visual variants, not by this snippet pattern itself

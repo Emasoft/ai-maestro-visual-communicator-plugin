@@ -225,7 +225,7 @@ lightness automatically.
 All `--ve-code-*` and `--vc-code-*` tokens are consumed — this
 discipline applies to every variable the skill defines or consumes.
 
-- [token-roles-palette.md](./token-roles-palette.md) — the 12-token
+- [token-roles-palette.md](../../amvcp-code-syntax-engine/references/token-roles-palette.md) — the 12-token
   palette + the canonical light/dark default pairs
 - [diff-tints-from-semantic-tokens.md](../../amvcp-code-diff/references/diff-tints-from-semantic-tokens.md)
   — the diff tint percent calibrations

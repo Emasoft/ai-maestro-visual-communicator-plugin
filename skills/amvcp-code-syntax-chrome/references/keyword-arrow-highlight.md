@@ -129,7 +129,7 @@ A `ve-hl-focus` span IS NOT a `.ve-code-line` atom. It doesn't
 participate in the selection model. The selection still works on the
 CONTAINING line — selecting that line yields the token's colour to the
 selection bg (via the yield rule, see
-[token-roles-palette.md](./token-roles-palette.md) §A2.6). The focus
+[token-roles-palette.md](../../amvcp-code-syntax-engine/references/token-roles-palette.md) §A2.6). The focus
 visual REMAINS visible inside the selection (the bottom-border stays).
 
 ## C3.7 When to use

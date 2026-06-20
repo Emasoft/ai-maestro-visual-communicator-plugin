@@ -168,7 +168,7 @@ A `data-ve-no-gutter` block:
 
 Authors who need a copy button on a hand-wrapped block can add one
 manually using the same SVG glyphs and clipboard API as the runtime —
-see [copy-button.md](./copy-button.md) §A5.5 for the transport code.
+see [copy-button.md](../../amvcp-code-syntax-engine/references/copy-button.md) §A5.5 for the transport code.
 
 ## C1.8 The fallback when DESIGN.md isn't loaded
 

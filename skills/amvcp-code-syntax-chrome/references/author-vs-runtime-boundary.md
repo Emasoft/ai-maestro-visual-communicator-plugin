@@ -243,10 +243,10 @@ of its own.
 
 ## H1.13 Cross-references
 
-- [tokenizer-contract.md](./tokenizer-contract.md) — what the tokenizer
+- [tokenizer-contract.md](../../amvcp-code-syntax-engine/references/tokenizer-contract.md) — what the tokenizer
   promises
-- [gutter-anatomy.md](./gutter-anatomy.md) — what the gutter looks like
-- [integrity-probe.md](./integrity-probe.md) — the source-fidelity
+- [gutter-anatomy.md](../../amvcp-code-syntax-engine/references/gutter-anatomy.md) — what the gutter looks like
+- [integrity-probe.md](../../amvcp-code-syntax-engine/references/integrity-probe.md) — the source-fidelity
   guarantee
 - [opting-out-pre.md](../../amvcp-code-fences/references/opting-out-pre.md) — when to escape the
   runtime entirely
