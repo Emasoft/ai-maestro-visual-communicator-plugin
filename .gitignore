@@ -106,6 +106,10 @@ node_modules/
 **/node_modules/**
 **/dist/**
 
+# CPV security-scan output artifacts (large, regeneratable, never commit)
+/.cpv-cisco-scan.json
+.cpv-*-scan.json
+
 # ---------------------------------------------------------------------------
 # PROJECT-scope memory wiki (janitor wikimem) — MUST be tracked + pushed
 # ---------------------------------------------------------------------------
