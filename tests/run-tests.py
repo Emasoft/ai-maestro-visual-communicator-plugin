@@ -281,6 +281,41 @@ def run_script(script: Path) -> list[dict]:
     return rows
 
 
+def run_python_script(script: Path) -> list[dict]:
+    """Run one plain-python test script. Return parsed test rows.
+
+    Some behaviour under test is not a rendered page — the panel-delivery path
+    is a subprocess contract with an external CLI — so it cannot be asserted
+    through dev-browser. Those suites print the same `TEST | …` lines and are
+    parsed identically, which keeps one results table instead of two.
+    """
+    proc = subprocess.run(
+        [sys.executable, str(script)],
+        capture_output=True,
+        text=True,
+    )
+    rows: list[dict] = []
+    for line in (proc.stdout or "").splitlines():
+        stripped = line.strip()
+        m = TEST_LINE.match(stripped)
+        if m:
+            rows.append(m.groupdict())
+        elif stripped.startswith("SKIP:"):
+            # Surfaced, deliberately uncounted: a suite that needs a live
+            # service reports what it wants instead of faking a green row.
+            print(f"  🐌 {stripped}", flush=True)
+    if not rows:
+        rows.append(
+            {
+                "name": script.stem,
+                "status": "ERROR",
+                "desc": "no TEST lines in python test output",
+                "detail": ((proc.stderr or "")[:200]).replace("\n", " "),
+            }
+        )
+    return rows
+
+
 def render_table(rows: list[dict]) -> str:
     cols = [
         ("Test", lambda r: r["name"]),
@@ -407,7 +442,10 @@ def _main_inner() -> int:
             print("server failed to come up on port", PORT, file=sys.stderr)
             return 2
 
-        scripts = sorted(SCRIPTS.glob("test-*.js"))
+        scripts = sorted(
+            [*SCRIPTS.glob("test-*.js"), *SCRIPTS.glob("test-*.py")],
+            key=lambda p: p.stem,
+        )
         if wanted is not None:
             scripts = [s for s in scripts if s.stem in wanted]
 
@@ -416,7 +454,7 @@ def _main_inner() -> int:
             # bleed into another. Each test asserts against fresh disk state.
             clean_queue()
             print(f"running {script.name} …", flush=True)
-            rows = run_script(script)
+            rows = run_python_script(script) if script.suffix == ".py" else run_script(script)
             all_rows.extend(rows)
             for r in rows:
                 marker = {"PASS": "✓", "FAIL": "✗", "ERROR": "!"}.get(r["status"], "?")
