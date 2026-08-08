@@ -615,26 +615,29 @@ def _sync_uv_lock() -> None:
 
 
 def _regenerate_changelog(new_version: str) -> None:
-    """Regenerate CHANGELOG.md via git-cliff using the canonical pattern.
+    """Regenerate CHANGELOG.md via git-cliff — the FULL history, not just this release.
 
-    Canon uses `--bump --unreleased --tag` for a single deterministic
-    invocation that handles the not-yet-released commits. The previous
-    `--tag vX.Y.Z --output CHANGELOG.md` form works too but doesn't auto-
-    discover the "unreleased" set; the canon form is preferred because
-    it's the same one used by `git-cliff --bumped-version` for the
-    version-detection path.
+    `--unreleased` used to be passed here, and it silently destroyed the
+    changelog on every publish: it scopes the rendered content to the
+    not-yet-released commits, and `--output` OVERWRITES the file, so what
+    landed was a CHANGELOG containing exactly one section — the release just
+    made — with every prior release erased. This repo shipped 6 tagged
+    releases and its CHANGELOG.md carried 1 section; the same defect was
+    measured across the fleet (one repo had 1 section against 381 releases),
+    filed by the CPV canon owner and fixed upstream in CPV v5.3.0.
+
+    Dropping `--unreleased` makes git-cliff render every tag plus the pending
+    one, which is what a changelog is for. Nothing was permanently lost — the
+    history regenerates from the commit log — but it was lost from the file
+    every release until someone noticed.
     """
     if not shutil.which("git-cliff"):
         _log("git-cliff not on PATH; skipping CHANGELOG regeneration.")
         return
-    # Canon pattern: --bump --unreleased --tag <tag> --output <file>
-    # The --bump flag is a no-op when --tag is explicit but stays for
-    # canon-parity (matches the gen_publish_py template form).
     _run(
         [
             "git-cliff",
             "--bump",
-            "--unreleased",
             "--tag",
             f"v{new_version}",
             "--output",
