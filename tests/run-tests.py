@@ -281,6 +281,30 @@ def run_script(script: Path) -> list[dict]:
     return rows
 
 
+def run_sub_suite(script: Path, name: str, desc: str) -> list[dict]:
+    """Run a self-contained sub-suite that prints its own report, as ONE row.
+
+    `tests/docwiki/run-tests.py` is an acceptance gate with its own output
+    format. It shipped unwired, which meant publish.py's test gate never ran it
+    — a suite nobody invokes is indistinguishable from no suite at all. Rather
+    than rewrite its format, adapt it: exit code becomes the row's status, and
+    its full output is printed only when it fails, where it is actually needed.
+    """
+    proc = subprocess.run([sys.executable, str(script)], capture_output=True, text=True)
+    ok = proc.returncode == 0
+    if not ok:
+        print((proc.stdout or "") + (proc.stderr or ""), flush=True)
+    tail = [ln for ln in (proc.stdout or "").splitlines() if ln.strip()]
+    return [
+        {
+            "name": name,
+            "status": "PASS" if ok else "FAIL",
+            "desc": desc,
+            "detail": "" if ok else (tail[-1][:160] if tail else f"exit {proc.returncode}"),
+        }
+    ]
+
+
 def run_python_script(script: Path) -> list[dict]:
     """Run one plain-python test script. Return parsed test rows.
 
@@ -455,6 +479,19 @@ def _main_inner() -> int:
             clean_queue()
             print(f"running {script.name} …", flush=True)
             rows = run_python_script(script) if script.suffix == ".py" else run_script(script)
+            all_rows.extend(rows)
+            for r in rows:
+                marker = {"PASS": "✓", "FAIL": "✗", "ERROR": "!"}.get(r["status"], "?")
+                print(f"  {marker} {r['name']} — {r['status']}", flush=True)
+
+        docwiki = ROOT / "docwiki" / "run-tests.py"
+        if docwiki.is_file() and (wanted is None or "docwiki" in wanted):
+            print("running docwiki acceptance gate …", flush=True)
+            rows = run_sub_suite(
+                docwiki,
+                "docwiki_acceptance",
+                "doc-wiki builds, has all 4 sections, one page per TRDD/note, zero dangling links",
+            )
             all_rows.extend(rows)
             for r in rows:
                 marker = {"PASS": "✓", "FAIL": "✗", "ERROR": "!"}.get(r["status"], "?")

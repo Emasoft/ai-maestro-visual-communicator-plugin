@@ -109,8 +109,8 @@ module (or a mode of an existing module) + dev-browser test(s) + **light + dark*
    copy-diff of toggled flags.
 5. `amvcp-editor-template` — prompt/template tuner with live var-slot re-render;
    export the filled template.
-6. (01) approaches-comparison → a mode/reference under `amvcp-tables-matrix-compare`
-   + `amvcp-code-highlight` (no new skill).
+6. (01) approaches-comparison → a mode/reference under
+   `amvcp-tables-matrix-compare` + `amvcp-code-highlight` (no new skill).
 
 ## Derived tasks / consequences to verify when built
 

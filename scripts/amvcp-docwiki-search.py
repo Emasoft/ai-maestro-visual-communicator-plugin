@@ -89,7 +89,11 @@ def _records_from_stdin(raw: str) -> list[dict]:
         data = json.loads(raw)
         if isinstance(data, dict):
             data = data.get("results") or data.get("hits") or [data]
-        out = []
+        # Annotated because the FIRST append is all-str, which would otherwise
+        # pin the element type to dict[str, str] and reject the optional
+        # title/desc/snippet below. They are genuinely optional — the consumer
+        # already falls back with `rec.get(...) or ...` — so the type says so.
+        out: list[dict[str, str | None]] = []
         for d in data:
             if isinstance(d, str):
                 out.append({"path": d})
@@ -102,7 +106,7 @@ def _records_from_stdin(raw: str) -> list[dict]:
                 })
         return [r for r in out if r.get("path")]
     # plain text: one path per line; tolerate "path — description" / "path: description"
-    out = []
+    out = []  # same scope, so it carries the annotation declared above
     for line in raw.splitlines():
         line = line.strip()
         if not line:
