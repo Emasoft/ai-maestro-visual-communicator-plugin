@@ -27,6 +27,18 @@ You (the agent) load this umbrella whenever you are about to add any visual to a
 
 ## Instructions
 
+0. **Recall before you render.** Prior visual decisions for this project — the
+   design-token preset, the palette, which chart type was chosen for this kind of
+   data, whether the user rejected a treatment — are the difference between a page
+   that matches the last one and a page that silently re-decides everything:
+
+   ```
+   /janitor-memory-recall "design tokens palette chart type prior diagrams <project>"
+   ```
+
+   Index the query by the SYMPTOM you have (the content shape, the visual, the
+   complaint), not by the answer you expect. A miss costs one cheap lookup; a skip
+   costs a house style.
 1. Read the user's request and match it to the decision matrix below.
 2. Identify the category skill (one of the 13) that owns the requested visual.
 3. Read that category's SKILL.md plus the specific reference file(s) it points to for the technique.

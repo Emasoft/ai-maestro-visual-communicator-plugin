@@ -62,7 +62,15 @@ The script also outputs JSON for programmatic use:
 
 ## Notes
 
-- Deployments are **public** — anyone with the URL can view
+- ⚠️ **Deployments are PUBLIC and unauthenticated — anyone with the URL can view.**
+  Check what is on the page before you share it. amvcp pages are routinely built
+  from agent reports, diffs, plans, and TRDDs, so they can carry source code,
+  internal hostnames, absolute paths with a username in them, ticket contents, or
+  customer data — none of which announces itself once it has been rendered into a
+  chart label or a diff hunk. Publishing is not undoable by deleting: a URL that
+  was live may already have been fetched, cached, or indexed. If the content is
+  private, keep it local (`amvcp-select.py` / `amvcp-show-launcher.py`) or share
+  it through a channel that has access control.
 - Preview deployments have a configurable retention period (default: 30 days)
 - Each share creates a new deployment with a unique URL
 - **Interactive selection on shared pages:** the click-to-close mechanism is meant for the local agent loop; on a shared Vercel URL there is no `/__ve-select` endpoint, so the runtime auto-detects this and falls back to the "Copy JSON, paste to your agent" overlay. For shared pages, prefer **inlining** the runtime instead of referencing `amvcp-runtime.js` as an external file — the runtime is small and inlining keeps the deployment a single self-contained `index.html`. See `${CLAUDE_PLUGIN_ROOT}/references/interactive-selection-base.md` "Inlining the runtime".

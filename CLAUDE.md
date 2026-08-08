@@ -132,6 +132,16 @@ thing, and the palette has exactly one entry per thing.
 
 ## Other standing rules (see ~/.claude memory for detail)
 
+- **Frozen-CLI invariant — never call the ai-maestro server API.** When amvcp
+  talks to the harness at all, it goes through the immutable skill-facing CLI
+  (`aimaestro-panel.sh`), never `/api/*` over HTTP. The CLI is contractually
+  stable; the API behind it is free to change, so a direct call is a break
+  waiting for someone else's refactor. This has a live call site now —
+  `scripts/amvcp-panel-push.py` — so it is a rule with teeth rather than a
+  promise. That caller is also **optional by construction**: amvcp is a
+  UNIVERSAL standalone plugin (ai-maestro depends on amvcp, not the reverse), so
+  a missing harness is a normal outcome that exits 0, never an error.
+
 - **Memory: recall before you render, write after you learn** — uses the global
   janitor wiki memory (`/janitor-memory-recall` · `/janitor-memory-write` ·
   `/janitor-memory-update`; protocol in `~/.claude/rules/markdown-memory-recall.md`;
