@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en" data-ve-theme="light">
+<head>
+<meta charset="utf-8">
+<title>amvcp-docwiki — Phase 1 nav-shell fixture</title>
+<style>
+  /* Minimal token set (normally applied by amvcp-designmd.js from a DESIGN.md).
+     Defined here so the wiki chrome themes in both modes without the full engine. */
+  :root{
+    --vc-font-body:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    --vc-font-heading:var(--vc-font-body); --vc-font-mono:ui-monospace,Menlo,monospace;
+    --vc-space-1:.25rem; --vc-space-2:.4rem; --vc-space-3:.5rem; --vc-space-4:.75rem; --vc-space-5:1rem;
+    --vc-radius-sm:4px; --vc-radius-md:8px; --vc-z-modal:1000; --vc-weight-bold:600;
+    --vc-color-canvas:#ffffff; --vc-color-surface:#f4f4f5; --vc-color-surface-raised:#ffffff;
+    --vc-color-content:#1f2328; --vc-color-content-muted:#6b7280;
+    --vc-color-border:#d0d7de; --vc-color-border-strong:#afb8c1;
+    --vc-color-accent:#2563eb; --vc-color-on-accent:#fff; --vc-color-danger:#b91c1c;
+    --ve-accent:#2563eb;
+    --ve-control-bg:#f4f4f5; --ve-control-bg-hover:#e8e8eb; --ve-control-fg:#1f2328;
+    --ve-control-border:#d0d7de; --ve-control-radius-sm:4px; --ve-control-font:var(--vc-font-body);
+    --ve-control-overlay-bg:rgba(255,255,255,.85); --ve-control-overlay-blur:6px;
+  }
+  html[data-ve-theme="dark"]{
+    --vc-color-canvas:#0d1117; --vc-color-surface:#161b22; --vc-color-surface-raised:#1c2128;
+    --vc-color-content:#e6edf3; --vc-color-content-muted:#8b949e;
+    --vc-color-border:#30363d; --vc-color-border-strong:#444c56;
+    --vc-color-accent:#58a6ff; --vc-color-danger:#f85149;
+    --ve-accent:#58a6ff;
+    --ve-control-bg:#21262d; --ve-control-bg-hover:#30363d; --ve-control-fg:#e6edf3;
+    --ve-control-border:#30363d; --ve-control-overlay-bg:rgba(22,27,34,.85);
+  }
+  html,body{margin:0;overflow-x:auto;}
+  body{background:var(--vc-color-canvas);color:var(--vc-color-content);font-family:var(--vc-font-body);}
+  [data-ve-doc] h1{margin-top:0;color:var(--vc-color-content);}
+  [data-ve-doc] a{color:var(--vc-color-accent);}
+  .theme-toggle{position:fixed;right:.5rem;bottom:.5rem;z-index:2000;font:inherit;
+    padding:.4em .7em;border-radius:6px;cursor:pointer;
+    background:var(--ve-control-bg);color:var(--ve-control-fg);border:1px solid var(--ve-control-border);}
+</style>
+</head>
+<body>
+<div data-docwiki>
+
+  <section data-ve-doc="home" data-doc-title="Home">
+    <h1>Design Wiki — Home</h1>
+    <p>An index of the artifacts. Click any link to navigate (back/forward + breadcrumb track the trail).</p>
+    <ul>
+      <li><a href="#/trdd/103a53e0" data-ve-navigate>TRDD-103a53e0 — Doc-wiki visualizer</a></li>
+      <li><a href="#/prrd" data-ve-navigate>PRRD — project rules</a></li>
+      <li><a href="#/kanban" data-ve-navigate>Kanban — the board</a></li>
+    </ul>
+  </section>
+
+  <section data-ve-doc="trdd/103a53e0" data-doc-title="TRDD-103a53e0 — Doc-wiki visualizer">
+    <h1>TRDD-103a53e0 — Doc-wiki visualizer</h1>
+    <p>A feature TRDD. It is governed by <a href="#/prrd" data-ve-navigate>PRRD G1.1</a>
+       and shown on the <a href="#/kanban" data-ve-navigate>Kanban board</a>.</p>
+    <p>Cross-link round-trip test: jump to <a href="#/prrd" data-ve-navigate>the PRRD</a>,
+       then use the browser/back buttons to return here.</p>
+  </section>
+
+  <section data-ve-doc="prrd" data-doc-title="PRRD — project rules">
+    <h1>PRRD — project rules</h1>
+    <p>Rule <strong id="G1">G1.1</strong> — GitHub authorship self-identification.</p>
+    <p>Referenced by <a href="#/trdd/103a53e0" data-ve-navigate>TRDD-103a53e0</a>.</p>
+  </section>
+
+  <section data-ve-doc="kanban" data-doc-title="Kanban — the board">
+    <h1>Kanban — the board</h1>
+    <p>Column <em>dev</em>: <a href="#/trdd/103a53e0" data-ve-navigate>TRDD-103a53e0</a> (one card → its TRDD page).</p>
+  </section>
+
+</div>
+
+<button class="theme-toggle" onclick="(function(){var h=document.documentElement;h.setAttribute('data-ve-theme',h.getAttribute('data-ve-theme')==='dark'?'light':'dark');})()">Toggle theme</button>
+
+<script src="../../scripts/amvcp-docwiki.js"></script>
+</body>
+</html>
