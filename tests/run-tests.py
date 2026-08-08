@@ -401,6 +401,24 @@ def stop_dev_browser_daemon() -> None:
         ["dev-browser", "stop"],
         capture_output=True, text=True, check=False,
     )
+    # `dev-browser stop` returns before the daemon process has actually exited.
+    # The very next `dev-browser run` then connects to a daemon that is midway
+    # through shutting down, and the suite dies on the socket closing under it
+    # (`_onClose`, "Daemon connection closed unexpectedly") with zero TEST lines
+    # emitted — an infrastructure failure wearing a test failure's clothes.
+    # So wait for the process to be GONE, rather than sleeping a guessed
+    # interval and hoping. Bounded, and deliberately silent on timeout: the
+    # caller's next step surfaces a real problem far better than a warning here.
+    deadline = time.monotonic() + 10.0
+    while time.monotonic() < deadline:
+        snap = subprocess.run(
+            ["ps", "-eo", "pid,command"],
+            capture_output=True, text=True, check=False,
+        ).stdout
+        # ps is snapshotted to a string first, so this can never match itself.
+        if not any("dev-browser/daemon.mjs" in ln for ln in snap.splitlines()):
+            return
+        time.sleep(0.2)
 
 
 def main() -> int:
@@ -485,22 +503,18 @@ def _main_inner() -> int:
             # Wipe the queue between scripts so residue from one suite cannot
             # bleed into another. Each test asserts against fresh disk state.
             clean_queue()
-            if script.suffix == ".js":
-                # Fresh daemon + browser per browser-suite. The daemon is a
-                # SHARED, long-lived process holding one Chromium, and a suite
-                # that leaves a page open leaves it open for every suite after
-                # it. Across ~35 suites that accumulation eventually kills the
-                # browser mid-run, and the symptom lands on whichever suite was
-                # unlucky — observed three times as `Browser "default" is not
-                # running`, `Daemon connection closed unexpectedly`, and
-                # `Target crashed`, on different suites each time, while every
-                # affected suite passed in isolation.
-                #
-                # Bounding the browser's lifetime to ONE suite removes the
-                # accumulation instead of retrying around it: a retry would
-                # have made a real leak look like weather, and the gate would
-                # have gone green while the defect stayed in.
-                stop_dev_browser_daemon()
+            # NOTE: an earlier revision stopped the daemon before EVERY .js
+            # suite, on the theory that pages accumulate in the one shared
+            # browser and eventually kill it. The evidence does not support
+            # that theory and does contradict it: the first full run leaked 10
+            # Chromium processes and 6 daemons and STILL passed 453/453, so
+            # intra-run accumulation was never what failed a run. What actually
+            # correlates is machine-wide load — the failures appeared only once
+            # this host was saturated, and restarting the daemon ~35 times per
+            # run made it worse, trading `Target crashed` for EAGAIN
+            # ("Resource temporarily unavailable") from the extra process
+            # churn. The leak that matters is the one ACROSS runs, and that is
+            # closed by the end-of-run teardown in main().
             print(f"running {script.name} …", flush=True)
             rows = run_python_script(script) if script.suffix == ".py" else run_script(script)
             all_rows.extend(rows)
