@@ -1,9 +1,9 @@
 ---
 trdd-id: 371558fd-8d50-47da-a4cf-241556a335d8
 title: Migrate amvcp to the global janitor-hosted 3-scope wiki memory system
-column: testing
+column: published
 created: 2026-06-14T18:13:30+0200
-updated: 2026-06-14T22:21:39+0200
+updated: 2026-08-08T10:27:28+0200
 current-owner: ai-maestro-visual-communicator-plugin
 assignee: ai-maestro-visual-communicator-plugin
 priority: 3
@@ -20,7 +20,7 @@ relevant-rules: [6]
 impacts: [config-schema]
 supersedes: [TRDD-bac00789]
 parent-trdd: null
-implementation-commits: []
+implementation-commits: [e879e31, c733364]
 external-refs: ["Emasoft/ai-maestro-visual-communicator-plugin#2", "Emasoft/ai-maestro-visual-communicator-plugin#3", "Emasoft/ai-maestro-janitor"]
 ---
 
@@ -130,5 +130,19 @@ migrate the plugin to the new memory system." Supersedes the per-plugin adoption
   `/janitor-memory-*` skills + `~/.claude/rules/markdown-memory-recall.md` are the
   only memory surface. ⏳ (Phase B, gated)
 - amvcp-unique recall/write wiring preserved in `CLAUDE.md`. ⏳ (Phase B)
-- `tests/run-tests.py` runs clean after the memory-suite removal. ⏳ (Phase B)
-- OWNER merges after `feat/3-pillars-adoption`; `publish.py` release. ⏳
+- `tests/run-tests.py` runs clean after the memory-suite removal. ✅ (Phase B)
+- OWNER merges after `feat/3-pillars-adoption`; `publish.py` release. ✅ (v1.4.0)
+
+## 3. Approval log
+
+- 2026-08-08T10:27:28+0200 — PUBLISHED. Closing a card that had asserted
+  `column: testing` for 54 days while its work was already shipped. Verified
+  before closing, not inferred: `e879e31` (Phase A) and `c733364` (Phase B) are
+  both ancestors of `main` and both contained in tag `v1.4.0`;
+  `skills/amvcp-memory-recall/`, `skills/amvcp-memory-write/` and
+  `rules/memory-protocol.md` are ABSENT from the tree; `.claude/project/memory/`
+  is present and git-tracked. `implementation-commits:` recorded at closing time
+  because it was left empty during the work — that field is the backtracking
+  path from a future bug to the change that introduced it, so an empty one on a
+  shipped TRDD breaks the chain (see `~/.claude/rules/commit-discipline.md`).
+  The card is now terminal and frozen; further memory-system work needs a new TRDD.

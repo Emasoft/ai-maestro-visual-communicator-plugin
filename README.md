@@ -79,6 +79,33 @@ VISUAL-COMMUNICATOR workflow wiring:
 (`cargo install --path <…>/ai-maestro-janitor/scripts/memgrep`); until then
 recall falls back to `grep` — it degrades, never breaks.
 
+## AI Maestro side panel (optional)
+
+If — and only if — the plugin happens to be running inside the AI Maestro
+harness, a generated artifact can be pushed straight into the dashboard side
+panel instead of being handed over as a file path:
+
+```bash
+scripts/amvcp-panel-push.py <artifact.html> [--agent <uuid-or-name>]
+```
+
+This is an **optional** path, not a dependency. amvcp is a universal plugin:
+ai-maestro depends on amvcp, never the reverse. The script finds
+`aimaestro-panel.sh` on `PATH` and nowhere else, and when it is absent — the
+normal case — it prints `panel: unavailable` and exits 0, so amvcp behaves
+exactly as it does standalone. The target agent comes from `--agent`,
+`$AMVCP_PANEL_AGENT`, or `$AIMAESTRO_AGENT_ID`; with none of them it prints
+`panel: no-target` and exits 0.
+
+Once the CLI **is** present and a target **is** known, a delivery problem is a
+real failure and exits non-zero. That includes `delivered: 0`: the panel is a
+live surface rather than a queue, so a zero count means no dashboard had the
+channel open and the artifact was dropped, not stored — reporting it as
+delivered would leave you believing something is on screen when nothing
+received it. Credentials are never handled here; `aimaestro-panel.sh` reads
+`AID_AUTH` (agent callers) or `AIMAESTRO_SUDO_TOKEN` (user callers) from the
+environment itself.
+
 ## Platform requirements
 
 **Supported OSes**: macOS, Linux, and Windows. Python 3.12+ required.
