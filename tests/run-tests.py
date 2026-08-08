@@ -414,6 +414,14 @@ def main() -> int:
     try:
         rc = _main_inner()
     finally:
+        # Close what we opened BEFORE measuring. The last suite's daemon is
+        # still holding a Chromium at this point — the runner started it, so
+        # the runner ends it, per "every resource opened is closed before the
+        # suite returns". Doing this first also makes the leak count mean
+        # something: whatever survives a daemon stop is a genuine orphan, not
+        # the runner's own still-running browser being reported as a leak.
+        if os.environ.get("HEADFUL", "") != "1":
+            stop_dev_browser_daemon()
         # Always run the leak check, even if _main_inner raised — but do NOT
         # `return` from inside `finally` (that would swallow any in-flight
         # exception). Just emit the warning; the caller still sees the real
@@ -477,6 +485,22 @@ def _main_inner() -> int:
             # Wipe the queue between scripts so residue from one suite cannot
             # bleed into another. Each test asserts against fresh disk state.
             clean_queue()
+            if script.suffix == ".js":
+                # Fresh daemon + browser per browser-suite. The daemon is a
+                # SHARED, long-lived process holding one Chromium, and a suite
+                # that leaves a page open leaves it open for every suite after
+                # it. Across ~35 suites that accumulation eventually kills the
+                # browser mid-run, and the symptom lands on whichever suite was
+                # unlucky — observed three times as `Browser "default" is not
+                # running`, `Daemon connection closed unexpectedly`, and
+                # `Target crashed`, on different suites each time, while every
+                # affected suite passed in isolation.
+                #
+                # Bounding the browser's lifetime to ONE suite removes the
+                # accumulation instead of retrying around it: a retry would
+                # have made a real leak look like weather, and the gate would
+                # have gone green while the defect stayed in.
+                stop_dev_browser_daemon()
             print(f"running {script.name} …", flush=True)
             rows = run_python_script(script) if script.suffix == ".py" else run_script(script)
             all_rows.extend(rows)
