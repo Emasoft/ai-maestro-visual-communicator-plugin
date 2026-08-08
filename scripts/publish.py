@@ -713,6 +713,34 @@ def _git_commit(new_version: str, message: str | None) -> None:
     _run(["git", "commit", "-m", summary])
 
 
+def _release_tags(new_version: str) -> list[str]:
+    """The refs every release must carry: the human tag AND the resolver tag.
+
+    Since Claude Code 2.1.110 a version-constrained plugin dependency
+    (`"version": "^1.2.0"`) is resolved by listing this repo's tags, keeping
+    ONLY those named `{plugin-name}--v{version}` (note the DOUBLE hyphen), and
+    taking the highest that satisfies the range. The plain `v{version}` tag is
+    ignored entirely by that filter — so a repo full of `v*` tags still reports
+    "no git tag satisfying <range>" and the dependent simply cannot install.
+
+    The failure is invisible from both sides: nothing here breaks, and an
+    already-installed dependent keeps working, so it surfaces only when someone
+    new tries to install. It cost the ai-maestro fleet days of downtime hunting
+    a Claude Code bug that did not exist (amvcp issue #8), and this repo had 6
+    releases and ZERO resolver tags. Nothing depends on amvcp today; this is
+    here so that the first plugin that does can actually resolve it.
+
+    Both names are returned together and pushed in the SAME atomic transaction,
+    so a release can never ship carrying one ref and not the other.
+    """
+    return [f"v{new_version}", f"{_plugin_name()}--v{new_version}"]
+
+
+def _plugin_name() -> str:
+    """The plugin's declared name — the resolver-tag prefix. Read, never hardcoded."""
+    return str(json.loads(PLUGIN_JSON.read_text(encoding="utf-8"))["name"])
+
+
 def _git_tag(new_version: str) -> None:
     """Tag the current HEAD. IDEMPOTENT (canon Gate 11).
 
@@ -720,11 +748,49 @@ def _git_tag(new_version: str) -> None:
     publish), the tag step is skipped — same resume-friendliness as
     _git_commit.
     """
-    tag = f"v{new_version}"
-    if _tag_exists(tag):
-        _log(f"  tag {tag} already exists locally; skipping tag")
+    for tag in _release_tags(new_version):
+        if _tag_exists(tag):
+            _log(f"  tag {tag} already exists locally; skipping tag")
+            continue
+        _run(["git", "tag", tag])
+
+
+def _push_resolver_backfill() -> None:
+    """One-time self-heal: give every already-published `v*` tag its resolver twin.
+
+    Six releases shipped before `_release_tags` existed, so `v1.0.0 … v1.4.0`
+    have no `{name}--v{version}` counterpart and are invisible to a
+    version-constrained dependency. A dependent asking for `^1.3.0` should be
+    able to resolve 1.3.6; without the twin it resolves nothing at all.
+
+    Runs AFTER the release push has already succeeded, and never rolls anything
+    back: a backfill of historical refs must not be able to fail a release that
+    is otherwise complete. A failure here is logged and the publish continues —
+    the next publish retries it, because the check is "which twins are missing",
+    not a flag someone has to remember to clear.
+    """
+    name = _plugin_name()
+    local = _run(["git", "tag", "--list"], capture=True, check=False).stdout.split()
+    released = [t for t in local if t.startswith("v") and _SEMVER_RE.match(t[1:])]
+    missing = [v for v in released if f"{name}--{v}" not in local]
+    for version_tag in missing:
+        _run(["git", "tag", f"{name}--{version_tag}", version_tag], check=False)
+    twins = [f"{name}--{v}" for v in released]
+    if not twins:
         return
-    _run(["git", "tag", tag])
+    print(f"$ git push origin {' '.join(twins)}  # resolver-tag backfill")
+    result = git_with_retry(
+        ["git", "push", "origin", *twins],
+        cwd=REPO_ROOT,
+        check=False,
+        capture_output=False,
+    )
+    if result.returncode != 0:
+        _log(
+            "  resolver-tag backfill push failed (exit "
+            f"{result.returncode}). The release itself is fine and already "
+            "pushed; the next publish retries the backfill."
+        )
 
 
 def _git_push(new_version: str) -> None:
@@ -746,10 +812,10 @@ def _git_push(new_version: str) -> None:
     helper auto-injects `-c http.lowSpeedLimit=100 -c http.lowSpeedTime=300`
     for slow-link tolerance per ~/.claude/rules/github-timeouts.md.
     """
-    tag = f"v{new_version}"
-    print(f"$ git push --atomic origin HEAD {tag}")
+    tags = _release_tags(new_version)
+    print(f"$ git push --atomic origin HEAD {' '.join(tags)}")
     result = git_with_retry(
-        ["git", "push", "--atomic", "origin", "HEAD", tag],
+        ["git", "push", "--atomic", "origin", "HEAD", *tags],
         cwd=REPO_ROOT,
         check=False,
         capture_output=False,
@@ -761,10 +827,11 @@ def _git_push(new_version: str) -> None:
     # (manifest bumps, CHANGELOG regen) are preserved as staged
     # modifications, not destroyed.
     _log(
-        "  git push --atomic failed; rolling back local tag + commit "
+        "  git push --atomic failed; rolling back local tags + commit "
         f"so you can retry. Original exit code: {result.returncode}"
     )
-    _run(["git", "tag", "-d", tag], check=False)
+    for tag in tags:
+        _run(["git", "tag", "-d", tag], check=False)
     _run(["git", "reset", "--soft", "HEAD~1"], check=False)
     sys.exit(
         "publish: remote push failed. Local tag + commit have been "
@@ -892,6 +959,7 @@ def _stage_commit_tag_push(
     _git_tag(new_version)
     if push:
         _git_push(new_version)
+        _push_resolver_backfill()
     else:
         _log(
             f"  commit + tag v{new_version} created locally. "
