@@ -23,5 +23,6 @@ These skills are **not** in the 13-category routing matrix because they bolt on 
 | `amvcp-editor-template` | Interactive-editor: prompt/template tuner with live `{{var}}` re-render | A prompt/template tuner with editable `{{var}}` slots, live re-render, export template+values |
 | `amvcp-anim-sandbox` | Interactive-editor: live duration/easing tuner for one transition | One transition isolated with live duration/easing sliders and export of tuned values |
 | `amvcp-concept-demo` | Interactive-editor: manipulable concept explainer | A manipulable concept demo (param sliders driving a live SVG + values table + glossary) |
+| `amvcp-doc-wiki` | Coordinator: composes prose-pages + tables + interactive-controls + modal-comments into ONE self-contained, hash-routed wiki — Wikipedia-style cross-file links, browser back/forward, breadcrumb, client-side search | A SET of related markdown files (TRDD / PRRD / kanban / wikimem) should be browsed as one cross-linked site rather than rendered one page at a time |
 
 The five **interactive-editor skills** (`amvcp-editor-kanban`, `amvcp-editor-toggles`, `amvcp-editor-template`, `amvcp-anim-sandbox`, `amvcp-concept-demo`) all arrived from the html-effectiveness import; each one exports its edited state back through the standard selection round-trip.

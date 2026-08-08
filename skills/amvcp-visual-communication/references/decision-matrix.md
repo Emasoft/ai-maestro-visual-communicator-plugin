@@ -48,6 +48,7 @@ This is the heart of the umbrella. When you're about to add a visual, find the r
 | **Tabs / accordion / filter pills / segmented control / kanban / TOC / scroll-spy / theme toggle / search box / lightbox / modal / popover / before-after slider / copy button** | interactive-controls |
 | **Entry animation, scroll reveal, count-up, skeleton, parallax, spring, hover lift, SVG line-draw** | animation |
 | **The look of the page itself** (color ramp, type scale, elevation, motion tokens, brand preset, anti-slop check) | design-tokens |
+| A **set of TRDD / PRRD / kanban / wikimem markdown** files to browse as one cross-linked wiki | doc-wiki (coordinator) |
 | **Every state / size / variant of ONE component on a sheet** (button states, card treatments, input sizes × states) | component-variant-matrix |
 | A **drag triage board** the USER reorders + exports (Now/Next/Later/Cut tickets → markdown) | editor-kanban |
 | A **feature-flag editor** (grouped toggles, dependency warnings, copy-diff export) | editor-toggles |
