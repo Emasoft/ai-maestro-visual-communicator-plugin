@@ -128,21 +128,19 @@ def render_fragment(records: list[dict], query: str) -> str:
         snippet = rec.get("snippet") or rec.get("desc") or ""
         if route:
             rtype = route.split("/")[0] if "/" in route else route
-            link = ('<a class="docwiki-result-title" href="#/%s" data-ve-navigate>%s</a>'
-                    % (_esc(route), _esc(title)))
-            chip = '<span class="docwiki-chip">%s</span>' % _esc(rtype.upper())
+            link = (f'<a class="docwiki-result-title" href="#/{_esc(route)}" data-ve-navigate>{_esc(title)}</a>')
+            chip = f'<span class="docwiki-chip">{_esc(rtype.upper())}</span>'
         else:
             # no wiki page for this path — show it, but never as a broken nav link
-            link = '<span class="docwiki-result-title">%s</span>' % _esc(title)
-            chip = ('<span class="docwiki-chip">%s</span>'
-                    % _esc(Path(path_str).suffix.lstrip(".").upper() or "FILE"))
-        snip = ('<p class="docwiki-snippet">%s</p>' % _esc(snippet)) if snippet else ""
-        rows.append('<div class="docwiki-result">%s%s%s</div>' % (link, chip, snip))
+            link = f'<span class="docwiki-result-title">{_esc(title)}</span>'
+            chip = ('<span class="docwiki-chip">{}</span>'.format(_esc(Path(path_str).suffix.lstrip(".").upper() or "FILE")))
+        snip = (f'<p class="docwiki-snippet">{_esc(snippet)}</p>') if snippet else ""
+        rows.append(f'<div class="docwiki-result">{link}{chip}{snip}</div>')
 
     n = len(rows)
-    head = ('<h1>Search</h1>\n<p class="docwiki-lead">%d result%s%s</p>'
-            % (n, "" if n == 1 else "s",
-               (" for «%s»" % _esc(query)) if query else ""))
+    plural = "" if n == 1 else "s"
+    for_query = f" for «{_esc(query)}»" if query else ""
+    head = f'<h1>Search</h1>\n<p class="docwiki-lead">{n} result{plural}{for_query}</p>'
     if not rows:
         return head + "\n"
     return head + '\n<div class="docwiki-results">\n' + "\n".join(rows) + "\n</div>\n"
@@ -158,7 +156,7 @@ def main(argv: list[str] | None = None) -> int:
     try:
         records = _records_from_stdin(raw)
     except json.JSONDecodeError as exc:
-        sys.stderr.write("FATAL: stdin is neither valid JSON nor plain paths: %s\n" % exc)
+        sys.stderr.write(f"FATAL: stdin is neither valid JSON nor plain paths: {exc}\n")
         return 2
     sys.stdout.write(render_fragment(records, args.query))
     return 0

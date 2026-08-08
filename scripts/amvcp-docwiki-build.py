@@ -340,7 +340,7 @@ def _render_inline(text: str) -> str:
 
     def _stash_code(m: re.Match) -> str:
         codes.append("<code>" + m.group(1) + "</code>")
-        return "\x00C%d\x00" % (len(codes) - 1)
+        return f"\x00C{len(codes) - 1}\x00"
 
     text = re.sub(r"`([^`]+)`", _stash_code, text)
 
@@ -353,7 +353,7 @@ def _render_inline(text: str) -> str:
     def _link(m: re.Match) -> str:
         label, url = m.group(1), m.group(2).strip()
         anchors.append(_anchor(url, label))
-        return "\x00A%d\x00" % (len(anchors) - 1)
+        return f"\x00A{len(anchors) - 1}\x00"
 
     text = re.sub(r"\[([^\]]+)\]\(([^)\s]+)\)", _link, text)
 
@@ -366,7 +366,7 @@ def _render_inline(text: str) -> str:
             trail = url[-1] + trail
             url = url[:-1]
         anchors.append(_anchor(url, url))
-        return "\x00A%d\x00" % (len(anchors) - 1) + trail
+        return f"\x00A{len(anchors) - 1}\x00" + trail
 
     text = re.sub(r"https?://[^\s<]+", _autolink, text)
 
@@ -387,14 +387,13 @@ def _anchor(url: str, label_html: str) -> str:
     """Build a safe <a>. Internal `#/...` keep data-ve-navigate; external http opens
     in a new tab; anything else (e.g. javascript:) becomes plain text — never a link."""
     if url.startswith("#/"):
-        return '<a href="%s" data-ve-navigate>%s</a>' % (_esc(url), label_html)
+        return f'<a href="{_esc(url)}" data-ve-navigate>{label_html}</a>'
     if url.startswith("#"):
-        return '<a href="%s">%s</a>' % (_esc(url), label_html)
+        return f'<a href="{_esc(url)}">{label_html}</a>'
     if url.startswith(("http://", "https://")):
-        return ('<a href="%s" target="_blank" rel="noopener noreferrer">%s</a>'
-                % (_esc(url), label_html))
+        return (f'<a href="{_esc(url)}" target="_blank" rel="noopener noreferrer">{label_html}</a>')
     if url.startswith(("mailto:", "/", "./", "../")) or re.match(r"^[\w./-]+$", url):
-        return '<a href="%s">%s</a>' % (_esc(url), label_html)
+        return f'<a href="{_esc(url)}">{label_html}</a>'
     # unsafe scheme — render the label as text, drop the link
     return label_html
 
@@ -442,7 +441,7 @@ def markdown_to_html(md: str, *, heading_offset: int = 1) -> str:
                 i += 1
             code_html = "<pre><code>" + _esc("\n".join(buf)) + "</code></pre>"
             code_blocks.append(code_html)
-            out.append("\x00B%d\x00" % (len(code_blocks) - 1))
+            out.append(f"\x00B{len(code_blocks) - 1}\x00")
             continue
 
         # blank line -> paragraph break
@@ -463,8 +462,7 @@ def markdown_to_html(md: str, *, heading_offset: int = 1) -> str:
         if hm:
             flush_para(para)
             level = min(6, len(hm.group(1)) + heading_offset)
-            out.append("<h%d>%s</h%d>"
-                       % (level, _render_inline(_esc(hm.group(2).strip())), level))
+            out.append(f"<h{level}>{_render_inline(_esc(hm.group(2).strip()))}</h{level}>")
             i += 1
             continue
 
@@ -532,13 +530,13 @@ def _render_table(lines: list[str], i: int) -> tuple[str, int]:
     while i < n and lines[i].strip().startswith("|"):
         body_rows.append(_split_row(lines[i]))
         i += 1
-    cells_h = "".join("<th>%s</th>" % _render_inline(_esc(c)) for c in header)
+    cells_h = "".join(f"<th>{_render_inline(_esc(c))}</th>" for c in header)
     out = ['<table class="docwiki-md-table"><thead><tr>', cells_h, "</tr></thead><tbody>"]
     for row in body_rows:
         out.append("<tr>")
         for c in range(len(header)):
             val = row[c] if c < len(row) else ""
-            out.append("<td>%s</td>" % _render_inline(_esc(val)))
+            out.append(f"<td>{_render_inline(_esc(val))}</td>")
         out.append("</tr>")
     out.append("</tbody></table>")
     return "".join(out), i
@@ -568,7 +566,7 @@ def _render_list(lines: list[str], i: int) -> tuple[str, int]:
     if first is None:  # caller guarantees a list item; never unpack None (pyright-safe + hardened)
         return ("", i + 1)
     kind, base_indent, _ = first
-    out = ["<%s>" % kind]
+    out = [f"<{kind}>"]
     n = len(lines)
     open_li = False
     while i < n:
@@ -595,7 +593,7 @@ def _render_list(lines: list[str], i: int) -> tuple[str, int]:
         i += 1
     if open_li:
         out.append("</li>")
-    out.append("</%s>" % kind)
+    out.append(f"</{kind}>")
     return "".join(out), i
 
 
@@ -638,8 +636,7 @@ def _wire_tokens(
         s = _RE_HASH_TOKEN.sub(lambda m: _trdd_link(m.group(1), "#" + m.group(1), hex_set), s)
         if have_prrd:
             s = _RE_PRRD_CITE.sub(
-                lambda m: '<a href="#/prrd#G%s" data-ve-navigate>PRRD %s%s</a>'
-                % (m.group(2), m.group(1), m.group(2)), s)
+                lambda m: f'<a href="#/prrd#G{m.group(2)}" data-ve-navigate>PRRD {m.group(1)}{m.group(2)}</a>', s)
         else:
             # no PRRD page in this build -> leave the citation as plain text
             pass
@@ -656,8 +653,8 @@ def _trdd_link(hex8: str, label: str, hex_set: set[str]) -> str:
     """In-set -> a real link; out-of-set -> plain text + muted '(not in set)' note.
     NEVER emit a dangling in-set hash link (the build's hard contract)."""
     if hex8 in hex_set:
-        return '<a href="#/trdd/%s" data-ve-navigate>%s</a>' % (hex8, label)
-    return '%s <span class="docwiki-notinset">(not in set)</span>' % label
+        return f'<a href="#/trdd/{hex8}" data-ve-navigate>{label}</a>'
+    return f'{label} <span class="docwiki-notinset">(not in set)</span>'
 
 
 def _mem_link(inner: str, mem_names: set[str]) -> str:
@@ -675,10 +672,8 @@ def _mem_link(inner: str, mem_names: set[str]) -> str:
     target = target.strip()
     label = label.strip()
     if target in mem_names:
-        return ('<a href="#/mem/%s" data-ve-navigate>%s</a>'
-                % (_esc(target), _esc(label)))
-    return ('%s <span class="docwiki-notinset">(not in set)</span>'
-            % _esc(label))
+        return (f'<a href="#/mem/{_esc(target)}" data-ve-navigate>{_esc(label)}</a>')
+    return (f'{_esc(label)} <span class="docwiki-notinset">(not in set)</span>')
 
 
 # ── page rendering ───────────────────────────────────────────────────────────
@@ -693,7 +688,7 @@ def _render_card(t: Trdd) -> str:
             val = t.fields.get(key, "").strip()
         if not val or val.lower() in ("null", "none"):
             continue
-        rows.append("<tr><th>%s</th><td>%s</td></tr>" % (_esc(label), _esc(val)))
+        rows.append(f"<tr><th>{_esc(label)}</th><td>{_esc(val)}</td></tr>")
     if not rows:
         return ""
     return ('<table class="docwiki-fm"><caption class="docwiki-sr">'
@@ -715,7 +710,7 @@ def _render_xrefs(t: Trdd, hex_set: set[str], have_prrd: bool) -> str:
                 links.append(_trdd_link(h, "TRDD-" + h, hex_set))
             else:
                 links.append(_esc(v))
-        blocks.append("<dt>%s</dt><dd>%s</dd>" % (_esc(label), ", ".join(links)))
+        blocks.append("<dt>{}</dt><dd>{}</dd>".format(_esc(label), ", ".join(links)))
 
     # relevant-rules: [3, 27, 64.134] -> PRRD links (anchor by number)
     rules = _field_values(t, "relevant-rules")
@@ -729,12 +724,10 @@ def _render_xrefs(t: Trdd, hex_set: set[str], have_prrd: bool) -> str:
                 continue
             n = num.group(1)
             if have_prrd:
-                rlinks.append('<a href="#/prrd#G%s" data-ve-navigate>%s</a>'
-                              % (n, _esc(r)))
+                rlinks.append(f'<a href="#/prrd#G{n}" data-ve-navigate>{_esc(r)}</a>')
             else:
-                rlinks.append('%s <span class="docwiki-notinset">(no PRRD)</span>'
-                              % _esc(r))
-        blocks.append("<dt>Relevant rules</dt><dd>%s</dd>" % ", ".join(rlinks))
+                rlinks.append(f'{_esc(r)} <span class="docwiki-notinset">(no PRRD)</span>')
+        blocks.append("<dt>Relevant rules</dt><dd>{}</dd>".format(", ".join(rlinks)))
 
     if not blocks:
         return ""
@@ -769,17 +762,16 @@ def _token_to_hex8(tok: str) -> str:
 def render_trdd_page(t: Trdd, hex_set: set[str], have_prrd: bool,
                      mem_names: set[str] | None = None) -> str:
     """One `<section data-ve-doc="trdd/<8hex>">` page: card + xrefs + body."""
-    title = "TRDD-%s — %s" % (t.hex8, t.title) if t.hex8 else t.title
+    title = f"TRDD-{t.hex8} — {t.title}" if t.hex8 else t.title
     card = _render_card(t)
     xrefs = _render_xrefs(t, hex_set, have_prrd)
     body_html = markdown_to_html(t.body, heading_offset=1)
     body_html = _wire_links_outside_code(body_html, hex_set, have_prrd, mem_names)
     return (
-        '<section data-ve-doc="trdd/%s" data-doc-title="%s">\n'
-        "<h1>%s</h1>\n%s%s%s\n</section>"
-        % (t.hex8, _esc(title), _esc(title),
+        '<section data-ve-doc="trdd/{}" data-doc-title="{}">\n'
+        "<h1>{}</h1>\n{}{}{}\n</section>".format(t.hex8, _esc(title), _esc(title),
            card, xrefs,
-           '<div class="docwiki-body">%s</div>' % body_html)
+           f'<div class="docwiki-body">{body_html}</div>')
     )
 
 
@@ -810,9 +802,8 @@ def render_prrd_page(prrd_md: str, hex_set: set[str],
             body = _wire_links_outside_code(
                 _render_inline(_esc(text.strip())), hex_set, True, mem_names)
             out.append(
-                '<div class="prrd-rule" id="G%s">'
-                '<span class="prrd-rule-id">%s%s.%s</span> %s</div>'
-                % (number, _esc(letter), _esc(number), _esc(version), body))
+                f'<div class="prrd-rule" id="G{number}">'
+                f'<span class="prrd-rule-id">{_esc(letter)}{_esc(number)}.{_esc(version)}</span> {body}</div>')
         else:
             buf.append(line)
     flush_buf()
@@ -821,9 +812,8 @@ def render_prrd_page(prrd_md: str, hex_set: set[str],
     tm = re.search(r"^#[ \t]+(.+)$", prrd_md, re.MULTILINE)
     title = tm.group(1).strip() if tm else "PRRD — project rules"
     return (
-        '<section data-ve-doc="prrd" data-doc-title="%s">\n'
-        '<h1>%s</h1>\n<div class="docwiki-body">%s</div>\n</section>'
-        % (_esc(title), _esc(title), "\n".join(out))
+        '<section data-ve-doc="prrd" data-doc-title="{}">\n'
+        '<h1>{}</h1>\n<div class="docwiki-body">{}</div>\n</section>'.format(_esc(title), _esc(title), "\n".join(out))
     )
 
 
@@ -849,24 +839,22 @@ def render_kanban_page(trdds: list[Trdd]) -> str:
         cards: list[str] = []
         for t in group_sorted:
             cards.append(
-                '<a class="dw-card" href="#/trdd/%s" data-ve-navigate>'
-                '<span class="dw-card-id">%s</span>'
-                '<span class="dw-card-title">%s</span></a>'
-                % (t.hex8, _esc("TRDD-" + t.hex8), _esc(t.title)))
+                '<a class="dw-card" href="#/trdd/{}" data-ve-navigate>'
+                '<span class="dw-card-id">{}</span>'
+                '<span class="dw-card-title">{}</span></a>'.format(t.hex8, _esc("TRDD-" + t.hex8), _esc(t.title)))
         lanes.append(
-            '<div class="dw-lane"><div class="dw-lane-head">%s '
-            '<span class="dw-lane-count">(%d)</span></div>'
-            '<div class="dw-lane-cards">%s</div></div>'
-            % (_esc(COLUMN_LABEL.get(col, col)), len(group_sorted), "".join(cards)))
+            f'<div class="dw-lane"><div class="dw-lane-head">{_esc(COLUMN_LABEL.get(col, col))} '
+            f'<span class="dw-lane-count">({len(group_sorted)})</span></div>'
+            f'<div class="dw-lane-cards">{"".join(cards)}</div></div>')
 
+    task_s = "" if len(trdds) == 1 else "s"
+    col_s = "" if len(lanes) == 1 else "s"
     return (
         '<section data-ve-doc="kanban" data-doc-title="Kanban — the board">\n'
         "<h1>Kanban — the board</h1>\n"
-        '<p class="docwiki-lead">%d task%s across %d column%s. '
+        f'<p class="docwiki-lead">{len(trdds)} task{task_s} across {len(lanes)} column{col_s}. '
         "Click any card to open its TRDD.</p>\n"
-        '<div class="dw-board">%s</div>\n</section>'
-        % (len(trdds), "" if len(trdds) == 1 else "s",
-           len(lanes), "" if len(lanes) == 1 else "s", "".join(lanes))
+        f'<div class="dw-board">{"".join(lanes)}</div>\n</section>'
     )
 
 
@@ -875,23 +863,22 @@ def render_mem_page(note: MemNote, hex_set: set[str], have_prrd: bool,
     """One `<section data-ve-doc="mem/<name>">` page (Phase 3): a frontmatter card
     (name / tier / type / description) + the body markdown, with `[[…]]` wikilinks
     routed to `#/mem/<target>` (or plain text when the target is not in the set)."""
-    title = "%s — %s" % (note.name, note.description) if note.description else note.name
+    title = f"{note.name} — {note.description}" if note.description else note.name
     # frontmatter card (only non-empty rows)
     rows = [("Name", note.name), ("Tier", note.tier),
             ("Type", note.type), ("Description", note.description)]
     card_rows = "".join(
-        "<tr><th>%s</th><td>%s</td></tr>" % (_esc(lbl), _esc(val))
+        f"<tr><th>{_esc(lbl)}</th><td>{_esc(val)}</td></tr>"
         for lbl, val in rows if val)
     card = ('<table class="docwiki-fm"><caption class="docwiki-sr">Frontmatter'
-            "</caption><tbody>%s</tbody></table>" % card_rows) if card_rows else ""
+            f"</caption><tbody>{card_rows}</tbody></table>") if card_rows else ""
 
     body_html = markdown_to_html(note.body, heading_offset=1)
     body_html = _wire_links_outside_code(body_html, hex_set, have_prrd, mem_names)
     return (
-        '<section data-ve-doc="mem/%s" data-doc-title="%s">\n'
-        "<h1>%s</h1>\n%s\n%s\n</section>"
-        % (_esc(note.name), _esc(title), _esc(title), card,
-           '<div class="docwiki-body">%s</div>' % body_html)
+        '<section data-ve-doc="mem/{}" data-doc-title="{}">\n'
+        "<h1>{}</h1>\n{}\n{}\n</section>".format(_esc(note.name), _esc(title), _esc(title), card,
+           f'<div class="docwiki-body">{body_html}</div>')
     )
 
 
@@ -907,10 +894,10 @@ def render_home_page(trdds: list[Trdd], have_prrd: bool, wiki_title: str,
 
     parts = [
         '<section data-ve-doc="home" data-doc-title="Home">',
-        "<h1>%s</h1>" % _esc(wiki_title),
-        '<p class="docwiki-lead">%d design document%s. Click any link to navigate; '
-        "back / forward and the breadcrumb track your trail.</p>"
-        % (len(trdds), "" if len(trdds) == 1 else "s"),
+        f"<h1>{_esc(wiki_title)}</h1>",
+        f'<p class="docwiki-lead">{len(trdds)} design document{"" if len(trdds) == 1 else "s"}. '
+        "Click any link to navigate; "
+        "back / forward and the breadcrumb track your trail.</p>",
     ]
     nav = []
     if have_kanban:
@@ -920,7 +907,7 @@ def render_home_page(trdds: list[Trdd], have_prrd: bool, wiki_title: str,
         nav.append('<a href="#/prrd" data-ve-navigate><strong>PRRD</strong> — '
                    "project requirements &amp; rules</a>")
     for link in nav:
-        parts.append("<p>%s</p>" % link)
+        parts.append(f"<p>{link}</p>")
 
     order = COLUMN_ORDER + [_OTHER_KEY]
     for col in order:
@@ -929,25 +916,22 @@ def render_home_page(trdds: list[Trdd], have_prrd: bool, wiki_title: str,
             continue
         group_sorted = sorted(group, key=lambda x: x.title.lower())
         parts.append('<section class="docwiki-group">')
-        parts.append("<h2>%s <span class=\"docwiki-count\">(%d)</span></h2>"
-                     % (_esc(COLUMN_LABEL.get(col, col)), len(group_sorted)))
+        parts.append(f'<h2>{_esc(COLUMN_LABEL.get(col, col))} '
+                     f'<span class="docwiki-count">({len(group_sorted)})</span></h2>')
         parts.append("<ul>")
         for t in group_sorted:
-            label = "TRDD-%s — %s" % (t.hex8, t.title) if t.hex8 else t.title
-            parts.append('<li><a href="#/trdd/%s" data-ve-navigate>%s</a></li>'
-                         % (t.hex8, _esc(label)))
+            label = f"TRDD-{t.hex8} — {t.title}" if t.hex8 else t.title
+            parts.append(f'<li><a href="#/trdd/{t.hex8}" data-ve-navigate>{_esc(label)}</a></li>')
         parts.append("</ul></section>")
 
     if mem_notes:
         mem_sorted = sorted(mem_notes, key=lambda x: x.name.lower())
         parts.append('<section class="docwiki-group">')
-        parts.append("<h2>Memory <span class=\"docwiki-count\">(%d)</span></h2>"
-                     % len(mem_sorted))
+        parts.append(f'<h2>Memory <span class="docwiki-count">({len(mem_sorted)})</span></h2>')
         parts.append("<ul>")
         for note in mem_sorted:
-            label = "%s — %s" % (note.name, note.description) if note.description else note.name
-            parts.append('<li><a href="#/mem/%s" data-ve-navigate>%s</a></li>'
-                         % (_esc(note.name), _esc(label)))
+            label = f"{note.name} — {note.description}" if note.description else note.name
+            parts.append(f'<li><a href="#/mem/{_esc(note.name)}" data-ve-navigate>{_esc(label)}</a></li>')
         parts.append("</ul></section>")
 
     parts.append("</section>")
@@ -1086,15 +1070,14 @@ def build_html(pages_html: str, shell_js: str, wiki_title: str) -> str:
         "<head>\n"
         '<meta charset="utf-8">\n'
         '<meta name="viewport" content="width=device-width, initial-scale=1">\n'
-        "<title>%s</title>\n"
-        "<style>\n%s\n%s\n</style>\n"
+        f"<title>{_esc(wiki_title)}</title>\n"
+        f"<style>\n{TOKEN_CSS}\n{DOC_CSS}\n</style>\n"
         "</head>\n"
         "<body>\n"
-        "<div data-docwiki>\n%s\n</div>\n"
-        "%s\n"
-        "<script>\n%s\n</script>\n"
+        f"<div data-docwiki>\n{pages_html}\n</div>\n"
+        f"{THEME_TOGGLE}\n"
+        f"<script>\n{shell_js}\n</script>\n"
         "</body>\n</html>\n"
-        % (_esc(wiki_title), TOKEN_CSS, DOC_CSS, pages_html, THEME_TOGGLE, shell_js)
     )
 
 
@@ -1197,9 +1180,8 @@ def main(argv: list[str] | None = None) -> int:
     out_path.write_text(out_html, encoding="utf-8")
 
     sys.stderr.write(
-        "built %s: %d TRDD page(s), %d mem page(s), kanban=%s, PRRD=%s\n"
-        % (out_path, len(trdds), len(mem_notes),
-           "yes" if have_kanban else "no", "yes" if have_prrd else "no"))
+        f"built {out_path}: {len(trdds)} TRDD page(s), {len(mem_notes)} mem page(s), "
+        f"kanban={'yes' if have_kanban else 'no'}, PRRD={'yes' if have_prrd else 'no'}\n")
     return 0
 
 
