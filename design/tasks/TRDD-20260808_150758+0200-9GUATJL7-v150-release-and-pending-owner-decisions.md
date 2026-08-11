@@ -3,7 +3,7 @@ trdd-id: 9GUATJL7
 title: Ship amvcp v1.5.0 and resolve the owner decisions it surfaced
 column: testing
 created: 2026-08-08T15:07:58+0200
-updated: 2026-08-08T15:07:58+0200
+updated: 2026-08-11T22:35:43+0200
 current-owner: ai-maestro-visual-communicator-plugin
 assignee: ai-maestro-visual-communicator-plugin
 priority: 2
@@ -26,10 +26,60 @@ external-refs: ["Emasoft/ai-maestro-visual-communicator-plugin#4", "Emasoft/ai-m
 ## ⏵ STATE — READ THIS FIRST ON RESUME (authoritative; supersedes the body) — 2026-08-08
 
 **Everything is committed on `main` (32 commits ahead of `origin/main`, tree clean).
-Nothing is half-applied. The ONLY thing left is the publish, and it is blocked by
-the HOST, not by the code.**
+Nothing is half-applied. The ONLY thing left is the publish — and as of 2026-08-11
+the blocker is NO LONGER the host. It is a DEFECT IN THE PRE-PUSH HOOK. Read the
+next section before doing anything.**
 
-**NEXT ACTION — one command, when the machine is quiet:**
+## ⛔ BLOCKER (2026-08-11) — the pre-push hook rejects our own resolver tag
+
+The load gate was waited out and met (1-min 17.7 / 5-min 18.7, both under 20). The
+pipeline then ran END-TO-END GREEN and still could not push:
+
+- G2 ruff PASS · G3 CPV `--strict` **0 CRITICAL / 0 MAJOR / 0 MINOR / 0 NIT**
+  (16 WARNING, allowed, no exemptions) · G4 **454/454 tests green** · S5 version
+  consistency PASS · S6 bump 1.4.0→1.5.0 · S8 CHANGELOG regenerated (656 lines,
+  30 sections — the git-cliff eraser did NOT recur) · S9 commit + both tags created.
+- `git push --atomic origin HEAD v1.5.0 <name>--v1.5.0` was then **rejected by
+  `git-hooks/pre-push`**:
+
+  ```
+  BLOCKED: Tag name does not match plugin version!
+    Pushed tag(s): ai-maestro-visual-communicator-plugin--v1.5.0
+    Expected: v1.5.0
+  ```
+
+- publish.py rolled back correctly (tags deleted, `reset --soft HEAD~1`). The repo
+  was then restored by hand to clean / 1.4.0 / ahead 32 / behind 0 / no stray tags.
+
+**TWO COMPOUNDING DEFECTS in `git-hooks/pre-push`** (tracked; live via
+`core.hooksPath=git-hooks`; byte-identical to the stale `.git/hooks/pre-push` copy):
+
+1. **`_classify_push_refs()` misclassifies the push.** It counts a branch only when
+   LOCAL_REF starts with `refs/heads/`. publish.py pushes **`HEAD`**, which matches
+   neither `refs/heads/` nor `refs/tags/`, so it is dropped from BOTH lists →
+   `branch_refs` empty → `tag_only_push` is True for a push that is plainly
+   branch+tags. **The guard fires only when `branch_refs` is empty — that it fired
+   at all is the proof.** This guard was never meant to run on this push.
+2. **The version check knows only one tag shape.** `expected_tag = f"v{local_version}"`,
+   so the resolver twin `{name}--v{version}` — minted by publish.py itself this very
+   cycle, and which DOES encode 1.5.0 — is reported as "mismatched".
+
+Either fix alone unblocks; both are genuine. This is drift introduced BY this
+release cycle: the `{name}--v{version}` resolver tag landed in publish.py and the
+hook was never taught about it.
+
+**NOT FIXED — needs the owner.** Editing a guard so it permits a push it currently
+refuses is an owner decision, even though fix 1 restores intended behaviour rather
+than weakening anything.
+
+**Also fixed this session:** `.git/index.lock` was a **2-day-5.5-hour-old corpse**
+(0 bytes, mtime Aug 9 16:47), not the 7–14 min staleness previously recorded. It
+killed an earlier S9 at `git add`. Removed after verifying zero live git processes
+in a 1001-process `ps` snapshot. NOTE: a *transient* lock also appears normally —
+the `git_safety_guard` hook takes a stash backup before destructive git ops and
+briefly holds the index. Retry with backoff before concluding staleness.
+
+**NEXT ACTION — resolve the hook defect first, then:**
 
 ```bash
 uv run python scripts/publish.py --minor --push \
