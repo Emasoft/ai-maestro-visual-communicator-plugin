@@ -1,7 +1,7 @@
 ---
 trdd-id: 9GUATJL7
 title: Ship amvcp v1.5.0 and resolve the owner decisions it surfaced
-column: testing
+column: human_review
 created: 2026-08-08T15:07:58+0200
 updated: 2026-08-11T22:35:43+0200
 current-owner: ai-maestro-visual-communicator-plugin
@@ -175,3 +175,14 @@ allowed) · G4 tests: 454/454 green twice when the host was quiet, flaky when no
 - [ ] The `from → to` row is posted on `Emasoft/ai-maestro#44` (promised on #6).
 - [ ] Each of the 6 open decisions above is either resolved or explicitly deferred
       by the owner.
+- [ ] The `git-hooks/pre-push` tag-classification defect is resolved (see BLOCKER
+      2026-08-11) — this now gates every other criterion above.
+
+## Approval log
+
+- 2026-08-11T22:35:43+0200 — Moved `testing` → `human_review`. The load
+  precondition was met and the whole pipeline ran green; the release is stopped by
+  a defect in our own push guard, and fixing a guard so it permits a push it
+  currently refuses is an owner decision. The card was asserting `testing` while
+  nothing was being tested — an untrue column hides the stall from the only view
+  anyone checks.
