@@ -1,9 +1,9 @@
 ---
 trdd-id: 9GUATJL7
 title: Ship amvcp v1.5.0 and resolve the owner decisions it surfaced
-column: human_review
+column: published
 created: 2026-08-08T15:07:58+0200
-updated: 2026-08-11T22:35:43+0200
+updated: 2026-08-16T00:20:00+0200
 current-owner: ai-maestro-visual-communicator-plugin
 assignee: ai-maestro-visual-communicator-plugin
 priority: 2
@@ -17,18 +17,51 @@ target-branch: main
 relevant-rules: []
 impacts: [public-api]
 parent-trdd: null
-implementation-commits: []
+implementation-commits: [a3fce11, 75f1fe1, 55178ef]
 external-refs: ["Emasoft/ai-maestro-visual-communicator-plugin#4", "Emasoft/ai-maestro-visual-communicator-plugin#5", "Emasoft/ai-maestro-visual-communicator-plugin#6", "Emasoft/ai-maestro-visual-communicator-plugin#7", "Emasoft/ai-maestro-visual-communicator-plugin#8", "Emasoft/ai-maestro-visual-communicator-plugin#9", "Emasoft/ai-maestro#132", "Emasoft/ai-maestro#134", "Emasoft/ai-maestro-janitor#235", "Emasoft/ai-maestro-plugins#17"]
 ---
 
 # TRDD-9GUATJL7 — Ship amvcp v1.5.0 and resolve the owner decisions it surfaced
 
-## ⏵ STATE — READ THIS FIRST ON RESUME (authoritative; supersedes the body) — 2026-08-08
+## ⏵ STATE — READ THIS FIRST ON RESUME (authoritative; supersedes the body) — 2026-08-16
 
-**Everything is committed on `main` (32 commits ahead of `origin/main`, tree clean).
-Nothing is half-applied. The ONLY thing left is the publish — and as of 2026-08-11
-the blocker is NO LONGER the host. It is a DEFECT IN THE PRE-PUSH HOOK. Read the
-next section before doing anything.**
+**✅ SHIPPED. v1.5.0 IS PUBLISHED — this card is `column: published`; do NOT re-run the
+publish.** Verified first-hand 2026-08-16: `main` in sync with `origin/main`,
+`plugin.json` = 1.5.0, remote tags `v1.5.0` AND
+`ai-maestro-visual-communicator-plugin--v1.5.0` both at `55178ef`, GitHub release
+`v1.5.0` live (not a draft). Gates in the shipping run: G0 PASS · G1 1.4.0→1.5.0 ·
+G2 ruff · G3 CPV `--strict` **0/0/0/0** (16 WARNING, no exemptions) · G4 **454/454** ·
+G5 marketplace.
+
+**The pre-push blocker below is FIXED — owner-approved 2026-08-15, two commits.**
+`a3fce11` classifies refs by REMOTE_REF (git echoes `HEAD` as LOCAL_REF, so a
+branch+tags push was misread as tag-only) and accepts the `{name}--v{version}`
+resolver twin. `75f1fe1` additionally accepts a resolver-twin BACKFILL, fail-closed
+(exact `{name}--v<ver>` shape AND the local `v<ver>` tag must exist; unreadable
+plugin name widens nothing). The process-ancestry guard and G1–G4 delegation are
+untouched; wrong/stale/single-hyphen tags still block. Proof in the live run:
+`[pre-push] Tag(s) accepted (current version or verified backfill twin): …46 twins…`.
+
+**SUPERSEDED — do NOT carry forward:**
+- "the ONLY thing left is the publish" — done.
+- "the blocker is a DEFECT IN THE PRE-PUSH HOOK" — fixed and proven in production.
+- "do not run above load 20" — the shipping run went at 5.77 / 17.96 and G4 was
+  454/454 clean; the load rule itself still stands for future publishes.
+
+**⚠ NEW, STILL OPEN — the historical resolver-tag backfill still does not land, and
+it is NOT the tag guard.** The guard accepted all 46 twins; the push then died one
+gate later on `G1: local=1.5.0 remote=1.5.0 FAIL`. G1 requires local **strictly
+greater** than the latest remote tag, and `_push_resolver_backfill()` runs AFTER the
+release push, when remote already equals local — so G1 can NEVER pass for a
+post-release backfill. Non-fatal by design (`check=False`, the release is fine), but
+it recurs on every publish and the historical twins (v0.1.0…v1.4.0) stay unpublished,
+leaving version-constrained dependents unable to resolve old releases. Fixing it means
+changing GATE semantics (exempting a tag-only backfill from the version-bump check) —
+an owner call, not yet made. Own it in a NEW TRDD; this card is terminal.
+
+**NEXT ACTION: none for this card.** Remaining owner decisions (board defects on
+TRDD-503fb3af / TRDD-1627a698, the doc-wiki base36 link drop, 15 old stashes, the 6
+pre-existing decisions listed below) are unchanged and belong to their own cards.
 
 ## ⛔ BLOCKER (2026-08-11) — the pre-push hook rejects our own resolver tag
 
