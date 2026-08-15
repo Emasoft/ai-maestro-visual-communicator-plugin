@@ -17,8 +17,10 @@ layers borrowed from the canonical CPV-self hook at
    pushes only a tag (``git push origin v1.2.3``), the canonical gate
    logic (G1 in publish.py) compares local plugin.json version vs
    latest remote tag, which is meaningless for a tag-only push (the
-   tag IS the thing being created). Instead, verify ``tag_name ==
-   "v" + local_version`` so the tag and the manifest stay in lockstep.
+   tag IS the thing being created). Instead, verify the tag is one of
+   the refs publish.py mints for THIS version — ``v{version}`` or its
+   resolver twin ``{name}--v{version}`` — so tags and manifest stay in
+   lockstep.
 
 The 4 quality gates still run in order after these two checks pass; any
 failure blocks the push:
@@ -155,11 +157,42 @@ def _extract_local_version(repo_root: Path) -> str | None:
         return None
 
 
+def _extract_plugin_name(repo_root: Path) -> str | None:
+    """Return the ``name`` field from .claude-plugin/plugin.json, or None.
+
+    Read from the manifest — NEVER hardcoded — because it is the prefix of
+    the resolver tag ``{name}--v{version}``. publish.py derives that prefix
+    the same way (``_plugin_name()``), so reading the same field from the
+    same file is what keeps this hook and the publisher from desyncing if
+    the plugin is ever renamed.
+    """
+    plugin_json = repo_root / ".claude-plugin" / "plugin.json"
+    try:
+        data = json.loads(plugin_json.read_text(encoding="utf-8"))
+        name = data.get("name")
+        return name if isinstance(name, str) and name else None
+    except (FileNotFoundError, json.JSONDecodeError, OSError):
+        return None
+
+
 def _classify_push_refs() -> tuple[list[str], list[str]]:
     """Split stdin push refs into (branch_refs, tag_refs).
 
     git pre-push hook stdin is one line per pushed ref:
         LOCAL_REF LOCAL_SHA REMOTE_REF REMOTE_SHA
+
+    Classification MUST key on REMOTE_REF (parts[2]), never LOCAL_REF.
+    git echoes back whatever the user spelled on the LEFT of the refspec
+    as LOCAL_REF, and publish.py pushes
+    ``git push --atomic origin HEAD v1.5.0 <name>--v1.5.0`` — so the
+    branch line arrives with the literal LOCAL_REF ``HEAD`` (and a
+    deletion arrives as ``(delete)``). ``HEAD`` matches neither
+    ``refs/heads/`` nor ``refs/tags/``, so keying on it silently DROPPED
+    the branch from both lists: ``branch_refs`` came back empty, a
+    branch+tags release push was misread as a tag-only push, and the
+    tag-vs-version guard below misfired and blocked a valid release.
+    REMOTE_REF is always fully qualified by git no matter how the local
+    side was spelled, so it is the only reliable discriminator.
     """
     branch_refs: list[str] = []
     tag_refs: list[str] = []
@@ -168,11 +201,11 @@ def _classify_push_refs() -> tuple[list[str], list[str]]:
         parts = line.split()
         if len(parts) < 4:
             continue
-        local_ref = parts[0]
-        if local_ref.startswith("refs/tags/"):
-            tag_refs.append(local_ref[len("refs/tags/"):])
-        elif local_ref.startswith("refs/heads/"):
-            branch_refs.append(local_ref[len("refs/heads/"):])
+        remote_ref = parts[2]
+        if remote_ref.startswith("refs/tags/"):
+            tag_refs.append(remote_ref[len("refs/tags/"):])
+        elif remote_ref.startswith("refs/heads/"):
+            branch_refs.append(remote_ref[len("refs/heads/"):])
     return branch_refs, tag_refs
 
 
@@ -201,24 +234,40 @@ def main() -> int:
     # ── Tag-vs-version validation for tag-only pushes ──
     # publish.py pushes branch first, then tag (--atomic). At tag-push time
     # the remote master is already at the new version, so G1's "strictly
-    # greater" rule would fail. Verify tag name == "v" + local_version.
+    # greater" rule would fail. Verify instead that every pushed tag is one
+    # of the refs publish.py mints for the local manifest version.
     branch_refs, tag_refs = _classify_push_refs()
     tag_only_push = bool(tag_refs) and not branch_refs
 
     if tag_only_push:
         local_version = _extract_local_version(root)
         if local_version is not None:
-            expected_tag = f"v{local_version}"
-            mismatched = [t for t in tag_refs if t != expected_tag]
+            # A release carries TWO legitimate refs for the same version, and
+            # both are pushed in one atomic transaction by publish.py's
+            # _release_tags(): the human-readable `v{version}` AND the
+            # resolver twin `{name}--v{version}` (DOUBLE hyphen), which is the
+            # only form Claude Code's version-constrained dependency resolver
+            # will match. Accepting only `v{version}` meant publish.py's own
+            # release push was rejected by the hook publish.py installs.
+            # Anything that is neither form still BLOCKS — a genuinely wrong
+            # tag (a stale version, a typo) is as fatal as it ever was.
+            expected_tags = [f"v{local_version}"]
+            plugin_name = _extract_plugin_name(root)
+            if plugin_name:
+                expected_tags.append(f"{plugin_name}--v{local_version}")
+            mismatched = [t for t in tag_refs if t not in expected_tags]
             if mismatched:
                 print("=" * 40, file=sys.stderr)
                 print("  BLOCKED: Tag name does not match plugin version!", file=sys.stderr)
                 print(f"  Pushed tag(s): {', '.join(mismatched)}", file=sys.stderr)
-                print(f"  Expected: {expected_tag}", file=sys.stderr)
+                print(f"  Expected one of: {', '.join(expected_tags)}", file=sys.stderr)
                 print("  Run: uv run python scripts/publish.py --patch", file=sys.stderr)
                 print("=" * 40, file=sys.stderr)
                 return 1
-            print(f"[pre-push] Tag matches local version: {expected_tag}", flush=True)
+            print(
+                f"[pre-push] Tag(s) match local version: {', '.join(tag_refs)}",
+                flush=True,
+            )
         else:
             print(
                 "[pre-push] WARNING: cannot extract local version — skipping tag check",
