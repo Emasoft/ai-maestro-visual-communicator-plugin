@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased]
+## [1.5.0] — 2026-08-15
 
 ### Bug Fixes
 
@@ -10,6 +10,10 @@ All notable changes to this project will be documented in this file.
 - Clear the 5 strict findings the merged doc-wiki content introduced, and wire its test gate
 - Bound the browser to one suite, and close it at the end of the run
 - Close the cross-run daemon leak; drop the per-suite restart that made it worse
+- Stop the changelog being erased on every release; restore the lost history
+- Recall-before-render, a real share-page privacy warning, and the frozen-CLI invariant
+- Classify refs by REMOTE_REF + accept resolver tag twin (TRDD-9GUATJL7)
+- Accept resolver-twin backfill pushes, fail-closed (TRDD-9GUATJL7)
 
 ### Documentation
 
@@ -23,6 +27,14 @@ All notable changes to this project will be documented in this file.
 - TRDD-103a53e0 phase 3 done → phase 4 next; record f00bc26
 - TRDD-103a53e0 phase 4 done → phase 5 (skill) next; record 54b5597
 - TRDD-103a53e0 → complete — all 5 phases done; record 065288f
+- Capture the two lessons this session cost the most to learn
+- Add TRDD-9GUATJL7 — v1.5.0 release blocked on host load, plus 6 open owner decisions
+- V1.5.0 blocker is the pre-push hook, not host load
+- Testing -> human_review; the card was claiming work nobody was doing
+- Capture why the v1.5.0 push was refused by our own pre-push hook
+- Capture panel-push delivery contract and the doc-wiki base36 link defect
+- Docwiki-search's ~0-token design, and the base36 defect's SECOND site
+- How to test an OPTIONAL integration with zero mocks
 
 ### Features
 
@@ -34,6 +46,7 @@ All notable changes to this project will be documented in this file.
 - Phase 3 — Kanban board + wikimem renderers (TRDD-103a53e0)
 - Phase 4 — search (client-side instant + memgrep→HTML script) (TRDD-103a53e0)
 - Phase 5 (FINAL) — amvcp-doc-wiki skill + umbrella wiring + tests (TRDD-103a53e0)
+- Mint the dependency-resolver tag, and backfill the six releases that lack it
 
 ### Miscellaneous Tasks
 
