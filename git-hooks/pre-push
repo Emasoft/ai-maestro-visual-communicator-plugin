@@ -20,7 +20,11 @@ layers borrowed from the canonical CPV-self hook at
    tag IS the thing being created). Instead, verify the tag is one of
    the refs publish.py mints for THIS version — ``v{version}`` or its
    resolver twin ``{name}--v{version}`` — so tags and manifest stay in
-   lockstep.
+   lockstep. One additional legitimate shape is accepted, fail-closed:
+   a resolver-twin BACKFILL of an already-released historical version
+   (``{name}--v<version>`` whose ``v<version>`` tag exists locally),
+   because publish.py::_push_resolver_backfill() tag-only-pushes those
+   twins after every successful release.
 
 The 4 quality gates still run in order after these two checks pass; any
 failure blocks the push:
@@ -175,6 +179,58 @@ def _extract_plugin_name(repo_root: Path) -> str | None:
         return None
 
 
+def _local_tag_exists(tag: str) -> bool:
+    """Return True iff ``tag`` exists in the local repository.
+
+    FAIL-CLOSED by construction: any failure to run git (missing binary,
+    timeout, OS error) counts as "does not exist", so a tag that cannot
+    be verified is never accepted.
+    """
+    try:
+        result = subprocess.run(
+            ["git", "rev-parse", "-q", "--verify", f"refs/tags/{tag}"],
+            capture_output=True,
+            timeout=10,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return False
+    return result.returncode == 0
+
+
+def _is_resolver_backfill_twin(tag: str, plugin_name: str | None) -> bool:
+    """True iff ``tag`` is a legitimate resolver-twin BACKFILL ref.
+
+    WHY this exists: publish.py::_push_resolver_backfill()
+    (scripts/publish.py:758) runs AFTER a successful release push and
+    tag-only-pushes the resolver twins ``{name}--v<version>`` of every
+    ALREADY-RELEASED historical version, so that version-constrained
+    dependents can resolve old releases too. Those twins are not the
+    current manifest version, so without this clause the tag-vs-version
+    guard rejected that push and the backfill failed on EVERY publish,
+    forever — the historical twins could never reach the remote.
+
+    Acceptance is deliberately narrow (fail-closed):
+      * ``plugin_name`` must be readable from the manifest — if it is
+        None the answer is always False, i.e. the guard behaves exactly
+        as it did before this clause existed (no widening).
+      * the tag must have the EXACT form ``{plugin_name}--v<version>``
+        (DOUBLE hyphen, non-empty version).
+      * the corresponding human tag ``v<version>`` must already exist
+        LOCALLY — proving the twin points at a release this repo has
+        actually made. A twin for a version never released here (a typo,
+        a fabricated version) fails this check and still blocks.
+    """
+    if not plugin_name:
+        return False
+    prefix = f"{plugin_name}--v"
+    if not tag.startswith(prefix):
+        return False
+    version = tag[len(prefix):]
+    if not version:
+        return False
+    return _local_tag_exists(f"v{version}")
+
+
 def _classify_push_refs() -> tuple[list[str], list[str]]:
     """Split stdin push refs into (branch_refs, tag_refs).
 
@@ -255,17 +311,36 @@ def main() -> int:
             plugin_name = _extract_plugin_name(root)
             if plugin_name:
                 expected_tags.append(f"{plugin_name}--v{local_version}")
-            mismatched = [t for t in tag_refs if t not in expected_tags]
+            # A tag is legitimate iff it is (a) one of the current-version
+            # pair above, or (b) a resolver-twin BACKFILL of an already-
+            # released version (see _is_resolver_backfill_twin — needed
+            # because publish.py::_push_resolver_backfill() tag-only-pushes
+            # historical twins after every successful release; without (b)
+            # that backfill failed on every publish forever). One bad tag
+            # blocks the WHOLE push — fail-closed.
+            mismatched = [
+                t
+                for t in tag_refs
+                if t not in expected_tags
+                and not _is_resolver_backfill_twin(t, plugin_name)
+            ]
             if mismatched:
                 print("=" * 40, file=sys.stderr)
                 print("  BLOCKED: Tag name does not match plugin version!", file=sys.stderr)
                 print(f"  Pushed tag(s): {', '.join(mismatched)}", file=sys.stderr)
                 print(f"  Expected one of: {', '.join(expected_tags)}", file=sys.stderr)
+                print(
+                    "  (or a resolver-twin backfill "
+                    f"{plugin_name or '<plugin-name>'}--v<version> whose "
+                    "v<version> tag already exists locally)",
+                    file=sys.stderr,
+                )
                 print("  Run: uv run python scripts/publish.py --patch", file=sys.stderr)
                 print("=" * 40, file=sys.stderr)
                 return 1
             print(
-                f"[pre-push] Tag(s) match local version: {', '.join(tag_refs)}",
+                "[pre-push] Tag(s) accepted (current version or verified "
+                f"backfill twin): {', '.join(tag_refs)}",
                 flush=True,
             )
         else:
