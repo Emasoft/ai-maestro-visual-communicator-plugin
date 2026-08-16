@@ -65,10 +65,14 @@ XREF_TRDD_FIELDS = [
     ("supersedes", "Supersedes"), ("superseded-by", "Superseded by"),
 ]
 
-# A TRDD-<8hex> / #<8hex> token. 8 hex chars; `(?![0-9a-f])` so we don't bite into a
-# full 32-char uuid (TRDD-<uuid> in a v1 title would otherwise match its first 8).
-_RE_TRDD_TOKEN = re.compile(r"\bTRDD-([0-9a-f]{8})(?![0-9a-f])")
-_RE_HASH_TOKEN = re.compile(r"(?<![0-9a-zA-Z_])#([0-9a-f]{8})(?![0-9a-f])")
+# A TRDD-<id8> / #<id8> token. id8 is 8 alnum chars: v1 legacy ids are lowercase hex
+# (first 8 of a uuid), v2 canonical ids are uppercase base36 (e.g. TRDD-9GUATJL7) —
+# `[0-9A-Za-z]` covers both, case-insensitively. `(?![0-9A-Za-z])` so we don't bite
+# into a full 32-char uuid (TRDD-<uuid> in a v1 title would otherwise match its first
+# 8). Unresolvable matches (e.g. an ordinary 8-letter word after `#`) never become a
+# link — `_trdd_link` only emits an `<a>` for an id present in the build's index.
+_RE_TRDD_TOKEN = re.compile(r"\bTRDD-([0-9A-Za-z]{8})(?![0-9A-Za-z])")
+_RE_HASH_TOKEN = re.compile(r"(?<![0-9A-Za-z_])#([0-9A-Za-z]{8})(?![0-9A-Za-z])")
 # `PRRD G64` / `PRRD S70.3` -> rule number is the key (letter is for humans).
 _RE_PRRD_CITE = re.compile(r"\bPRRD\s+([GS])(\d+)(?:\.\d+)?\b")
 # wikimem `[[name]]` / `[[name|label]]`. Routed to `#/mem/<name>` when a mem set is
@@ -139,26 +143,37 @@ def _unquote(s: str) -> str:
     return s
 
 
-def _hex8_from_uuid(uuid: str) -> str:
-    """First 8 hex chars of a uuid-ish string, or '' if it doesn't start with 8."""
-    m = re.match(r"^([0-9a-fA-F]{8})", uuid.strip())
+def _extract_id8(raw: str) -> str:
+    """An 8-char id8 from a `trdd-id`-shaped value.
+
+    Bare 8-char token (v2 canonical, base36, case preserved — e.g. `9GUATJL7`) is
+    checked FIRST and returned verbatim: it can never collide with the uuid shape
+    below (no dashes, exact length), so an id8 built only from 0-9A-F digits (a
+    legal, if unlucky, base36 draw) is never mistaken for hex-and-lowercased.
+    Full v1 uuid (`<8hex>-<4hex>-...`) -> first 8 hex chars, lowercased (unchanged
+    legacy behavior). Anything else -> ''.
+    """
+    raw = raw.strip().strip("`")
+    if re.match(r"^[0-9A-Za-z]{8}$", raw):
+        return raw
+    m = re.match(r"^([0-9a-fA-F]{8})-[0-9a-fA-F]{4}-", raw)
     return m.group(1).lower() if m else ""
 
 
 def _derive_hex8(path: Path, fields: dict[str, str], body: str) -> str:
-    """Stable 8hex id with three fallbacks so NO file is ever dropped.
+    """Stable id8 with three fallbacks so NO file is ever dropped.
 
-    1. frontmatter `trdd-id:` (v2).
-    2. `**TRDD ID:** `<uuid>`` bold line (v1 body).
-    3. the filename: `TRDD-<8hex>-...` or `TRDD-<TS>-<8hex>-...`.
+    1. frontmatter `trdd-id:` (v2 base36 id8, or v1 uuid).
+    2. `**TRDD ID:** `<uuid-or-id8>`` bold line (v1/v2 body).
+    3. the filename: `TRDD-<8hex>-...` (v1 uuid-named) or `TRDD-<TS>-<id8>-...`.
     """
     tid = fields.get("trdd-id", "")
-    h = _hex8_from_uuid(tid)
+    h = _extract_id8(tid)
     if h:
         return h
-    bm = re.search(r"\*\*TRDD ID:\*\*\s*`?([0-9a-fA-F-]+)`?", body)
+    bm = re.search(r"\*\*TRDD ID:\*\*\s*`?([0-9A-Za-z-]+)`?", body)
     if bm:
-        h = _hex8_from_uuid(bm.group(1))
+        h = _extract_id8(bm.group(1))
         if h:
             return h
     name = path.name  # e.g. TRDD-1dcd0bd7-...  or  TRDD-20260617_121902+0200-103a53e0-...
@@ -166,10 +181,12 @@ def _derive_hex8(path: Path, fields: dict[str, str], body: str) -> str:
     nm = re.match(r"^TRDD-([0-9a-fA-F]{8})-[0-9a-fA-F]{4}-", name)
     if nm:
         return nm.group(1).lower()
-    # timestamped: TRDD-<ts...>-<8hex>-<slug>.  Find an 8-hex token after the ts.
-    nm = re.search(r"-([0-9a-fA-F]{8})-", name)
+    # timestamped: TRDD-<ts...>-<id8>-<slug>.  Find an 8-char alnum token after the
+    # ts — the timestamp itself always has a `_`/`+` in it, so it can never satisfy
+    # this alnum-only, dash-bounded class.
+    nm = re.search(r"-([0-9A-Za-z]{8})-", name)
     if nm:
-        return nm.group(1).lower()
+        return nm.group(1)
     return ""
 
 
@@ -601,7 +618,7 @@ def _render_list(lines: list[str], i: int) -> tuple[str, int]:
 
 def _wire_links_outside_code(
     html_frag: str,
-    hex_set: set[str],
+    known_ids: dict[str, str],
     have_prrd: bool,
     mem_names: set[str] | None = None,
 ) -> str:
@@ -614,13 +631,13 @@ def _wire_links_outside_code(
     """
     parts = re.split(r"(<pre>.*?</pre>|<code>.*?</code>)", html_frag, flags=re.DOTALL)
     for idx in range(0, len(parts), 2):  # even indices = text outside code
-        parts[idx] = _wire_tokens(parts[idx], hex_set, have_prrd, mem_names)
+        parts[idx] = _wire_tokens(parts[idx], known_ids, have_prrd, mem_names)
     return "".join(parts)
 
 
 def _wire_tokens(
     text: str,
-    hex_set: set[str],
+    known_ids: dict[str, str],
     have_prrd: bool,
     mem_names: set[str] | None = None,
 ) -> str:
@@ -632,8 +649,8 @@ def _wire_tokens(
     segs = re.split(r"(<a\b[^>]*>.*?</a>)", text, flags=re.DOTALL)
     for j in range(0, len(segs), 2):
         s = segs[j]
-        s = _RE_TRDD_TOKEN.sub(lambda m: _trdd_link(m.group(1), "TRDD-" + m.group(1), hex_set), s)
-        s = _RE_HASH_TOKEN.sub(lambda m: _trdd_link(m.group(1), "#" + m.group(1), hex_set), s)
+        s = _RE_TRDD_TOKEN.sub(lambda m: _trdd_link(m.group(1), "TRDD-" + m.group(1), known_ids), s)
+        s = _RE_HASH_TOKEN.sub(lambda m: _trdd_link(m.group(1), "#" + m.group(1), known_ids), s)
         if have_prrd:
             s = _RE_PRRD_CITE.sub(
                 lambda m: f'<a href="#/prrd#G{m.group(2)}" data-ve-navigate>PRRD {m.group(1)}{m.group(2)}</a>', s)
@@ -649,11 +666,16 @@ def _wire_tokens(
     return "".join(segs)
 
 
-def _trdd_link(hex8: str, label: str, hex_set: set[str]) -> str:
+def _trdd_link(hex8: str, label: str, known_ids: dict[str, str]) -> str:
     """In-set -> a real link; out-of-set -> plain text + muted '(not in set)' note.
-    NEVER emit a dangling in-set hash link (the build's hard contract)."""
-    if hex8 in hex_set:
-        return f'<a href="#/trdd/{hex8}" data-ve-navigate>{label}</a>'
+    NEVER emit a dangling in-set hash link (the build's hard contract).
+
+    Lookup is case-insensitive (a v2 base36 id may be cited in any case); the href
+    always uses the TRDD's own canonical-cased id8 (`known_ids` maps UPPER(id8) ->
+    canonical id8), never the literal case the citation happened to use."""
+    canon = known_ids.get(hex8.upper())
+    if canon:
+        return f'<a href="#/trdd/{canon}" data-ve-navigate>{label}</a>'
     return f'{label} <span class="docwiki-notinset">(not in set)</span>'
 
 
@@ -695,7 +717,7 @@ def _render_card(t: Trdd) -> str:
             "Frontmatter</caption><tbody>" + "".join(rows) + "</tbody></table>")
 
 
-def _render_xrefs(t: Trdd, hex_set: set[str], have_prrd: bool) -> str:
+def _render_xrefs(t: Trdd, known_ids: dict[str, str], have_prrd: bool) -> str:
     """Cross-ref fields -> lists of clickable TRDD links + relevant-rules -> PRRD."""
     blocks = []
     for key, label in XREF_TRDD_FIELDS:
@@ -707,7 +729,7 @@ def _render_xrefs(t: Trdd, hex_set: set[str], have_prrd: bool) -> str:
         for v in vals:
             h = _token_to_hex8(v)
             if h:
-                links.append(_trdd_link(h, "TRDD-" + h, hex_set))
+                links.append(_trdd_link(h, "TRDD-" + h, known_ids))
             else:
                 links.append(_esc(v))
         blocks.append("<dt>{}</dt><dd>{}</dd>".format(_esc(label), ", ".join(links)))
@@ -748,25 +770,27 @@ def _field_values(t: Trdd, key: str) -> list[str]:
 
 
 def _token_to_hex8(tok: str) -> str:
-    """Extract an 8hex from a cross-ref token: `TRDD-<8hex>`, bare 8hex, or uuid."""
+    """Extract an id8 from a cross-ref token: `TRDD-<id8>`, bare id8, or uuid.
+    Case is preserved (not lowercased) — `_trdd_link` does the case-insensitive
+    lookup, and a v2 base36 id must not be silently lowercased."""
     tok = tok.strip()
-    m = _RE_TRDD_TOKEN.match(tok) or re.match(r"^TRDD-([0-9a-fA-F]{8})", tok)
+    m = _RE_TRDD_TOKEN.match(tok) or re.match(r"^TRDD-([0-9A-Za-z]{8})", tok)
     if m:
-        return m.group(1).lower()
-    m = re.match(r"^([0-9a-fA-F]{8})(?![0-9a-fA-F])", tok)
+        return m.group(1)
+    m = re.match(r"^([0-9A-Za-z]{8})(?![0-9A-Za-z])", tok)
     if m:
-        return m.group(1).lower()
+        return m.group(1)
     return ""
 
 
-def render_trdd_page(t: Trdd, hex_set: set[str], have_prrd: bool,
+def render_trdd_page(t: Trdd, known_ids: dict[str, str], have_prrd: bool,
                      mem_names: set[str] | None = None) -> str:
     """One `<section data-ve-doc="trdd/<8hex>">` page: card + xrefs + body."""
     title = f"TRDD-{t.hex8} — {t.title}" if t.hex8 else t.title
     card = _render_card(t)
-    xrefs = _render_xrefs(t, hex_set, have_prrd)
+    xrefs = _render_xrefs(t, known_ids, have_prrd)
     body_html = markdown_to_html(t.body, heading_offset=1)
-    body_html = _wire_links_outside_code(body_html, hex_set, have_prrd, mem_names)
+    body_html = _wire_links_outside_code(body_html, known_ids, have_prrd, mem_names)
     return (
         '<section data-ve-doc="trdd/{}" data-doc-title="{}">\n'
         "<h1>{}</h1>\n{}{}{}\n</section>".format(t.hex8, _esc(title), _esc(title),
@@ -775,7 +799,7 @@ def render_trdd_page(t: Trdd, hex_set: set[str], have_prrd: bool,
     )
 
 
-def render_prrd_page(prrd_md: str, hex_set: set[str],
+def render_prrd_page(prrd_md: str, known_ids: dict[str, str],
                      mem_names: set[str] | None = None) -> str:
     """Render `design/requirements/PRRD.md`.
 
@@ -790,7 +814,7 @@ def render_prrd_page(prrd_md: str, hex_set: set[str],
     def flush_buf() -> None:
         if buf:
             frag = markdown_to_html("\n".join(buf), heading_offset=1)
-            frag = _wire_links_outside_code(frag, hex_set, True, mem_names)
+            frag = _wire_links_outside_code(frag, known_ids, True, mem_names)
             out.append(frag)
             buf.clear()
 
@@ -800,7 +824,7 @@ def render_prrd_page(prrd_md: str, hex_set: set[str],
             flush_buf()
             letter, number, version, text = rm.group(1), rm.group(2), rm.group(3), rm.group(4)
             body = _wire_links_outside_code(
-                _render_inline(_esc(text.strip())), hex_set, True, mem_names)
+                _render_inline(_esc(text.strip())), known_ids, True, mem_names)
             out.append(
                 f'<div class="prrd-rule" id="G{number}">'
                 f'<span class="prrd-rule-id">{_esc(letter)}{_esc(number)}.{_esc(version)}</span> {body}</div>')
@@ -858,7 +882,7 @@ def render_kanban_page(trdds: list[Trdd]) -> str:
     )
 
 
-def render_mem_page(note: MemNote, hex_set: set[str], have_prrd: bool,
+def render_mem_page(note: MemNote, known_ids: dict[str, str], have_prrd: bool,
                     mem_names: set[str]) -> str:
     """One `<section data-ve-doc="mem/<name>">` page (Phase 3): a frontmatter card
     (name / tier / type / description) + the body markdown, with `[[…]]` wikilinks
@@ -874,7 +898,7 @@ def render_mem_page(note: MemNote, hex_set: set[str], have_prrd: bool,
             f"</caption><tbody>{card_rows}</tbody></table>") if card_rows else ""
 
     body_html = markdown_to_html(note.body, heading_offset=1)
-    body_html = _wire_links_outside_code(body_html, hex_set, have_prrd, mem_names)
+    body_html = _wire_links_outside_code(body_html, known_ids, have_prrd, mem_names)
     return (
         '<section data-ve-doc="mem/{}" data-doc-title="{}">\n'
         "<h1>{}</h1>\n{}\n{}\n</section>".format(_esc(note.name), _esc(title), _esc(title), card,
@@ -1151,7 +1175,9 @@ def main(argv: list[str] | None = None) -> int:
     if not trdds and not mem_notes and not have_prrd:
         raise SystemExit("FATAL: no TRDD/mem pages produced and no PRRD — nothing to build.")
 
-    hex_set = {t.hex8 for t in trdds}
+    # UPPER(id8) -> canonical id8, so lookups are case-insensitive but the emitted
+    # href/page-route always uses each TRDD's own canonical casing.
+    known_ids = {t.hex8.upper(): t.hex8 for t in trdds if t.hex8}
     # `None` keeps Phase-2 bold rendering of `[[…]]`; a real set routes them to mem.
     mem_names: set[str] | None = {n.name for n in mem_notes} if mem_notes else None
     have_kanban = bool(trdds)  # the board page exists whenever ≥1 TRDD was built
@@ -1165,12 +1191,12 @@ def main(argv: list[str] | None = None) -> int:
     if have_kanban:
         pages.append(render_kanban_page(trdds))
     if have_prrd:
-        pages.append(render_prrd_page(prrd_md, hex_set, mem_names))
+        pages.append(render_prrd_page(prrd_md, known_ids, mem_names))
     for t in trdds:
-        pages.append(render_trdd_page(t, hex_set, have_prrd, mem_names))
+        pages.append(render_trdd_page(t, known_ids, have_prrd, mem_names))
     for note in mem_notes:
         # mem_names is non-None here (mem_notes is non-empty)
-        pages.append(render_mem_page(note, hex_set, have_prrd, mem_names or set()))
+        pages.append(render_mem_page(note, known_ids, have_prrd, mem_names or set()))
 
     out_html = build_html("\n\n".join(pages), shell_js, args.title)
 

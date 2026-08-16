@@ -59,22 +59,37 @@ def _expect(cond: bool, msg: str) -> None:
 
 # ── expected inventory from the fixture sources ───────────────────────────────
 
+def _id8(raw: str) -> str:
+    """Mirrors `amvcp-docwiki-build.py::_extract_id8`: a bare 8-char id8 (v2 base36,
+    case preserved) or the first-8-hex of a v1 uuid (lowercased). '' if neither."""
+    raw = raw.strip().strip("`")
+    if re.match(r"^[0-9A-Za-z]{8}$", raw):
+        return raw
+    m = re.match(r"^([0-9a-fA-F]{8})-[0-9a-fA-F]{4}-", raw)
+    return m.group(1).lower() if m else ""
+
+
 def _expected_trdd_hex8s() -> set[str]:
-    """The 8hex id every fixture TRDD should produce — derived the same three ways
-    the build script does (frontmatter trdd-id, v1 bold line, or filename token)."""
+    """The id8 every fixture TRDD should produce — derived the same three ways the
+    build script does (frontmatter trdd-id, v1 bold line, or filename token)."""
     out: set[str] = set()
     for path in sorted(TASKS.glob("TRDD-*.md")):
         text = path.read_text(encoding="utf-8")
-        m = re.search(r"^trdd-id:\s*([0-9a-fA-F]{8})", text, re.MULTILINE)
-        if not m:
-            m = re.search(r"\*\*TRDD ID:\*\*\s*`?([0-9a-fA-F]{8})", text)
-        if not m:
+        h = ""
+        m = re.search(r"^trdd-id:\s*(\S+)", text, re.MULTILINE)
+        if m:
+            h = _id8(m.group(1))
+        if not h:
+            m = re.search(r"\*\*TRDD ID:\*\*\s*`?(\S+?)`?\s*$", text, re.MULTILINE)
+            h = _id8(m.group(1)) if m else ""
+        if not h:
             m = re.match(r"^TRDD-([0-9a-fA-F]{8})-[0-9a-fA-F]{4}-", path.name)
-        if not m:
-            m = re.search(r"-([0-9a-fA-F]{8})-", path.name)
-        _expect(m is not None, f"fixture TRDD has no derivable 8hex id: {path.name}")
-        assert m is not None  # for type-checkers; _expect already raised otherwise
-        out.add(m.group(1).lower())
+            h = m.group(1).lower() if m else ""
+        if not h:
+            m = re.search(r"-([0-9A-Za-z]{8})-", path.name)
+            h = m.group(1) if m else ""
+        _expect(h != "", f"fixture TRDD has no derivable id8: {path.name}")
+        out.add(h)
     return out
 
 
@@ -173,6 +188,29 @@ def assert_no_dangling_links(html: str) -> None:
     )
 
 
+def assert_base36_tokenizer(html: str) -> None:
+    """The v2 base36 id (TRDD-9GUATJL7, fixture `delta.md`) links in both TRDD- and
+    #-prefixed form, case-insensitively, to its own `trdd/9GUATJL7` page (TRDD-103a53e0):
+    the tokenizer must not be hex-only, and a matched id must still resolve to the
+    canonical-cased route. A plain 8-letter lowercase word after `#` (`#feedback`,
+    same shape a naive alnum widen would treat as an id) must NOT become an `<a>`."""
+    body = _wiki_body(html)
+    _expect(
+        "trdd/9GUATJL7" in _routes_in(html),
+        "no trdd/9GUATJL7 page built for the base36-id fixture",
+    )
+    for needle in (
+        '<a href="#/trdd/9GUATJL7" data-ve-navigate>TRDD-9GUATJL7</a>',
+        '<a href="#/trdd/9GUATJL7" data-ve-navigate>TRDD-9guatjl7</a>',
+        '<a href="#/trdd/9GUATJL7" data-ve-navigate>#9GUATJL7</a>',
+    ):
+        _expect(needle in body, f"expected link not found: {needle}")
+    _expect(
+        "#feedback</a>" not in body and 'data-ve-navigate>#feedback' not in body,
+        "an ordinary 8-letter word after '#' became a bogus link",
+    )
+
+
 def assert_scripts_compile() -> None:
     for script in (BUILD, SEARCH):
         _expect(script.exists(), f"script not found: {script}")
@@ -217,6 +255,9 @@ def main() -> int:
 
         assert_no_dangling_links(html)
         checks.append(("zero dangling in-set links (trdd + mem + rule)", "PASS"))
+
+        assert_base36_tokenizer(html)
+        checks.append(("v2 base36 id links (TRDD-/# forms, case-insensitive; no #feedback bleed)", "PASS"))
 
         assert_scripts_compile()
         checks.append(("py_compile build + search scripts", "PASS"))

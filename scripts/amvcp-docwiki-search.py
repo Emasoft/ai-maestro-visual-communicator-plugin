@@ -34,10 +34,14 @@ import re
 import sys
 from pathlib import Path
 
-# Same id shapes the build script recognises (keep in sync with amvcp-docwiki-build.py).
+# Same id shapes the build script recognises (keep in sync with amvcp-docwiki-build.py):
+# v1 legacy ids are lowercase hex (first 8 of a uuid); v2 canonical ids are 8-char
+# base36, case preserved (e.g. `9GUATJL7`) — `[0-9A-Za-z]` covers both.
 _RE_TRDD_FULLUUID = re.compile(r"^TRDD-([0-9a-fA-F]{8})-[0-9a-fA-F]{4}-")
-_RE_TRDD_TS = re.compile(r"-([0-9a-fA-F]{8})-")
-_RE_FM_TRDD_ID = re.compile(r"^trdd-id:\s*([0-9a-fA-F]{8})", re.MULTILINE)
+_RE_TRDD_TS = re.compile(r"-([0-9A-Za-z]{8})-")
+_RE_FM_TRDD_ID = re.compile(r"^trdd-id:\s*(\S+)", re.MULTILINE)
+_RE_FM_ID8_BARE = re.compile(r"^[0-9A-Za-z]{8}$")
+_RE_FM_ID8_UUID = re.compile(r"^([0-9a-fA-F]{8})-[0-9a-fA-F]{4}-")
 
 
 def _esc(s: str) -> str:
@@ -45,12 +49,22 @@ def _esc(s: str) -> str:
 
 
 def _trdd_hex8(path: Path) -> str:
-    """8hex for a TRDD path: prefer frontmatter `trdd-id:`, else the filename token."""
+    """id8 for a TRDD path: prefer frontmatter `trdd-id:`, else the filename token.
+
+    A bare 8-char `trdd-id:` (v2 base36, e.g. `9GUATJL7`) is returned AS-IS — it is
+    the canonical route the build script used, and must not be lowercased or it
+    would no longer match the `trdd/<id8>` route the build emitted. A full v1 uuid
+    is reduced to its first 8 hex chars, lowercased (unchanged legacy behavior)."""
     try:
         head = path.read_text(encoding="utf-8")[:600]
         m = _RE_FM_TRDD_ID.search(head)
         if m:
-            return m.group(1).lower()
+            val = m.group(1)
+            if _RE_FM_ID8_BARE.match(val):
+                return val
+            um = _RE_FM_ID8_UUID.match(val)
+            if um:
+                return um.group(1).lower()
     except OSError:
         pass
     name = path.name
@@ -59,7 +73,7 @@ def _trdd_hex8(path: Path) -> str:
         return m.group(1).lower()
     m = _RE_TRDD_TS.search(name)
     if m:
-        return m.group(1).lower()
+        return m.group(1)
     return ""
 
 
