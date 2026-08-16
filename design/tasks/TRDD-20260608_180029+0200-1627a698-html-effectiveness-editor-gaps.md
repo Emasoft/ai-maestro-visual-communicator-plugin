@@ -1,9 +1,9 @@
 ---
 trdd-id: 1627a698-c822-4729-9d1a-1b3296327623
 title: Build the 6 remaining html-effectiveness gaps — 5 interactive-editor skills + approaches-comparison
-column: dev
+column: todo
 created: 2026-06-08T18:00:29+0200
-updated: 2026-06-18T16:37:19+0200
+updated: 2026-08-16T00:55:00+0200
 current-owner: amvcp-dev
 assignee: null
 priority: 5

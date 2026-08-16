@@ -2,8 +2,10 @@
 trdd-id: 503fb3af-3363-4683-b658-06771f332356
 title: amvcp audit — deferred feature-level gaps (doc claims with no implementation)
 status: in-progress
+column: backburner
+review-after: 2026-11-16
 created: 2026-05-24T23:29:33+0200
-updated: 2026-06-10T12:19:00+0200
+updated: 2026-08-16T00:55:00+0200
 ---
 
 # TRDD-503fb3af — amvcp audit: deferred feature-level gaps
