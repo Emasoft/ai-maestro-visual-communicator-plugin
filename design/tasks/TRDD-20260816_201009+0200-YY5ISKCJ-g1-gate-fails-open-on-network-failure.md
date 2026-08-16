@@ -59,6 +59,32 @@ PASS. Unevaluated risk: a first-ever publish to a brand-new empty remote must st
 to pass — confirm which exit code `ls-remote` gives on a repo that exists but has zero tags
 before implementing.
 
+### Blocking question — ANSWERED 2026-08-16, the risk does not materialise
+
+Measured on a scratch bare repo by the ai-maestro hub session, then reproduced
+INDEPENDENTLY here (the hub's unreachable case was a local path; the reproduction below
+used a real DNS failure over https, which the hub explicitly had not run):
+
+| case | exit | stdout |
+|---|---|---|
+| A — remote EXISTS, zero tags | `0` | empty |
+| B — control, same remote WITH `v1.0.0` | `0` | `<sha>\trefs/tags/v1.0.0` |
+| C — unresolvable host (network failure) | `128` | `fatal: … Could not resolve host` |
+
+Case B is the positive control: it proves the probe can discriminate, so A's empty result
+is a real zero and not a broken instrument.
+
+**Therefore `returncode != 0` NEVER fires for a legitimately tag-less remote.** A
+first-ever publish exits 0 with empty stdout, reaches the parse loop, and yields no
+versions — unaffected by the fix. The two cases are ALREADY distinguishable at the
+syscall; the current code discards that distinction by collapsing both into one `None`.
+
+So the fix is small and safe: reserve `None` for READ SUCCEEDED + ZERO TAGS → PASS, and
+give READ FAILED a distinct value that G1 treats as FAIL CLOSED. `git_with_retry` then
+does what its docstring already claims.
+
+Still not implemented — the freeze is the mandate's to lift, not this card's.
+
 ## Not to be fixed in this phase
 
 Discovery is frozen under the fleet mandate TRDD-BRRJK57P (`mandate: true`,
