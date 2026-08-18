@@ -3,7 +3,7 @@ trdd-id: LSHTWMTU
 title: Resolver-tag backfill can never pass gate G1 because it runs after the release push
 column: backburner
 created: 2026-08-16T16:20:38+0200
-updated: 2026-08-16T16:20:38+0200
+updated: 2026-08-18T21:55:00+0200
 current-owner: ai-maestro-visual-communicator-plugin
 task-type: infra
 priority: 6
@@ -65,6 +65,15 @@ weakened, no guard touched. Unevaluated risks: it inverts the function's own
 design comment ("a backfill of historical refs must not be able to fail a
 release that is otherwise complete"), and the new version's own twin (minted
 by `_release_tags()`, pushed atomically) must not be double-pushed.
+
+## Related
+
+- `TRDD-YY5ISKCJ` (G1 fails open on network failure — FIXED in Phase 2, 2026-08-18)
+  shares the same root shape: both collapse distinguishable states into one value
+  (before-push vs after-push here; no-tags vs no-network there). Cross-linked per the
+  Phase-2 blindspot note. Note the G1 fix changed nothing about THIS card's ordering
+  problem — an unreadable remote now fails G1 closed, but a post-push backfill still
+  sees remote == local and fails for the structural reason above.
 
 ## Trigger to promote off backburner
 

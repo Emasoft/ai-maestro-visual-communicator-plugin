@@ -1,9 +1,9 @@
 ---
 trdd-id: YY5ISKCJ
 title: Gate G1 fails open on network failure and can let a duplicate-version publish through
-column: todo
+column: complete
 created: 2026-08-16T20:10:09+0200
-updated: 2026-08-16T20:10:09+0200
+updated: 2026-08-18T21:55:00+0200
 current-owner: ai-maestro-visual-communicator-plugin
 task-type: bugfix
 priority: 1
@@ -83,12 +83,28 @@ So the fix is small and safe: reserve `None` for READ SUCCEEDED + ZERO TAGS → 
 give READ FAILED a distinct value that G1 treats as FAIL CLOSED. `git_with_retry` then
 does what its docstring already claims.
 
-Still not implemented — the freeze is the mandate's to lift, not this card's.
+## IMPLEMENTED — Phase 2, 2026-08-18
 
-## Not to be fixed in this phase
+Phase 2 authorized: the hub card TRDD-BRRJK57P STATE block records the hold as
+SUPERSEDED 2026-08-18T19:53:29+0200 (USER direct delegation, quoted in its Approval
+log), verified first-hand in `~/ai-maestro`; the USER additionally granted "go on,
+permission granted" in this session.
 
-Discovery is frozen under the fleet mandate TRDD-BRRJK57P (`mandate: true`,
-`mandated-by: user`); remediation is Phase 2. This card IS the deliverable.
+Fix shipped exactly per the measured shape: `_read_remote_latest_tag()` now raises
+`RemoteTagReadError` on a non-zero `ls-remote` exit (read FAILED) instead of returning
+`None`; `None` is reserved for read-succeeded-zero-tags, so a first-ever publish still
+passes. `_gate_version_bump()` catches the error and FAILS CLOSED with an explicit log.
+
+Proven by `tests/scripts/test-publish-gates.py` — three real-git cases mirroring the
+measurement table (no mocks: real bare-repo origin for A/B, real DNS failure for C;
+the only test adaptation is `max_attempts=1` on the real retry wrapper so case C does
+not spin 240s). Full suite 457/457 green after the change.
+
+## Related
+
+- `TRDD-LSHTWMTU` (resolver-tag backfill blocked by G1 ordering) shares the same root
+  shape: both collapse distinguishable states into one value (no-tags vs no-network
+  here; before-push vs after-push there). Cross-linked per the Phase-2 blindspot note.
 
 ## Provenance
 

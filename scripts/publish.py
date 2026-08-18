@@ -161,6 +161,23 @@ def _bump(current: tuple[int, int, int], kind: str) -> str:
     sys.exit(f"unknown bump kind: {kind!r}")
 
 
+class RemoteTagReadError(RuntimeError):
+    """`git ls-remote --tags origin` failed through every retry.
+
+    Deliberately distinct from the `None` return: `None` means "read
+    SUCCEEDED, zero tags" (a first-ever publish — G1 passes), while this
+    exception means "the remote could not be READ" and G1 must fail CLOSED.
+    Collapsing both into `None` is exactly the fail-open bug of
+    TRDD-YY5ISKCJ: on a persistent outage the retries exhaust and a
+    duplicate-version push slips through the gate whose docstring says it
+    exists to prevent that. Measured (hub + local, 2026-08-16): a tagless
+    remote gives exit 0 + empty stdout; a transport failure (local path or
+    DNS) gives exit 128 — so the two cases are already distinguishable at
+    the syscall and `returncode != 0` never fires for a legitimate first
+    publish.
+    """
+
+
 def _read_remote_latest_tag() -> str | None:
     """Return the highest semver tag on `origin`, or None if no tags exist.
 
@@ -169,7 +186,9 @@ def _read_remote_latest_tag() -> str | None:
 
     Wrapped with git_with_retry — a transient network glitch shouldn't make
     G1 falsely think there's no remote tag (which would let a duplicate-
-    version push slip through).
+    version push slip through). Raises RemoteTagReadError when the retries
+    exhaust without a successful read (TRDD-YY5ISKCJ: fail closed, never
+    open).
     """
     print("$ git ls-remote --tags origin")
     result = git_with_retry(
@@ -179,8 +198,10 @@ def _read_remote_latest_tag() -> str | None:
         capture_output=True,
     )
     if result.returncode != 0:
-        # Network failure / no remote — caller treats as "no remote tag known".
-        return None
+        # Read FAILED (network/remote error) — NOT the same as "no tags".
+        # Raise so G1 fails closed instead of passing on an unread remote.
+        detail = (result.stderr or "").strip() or f"exit {result.returncode}"
+        raise RemoteTagReadError(detail)
     versions: list[tuple[int, int, int]] = []
     for line in result.stdout.splitlines():
         # Format: "<sha>\trefs/tags/<tag>" or "<sha>\trefs/tags/<tag>^{}"
@@ -256,7 +277,15 @@ def _gate_version_bump() -> bool:
     """G1: local plugin.json version MUST differ from latest remote tag."""
     _log("G1: version-bump check (local plugin.json vs latest remote tag)")
     local = ".".join(str(p) for p in _read_plugin_version())
-    remote = _read_remote_latest_tag()
+    try:
+        remote = _read_remote_latest_tag()
+    except RemoteTagReadError as exc:
+        # FAIL CLOSED (TRDD-YY5ISKCJ): an unreadable remote must never be
+        # treated as "no remote tag yet" — that is the duplicate-version
+        # fail-open this gate exists to prevent.
+        _log(f"  FAIL (closed): could not read remote tags — {exc}")
+        _log("  Refusing to pass G1 on an unreadable remote; retry when origin is reachable.")
+        return False
     if remote is None:
         _log(f"  local={local}  remote=<none>  PASS (no remote tag yet)")
         return True
