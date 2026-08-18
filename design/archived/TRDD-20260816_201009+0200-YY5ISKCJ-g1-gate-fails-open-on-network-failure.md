@@ -1,9 +1,9 @@
 ---
 trdd-id: YY5ISKCJ
 title: Gate G1 fails open on network failure and can let a duplicate-version publish through
-column: complete
+column: published
 created: 2026-08-16T20:10:09+0200
-updated: 2026-08-18T21:55:00+0200
+updated: 2026-08-18T22:20:00+0200
 current-owner: ai-maestro-visual-communicator-plugin
 task-type: bugfix
 priority: 1
@@ -11,7 +11,7 @@ severity: HIGH
 effort: S
 release-via: publish
 labels: [release, publish-pipeline, gate, fail-open]
-implementation-commits: []
+implementation-commits: [807fbbc, c1571ee]
 impacts: [public-api]
 ---
 
@@ -112,6 +112,14 @@ Found by amvcp's axis-4 self-audit worker; re-verified at `publish.py:164-183` a
 `:255-268` by the amvcp session; re-verified independently at all three line ranges by the
 ai-maestro hub session, which also supplied the 1-of-22 measurement. Report:
 `reports/plugin-self-audit/20260816_195757+0200-axis4-bugs-and-conflicts.md` (F1).
+
+## Approval log
+
+- 2026-08-18T22:20:00+0200 — PUBLISHED in v1.5.1 (`chore(release): v1.5.1`, tag `v1.5.1`,
+  GitHub release live, main == origin/main verified). Fix `807fbbc`; `c1571ee` cleared the
+  one CPV NIT (docwiki fixture MD018) that blocked the first publish attempt. Executed
+  under fleet mandate TRDD-BRRJK57P Phase 2 (USER delegation recorded in the hub card)
+  plus the USER's direct "go on, permission granted" in this session.
 
 ## Notes and lessons learned
 
