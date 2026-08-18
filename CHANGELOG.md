@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.5.1] — 2026-08-18
+
+### Bug Fixes
+
+- Tokenize base36 TRDD ids, not just hex (TRDD-103a53e0)
+- G1 fails CLOSED on unreadable remote (TRDD-YY5ISKCJ)
+- Reflow docwiki fixture so hash-form citation is not at column 1
+
+### Documentation
+
+- Close TRDD-9GUATJL7 — v1.5.0 published (column: published)
+- Make the board state honest — 503fb3af parked, 1627a698 unclaimed
+- Add TRDD-LSHTWMTU — resolver-tag backfill blocked by G1 ordering
+- Add TRDD-YY5ISKCJ — G1 version gate fails open on network failure
+- TRDD-YY5ISKCJ — answer the blocking question, fix is safe
 ## [1.5.0] — 2026-08-15
 
 ### Bug Fixes
