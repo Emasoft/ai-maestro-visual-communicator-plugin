@@ -3,7 +3,10 @@
 **TRDD ID:** `1dcd0bd7-43b1-4878-8819-a170f5da8cdf`
 **Filename:** `design/tasks/TRDD-1dcd0bd7-43b1-4878-8819-a170f5da8cdf-audit-fixes.md`
 **Tracked in:** this repo (design/tasks/ is git-tracked)
-**Status:** In progress (2026-05-09)
+**Status:** COMPLETED — every Phase A-F deliverable verified present in the tree on
+2026-08-20 (repo at v1.5.1); archived. The "In progress" below was written 2026-05-09 and
+nothing updated it for three months while the work actually landed. Per-card evidence is in
+the archiving commit.
 
 ## 1. Original user request (verbatim)
 

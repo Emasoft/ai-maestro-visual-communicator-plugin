@@ -3,7 +3,12 @@
 **TRDD ID:** `7a2dab03-9350-458d-b4c2-7dad165018b9`
 **Filename:** `design/tasks/TRDD-7a2dab03-9350-458d-b4c2-7dad165018b9-per-element-decision.md`
 **Tracked in:** this repo (design/tasks/ is git-tracked)
-**Status:** Done (2026-05-08) — phases 2-7 implemented; phase 8 owned by `publish.py`
+**Status:** COMPLETED — Done (2026-05-08) — phases 2-7 implemented; phase 8 owned by
+`publish.py`. Re-verified on 2026-08-20 that the code is live and not reverted
+(`wireDecisionPills()` at `scripts/amvcp-runtime.js:8359`, called from `init()` at `:12079`)
+and archived. NOTE: TRDD-3d1570ab's References section calls this card "superseded" — it is
+not; the two features coexist on different surfaces (this = comment-thread findings,
+3d1570ab's mini-switch = report-visualizer atoms).
 **Depends on:** TRDD-eff1aa87 (interactive agent reports — v1 inline threads, v2 modal threads)
 
 ## 1. Original user request (verbatim)

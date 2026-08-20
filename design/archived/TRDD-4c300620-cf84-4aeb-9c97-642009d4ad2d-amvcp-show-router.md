@@ -3,7 +3,9 @@
 **TRDD ID:** `4c300620-cf84-4aeb-9c97-642009d4ad2d`
 **Filename:** `design/tasks/TRDD-4c300620-cf84-4aeb-9c97-642009d4ad2d-amvcp-show-router.md`
 **Tracked in:** this repo (`design/tasks/` is git-tracked)
-**Status:** Done (2026-05-18 — all 6 fixes + amvcp-show router committed; tests 360/360)
+**Status:** COMPLETED — Done (2026-05-18 — all 6 fixes + amvcp-show router committed; tests
+360/360); re-verified on 2026-08-20 (commits d586446 + 2bd1f32, `skills/amvcp-show/scripts/
+dispatch.py` on disk) and archived.
 **Created:** 2026-05-18
 **Owner:** Emasoft
 

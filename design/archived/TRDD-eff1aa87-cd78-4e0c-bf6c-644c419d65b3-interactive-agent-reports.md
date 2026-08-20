@@ -3,7 +3,11 @@
 **TRDD ID:** `eff1aa87-cd78-4e0c-bf6c-644c419d65b3`
 **Filename:** `design/tasks/TRDD-eff1aa87-cd78-4e0c-bf6c-644c419d65b3-interactive-agent-reports.md`
 **Tracked in:** this repo (design/tasks/ is git-tracked)
-**Status:** v1 shipped (2026-05-06); v2 implementation in progress (2026-05-06)
+**Status:** COMPLETED — v1 AND v2 both shipped; verified on 2026-08-20 and archived. v2 landed
+in commit e4e5fc2 (modal comment threads with live in-place reply), its transport endpoints are
+live (`scripts/amvcp-select.py:690` `/__ve-comment`, `:542` `/__ve-reply/`), and the two slash
+commands v1 deferred to v2 both exist (`commands/amvcp-interactive-report.md`,
+`commands/amvcp-respond-to-comment.md`).
 **Created:** 2026-05-06
 **Plugin:** visual-explainer
 

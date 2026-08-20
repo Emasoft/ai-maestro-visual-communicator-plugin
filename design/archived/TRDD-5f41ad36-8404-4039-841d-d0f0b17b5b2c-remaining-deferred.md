@@ -3,7 +3,10 @@
 **TRDD ID:** `5f41ad36-8404-4039-841d-d0f0b17b5b2c`
 **Filename:** `design/tasks/TRDD-5f41ad36-8404-4039-841d-d0f0b17b5b2c-remaining-deferred.md`
 **Tracked in:** this repo (design/tasks/ is git-tracked)
-**Status:** In progress (2026-05-09)
+**Status:** COMPLETED — every Phase A-E item verified present in the tree on 2026-08-20
+(repo at v1.5.1), most carrying `(TRDD-5f41ad36)` comment tags at the change site; archived.
+The "In progress" below was written 2026-05-09 and never updated. Per-card evidence is in the
+archiving commit.
 
 ## 1. User direction
 

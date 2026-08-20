@@ -4,7 +4,12 @@
 **Filename:** `design/tasks/TRDD-9616579c-6451-426c-934a-0aa879a2b27e-phase25-contract-architecture-mining.md`
 **Tracked in:** this repo (`design/tasks/` is git-tracked)
 **Sibling of:** TRDD-352ef46a-b7a9-4443-8eed-d57563894bfd-mine-visual-skills-collection.md (the parent mining + Phase 0/1/2 plan)
-**Status:** Phase 2.5 in progress (8 parallel opus agents). Phase 3 not started. Mining-extension not started.
+**Status:** COMPLETED — all three tracks verified landed on 2026-08-20 and archived. Phase 2.5
+= commit ca4b0e2 (unified selection/comment/theme contract across all 13 modules); Phase 3 =
+commit 28755c8 (13 categories × 30+ technique references); req #10 and #5 both live in the
+runtime. Check F2 (13 category JS libs) PASSES, but note the trap: 12 sit at
+`scripts/amvcp-<cat>.js` and the 13th is at `skills/amvcp-typography/scripts/
+amvcp-typography.js` — a `scripts/`-scoped check reports a false 12/13.
 
 ## Why this TRDD exists
 

@@ -3,7 +3,11 @@
 **TRDD ID:** `7a980994-01f0-4e32-90a0-18dd261dcc09`
 **Filename:** `design/tasks/TRDD-7a980994-01f0-4e32-90a0-18dd261dcc09-multi-select-overhaul.md`
 **Tracked in:** this repo (design/tasks/ is git-tracked)
-**Status:** Phases 1-7 shipped (verified empirically through 2026-05-06)
+**Status:** COMPLETED — all 7 phases re-verified against the tree on 2026-08-20 and archived.
+Phases 2-4 (§3.4 multi-click depth ladder, §3.5 drag-deselect) are implemented despite using
+none of the symbol names the spec sketched — see `scripts/amvcp-runtime.js:4973` ("Phase 2 —
+multi-click text selection"), `:4995` (§3.4 never-deselect rule), `:5015` (the §3.4 European
+locale list verbatim), `:5863` (§3.5 "the ONLY path that can DESELECT a text entry").
 **Created:** 2026-05-04
 **Plugin:** visual-explainer
 

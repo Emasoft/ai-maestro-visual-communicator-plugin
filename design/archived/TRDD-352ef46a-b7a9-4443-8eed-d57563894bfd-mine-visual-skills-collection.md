@@ -4,7 +4,12 @@
 **Filename:** `design/tasks/TRDD-352ef46a-b7a9-4443-8eed-d57563894bfd-mine-visual-skills-collection.md`
 **Tracked in:** this repo (design/tasks/ is git-tracked)
 
-**Status:** Phase 0 complete (238 projects mined → 922 ideas → 138-idea
+**Status:** SUPERSEDED by TRDD-9616579c — archived 2026-08-20. Phases 0 and 1 completed
+(`scripts/amvcp-designmd.js` shipped); the Phase-2 "13 focused skills" plan was then replaced
+by a far larger architecture — commit 28755c8 (13 categories × 30+ technique references) grew
+the corpus to 78 skill dirs. The plan below describes a shape the project no longer has.
+
+**Original (May 2026):** Phase 0 complete (238 projects mined → 922 ideas → 138-idea
 Phase-2 backlog). **Phase 1 (DESIGN.md realtime engine) COMPLETE &
 verified** — 1a (parser `amvcp-designmd.js`) + 1b (runtime wiring,
 hot-swap loader, schema-driven style-controller pad) + 1c (foundation

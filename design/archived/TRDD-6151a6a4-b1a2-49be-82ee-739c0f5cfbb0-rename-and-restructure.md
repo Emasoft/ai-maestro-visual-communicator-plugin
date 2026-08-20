@@ -3,7 +3,8 @@
 **TRDD ID:** `6151a6a4-b1a2-49be-82ee-739c0f5cfbb0`
 **Filename:** `design/tasks/TRDD-6151a6a4-b1a2-49be-82ee-739c0f5cfbb0-rename-and-restructure.md`
 **Tracked in:** this repo (design/tasks/ is git-tracked)
-**Status:** Done (2026-05-09 — shipped in v1.1.6)
+**Status:** COMPLETED — Done (2026-05-09 — shipped in v1.1.6); re-verified against the tree
+on 2026-08-20 (plugin.json name correct, zero `ve-*` source files remain) and archived.
 
 ## 1. Original user request (verbatim)
 

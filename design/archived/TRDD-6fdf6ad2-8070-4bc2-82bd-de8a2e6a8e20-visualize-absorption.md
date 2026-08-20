@@ -3,7 +3,10 @@
 **TRDD ID:** `6fdf6ad2-8070-4bc2-82bd-de8a2e6a8e20`
 **Filename:** `design/tasks/TRDD-6fdf6ad2-8070-4bc2-82bd-de8a2e6a8e20-visualize-absorption.md`
 **Tracked in:** this repo (`design/tasks/` is git-tracked)
-**Status:** In progress (Tier 0 starting)
+**Status:** COMPLETED — all 7 planned commits (Tier 0, 1, 1B, 2/R40, 3, 4, 5) verified landed
+on 2026-08-20 and archived; R40 became a permanent debug rule
+(`skills/amvcp-self-debug-rules/references/pod-and-ux-rules-r26-r41.md:459`). The "Tier 0
+starting" below was written before any of it and never updated.
 **Created:** 2026-05-17
 **Owner:** Emasoft
 

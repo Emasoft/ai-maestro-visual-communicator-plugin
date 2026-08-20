@@ -4,7 +4,11 @@
 **Filename:** `design/tasks/TRDD-5c230516-d2f4-48b2-95a4-17106e10c356-skill-multisplit.md`
 **Tracked in:** this repo (design/tasks/ is git-tracked)
 
-**Status:** In progress (Phase A in flight; Phase B + C deferred to subsequent sessions)
+**Status:** COMPLETED — shipped verbatim as v1.2.0 (commit 42062b3), re-verified on
+2026-08-20 and archived: all 10 named skill dirs plus all 8 shared plugin-root `references/`
+files are on disk. One deviation, deliberate and later: the coordinator SKILL.md now exceeds
+the card's ≤4K target because a subsequent Phase-3 restructure changed the size budget — that
+does not undo the split this card delivered.
 
 ## Plan content
 

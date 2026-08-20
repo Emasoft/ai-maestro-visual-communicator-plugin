@@ -3,7 +3,11 @@
 **TRDD ID:** `3d1570ab-36e8-49b3-aed4-8024b1c205a1`
 **Filename:** `design/tasks/TRDD-3d1570ab-36e8-49b3-aed4-8024b1c205a1-report-visualizer-v4.md`
 **Tracked in:** this repo (design/tasks/ is git-tracked)
-**Status:** Phase 1 + Phase 3 + Phase 4 + Phase 5 SHIPPED in v1.2.7 / v1.2.8.
+**Status:** COMPLETED — archived 2026-08-20. Phase 2 (the one this line deferred) landed in
+commit d3351b6 "per-element 3-state mini-switch (S/A/D)"; the marker is still live at
+`scripts/amvcp-runtime.js:1843`. The stale line below claimed only 1/3/4/5.
+
+**Original (May 2026):** Phase 1 + Phase 3 + Phase 4 + Phase 5 SHIPPED in v1.2.7 / v1.2.8.
 Phase 2 (per-element 3-state switch) DEFERRED to v4.1 — substantial
 refactor that mutates decision state schema (finding-keyed →
 element-keyed), the .summary.json wire contract, and the 5 existing
