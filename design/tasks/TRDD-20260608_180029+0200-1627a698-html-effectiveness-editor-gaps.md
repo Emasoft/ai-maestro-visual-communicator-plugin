@@ -1,9 +1,9 @@
 ---
 trdd-id: 1627a698-c822-4729-9d1a-1b3296327623
 title: Build the 6 remaining html-effectiveness gaps — 5 interactive-editor skills + approaches-comparison
-column: todo
+column: ai_review
 created: 2026-06-08T18:00:29+0200
-updated: 2026-08-16T00:55:00+0200
+updated: 2026-08-20T17:21:09+0200
 current-owner: amvcp-dev
 assignee: null
 priority: 5
@@ -24,7 +24,8 @@ review-requirements: [human-review]
 runtime-targets: [macos]
 impacts: []
 attempts: 1
-last-test-result: not-run
+last-test-result: pass
+last-test-at: 2026-08-20T17:21:09+0200
 implementation-commits: [c886a6a, c19c1b1]
 ---
 
@@ -33,19 +34,29 @@ implementation-commits: [c886a6a, c19c1b1]
 **Filename:** `design/tasks/TRDD-20260608_180029+0200-1627a698-html-effectiveness-editor-gaps.md`
 **Tracked in:** this repo (`design/tasks/` is git-tracked)
 
-## ⏵ STATE — READ THIS FIRST ON RESUME (authoritative; supersedes the body) — 2026-06-18
+## ⏵ STATE — READ THIS FIRST ON RESUME (authoritative; supersedes the body) — 2026-08-20
 
-- **Implementation LANDED** (was wrongly parked at `backburner`): the 6 gap skills +
-  approaches-comparison were built in `c886a6a` and wired into the umbrella in
-  `c19c1b1` (both on branch `fix/ed5e8cc2-chartjs-resize-wedge`, reachable from current HEAD).
-- **NOT verified, NOT shipped** — column is `dev`, not `complete`: `last-test-result: not-run`
-  (the `dev-browser-headless` test-requirement has NOT run), `human-review` not done, and
-  `release-via: publish` is gated behind the SAME wall as the rest of amvcp (the CPV `--strict`
-  gate + owner merge+publish — see [[project_amvcp_cpv_gate_blocked]] / `project_no_direct_push`).
-- **NEXT ACTION** to advance: dev-browser-headless screenshot-test the 6 new skills (light + dark)
-  → on green, `dev → testing → ai_review → human_review`. Do NOT mark `complete` until tests +
-  review actually pass. This is a priority-5 / severity-LOW backlog feature — verify+ship on the
-  owner's go, or keep as accurate backlog (it is no longer mis-filed as `backburner`).
+- **Implementation LANDED**: the 6 gap skills + approaches-comparison were built in `c886a6a`
+  and wired into the umbrella in `c19c1b1`. Both re-confirmed 2026-08-20 as ancestors of HEAD,
+  with all 6 deliverables present on disk (5 skill dirs each with `SKILL.md` + a
+  `scripts/amvcp-*.js` lib, plus
+  `skills/amvcp-tables-matrix-compare/references/approaches-comparison.md` for item 01).
+- **TESTS NOW GREEN** (2026-08-20): `tests/run-all-tests.py` → **457/457 pass, exit 0**. The 5
+  new-skill suites contribute 26 of those and all pass — `test-anim-sandbox` (5),
+  `test-concept-demo` (5, `cd_*`), `test-editor-kanban` (6), `test-editor-template` (5, `tpl_*`),
+  `test-editor-toggles` (5). Each suite covers the light↔dark theme flip and the
+  no-new-elements-on-interaction invariant. One documented SKIP repo-wide
+  (`panel-push-live-delivery`, needs a real ai-maestro harness — deliberately not mocked).
+  So `last-test-result:` is now `pass`, and the column moved `todo → ai_review`.
+- **STILL OWNER-GATED, do NOT advance unasked**: `review-requirements: [human-review]` is not
+  done, and `release-via: publish` sits behind the same wall as the rest of amvcp (CPV `--strict`
+  + owner merge & publish — see [[project_amvcp_cpv_gate_blocked]] / `project_no_direct_push`).
+  `ai_review → human_review` is a NON-EXEMPT escalation; it needs the owner.
+- **NEXT ACTION**: an AI review pass over the 6 new skills, then — on the owner's go only —
+  `ai_review → human_review`. Do NOT mark `complete` until review actually passes.
+- **SUPERSEDED — do NOT carry forward:** the previous STATE block claimed "column is `dev`" and
+  "`last-test-result: not-run`". Both are now false; the frontmatter is authoritative and
+  agrees with this block.
 
 ## Why this TRDD exists
 
