@@ -77,8 +77,9 @@ implementation-commits: [c886a6a, c19c1b1]
   (`panel-push-live-delivery`, needs a real ai-maestro harness — deliberately not mocked).
   So `last-test-result:` is now `pass`, and the column moved `todo → ai_review`.
 - **STILL OWNER-GATED, do NOT advance unasked**: `review-requirements: [human-review]` is not
-  done, and `release-via: publish` sits behind the same wall as the rest of amvcp (CPV `--strict`
-  + owner merge & publish — see [[project_amvcp_cpv_gate_blocked]] / `project_no_direct_push`).
+  done, and `release-via: publish` sits behind the same wall as the rest of amvcp (CPV
+  `--strict` plus owner merge & publish — see [[project_amvcp_cpv_gate_blocked]] /
+  `project_no_direct_push`).
   `ai_review → human_review` is a NON-EXEMPT escalation; it needs the owner.
 - **NEXT ACTION**: an AI review pass over the 6 new skills, then — on the owner's go only —
   `ai_review → human_review`. Do NOT mark `complete` until review actually passes.
