@@ -1,9 +1,9 @@
 ---
 trdd-id: JEFLY6H4
 title: the GitHub config of Emasoft/ai-maestro-visual-communicator-plugin is off-baseline — NO_PR_REVIEW
-column: proposal
+column: refused
 created: 2026-08-20T09:08:02+0200
-updated: 2026-08-20T09:08:02+0200
+updated: 2026-08-25T14:00:02+0200
 current-owner: janitor
 task-type: bugfix
 severity: medium
@@ -51,5 +51,18 @@ scheduler dispatches **janitor-security-agent** to fix it at the next free heart
 The dispatched agent is fail-safe: it fixes what is safe and FLAGS what needs a human (it never
 rotates credentials, never force-pushes, never pushes to `main`). It returns one line plus a report
 path, and closes the ticket with an explicit status.
+
+## Approval log
+
+- 2026-08-25T14:00:02+0200 — REFUSED by main Claude (owner-delegated this session: "complete all
+  pending tasks and TRDDs... decide yourself... verify first"). FALSE POSITIVE, verified first-hand:
+  all 3 baseline rulesets exist and are `active` on the repo (`baseline-history-protect` 17766154,
+  `baseline-pr-and-checks` 17766155, `baseline-tag-protect` 17766156; `gh api .../rulesets`).
+  17766155 carries `required_status_checks` (strict, 5 contexts) + admin bypass (actor_id 5,
+  always) and NO `pull_request` rule — which is the SSOT-intended emission:
+  `branch_protection_lib.require_pull_request_for()` (janitor 3.3.26, line 120) returns False for
+  a standalone solo-owner repo per the USER Tier-3 ruling 2026-08-13, and amvcp is verified
+  non-fleet/standalone (2026-06-20, [[project_amvcp_not_fleet_plugin]]). The NO_PR_REVIEW detector
+  flagged the deliberate absence of a rule the baseline itself omits here.
 
 ## Notes and lessons learned
