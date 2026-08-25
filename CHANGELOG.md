@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.5.2] — 2026-08-25
+
+### Documentation
+
+- Archive TRDD-YY5ISKCJ → published (v1.5.1 shipped the G1 fail-closed fix)
+- Archive two terminal cards out of the OPEN zone (bac00789 superseded, 9GUATJL7 published)
+- Archive 8 terminal-DONE TRDDs out of the OPEN zone
+- Track proposal TRDD-JEFLY6H4 (janitor GHCFG-001, awaiting owner decision)
+- Triage + archive the 13 legacy pre-v2 TRDDs — OPEN zone 24 cards -> 3
+- TRDD-1627a698 tests green (457/457) — todo -> ai_review
+- PROJECT note — absence-by-grep is not evidence of absence
+- Refuse TRDD-JEFLY6H4 → refused (GHCFG-001 NO_PR_REVIEW is a false positive)
+- Close TRDD-503fb3af audit gaps G2/G5/G6/G7/G8 — remove false doc claims (TRDD-503fb3af)
+- Archive TRDD-503fb3af → complete (all audit gaps decided + executed)
+- Archive TRDD-1627a698 → published (ai_review passed, shipped in v1.5.1)
+- Mechanical MD004 reflow in archived TRDD-1627a698 (wrapped '+' parsed as bullet; unblocks CPV gate)
 ## [1.5.1] — 2026-08-18
 
 ### Bug Fixes
