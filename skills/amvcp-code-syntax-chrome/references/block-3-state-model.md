@@ -165,7 +165,7 @@ the generic rule's `!important` is winning — check
 | Per-line pressed bg tint | Per-line `[data-ve-pressed="1"]` rule — see `gutter-anatomy.md` |
 | Per-line preview bg tint | Per-line `[data-ve-preview="1"]` rule — see `gutter-anatomy.md` |
 | Token colour inside selected lines | The yield rule — see `token-roles-palette.md` §A2.6 |
-| The comment pill | Runtime's `mountCommentPill` |
+| The comment pill | The runtime's comment-pill layer (`amvcp-runtime.js`) |
 
 The four are layered: the block outline tells the reader the block is
 interactive; the per-line tint shows WHICH lines are selected; the

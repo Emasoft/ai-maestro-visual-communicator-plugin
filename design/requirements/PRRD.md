@@ -1,8 +1,9 @@
 ---
-prrd-version: 1.7
-updated: "2026-06-12T00:47:13+0200"
+prrd-version: 1.8
+updated: "2026-08-25T14:45:00+0200"
 project: ai-maestro-visual-communicator-plugin
 project-id: autonomous
+require-pull-request: false
 canonical-source: design/requirements/PRRD.md
 mirrors: []
 ---

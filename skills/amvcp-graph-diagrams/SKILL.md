@@ -12,6 +12,8 @@ metadata:
 
 Authors interactive HTML diagrams using Mermaid (flowchart, sequence, ER, `stateDiagram-v2`, mindmap, classDiagram, C4-as-flowchart) or Graphviz directed graphs via `.ve-graph`. Wires every node/edge as a clickable selection target, then opens via `amvcp-select.py` so the pick POSTs back to the agent.
 
+Routing note: this skill is for diagrams authored FROM Mermaid/Graphviz source. For native themed scene-graph diagrams (the default when no notation is named), load the `amvcp-diagram` router and its 5 siblings instead — the two share trigger keywords deliberately, and the notation the user names is the tiebreak.
+
 ## Prerequisites
 
 Mermaid v11+ ESM CDN; Graphviz lazy-loaded via `@viz-js/viz` WASM from CDN (jsDelivr) on first `.ve-graph`; Chromium (falls back to default); Python 3.12+ for `scripts/amvcp-select.py`.

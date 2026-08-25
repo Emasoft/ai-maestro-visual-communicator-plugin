@@ -231,7 +231,5 @@ This compensates for the loss of glow / outline glow when printing.
 - [diff-blocks-unified.md](./diff-blocks-unified.md) — where the
   tints are applied
 - [diff-blocks-split.md](./diff-blocks-split.md) — same
-- [diff-gutter-old-new.md](./diff-gutter-old-new.md) — twin gutter
-  uses the same tint tokens
 - [light-dark-mirror-discipline.md](../../amvcp-code-syntax-chrome/references/light-dark-mirror-discipline.md)
   — the verification ritual every diff fixture must pass

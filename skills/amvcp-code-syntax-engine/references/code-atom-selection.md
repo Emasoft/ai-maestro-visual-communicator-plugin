@@ -126,8 +126,8 @@ shape, same colour, same hover affordance. The reader transfers their
 mental model of "click the pill to ask the agent about this" from
 prose to code with no friction.
 
-See `scripts/amvcp-runtime.js → mountCommentPill` for the pill's
-positioning + visibility rules.
+The pill's positioning + visibility rules live in the runtime's
+comment-pill layer (`scripts/amvcp-runtime.js`).
 
 ## A6.6 The hover hint (preview state)
 

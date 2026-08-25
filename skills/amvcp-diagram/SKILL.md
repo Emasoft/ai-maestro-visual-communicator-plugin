@@ -41,6 +41,7 @@ When in doubt, look up the table above and load the matching sibling. Then come 
 | To theme any diagram (light/dark, blueprint, terminal, hand-drawn) | this router + [theming-presets](references/theming-presets.md) |
 | To add a comment thread, click-to-detail panel, or teaching slider to a diagram | this router + [selection-atom-payload](references/selection-atom-payload.md) and the interaction patterns below |
 | To use the `free` preset for explicit-coordinate geometry (racks, floor plans, sequence lanes, sankey columns) | this router + [free-preset-geometry](references/free-preset-geometry.md) |
+| The user explicitly wants **Mermaid or Graphviz source** (a `.mmd`/DOT diagram, or Mermaid/Graphviz named) | `amvcp-graph-diagrams` — NOT this family. Default to this router's scene-graph engine otherwise. |
 
 ## Prerequisites
 

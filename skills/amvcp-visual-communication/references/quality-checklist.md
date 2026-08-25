@@ -52,9 +52,9 @@ Protection" in `${CLAUDE_PLUGIN_ROOT}/references/css-patterns.md`.
 ## Mermaid zoom controls
 
 Every `.mermaid-wrap` container must have +/−/reset/expand buttons,
-Ctrl/Cmd+scroll zoom, click-and-drag panning, and click-to-expand. The full
-pattern (including `openMermaidInNewTab()`) is in
-`${CLAUDE_PLUGIN_ROOT}/references/css-patterns.md`.
+Ctrl/Cmd+scroll zoom, click-and-drag panning, and click-to-expand. The
+container pattern is in `${CLAUDE_PLUGIN_ROOT}/references/css-patterns.md`
+§"Mermaid Containers"; author the zoom/pan chrome inline on the page.
 
 ## No anti-patterns
 

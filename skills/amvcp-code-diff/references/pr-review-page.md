@@ -162,7 +162,7 @@ Each file gets a card:
   </header>
 
   <div class="ve-pr-file-card__diff">
-    <div class="ve-code-block" data-ve-diff-gutter="twin">
+    <div class="ve-code-block">
       <pre><code class="language-diff">@@ -42,7 +42,8 @@ function authMiddleware …</code></pre>
     </div>
   </div>
@@ -341,8 +341,6 @@ plumbing.
 This composition consumes:
 - [diff-blocks-unified.md](./diff-blocks-unified.md) — per-line diff
   tints
-- [diff-gutter-old-new.md](./diff-gutter-old-new.md) — twin gutter for
-  the per-file cards
 - [code-block-with-file-path.md](../../amvcp-code-syntax-chrome/references/code-block-with-file-path.md) — the
   file-path label on each card
 - [collapsed-snippets-walkthrough.md](../../amvcp-code-snippets/references/collapsed-snippets-walkthrough.md)
@@ -377,8 +375,7 @@ The three risk roles (`--ve-accent` / `--vc-color-warning` /
 `--vc-color-success`) are funnelled through one `--ve-risk-color`
 custom property in the chip, legend, and tag CSS — a single point of
 truth so the three risk surfaces can never visually disagree.
-- All from [diff-blocks-unified.md](./diff-blocks-unified.md) +
-  [diff-gutter-old-new.md](./diff-gutter-old-new.md)
+- All from [diff-blocks-unified.md](./diff-blocks-unified.md)
 
 ## E3.12 Mined source attribution
 

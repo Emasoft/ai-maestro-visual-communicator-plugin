@@ -12,12 +12,12 @@ metadata:
 
 ## Overview
 
-The named-preset layer of the token system. Ships 14 dual-theme presets (heritage, factory-dark, wireframe-grayscale, cjk-claude, etc.), each a complete DESIGN.md fixture passing both the dual-theme contract AND the anti-slop gate. A 9-category aesthetic taxonomy (Bold/Warm/Dark/Clean/...) lets the picker steer by mood. Personality deltas (warmer/cooler/playful/corporate/minimal) nudge any preset along a single axis without rewriting the whole token set. Hot-swap restyling re-themes a live page via `window.__veDesignMd.hotSwap(text)`. The in-page playground exposes sliders + radios that write to `--vc-*` for live tuning. The multi-brand mixer blends two DESIGN.mds with per-role rules. Scoped theming applies a DESIGN.md to a sub-tree only. The dual-theme contract is the structural rule every preset MUST obey.
+The named-preset layer of the token system. Ships 14 dual-theme presets (heritage, factory-dark, wireframe-grayscale, cjk-claude, etc.), each a complete DESIGN.md fixture passing both the dual-theme contract AND the anti-slop gate. A 9-category aesthetic taxonomy (Bold/Warm/Dark/Clean/...) lets the picker steer by mood. Personality deltas (warmer/cooler/playful/corporate/minimal) nudge any preset along a single axis without rewriting the whole token set. Hot-swap restyling re-themes a live page via `window.__veDesignMd.hotSwap(text)`. The in-page playground exposes sliders + radios that write to `--vc-*` for live tuning. Scoped theming applies a DESIGN.md to a sub-tree only. The dual-theme contract is the structural rule every preset MUST obey.
 
 ## Prerequisites
 
 - `amvcp-designmd.js` colocated with the HTML — parses, validates, resolves, applies.
-- `amvcp-tokens.js` for `amvcpTokens.PRESETS` (the named library), `applyPersonalityDelta`, `mixDesignMds`.
+- `amvcp-tokens.js` for `amvcpTokens.PRESETS` (the named library), `applyPersonalityDelta`.
 - `amvcp-runtime.js` for the hot-swap hook (`window.__veDesignMd.hotSwap`).
 - `amvcp-tokens.css` for the `.vc-*` utility classes the tuner UI uses (`vc-bg-*`, `vc-p-*`, `vc-rounded-*`, `vc-shadow-*`); the playground itself ships its own inline `<style>` (see [live-token-playground](./references/live-token-playground.md)).
 
@@ -28,11 +28,10 @@ The named-preset layer of the token system. Ships 14 dual-theme presets (heritag
 3. **Tune personality** — `applyPersonalityDelta(designmdText, 'warmer'|'cooler'|'playful'|'corporate'|'minimal')` nudges the preset along ONE axis. Compose multiple deltas by chaining. See [personality-deltas](./references/personality-deltas.md).
 4. **Hot-swap a live page** — `window.__veDesignMd.hotSwap(presetText)` re-themes the whole page live, no reload. See [hot-swap-restyling](./references/hot-swap-restyling.md).
 5. **Ship a token playground** — embed [live-token-playground](./references/live-token-playground.md) for sliders / pickers that write to `--vc-*` for in-page tuning. The hover→snippet preview pattern (DM-22) shows the resulting CSS snippet live.
-6. **Blend two brands** — `amvcpTokens.mixDesignMds(brandA, brandB, rules)` per [multi-brand-mixer](./references/multi-brand-mixer.md). Per-role rules let one brand contribute color while the other contributes typography.
-7. **Scope a theme to a sub-tree** — resolve a flat map first, then apply it to ONE element subtree only: `amvcpDesignMd.applyTokens(amvcpDesignMd.resolveTokens(parsed.designmd, 'light'), rootEl)`. `applyTokens` takes a resolved `{ '--vc-*': value }` map (NOT the raw token tree). See [scoped-theming](./references/scoped-theming.md).
-8. **Honor the dual-theme contract** — EVERY artifact ships BOTH light AND dark. The engine enforces this mechanically; see [dual-theme-contract](./references/dual-theme-contract.md) for why and how.
-9. **Syntax-highlight tokens** — for code samples, the 12-token vocabulary in [code-syntax-tokens](./references/code-syntax-tokens.md) ships pre-theme'd per preset.
-10. **Always end** — pipe the final emitted DESIGN.md + HTML through `amvcpTokens.lintTokenSet` and `lintHtml` (the anti-slop sibling). A preset that fails the gate is a contradiction.
+6. **Scope a theme to a sub-tree** — resolve a flat map first, then apply it to ONE element subtree only: `amvcpDesignMd.applyTokens(amvcpDesignMd.resolveTokens(parsed.designmd, 'light'), rootEl)`. `applyTokens` takes a resolved `{ '--vc-*': value }` map (NOT the raw token tree). See [scoped-theming](./references/scoped-theming.md).
+7. **Honor the dual-theme contract** — EVERY artifact ships BOTH light AND dark. The engine enforces this mechanically; see [dual-theme-contract](./references/dual-theme-contract.md) for why and how.
+8. **Syntax-highlight tokens** — for code samples, the 12-token vocabulary in [code-syntax-tokens](./references/code-syntax-tokens.md) ships pre-theme'd per preset.
+9. **Always end** — pipe the final emitted DESIGN.md + HTML through `amvcpTokens.lintTokenSet` and `lintHtml` (the anti-slop sibling). A preset that fails the gate is a contradiction.
 
 ## Output
 
@@ -48,7 +47,6 @@ The named-preset layer of the token system. Ships 14 dual-theme presets (heritag
 | `applyPersonalityDelta` returns unchanged text | Delta name typo (must be exactly `warmer`/`cooler`/`playful`/`corporate`/`minimal`). |
 | `hotSwap` doesn't re-theme | `amvcp-runtime.js` not loaded — without the runtime, the hook is undefined. |
 | Playground slider has no effect | The slider's target token doesn't exist in the active DESIGN.md, OR the slider is writing to a `:root` var that's being shadowed by a more-specific selector. |
-| `mixDesignMds` produces slop | One of the two brands is itself slop, OR the per-role rules pick the wrong family. Run `lintTokenSet` on both inputs AND the output. |
 | Scoped theme leaks out of the sub-tree | The `rootEl` passed to `applyTokens` is wrong, OR there are descendant rules using `:root` (use `&:root` scoping). |
 | Theme flip causes a flash | Tokens are being applied AFTER paint instead of before. Inline the preset as a `<script type="text/design-md">` BEFORE the first stylesheet link. |
 | Preset fails `lintTokenSet` | Shift the offending color/font in the preset's frontmatter; never weaken the gate. |
@@ -70,10 +68,6 @@ Output: step 3 (compose two deltas):
 Input:  "Wireframe this design first."
 Output: steps 2 + 4 → hotSwap(amvcpTokens.PRESETS['wireframe-grayscale'])
         Zero hue, zero radius — pure structural draft.
-
-Input:  "Co-brand this page with brand A color + brand B typography."
-Output: step 6 → mixDesignMds(presetA, presetB,
-                              { color: 'A', typography: 'B' })
 
 Input:  "Add a live tuner so I can adjust the accent."
 Output: step 5 → mount the live-token-playground reference into the
@@ -108,7 +102,7 @@ Composes with every other amvcp-tokens-* skill — presets bundle generated pale
   > What it does · When to use · Scaffold to emit · Lib functions used · DESIGN.md tokens used · Anti-slop interaction · Selection / comment / decision-mini contract · Visual verification · Overview
 - [live-token-playground.md](./references/live-token-playground.md) — sliders / pickers writing to `--vc-*` for live tuning.
   > What it does · When to ship a playground · Scaffold to emit · The hover→snippet preview pattern (DM-22 reference) · Lib functions used · DESIGN.md tokens used · Anti-slop interaction · Selection / comment / decision-mini contract · Visual verification
-- [multi-brand-mixer.md](./references/multi-brand-mixer.md) — blend two DESIGN.mds with per-role rules (DM-23).
+- [multi-brand-mixer.md](./references/multi-brand-mixer.md) — recipe to blend two DESIGN.mds with per-role rules (DM-23; a self-contained recipe to inline per page — NOT a lib API).
   > What it does · When to use · The per-role rules (suggested defaults) · Scaffold to emit · Lib functions used · DESIGN.md tokens used · Anti-slop interaction · Selection / comment / decision-mini contract · Visual verification
 - [scoped-theming.md](./references/scoped-theming.md) — per-section / per-component DESIGN.md via `applyTokens(map, rootEl)`.
   > What it does · When to use · Scaffold to emit · Lib functions used · DESIGN.md tokens used · Anti-slop interaction · Selection / comment / decision-mini contract · Visual verification

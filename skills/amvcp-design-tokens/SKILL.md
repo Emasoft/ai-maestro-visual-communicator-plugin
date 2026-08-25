@@ -117,6 +117,6 @@ The router has no `references/` of its own. All content lives in the 5 sibling s
 
 - [amvcp-tokens-color](../amvcp-tokens-color/SKILL.md) — OKLCh ramp, neutral scale, golden-angle categorical, P3, WCAG, semantic role maps (badge / activity / graph / icon), derived state split, interaction-state opacities, dark text hierarchy. **14 refs.**
 - [amvcp-tokens-scales](../amvcp-tokens-scales/SKILL.md) — phi spacing, MD3 + cinematic elevation, motion library, 9-level z-index, 5-layer token vocabulary, `@layer` cascade, centralised pattern, `var()` delegation chain, Tailwind utility classes. **9 refs.**
-- [amvcp-tokens-presets](../amvcp-tokens-presets/SKILL.md) — 14 named dual-theme presets, 9-category taxonomy, personality deltas, hot-swap, playground, multi-brand mixer, scoped theming, dual-theme contract, code-syntax tokens. **13 refs.**
+- [amvcp-tokens-presets](../amvcp-tokens-presets/SKILL.md) — 14 named dual-theme presets, 9-category taxonomy, personality deltas, hot-swap, playground, multi-brand mixer recipe, scoped theming, dual-theme contract, code-syntax tokens. **13 refs.**
 - [amvcp-tokens-anti-slop](../amvcp-tokens-anti-slop/SKILL.md) — `lintTokenSet` / `lintHtml` / `lintLiveDocument`, banned colors / fonts / patterns, live `data-vc-slop-alert` DOM walker. **2 refs.**
 - [amvcp-tokens-contact-sheet](../amvcp-tokens-contact-sheet/SKILL.md) — the headline deliverable: a self-contained, DESIGN.md-themed "living design page" with click-to-copy. **10 refs.**

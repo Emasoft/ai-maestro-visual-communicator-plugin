@@ -3,7 +3,7 @@ trdd-id: LSHTWMTU
 title: Resolver-tag backfill can never pass gate G1 because it runs after the release push
 column: backburner
 created: 2026-08-16T16:20:38+0200
-updated: 2026-08-18T21:55:00+0200
+updated: 2026-08-25T14:35:00+0200
 current-owner: ai-maestro-visual-communicator-plugin
 task-type: infra
 priority: 6
@@ -79,6 +79,10 @@ by `_release_tags()`, pushed atomically) must not be double-pushed.
 
 Any fleet repo adding a version-pinned amvcp dependency, or a confirmed
 off-machine consumer.
+
+Re-measured 2026-08-25 (hub ai-maestro-e5, manifest scan across ~/Code, depth 4):
+still ZERO version-range dependents — the only external reference is the
+marketplace entry, which pins an exact version. Trigger unmet; card stays parked.
 
 ## Notes and lessons learned
 
