@@ -1,11 +1,9 @@
 ---
 trdd-id: 503fb3af-3363-4683-b658-06771f332356
 title: amvcp audit — deferred feature-level gaps (doc claims with no implementation)
-status: in-progress
-column: backburner
-review-after: 2026-11-16
+column: complete
 created: 2026-05-24T23:29:33+0200
-updated: 2026-08-16T00:55:00+0200
+updated: 2026-08-25T14:40:00+0200
 ---
 
 # TRDD-503fb3af — amvcp audit: deferred feature-level gaps
@@ -13,7 +11,56 @@ updated: 2026-08-16T00:55:00+0200
 **Filename:** `design/tasks/TRDD-20260524_232933+0200-503fb3af-amvcp-audit-deferred-feature-gaps.md`
 **Tracked in:** this repo (design/tasks/ is git-tracked)
 
-## ⏵ STATE — READ THIS FIRST ON RESUME (authoritative; supersedes the body) — 2026-06-10
+## ⏵ STATE — CLOSED 2026-08-25 (authoritative; supersedes everything below)
+
+**ALL GAPS DECIDED AND EXECUTED — card complete.** Owner delegated the decisions
+this session ("complete all pending tasks and TRDDs... decide yourself... verify
+first"). Every audit claim was re-verified against the live tree before acting;
+several had already decayed (fixed by earlier sessions). Final per-gap record:
+
+- **G1, G3, G4 — DONE earlier** (see the 2026-06-10 block below; unchanged).
+- **G2 — DONE (B, refined).** `mixDesignMds` false-API claims removed from
+  `amvcp-tokens-presets/SKILL.md` (prereq line, step 6, troubleshooting row,
+  example, Overview sentence) and softened in `amvcp-design-tokens/SKILL.md`.
+  `references/multi-brand-mixer.md` KEPT deliberately: it self-declares "NOT
+  currently implemented in the lib" and is an honest inline-recipe design note —
+  the Resources link now says so explicitly.
+- **G5 — DONE (B).** All twin-gutter claims removed from `amvcp-code-diff`
+  (SKILL.md description + body + step + checklist + troubleshooting;
+  `references/diff-gutter-old-new.md` git-rm'd — recoverable, was shipped in
+  v1.5.x; pr-review-page.md + diff-tints refs rewritten). Verified: zero
+  `twin|diff-gutter` residuals, zero dangling links repo-wide. No script ever
+  read `data-ve-diff-gutter` (re-verified 2026-08-25).
+- **G6 — DECIDED: keep `veWireChart` as the documented legacy compat bridge.**
+  The docs already frame it correctly ("LEGACY", migration section, "NEW work
+  should use the fenced protocol") and the runtime comment at
+  amvcp-runtime.js:3216 records that removing it silently broke a feature once.
+  No edits.
+- **G7 — DECIDED: keep the frontmatter-only license convention.** No inline
+  SPDX headers; stop flagging.
+- **G8 — ALL RESOLVED:** (a) `templates/data-table.html` marked standalone
+  exemplar (header comment); (b) runtime-size pins — already gone, nothing to
+  do; (c) gitignored `reports/` citations ACCEPTED as-is — spot-verified they
+  are credit-style provenance or output-path instructions, not runtime reads;
+  (d) diagram-router ambiguity — bidirectional tiebreak added
+  (amvcp-diagram routing table row + amvcp-graph-diagrams Overview note);
+  choice-tables hint already present; (e) SlideEngine routing — already fixed;
+  (f) 6 stale fn refs fixed (`mountCommentPill` → runtime comment-pill layer in
+  2 refs; `openMermaidInNewTab()`/"Mermaid Zoom Controls" citation → real
+  css-patterns.md §"Mermaid Containers" in 3 commands + quality-checklist).
+- **Tests: 457/457 green re-verified 2026-08-25** (full run had 2 dev-browser
+  daemon-drop ERRORs; both suites 18/18 on isolated rerun — infra flake, not
+  regression).
+
+Ships in v1.5.2 via publish.py (the release also carries the stranded docs
+commits — hub-approved route 5a).
+
+## Approval log
+
+- 2026-08-25T14:40:00+0200 — COMPLETED by main Claude (owner-delegated). All
+  G1–G8 decided + executed; suite green; decisions above.
+
+## ⏵ prior STATE — 2026-06-10 (historical)
 
 **Per-gap status:**
 - **G1 (slide delegated-block renderInto) — ✅ DONE** via `TRDD-292ddcd9`
