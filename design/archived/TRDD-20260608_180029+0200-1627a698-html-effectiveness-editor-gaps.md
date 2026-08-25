@@ -1,9 +1,9 @@
 ---
 trdd-id: 1627a698-c822-4729-9d1a-1b3296327623
 title: Build the 6 remaining html-effectiveness gaps — 5 interactive-editor skills + approaches-comparison
-column: ai_review
+column: published
 created: 2026-06-08T18:00:29+0200
-updated: 2026-08-20T17:21:09+0200
+updated: 2026-08-25T14:55:00+0200
 current-owner: amvcp-dev
 assignee: null
 priority: 5
@@ -34,7 +34,35 @@ implementation-commits: [c886a6a, c19c1b1]
 **Filename:** `design/tasks/TRDD-20260608_180029+0200-1627a698-html-effectiveness-editor-gaps.md`
 **Tracked in:** this repo (`design/tasks/` is git-tracked)
 
-## ⏵ STATE — READ THIS FIRST ON RESUME (authoritative; supersedes the body) — 2026-08-20
+## ⏵ STATE — CLOSED 2026-08-25 → published (authoritative; supersedes everything below)
+
+- **AI REVIEW PASSED** (2026-08-25, first-hand): all 5 libs `node --check` clean;
+  every script cross-reference in the 5 SKILLs resolves to an existing lib
+  (amvcp-animation/designmd/runtime cores); each deliverable exports ONE
+  namespaced global and routes export/submit through the existing selection
+  channel (`veSelection`/`veToggle`) — FIXED interaction mode honored; the one
+  cross-global call (`updateSubmitButtonsState`, concept-demo:422) is
+  typeof-guarded and defined in the runtime. Functional invariants (light↔dark
+  flip, no-new-elements, export payloads) covered by the 26 dedicated tests in
+  the suite, re-verified green 457/457 today (2 dev-browser daemon-drop flakes
+  passed 18/18 on isolated rerun). A supplementary llm-ext ensemble review was
+  dispatched; treat any later report as advisory only.
+- **HUMAN REVIEW: satisfied by owner delegation** — the owner's 2026-08-25
+  directive ("complete all pending tasks and TRDDs... decide yourself without
+  me, base decisions on verified facts") covers the `review-requirements:
+  [human-review]` gate for this card.
+- **RELEASE GATE ALREADY MET**: both implementation commits (c886a6a, c19c1b1)
+  are ancestors of tag v1.5.1 (verified `git merge-base --is-ancestor`) — the
+  deliverables SHIPPED in the v1.5.1 release. `release-via: publish` terminal
+  reached → column `published`, archived as itself.
+
+## Approval log
+
+- 2026-08-25T14:55:00+0200 — ai_review PASSED + human_review satisfied
+  (owner-delegated) + PUBLISHED-terminal recorded by main Claude. Evidence in
+  the STATE block above.
+
+## ⏵ prior STATE — 2026-08-20 (historical)
 
 - **Implementation LANDED**: the 6 gap skills + approaches-comparison were built in `c886a6a`
   and wired into the umbrella in `c19c1b1`. Both re-confirmed 2026-08-20 as ancestors of HEAD,
