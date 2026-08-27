@@ -91,7 +91,7 @@ a one-line summary to stderr.
 |---|---|---|---|
 | **TRDD** | `design/tasks/TRDD-*.md` | frontmatter card (key scalar fields) + body markdown, at route `#/trdd/<8hex>` | `npt` / `eht` / `blocked-by` / `parent-trdd` / `supersedes` / `superseded-by` → target TRDD pages; `relevant-rules` + inline `PRRD G/S<n>` citations → `#/prrd#G<n>` rule anchors |
 | **PRRD** | `design/requirements/PRRD.md` | prose + each `- **G64.1** — …` rule as an anchored block (`id="G64"`, by NUMBER so the letter can flip) at `#/prrd` | incoming TRDD citations; in-body `PRRD G/S<n>` → rule anchors |
-| **Kanban** | derived from the TRDD `column:` fields | `#/kanban` — a 14-stage board (`backburner … superseded`), non-empty columns as lanes of clickable cards | each card → its `#/trdd/<8hex>` page |
+| **Kanban** | derived from the TRDD `column:` fields | `#/kanban` — the ratified 22-column board (`backburner … superseded`, 3-pillars 3.0.0) plus the 5 off-board bracket values (`proposal`/`planned`, `completed`/`cancelled`/`refused`), non-empty columns as lanes of clickable cards | each card → its `#/trdd/<8hex>` page |
 | **wikimem** | a memory dir's `*.md` notes (minus `MEMORY.md` / `memory-index.md`) | frontmatter strip (name / tier / type / description) + body, at `#/mem/<name>` | `[[name]]` / `[[name\|label]]` wikilinks → `#/mem/<name>` |
 
 The id for a TRDD route is its 8-hex (from frontmatter `trdd-id:`, a v1
@@ -217,7 +217,7 @@ wiki-specific layer.
 
 1. **Full project wiki** — `python3 scripts/amvcp-docwiki-build.py wiki.html
    --trdd-dir design/tasks --prrd design/requirements/PRRD.md --mem-dir memory
-   --title "My Project — design wiki"`. Home groups TRDDs by the 14 columns;
+   --title "My Project — design wiki"`. Home groups TRDDs by the ratified columns;
    `#/kanban` is the board; `#/prrd` the anchored rules; `#/mem/<name>` the notes.
 2. **TRDDs only** — drop `--prrd` / `--mem-dir`; the build still emits home +
    kanban + one page per TRDD, and `PRRD G<n>` citations stay plain text (no PRRD

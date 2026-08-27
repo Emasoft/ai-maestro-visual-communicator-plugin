@@ -6,7 +6,7 @@ wikimem `--mem-dir` note folders), parses the grep-friendly v2 frontmatter WITHO
 yaml dependency, renders each doc with a small pure-python markdown->HTML converter,
 wires cross-links (TRDD-<8hex> -> `#/trdd/<8hex>`, `PRRD G/S<n>` -> `#/prrd#G<n>`,
 `[[mem]]` -> `#/mem/<name>`) as plain `<a data-ve-navigate>` anchors, builds a
-`#/kanban` board page (14-stage lanes of TRDD cards), and emits ONE self-contained
+`#/kanban` board page (22-column lanes of TRDD cards), and emits ONE self-contained
 `.html` wiki that opens via `file://` and is driven by the Phase-1 shell
 (`scripts/amvcp-docwiki.js`, inlined verbatim).
 
@@ -27,23 +27,43 @@ from pathlib import Path
 
 # ── constants ────────────────────────────────────────────────────────────────
 
-# The 14-stage v2 kanban order (home groups TRDDs by these), plus the exception
-# columns. `_OTHER_KEY` is a synthetic trailing bucket so a TRDD whose column we
-# could not determine is still listed on the home page (never silently dropped).
-COLUMN_ORDER = [
-    "backburner", "todo", "design", "dispatch", "dev", "testing", "ai_review",
-    "human_review", "complete", "publish", "published", "deploy", "live",
-    "live_auditing", "blocked", "failed", "superseded",
+# The ratified kanban vocabulary (3-pillars spec 3.0.0, clause 3P-KAN-02/-03):
+# 19 lifecycle + 3 exception = 22 BOARD columns, in happy-path order. Rendered
+# order must stay this one — `design` precedes `todo` since 3.0.0, so a card in
+# `todo` asserts approved AND designed.
+#
+# The LEGAL set for a `column:` field is 27, not 22 (3P-KAN-20): five BRACKET
+# values sit outside the board — `proposal`/`planned` ahead of it, and the
+# `completed`/`cancelled`/`refused` archival terminals after it. They are legal
+# and must render under their own label, not fall into `_other`, which would
+# misreport an archived card as uncategorized.
+#
+# `_OTHER_KEY` is a synthetic trailing bucket so a TRDD whose column we could
+# not determine is still listed on the home page (never silently dropped).
+_BRACKET_INTAKE = ["proposal", "planned"]
+_BOARD_COLUMNS = [
+    "backburner", "approval", "design", "design_ai_review",
+    "design_human_review", "todo", "verify_assumptions", "plan", "dispatch",
+    "dev", "testing", "ai_review", "human_review", "complete", "publish",
+    "published", "deploy", "live", "live_auditing",
+    "blocked", "failed", "superseded",
 ]
+_BRACKET_TERMINAL = ["completed", "cancelled", "refused"]
+COLUMN_ORDER = _BRACKET_INTAKE + _BOARD_COLUMNS + _BRACKET_TERMINAL
 _OTHER_KEY = "_other"
 
 COLUMN_LABEL = {
-    "backburner": "Backburner", "todo": "To do", "design": "Design",
-    "dispatch": "Dispatch", "dev": "Dev", "testing": "Testing",
+    "proposal": "Proposal", "planned": "Planned",
+    "backburner": "Backburner", "approval": "Approval", "design": "Design",
+    "design_ai_review": "Design AI review",
+    "design_human_review": "Design human review",
+    "todo": "To do", "verify_assumptions": "Verify assumptions",
+    "plan": "Plan", "dispatch": "Dispatch", "dev": "Dev", "testing": "Testing",
     "ai_review": "AI review", "human_review": "Human review",
     "complete": "Complete", "publish": "Publish", "published": "Published",
     "deploy": "Deploy", "live": "Live", "live_auditing": "Live auditing",
     "blocked": "Blocked", "failed": "Failed", "superseded": "Superseded",
+    "completed": "Completed", "cancelled": "Cancelled", "refused": "Refused",
     _OTHER_KEY: "Other / uncategorized",
 }
 
@@ -842,7 +862,7 @@ def render_prrd_page(prrd_md: str, known_ids: dict[str, str],
 
 
 def render_kanban_page(trdds: list[Trdd]) -> str:
-    """`<section data-ve-doc="kanban">` — the 14-stage board (Phase 3).
+    """`<section data-ve-doc="kanban">` — the 22-column board (Phase 3).
 
     Reuses the same column grouping as the home index, but lays the non-empty
     columns out as horizontal lanes (pipeline order), each holding one clickable
@@ -909,7 +929,7 @@ def render_mem_page(note: MemNote, known_ids: dict[str, str], have_prrd: bool,
 def render_home_page(trdds: list[Trdd], have_prrd: bool, wiki_title: str,
                      mem_notes: list[MemNote] | None = None,
                      have_kanban: bool = False) -> str:
-    """The index: TRDDs grouped by column (14-stage order; only non-empty groups),
+    """The index: TRDDs grouped by column (ratified order; only non-empty groups),
     plus optional Board-view + PRRD links in the header and a Memory group."""
     mem_notes = mem_notes or []
     by_col: dict[str, list[Trdd]] = {}
