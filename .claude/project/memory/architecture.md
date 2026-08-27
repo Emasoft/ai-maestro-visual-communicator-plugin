@@ -9,6 +9,7 @@ metadata:
   tier: hub
   functionality: architecture
   globs: ["skills/**", "scripts/**", "commands/**", "agents/**"]
+publish-globally: false
 ---
 amvcp gives an agent a palette of **visual-element skills**; each generates a
 self-contained, interactive HTML artifact. The axis of uniqueness is THE THING a

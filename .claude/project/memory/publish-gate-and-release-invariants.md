@@ -7,6 +7,7 @@ metadata:
   node_type: memory
   type: reference
   tier: component
+publish-globally: false
 ---
 
 # publish-gate-and-release-invariants
