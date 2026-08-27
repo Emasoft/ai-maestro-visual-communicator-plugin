@@ -1,6 +1,6 @@
 ---
-prrd-version: 1.8
-updated: "2026-08-25T14:45:00+0200"
+prrd-version: 1.9
+updated: "2026-08-27T14:52:07+0200"
 project: ai-maestro-visual-communicator-plugin
 project-id: autonomous
 require-pull-request: false
@@ -28,4 +28,5 @@ Rule citation form: `PRRD G<n>.<v>` or `PRRD S<n>.<v>`. See
 - **S6.1** — CPV (claude-plugins-validation) is the sole validator; clear findings by devitalize-or-remove or by filing a CPV detector issue, never by exempt/suppress.
 - **S7.1** — No direct pushes; the pre-push hook permits only scripts/publish.py. Feature branches stay local awaiting the owner's merge and publish.py release.
 - **S8.1** — amvcp-runtime.js is exempt from the CPV LOC cap; over-cap SKILL.md files are split into smaller focused skills, never by trimming TOCs.
+- **S9.1** — Approval authority follows fleet rule R41 (docs/GOVERNANCE-RULES.md, ref governance-rules; normative text design/specs/governance-spec.md): APPROVAL flows bottom-up and no agent approves a card it authored; MANDATE flows top-down, born approved by the issuing authority; an approval is checkable — verify it, never merely read it. Golden rules here are USER-only (not MANAGER-editable, promotable or demotable); silver rules are MANAGER-mutable; every other agent proposes. Cite rules by PRRD G/S<number>.<version>, never by pasting rule text.
 

@@ -142,7 +142,9 @@ thing, and the palette has exactly one entry per thing.
   UNIVERSAL standalone plugin (ai-maestro depends on amvcp, not the reverse), so
   a missing harness is a normal outcome that exits 0, never an error.
 
-- **Memory: recall before you render, write after you learn** — uses the global
+- **Memory: recall before you render, write after you learn** — binds every skill
+  in this plugin AND every sub-agent it spawns (pass it in the agent prompt; a
+  sub-agent that skips recall re-solves what the corpus already knows). Uses the global
   janitor wiki memory (`/janitor-memory-recall` · `/janitor-memory-write` ·
   `/janitor-memory-update`; protocol in `~/.claude/rules/markdown-memory-recall.md`;
   PROJECT-scope notes git-tracked in-repo at `.claude/project/memory/`). RECALL
