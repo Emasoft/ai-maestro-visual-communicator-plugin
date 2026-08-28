@@ -116,6 +116,13 @@ the page renderer (`scripts/render-interactive-report.py`), and the
 selection server (`scripts/amvcp-select.py`). Windows users no longer need
 WSL2 — the plugin runs natively on every OS that has Python 3.12+.
 
+**The Bash tool is required.** Those entry points are launched as shell
+commands, so Claude Code's `--restricted` mode (or `CLAUDE_CODE_RESTRICTED=1`),
+which removes the built-in command- and code-running tools, disables the plugin
+outright — nothing renders and no selection comes back. Run it there with
+`--tools Bash`, or don't use `--restricted`. `WebFetch` is not used, so its
+removal costs nothing.
+
 ## Dependency
 
 amvcp depends on the **`ai-maestro-plugin`** base plugin for the
