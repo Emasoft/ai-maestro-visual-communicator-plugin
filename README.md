@@ -116,14 +116,18 @@ the page renderer (`scripts/render-interactive-report.py`), and the
 selection server (`scripts/amvcp-select.py`). Windows users no longer need
 WSL2 — the plugin runs natively on every OS that has Python 3.12+.
 
-**The Bash tool is required for everything past authoring.** Those entry points
-are launched as shell commands, so under Claude Code's `--restricted` mode (or
-`CLAUDE_CODE_RESTRICTED=1`), which removes the built-in command- and
-code-running tools, the agent can still *write* a page — the file tools keep
-working inside the working directory — but nothing opens it and no selection or
-comment ever comes back, which is the half that makes this plugin a
-communicator rather than a file generator. Pass `--tools Bash` to restore it.
+**Use `--tools Bash` if you run Claude Code with `--restricted`.** That mode (or
+`CLAUDE_CODE_RESTRICTED=1`) removes the built-in command- and code-running tools
+and confines the file tools to the working directory. Two things here depend on
+what it takes away: every page is opened, and every selection and comment
+returned, by `scripts/amvcp-select.py` over a shell command; and 29 of this
+plugin's 88 skills and commands read their references, templates, or scripts
+from `${CLAUDE_PLUGIN_ROOT}`, which is not the working directory. Expect the
+round-trip to be gone and much of the authoring material to be unreachable.
 `WebFetch` is not used anywhere in the plugin, so its removal costs nothing.
+
+This is read off the plugin's own sources, not from running `--restricted` — if
+you use that mode, verify before relying on it.
 
 ## Dependency
 
