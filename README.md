@@ -116,9 +116,9 @@ the page renderer (`scripts/render-interactive-report.py`), and the
 selection server (`scripts/amvcp-select.py`). Windows users no longer need
 WSL2 — the plugin runs natively on every OS that has Python 3.12+.
 
-This plugin needs the Bash tool — pages are rendered and opened through
-`scripts/amvcp-select.py`, run as a shell command. Claude Code's `--restricted`
-mode removes that tool, so pass `--tools Bash` alongside it.
+This plugin needs the Bash tool — pages are opened, and selections returned,
+through `scripts/amvcp-select.py`, run as a shell command. Claude Code's
+`--restricted` mode removes that tool, so pass `--tools Bash` alongside it.
 
 ## Dependency
 
