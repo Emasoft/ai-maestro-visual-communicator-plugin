@@ -67,7 +67,13 @@ mega-linter.log
 vendor/*/node_modules/
 vendor/*/dist/
 vendor/*/dist-bundle/
-vendor/*/bun.lock
+# NOTE: lockfiles are deliberately NOT ignored here. They are not build
+# artefacts — they are the pins that make the vendored build reproducible,
+# and the release workflow's syft scan reads them to produce the SBOM. A
+# `vendor/*/bun.lock` rule used to sit in this list; it was swept in with
+# node_modules/dist by cf1e96d and cost the SBOM 55 packages (measured:
+# syft parses bun.lock standalone and emits 55). vendor/regex-vis's
+# package-lock.json was always tracked, which is the correct convention.
 # Bare top-level node_modules/ in case a future tool runs `npm install`
 # at the repo root. Without this, the canonical `vendor/*/node_modules/`
 # above only catches subdirectories — a top-level node_modules would
