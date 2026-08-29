@@ -37,7 +37,9 @@ jobs:
     permissions:
       # Job-level permissions (finer-grained than the workflow-level
       # `contents: write` block — keeps the principle of least privilege).
-      contents: write
+      contents: write       # create the release + upload assets
+      id-token: write       # OIDC token for build-provenance attestation
+      attestations: write   # write the provenance attestation
     steps:
       - uses: actions/checkout@v6
         with:
@@ -85,6 +87,54 @@ jobs:
             tests/run-all-tests.py \
             tests/run-tests.py \
             tests/server.py
+
+      - name: Generate SBOM (SPDX)
+        # Supply-chain control. amvcp ships no built binary and its own
+        # manifests declare zero deps (package.json has no dependencies;
+        # uv.lock holds only the project itself), so without this step
+        # nothing enumerates the vendored builds' dependency trees.
+        #
+        # MEASURED COVERAGE — syft 1.51.1 against the tracked-file set CI
+        # checks out (`git archive HEAD vendor`; no .gitattributes exists,
+        # so no export-ignore divergence from actions/checkout):
+        #   vendor/regex-vis    → 221 packages, from its tracked package-lock.json
+        #   vendor/pierre-diffs →   0 packages
+        #
+        # What the 221 ARE: the PRODUCTION tree. The lockfile holds 283
+        # distinct name@version pairs; syft emits 221. All 64 it omits are
+        # dev-flagged (48 also optional — the @esbuild/<platform> binaries,
+        # babel plugins, and friends), and NOT ONE production package is
+        # missing. So the omission is deliberate cataloger behaviour, not
+        # dropped coverage: syft skips dev-only entries.
+        # Do not "fix" the 283→221 delta — it is the dev tree, by design.
+        #
+        # pierre-diffs is NOT covered: its bun.lock is gitignored
+        # (.gitignore:70 `vendor/*/bun.lock`), so it never reaches a runner
+        # and syft has only package.json to read here. Whether syft could
+        # parse bun.lock at all is UNTESTED and irrelevant while the file is
+        # ignored — but it decides whether un-ignoring that one line would
+        # actually buy coverage, so measure before proposing that fix. Its
+        # deps are enumerated ONLY by THIRD_PARTY_NOTICES.md. Do not
+        # re-describe this SBOM as covering both vendored projects without
+        # re-measuring — scanning a local checkout reports ~57 pierre-diffs
+        # packages from untracked node_modules that CI never sees.
+        uses: anchore/sbom-action@3ad7283483fc7af8ff2b4ea19663c2d5ca935e26 # v0.24.2
+        with:
+          path: .
+          format: spdx-json
+          output-file: sbom.spdx.json
+          # Uploaded explicitly by the release step below, for determinism.
+          upload-release-assets: false
+          upload-artifact: false
+
+      - name: compute per-asset SHA256SUMS
+        # Checksum every release asset so consumers can verify integrity.
+        # SHA256SUMS is itself uploaded alongside the files it covers.
+        run: |
+          set -e
+          : > SHA256SUMS
+          sha256sum sbom.spdx.json >> SHA256SUMS
+          cat SHA256SUMS
 
       - name: extract changelog section for this tag
         id: notes
@@ -138,12 +188,24 @@ jobs:
               --title "$TAG" \
               --notes-file release-notes.md \
               --verify-tag
+            gh release upload "$TAG" sbom.spdx.json SHA256SUMS --clobber
           else
-            gh release create "$TAG" \
+            gh release create "$TAG" sbom.spdx.json SHA256SUMS \
               --title "$TAG" \
               --notes-file release-notes.md \
               --verify-tag
           fi
+
+      - name: attest build provenance
+        # SLSA build-provenance over the release assets. Needs id-token: write
+        # + attestations: write (declared on the job). Recorded in the repo's
+        # attestations store; verifiable with `gh attestation verify`.
+        # SHA256SUMS is deliberately NOT a subject — it only restates the
+        # digest the attestation already binds, so attesting it proves nothing
+        # extra and would fail the run if the checksum step is ever reshaped.
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: sbom.spdx.json
 
       - name: summary
         env:
