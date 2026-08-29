@@ -98,26 +98,35 @@ jobs:
         # checks out (`git archive HEAD vendor`; no .gitattributes exists,
         # so no export-ignore divergence from actions/checkout):
         #   vendor/regex-vis    → 221 packages, from its tracked package-lock.json
-        #   vendor/pierre-diffs →   0 packages
+        #   vendor/pierre-diffs →  51 packages, from its tracked bun.lock
+        #   both together       → 275 packages
+        # (275 is 3 above 221+51: syft's cross-directory catalogers add a few
+        # root-level detections when scanning the parent. Re-measured
+        # 2026-08-29 with syft :latest.)
         #
-        # What the 221 ARE: the PRODUCTION tree. The lockfile holds 283
-        # distinct name@version pairs; syft emits 221. All 64 it omits are
+        # BOTH vendored projects are now covered. pierre-diffs used to report
+        # 0 because `.gitignore` carried `vendor/*/bun.lock`, so the lockfile
+        # never reached a runner. That rule was accidental — it sat among the
+        # build-artefact ignores (node_modules/, dist/) while regex-vis's
+        # package-lock.json was always tracked — and was removed. syft DOES
+        # parse bun.lock: scanned standalone, the bare file yields 55; in the
+        # archive tree alongside package.json it yields 51.
+        #
+        # What the regex-vis 221 ARE: its lockfile holds 283 distinct
+        # name@version pairs and syft emits 221. All 64 it omits are
         # dev-flagged (48 also optional — the @esbuild/<platform> binaries,
         # babel plugins, and friends), and NOT ONE production package is
-        # missing. So the omission is deliberate cataloger behaviour, not
-        # dropped coverage: syft skips dev-only entries.
+        # missing. The precise claim that was verified is that second one:
+        # zero production packages omitted. (283−64=219 while syft emits 221,
+        # so "the 221 are exactly the production tree" is ~2 looser than the
+        # measurement; the slack direction is over-listing, which fails safe.)
         # Do not "fix" the 283→221 delta — it is the dev tree, by design.
         #
-        # pierre-diffs is NOT covered: its bun.lock is gitignored
-        # (.gitignore:70 `vendor/*/bun.lock`), so it never reaches a runner
-        # and syft has only package.json to read here. Whether syft could
-        # parse bun.lock at all is UNTESTED and irrelevant while the file is
-        # ignored — but it decides whether un-ignoring that one line would
-        # actually buy coverage, so measure before proposing that fix. Its
-        # deps are enumerated ONLY by THIRD_PARTY_NOTICES.md. Do not
-        # re-describe this SBOM as covering both vendored projects without
-        # re-measuring — scanning a local checkout reports ~57 pierre-diffs
-        # packages from untracked node_modules that CI never sees.
+        # THIRD_PARTY_NOTICES.md remains the human-readable enumeration.
+        # Do not re-measure this on a local checkout: the working tree holds
+        # ~130MB of untracked node_modules CI never sees, and scanning it
+        # reports different (inflated) numbers. Every figure above comes from
+        # `git archive HEAD vendor` extracted to a temp dir.
         uses: anchore/sbom-action@3ad7283483fc7af8ff2b4ea19663c2d5ca935e26 # v0.24.2
         with:
           path: .
