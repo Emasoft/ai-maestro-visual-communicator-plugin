@@ -94,15 +94,25 @@ jobs:
         # uv.lock holds only the project itself), so without this step
         # nothing enumerates the vendored builds' dependency trees.
         #
-        # MEASURED COVERAGE — syft 1.51.1 against the tracked-file set CI
-        # checks out (`git archive HEAD vendor`; no .gitattributes exists,
-        # so no export-ignore divergence from actions/checkout):
-        #   vendor/regex-vis    → 221 packages, from its tracked package-lock.json
-        #   vendor/pierre-diffs →  51 packages, from its tracked bun.lock
-        #   both together       → 275 packages
-        # (275 is 3 above 221+51: syft's cross-directory catalogers add a few
-        # root-level detections when scanning the parent. Re-measured
-        # 2026-08-29 with syft :latest.)
+        # MEASURED COVERAGE — syft 1.51.1 (confirmed: `anchore/syft:latest`
+        # reports Version 1.51.1, BuildDate 2026-08-27) against the WHOLE
+        # tracked tree, matching this step's `path: .`. Substrate is
+        # `git archive <ref>` extracted to a temp dir; no .gitattributes
+        # exists, so there is no export-ignore divergence from
+        # actions/checkout:
+        #   before tracking pierre-diffs' bun.lock  → 234 packages
+        #   after                                   → 288 packages  (+54)
+        #
+        # Per-directory attribution (scanned individually, so these are
+        # SUBSETS and do not sum to the totals above):
+        #   vendor/regex-vis    → 221, from its tracked package-lock.json
+        #   vendor/pierre-diffs →  51, from its tracked bun.lock
+        # The remainder comes from root-level manifests this step also
+        # catalogs. SCOPE MATTERS: an earlier revision of this comment quoted
+        # 221/275 — those are `vendor/`-only figures, and this step does not
+        # scan `vendor/` alone. The DELTA was the same either way (+54, all of
+        # it inside the vendored subtree), but the totals were wrong for what
+        # actually ships.
         #
         # BOTH vendored projects are now covered. pierre-diffs used to report
         # 0 because `.gitignore` carried `vendor/*/bun.lock`, so the lockfile
@@ -123,10 +133,20 @@ jobs:
         # Do not "fix" the 283→221 delta — it is the dev tree, by design.
         #
         # THIRD_PARTY_NOTICES.md remains the human-readable enumeration.
-        # Do not re-measure this on a local checkout: the working tree holds
-        # ~130MB of untracked node_modules CI never sees, and scanning it
-        # reports different (inflated) numbers. Every figure above comes from
-        # `git archive HEAD vendor` extracted to a temp dir.
+        #
+        # TWO LIMITS ON EVERY NUMBER ABOVE — do not read them as the SBOM this
+        # step emits:
+        #  1. They come from `syft scan dir:` run directly (Docker). This step
+        #     runs anchore/sbom-action, which wraps syft with its own config
+        #     and cataloger selection. Same engine, not the same invocation, so
+        #     these are the closest reproducible proxy — not the artifact.
+        #  2. This workflow has never executed. Nothing here has been observed
+        #     on a runner; the first real evidence arrives with the next
+        #     publish.py release. When it does, compare sbom.spdx.json's actual
+        #     package count against the 288 above and correct this comment.
+        # Do not re-measure on a local checkout either: the working tree holds
+        # ~130MB of untracked node_modules CI never sees, which inflates any
+        # count taken there. Always measure a `git archive` extraction.
         uses: anchore/sbom-action@3ad7283483fc7af8ff2b4ea19663c2d5ca935e26 # v0.24.2
         with:
           path: .
