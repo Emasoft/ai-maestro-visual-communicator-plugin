@@ -51,9 +51,25 @@ CORRECTS this section's previous range of `v0.1.0`..`v1.4.0`:
     resolver twins present       3   (1.5.0, 1.5.1, 1.5.2)
     twins MISSING               30   (1.0.0 … 1.4.0)
 
-There is no `v0.x` anywhere — not as a tag, not as a CHANGELOG section (the
-earliest is `## [1.0.0]`), so the old lower bound named a release that never
-existed. The gap is 1.0.0..1.4.0, exactly 30.
+The gap is 1.0.0..1.4.0, exactly 30. No `v0.x` TAG or RELEASE exists — absent
+from `git ls-remote --tags`, from the CHANGELOG (earliest `## [1.0.0]`), and
+from `gh release list` (32 releases, 0 drafts, earliest v1.1.0; note tags and
+releases are NOT in lockstep — v1.0.0 has a tag but no release).
+
+A 0.x VERSION did exist, though, and an earlier revision of this section wrongly
+said otherwise. `git log -S'"version": "0.'` over the manifests — the only check
+here that does not key on tags — finds it: before `f30ee55` (`chore: rebrand to
+ai-maestro-visual-communicator (v1.0.0)`) this plugin was
+`visual-explainer-marketplace` at **0.7.1**. So the pre-1.0 era is real; what
+never existed is a 0.x tag under THIS name. That costs the backfill nothing —
+a twin is `{plugin-name}--v{version}`, and no 0.7.1 tag exists to carry one.
+
+Recorded because the reasoning failed before the conclusion did: three sources
+agreeing (tags, CHANGELOG, releases) looked like independent confirmation, but
+CHANGELOG is generated from tags and a release hangs off one, so all three go
+silent together on a deleted tag. They establish "no v0.x now", never "no v0.x
+ever" — and the manifest history, which is genuinely tag-independent, says the
+stronger claim was false.
 
 The counts come from `comm` over two LC_ALL=C-sorted lists. Stated because the
 first attempt used `sort -V`, which made `comm` print "input is not in sorted

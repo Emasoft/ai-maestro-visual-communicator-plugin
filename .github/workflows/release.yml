@@ -94,8 +94,12 @@ jobs:
         # uv.lock holds only the project itself), so without this step
         # nothing enumerates the vendored builds' dependency trees.
         #
-        # MEASURED COVERAGE — syft 1.51.1 (confirmed: `anchore/syft:latest`
-        # reports Version 1.51.1, BuildDate 2026-08-27) against the WHOLE
+        # MEASURED COVERAGE — syft 1.51.1 was the version used for THESE LOCAL
+        # measurements (`anchore/syft:latest` reported Version 1.51.1,
+        # BuildDate 2026-08-27). That is NOT necessarily CI's: sbom-action
+        # pins its own syft internally, and its `syft-version` input has no
+        # default, so the version this step actually runs is unverified here.
+        # Measured against the WHOLE
         # tracked tree, matching this step's `path: .`. Substrate is
         # `git archive <ref>` extracted to a temp dir; no .gitattributes
         # exists, so there is no export-ignore divergence from
