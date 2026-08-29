@@ -140,7 +140,19 @@ jobs:
         #     runs anchore/sbom-action, which wraps syft with its own config
         #     and cataloger selection. Same engine, not the same invocation, so
         #     these are the closest reproducible proxy — not the artifact.
-        #  2. This workflow has never executed. Nothing here has been observed
+        #  2. They are measured on a PRISTINE archive, but this step runs
+        #     LATE in the job — after checkout, setup-uv, `uv run python
+        #     scripts/publish.py --gate-validate`, and two `uv tool install`
+        #     steps. pyproject.toml declares a [project], so that `uv run`
+        #     MATERIALISES `.venv/` in the repo root, and `.venv` is
+        #     gitignored — so it is absent from the archive but PRESENT at
+        #     `path: .` when syft runs. Checked: nothing before this step runs
+        #     npm/bun/yarn/pnpm or a vendor build, so there is no node_modules
+        #     on the runner; and `uv tool install` writes outside the repo.
+        #     Measured locally, `.venv` carries 6 packages (amvcp declares no
+        #     dependencies), so expect the shipped count a few above 288 — not
+        #     orders of magnitude. 288 is a LOWER BOUND, not the artifact.
+        #  3. This workflow has never executed. Nothing here has been observed
         #     on a runner; the first real evidence arrives with the next
         #     publish.py release. When it does, compare sbom.spdx.json's actual
         #     package count against the 288 above and correct this comment.
