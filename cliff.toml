@@ -49,7 +49,19 @@ commit_parsers = [
   { message = "^chore\\(pr\\)", skip = true },
   { message = "^chore\\(pull\\)", skip = true },
   { message = "^chore|^ci", group = "Miscellaneous Tasks" },
-  { body = ".*security", group = "Security" },
+  # NOTE: there is deliberately NO `{ body = ".*security" }` parser here.
+  # It was a bare substring match on the commit BODY, and it mis-filed the
+  # v0.8.0 release commit (2e4cfb4) under "Security" because that body
+  # mentions Mermaid's `securityLevel: 'loose'` config key. It also could
+  # never do the job it looked like it was doing: parsers are first-match-
+  # wins in order, and every conventional type above already matches
+  # earlier, so a `fix:` commit with a security body never reached it. Its
+  # only measurable effect was the false positive. Real security commits
+  # still group correctly — git-cliff derives the group from the
+  # conventional type, so `security: ...` lands under "Security" on its
+  # own. Verified by generating the changelog with and without this line:
+  # with it, Security had 2 entries (1 genuine + the release commit);
+  # without it, 1 (the genuine one).
   { message = "^revert", group = "Revert" },
 ]
 protect_breaking_commits = false
