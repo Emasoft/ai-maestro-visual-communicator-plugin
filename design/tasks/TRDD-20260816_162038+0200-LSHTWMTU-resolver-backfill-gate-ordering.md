@@ -61,8 +61,20 @@ said otherwise. `git log -S'"version": "0.'` over the manifests — the only che
 here that does not key on tags — finds it: before `f30ee55` (`chore: rebrand to
 ai-maestro-visual-communicator (v1.0.0)`) this plugin was
 `visual-explainer-marketplace` at **0.7.1**. So the pre-1.0 era is real; what
-never existed is a 0.x tag under THIS name. That costs the backfill nothing —
-a twin is `{plugin-name}--v{version}`, and no 0.7.1 tag exists to carry one.
+never existed is a 0.x tag. Measured on the remote: every tag is one of exactly
+two shapes, `v<N>` or `ai-maestro-visual-communicator-plugin--v<N>` — zero
+old-name tags, zero 0.x tags of either shape.
+
+Why that costs the backfill nothing, stated carefully because the obvious
+argument is circular: it is NOT "a twin is `{plugin-name}--v{version}` and no
+0.7.1 tag exists to carry one". The resolver filters by the DEPENDENT's declared
+name, not by ours — so a dependent that declared `visual-explainer-marketplace`
+at `^0.7.0` would look for `visual-explainer-marketplace--v0.7.1`, and the
+absence of that tag would BE the failure, not the reason there isn't one. The
+real safety is the promote trigger's own measurement: ZERO version-range
+dependents exist, by two independent scans, and neither scan found the old name
+pinned anywhere either. The rebrand widens the set of names a dependent could
+have declared; it does not change that nothing declares any of them.
 
 Recorded because the reasoning failed before the conclusion did: three sources
 agreeing (tags, CHANGELOG, releases) looked like independent confirmation, but
