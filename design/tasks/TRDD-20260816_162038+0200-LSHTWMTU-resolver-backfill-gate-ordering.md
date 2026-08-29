@@ -3,7 +3,7 @@ trdd-id: LSHTWMTU
 title: Resolver-tag backfill can never pass gate G1 because it runs after the release push
 column: backburner
 created: 2026-08-16T16:20:38+0200
-updated: 2026-08-29T23:10:00+0200
+updated: 2026-08-29T23:45:00+0200
 current-owner: ai-maestro-visual-communicator-plugin
 task-type: infra
 priority: 6
@@ -40,10 +40,32 @@ failure is one gate LATER.
 
 ## Consequence
 
-Historical twins `v0.1.0`..`v1.4.0` never reach the remote, so a
-version-constrained dependent cannot resolve old amvcp releases. The publish
-log's own line "the next publish retries the backfill" is misleading — the
-retry is guaranteed to fail too.
+Historical twins never reach the remote, so a version-constrained dependent
+cannot resolve old amvcp releases. The publish log's own line "the next publish
+retries the backfill" is misleading — the retry is guaranteed to fail too.
+
+MEASURED on the remote 2026-08-29 (`git ls-remote --tags origin`), which also
+CORRECTS this section's previous range of `v0.1.0`..`v1.4.0`:
+
+    plain release tags          33   (v1.0.0 … v1.5.2)
+    resolver twins present       3   (1.5.0, 1.5.1, 1.5.2)
+    twins MISSING               30   (1.0.0 … 1.4.0)
+
+There is no `v0.x` anywhere — not as a tag, not as a CHANGELOG section (the
+earliest is `## [1.0.0]`), so the old lower bound named a release that never
+existed. The gap is 1.0.0..1.4.0, exactly 30.
+
+The counts come from `comm` over two LC_ALL=C-sorted lists. Stated because the
+first attempt used `sort -V`, which made `comm` print "input is not in sorted
+order" — its output is untrustworthy after that warning even when the total
+happens to look right, and 30 is only reported here because the re-run was
+clean.
+
+This is also the first production evidence that the FORWARD fix works: every
+release from v1.5.0 on has its twin on the remote. That is the part GitHub
+issue #8 asked for, and it is done — `_release_tags()` mints the new version's
+twin and pushes it atomically with the release. Only the historical backfill,
+the subject of this card, is outstanding.
 
 ## Why deferred (not a stall — this is the decision)
 

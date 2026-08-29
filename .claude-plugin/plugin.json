@@ -23,5 +23,12 @@
     "slides",
     "mermaid",
     "regex-vis"
-  ]
+  ],
+  "cpv": {
+    "pipeline": {
+      "intentional_divergence": [
+        "cliff.toml"
+      ]
+    }
+  }
 }
