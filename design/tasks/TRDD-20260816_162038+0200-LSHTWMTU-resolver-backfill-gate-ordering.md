@@ -3,7 +3,7 @@ trdd-id: LSHTWMTU
 title: Resolver-tag backfill can never pass gate G1 because it runs after the release push
 column: backburner
 created: 2026-08-16T16:20:38+0200
-updated: 2026-08-25T14:35:00+0200
+updated: 2026-08-29T23:10:00+0200
 current-owner: ai-maestro-visual-communicator-plugin
 task-type: infra
 priority: 6
@@ -53,9 +53,20 @@ the hub repo (no version pin in `lib/ecosystem-constants.ts`, absent from
 and nobody has checked consumers off this machine — so "not measured" is not
 "none". Fixing it means changing release-GATE semantics for zero measured
 consumers, which fails YAGNI. Hub TRDD-JT3U4ZVM is the same FAMILY (missing
-historical twins fleet-wide) but is NOT a solved precedent: `column:
-ai_review`, `implementation-commits: []`, delivery `cross-repo-issues` —
-routed as issues to 9 repos, never implemented. There is no shape to copy.
+historical twins fleet-wide) but is NOT a solved precedent: delivery
+`cross-repo-issues` — routed as issues to 9 repos, `implementation-commits:
+[]`, never implemented. There is no shape to copy.
+
+Its `column:` is deliberately NOT asserted here. The hub repo is not present
+on this machine (`find ~/Code -iname '*JT3U4ZVM*'` → nothing, 2026-08-29), so
+no amvcp session can verify it firsthand. This card previously stated
+`ai_review`; the hub session ai-maestro-d7 reported `blocked` on 2026-08-29.
+Both are second-hand from here, and the newer one is at least sourced from the
+session that owns the file — but neither is a fact this repo can stand behind,
+and the distinction matters to whoever picks the card up (a blocked card and a
+card awaiting review need different things). Read it from the hub, do not trust
+a copy in this file. What IS load-bearing and independently checkable is the
+sentence above: no implementation commits, so nothing to copy.
 
 ## Candidate fix (hypothesis, UNTRIED — label it as such)
 
@@ -83,6 +94,24 @@ off-machine consumer.
 Re-measured 2026-08-25 (hub ai-maestro-e5, manifest scan across ~/Code, depth 4):
 still ZERO version-range dependents — the only external reference is the
 marketplace entry, which pins an exact version. Trigger unmet; card stays parked.
+
+Re-measured again 2026-08-29, two independent passes, still ZERO:
+- amvcp (this session): recursive grep for `ai-maestro-visual-communicator`
+  across `~/Code` over `package.json` / `plugin.json` / `*.ts` / `*.toml`,
+  node_modules excluded. Every hit is either a SELF-reference inside this repo
+  or the marketplace entry, which carries `"version": "1.4.0"` — an exact pin,
+  not a range. (Noted in passing, not this card's problem: that entry is stale
+  against the shipped 1.5.2.)
+- hub ai-maestro-d7: grep across its `lib/` `scripts/` `.claude/` filtered to
+  version-shaped context (`^` `~` `>=` `<`, `version`, `dependenc`) → zero
+  hits; 17 files mention the plugin, none as a pinned dependency.
+
+d7 states the honest limit of its own half, and it is the limit that matters:
+that pass covers the HUB repo, not every fleet repo — a pin living in another
+plugin's own manifest would not appear in it. The amvcp pass above is the wider
+one (all of `~/Code`), and it is still bounded by this machine. So the claim
+this card rests on is "no dependant found on this machine, by two independent
+scans", NOT "none exists". Trigger unmet; card stays parked.
 
 ## Notes and lessons learned
 
