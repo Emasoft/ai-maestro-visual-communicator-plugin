@@ -1,9 +1,9 @@
 ---
 name: verify
-description: Run the full dev-browser test gate before committing. Invoked by Claude Code's commit guidance before every commit except docs-only and tests-only ones.
+description: Run the full dev-browser test gate before committing. Claude Code commit guidance looks for a skill named verify before commits other than docs-only and tests-only.
 ---
 
-Run the full dev-browser suite: `cd /Users/emanuelesabetta/Code/visual-comunicator/tests && python3 run-tests.py` (or the wrapper `./run-all-tests.py`). It exits 0 only if every test passes.
+Run the full dev-browser suite from the repository root: `cd tests && python3 run-tests.py` (or the wrapper `./run-all-tests.py`). It exits 0 only if every test passes. (run-tests.py resolves its root from `__file__`, so this works from any clone location.)
 
 Before running, restart the dev-browser daemon if pages have accumulated — mass "Target crashed" failures that pass in isolation are daemon staleness, not product bugs (stop + status, then rerun). A minutes-scale run is expected.
 
