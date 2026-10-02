@@ -1,8 +1,8 @@
 ---
 name: test-suite-flakes-are-host-load
-description: "browser tests fail randomly with Target crashed, Browser default is not running, Daemon connection closed unexpectedly, or Resource temporarily unavailable os error 35, while every accused suite passes in isolation; publish gate G4 fails on a different suite each run"
+description: "browser tests fail randomly with Target crashed / publish gate G4 fails on a different suite each run / a suite that passes in isolation fails in the full run / Daemon connection closed unexpectedly / Browser default is not running / Resource temporarily unavailable os error 35 / flaky browser test is it a bug or the machine / which suite fails keeps changing / why does the test pass alone but fail together / moving accusation across test runs / host load average 197 chromium OOM killed / dev-browser daemon orphaned daemons accumulate / where should the daemon stop in run-tests.py / EAGAIN fork resource temporarily unavailable after fix"
 ocd: 2026-08-08
-lmd: 2026-08-08
+lmd: 2026-10-01
 metadata:
   node_type: memory
   type: reference
