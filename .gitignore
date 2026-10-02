@@ -133,3 +133,7 @@ node_modules/
 !.claude/project/
 !.claude/project/memory/
 !.claude/project/memory/**
+# project-scope verify skill (commit-guidance gate) — re-include past /.claude/**
+!.claude/skills/
+!.claude/skills/verify/
+!.claude/skills/verify/**

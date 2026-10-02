@@ -173,6 +173,8 @@ external assets except CDN links (fonts, optional libraries).
 {"id":null,"reason":"timeout"}
 ```
 
+Optional AI Maestro side-panel delivery: if the ai-maestro harness is present, deliver the page instead of (or after) handing over a path: `python3 "$CLAUDE_PLUGIN_ROOT/scripts/amvcp-panel-push.py" <file>.html`. It exits 0 with `panel: unavailable` when the harness CLI is absent (the normal standalone case — not an error), and a response with `delivered: 0` means the push was DROPPED (the panel is a live surface, not a queue), not success.
+
 For the v2 modal-comment flow, the queue dir, sidecar files, and atomic-write
 pattern are documented in the `amvcp-modal-comments` sub-skill references.
 

@@ -110,6 +110,8 @@ Trigger this umbrella whenever you are about to add ANY visual to a document. Th
 
 A self-contained interactive HTML file at `$CLAUDE_PROJECT_ROOT/reports/visual-communicator/diagrams/`. Stdout from the runner: `{kind:"submit"|"timeout", selections:[{type, data, …}, …]}`.
 
+**Optional: AI Maestro side-panel delivery.** If the ai-maestro harness is present, deliver the page instead of (or after) handing over a path: `python3 "$CLAUDE_PLUGIN_ROOT/scripts/amvcp-panel-push.py" <file>.html`. It exits 0 with `panel: unavailable` when the harness CLI is absent (the normal standalone case — not an error), and a response with `delivered: 0` means the push was DROPPED (the panel is a live surface, not a queue), not success.
+
 ## Error Handling
 
 - Visual broken in light or dark theme → that's a correctness defect; fix DESIGN.md or the scaffold's token usage, never hardcode a color.
