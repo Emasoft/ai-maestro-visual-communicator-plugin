@@ -793,20 +793,26 @@ def _push_resolver_backfill(new_version: str) -> None:
     able to resolve 1.3.6; without the twin it resolves nothing at all.
 
     Runs BEFORE the release push (TRDD-LSHTWMTU): the backfill push re-enters
-    the pre-push hook, whose G1 requires the local version STRICTLY GREATER
-    than the latest remote tag. In the old after-push position remote already
-    equaled local, so G1 failed structurally — the backfill could never pass
-    and the historical twins never shipped. Before the push the remote still
-    holds the old version, so G1 passes on its own terms; no gate weakened.
+    the pre-push hook, whose G1 fails when the local version EQUALS the latest
+    remote tag (any bump passes; equality is the duplicate-version guard). In
+    the old after-push position remote already equaled local, so G1 failed
+    structurally — the backfill could never pass and the historical twins
+    never shipped. Before the push the remote still holds the old version, so
+    G1 passes on its own terms; no gate weakened.
 
     `new_version` is EXCLUDED: its own twin is minted by `_release_tags()`
     and pushed atomically with the release in `_git_push`, so backfilling it
     here would double-push it — and push a twin for a version whose release
-    commit is not yet on the remote.
+    commit is not yet on the remote. Known pre-existing gap, documented not
+    fixed: a STALE LOCAL tag HIGHER than the released one (an aborted future
+    publish) still passes the filter and would be twin-pushed pointing at a
+    possibly-unpublished commit; close it by intersecting local v-tags with
+    `git ls-remote --tags` if that scenario ever becomes real.
 
     A failure is logged and the publish continues (historical twins must not
-    fail a release that is otherwise complete); the next publish retries the
-    missing ones, because the check is "which twins are missing".
+    fail a release that is otherwise complete); the release push follows next
+    and is unaffected; the next publish retries the missing twins, because
+    the check is "which twins are missing".
     """
     name = _plugin_name()
     local = _run(["git", "tag", "--list"], capture=True, check=False).stdout.split()
@@ -833,8 +839,8 @@ def _push_resolver_backfill(new_version: str) -> None:
     if result.returncode != 0:
         _log(
             "  resolver-tag backfill push failed (exit "
-            f"{result.returncode}). The release itself is fine and already "
-            "pushed; the next publish retries the backfill."
+            f"{result.returncode}). The release push follows next and is "
+            "unaffected; the next publish retries the backfill."
         )
 
 
@@ -1004,7 +1010,7 @@ def _stage_commit_tag_push(
     _git_tag(new_version)
     if push:
         # Backfill BEFORE the release push (TRDD-LSHTWMTU): the backfill push
-        # re-enters the pre-push hook, whose G1 requires local version > latest
+        # re-enters the pre-push hook, whose G1 fails on local == latest
         # remote tag. After the release push remote == local and G1 can never
         # pass — the backfill was structurally doomed in that position. Before
         # the push, remote still holds the old version, so G1 passes on its own
