@@ -215,6 +215,14 @@ def _read_remote_latest_tag() -> str | None:
             continue
         tag = ref[len("refs/tags/"):]
         # Strip the leading 'v' if present, then check semver.
+        # INVARIANT the backfill fix (TRDD-LSHTWMTU) rests on: a twin tag
+        # `{name}--vX.Y.Z` must NEVER feed this max — it does not start with
+        # `v`, so it gets no strip; the candidate is the whole twin string,
+        # which contains `--` and fails `_SEMVER_RE`'s anchored bare-semver
+        # match. The backfill may push twins BEFORE the release push only
+        # because they cannot move this max. If this parser ever starts
+        # accepting twins (or _SEMVER_RE loses its anchors), that fix's
+        # premise silently inverts.
         candidate = tag[1:] if tag.startswith("v") else tag
         if _SEMVER_RE.match(candidate):
             versions.append(_parse_semver(candidate))
@@ -839,8 +847,9 @@ def _push_resolver_backfill(new_version: str) -> None:
     if result.returncode != 0:
         _log(
             "  resolver-tag backfill push failed (exit "
-            f"{result.returncode}). The release push follows next and is "
-            "unaffected; the next publish retries the backfill."
+            f"{result.returncode}). The release push is attempted next and "
+            "this failure does not abort it (it likely shares the cause); "
+            "the next publish retries the backfill."
         )
 
 
