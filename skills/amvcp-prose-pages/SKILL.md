@@ -126,6 +126,7 @@ comments → edit the draft → re-render.
 
 Full component syntax, STE rules, and the video mode (opt-in only):
 [amwh-draft-format](references/amwh-draft-format.md).
+    > Panel skeleton · Component cheat sheet (pick by information shape) · STE controlled writing · Workflow (one Bash call) · Known gap — stated, not papered over · Refresh procedure (vendor updates) · Video mode (opt-in only)
 
 ## Instructions
 
