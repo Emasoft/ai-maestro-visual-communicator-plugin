@@ -145,6 +145,29 @@ def main() -> int:
              f"backfill@{idx_backfill} push@{idx_push}")
         failures += 1
 
+    # -- Case D: the invariant the backfill fix rests on (TRDD-LSHTWMTU) —
+    #    a resolver twin tag NEVER feeds _read_remote_latest_tag's max, even
+    #    when its semver is higher than every plain tag. --
+    with tempfile.TemporaryDirectory() as td:
+        tmp = Path(td)
+        repo = make_repo(tmp, "1.5.3")
+        bare = tmp / "origin.git"
+        git(["init", "-q", "--bare", str(bare)], cwd=tmp)
+        git(["remote", "add", "origin", str(bare)], cwd=repo)
+        git(["tag", "v1.5.2"], cwd=repo)
+        git(["tag", "t--v9.9.9"], cwd=repo)
+        git(["push", "-q", "origin", "v1.5.2", "t--v9.9.9"], cwd=repo)
+        module = load_publish(repo)
+        got = module._read_remote_latest_tag()
+        if got == "1.5.2":
+            emit("twin-excluded-from-remote-max", "PASS",
+                 "a resolver twin never moves _read_remote_latest_tag's max", "")
+        else:
+            emit("twin-excluded-from-remote-max", "FAIL",
+                 "twin tag fed the remote max — backfill premise inverted",
+                 f"got={got!r} expected='1.5.2'")
+            failures += 1
+
     print(f"SUMMARY | {failures} failed", flush=True)
     return 1 if failures else 0
 

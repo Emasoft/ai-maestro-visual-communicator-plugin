@@ -219,10 +219,12 @@ def _read_remote_latest_tag() -> str | None:
         # `{name}--vX.Y.Z` must NEVER feed this max — it does not start with
         # `v`, so it gets no strip; the candidate is the whole twin string,
         # which contains `--` and fails `_SEMVER_RE`'s anchored bare-semver
-        # match. The backfill may push twins BEFORE the release push only
-        # because they cannot move this max. If this parser ever starts
-        # accepting twins (or _SEMVER_RE loses its anchors), that fix's
-        # premise silently inverts.
+        # match. (Only `vX.Y.Z` and bare `X.Y.Z` shapes can pass — do not
+        # over-generalize this to "only v-tags feed the max".) The backfill
+        # may push twins BEFORE the release push only because they cannot
+        # move this max. If this parser ever starts accepting twins (or
+        # _SEMVER_RE loses its anchors), that fix's premise silently
+        # inverts — test-backfill-ordering.py pins the invariant.
         candidate = tag[1:] if tag.startswith("v") else tag
         if _SEMVER_RE.match(candidate):
             versions.append(_parse_semver(candidate))
