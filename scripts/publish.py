@@ -840,12 +840,26 @@ def _push_resolver_backfill(new_version: str) -> None:
     if not twins:
         return
     print(f"$ git push origin {' '.join(twins)}  # resolver-tag backfill")
-    result = git_with_retry(
-        ["git", "push", "origin", *twins],
-        cwd=REPO_ROOT,
-        check=False,
-        capture_output=False,
-    )
+    try:
+        result = git_with_retry(
+            ["git", "push", "origin", *twins],
+            cwd=REPO_ROOT,
+            check=False,
+            capture_output=False,
+            timeout=PUSH_TIMEOUT_SEC,
+        )
+    except subprocess.TimeoutExpired:
+        # git_with_retry lets TimeoutExpired RAISE (check=False only covers
+        # non-zero exits). A raise here would abort S9, contradicting the
+        # best-effort contract above — so catch it and treat it like a
+        # logged failure.
+        _log(
+            "  resolver-tag backfill push timed out after "
+            f"{PUSH_TIMEOUT_SEC:.0f}s. The release push is attempted next "
+            "and this failure does not abort it; the next publish retries "
+            "the backfill."
+        )
+        return
     if result.returncode != 0:
         _log(
             "  resolver-tag backfill push failed (exit "
@@ -853,6 +867,12 @@ def _push_resolver_backfill(new_version: str) -> None:
             "this failure does not abort it (it likely shares the cause); "
             "the next publish retries the backfill."
         )
+
+# The backfill and release pushes re-enter the pre-push hook, which re-runs the
+# full gate suite (~11 min measured). git_with_retry's 600s default kills them
+# mid-hook with an uncaught TimeoutExpired — crashed run 6 of the v1.6.0 release
+# before the release push ever ran (TRDD-LSHTWMTU). 1800s = 2.7x headroom.
+PUSH_TIMEOUT_SEC = 1800.0
 
 
 def _git_push(new_version: str) -> None:
@@ -876,12 +896,32 @@ def _git_push(new_version: str) -> None:
     """
     tags = _release_tags(new_version)
     print(f"$ git push --atomic origin HEAD {' '.join(tags)}")
-    result = git_with_retry(
-        ["git", "push", "--atomic", "origin", "HEAD", *tags],
-        cwd=REPO_ROOT,
-        check=False,
-        capture_output=False,
-    )
+    try:
+        result = git_with_retry(
+            ["git", "push", "--atomic", "origin", "HEAD", *tags],
+            cwd=REPO_ROOT,
+            check=False,
+            capture_output=False,
+            timeout=PUSH_TIMEOUT_SEC,
+        )
+    except subprocess.TimeoutExpired:
+        # git_with_retry lets TimeoutExpired RAISE — check=False only covers
+        # non-zero exits. Without this handler a timeout skips the rollback
+        # below entirely and strands the half-published state (run 6 of the
+        # v1.6.0 release died exactly this way in the backfill push). Route
+        # the timeout into the same rollback path as a failed exit.
+        _log(
+            f"  git push --atomic timed out after {PUSH_TIMEOUT_SEC:.0f}s; "
+            "rolling back local tags + commit so you can retry."
+        )
+        for tag in tags:
+            _run(["git", "tag", "-d", tag], check=False)
+        _run(["git", "reset", "--soft", "HEAD~1"], check=False)
+        sys.exit(
+            "publish: remote push timed out. Local tag + commit have been "
+            "removed; staged changes preserved. Fix the network/auth "
+            "issue and re-run `python3 scripts/publish.py --patch --push`."
+        )
     if result.returncode == 0:
         return
     # Push failed — roll back local commit + tag so the user can retry
