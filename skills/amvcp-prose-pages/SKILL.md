@@ -93,9 +93,39 @@ section below for the full embedded TOC.
   for auto numbering + selectable snippets. See
   [prose-mode](references/prose-mode.md).
     > Paragraph numbering + text-snippet selection · Text-snippet selection · Why opt-in via `data-ve-prose` · Authoring rules for prose pages · Reference response patterns
+- **Complex multi-panel answer page** → the Draft→render fast path
+  (vendored CLI; see the section below).
 - **"Which technique should I use?"** → walk the decision tree in
   [request-routing-decision-tree](references/request-routing-decision-tree.md).
     > Top-level decision tree · Layering: shape × element skills · Decision matrix — when shapes overlap · The "5-layer infographic composition" mental model (OT-07) · Composition · Anti-patterns
+
+## Draft→render fast path (vendored CLI)
+
+For a **complex multi-panel answer page** (3+ interrelated concepts, a
+flow/protocol with branches or actors, a 3+-dimension comparison, a
+hierarchy or evolution) you can skip hand-authoring HTML: write a short
+extended-Markdown **draft** and render it with the vendored CLI.
+
+1. Write the draft per [amwh-draft-format](references/amwh-draft-format.md)
+   (3–8 panels, one component each, frontmatter title).
+2. Render in ONE Bash call:
+   `node scripts/am-render.mjs render - <<AM_EOF ... AM_EOF --no-open -o <project-local-dir>`
+   (heredoc the draft on stdin; output PROJECT-LOCAL, never `~/`).
+3. Fix `✗ L<n>` errors / STE findings — at most 2 rounds.
+4. Screenshot-gate the page in dev-browser, light AND dark, before done.
+5. Reply with the conclusion + the page path.
+
+The CLI owns layout, SVG auto-layout (flow / sequence / tree / timeline /
+limits / annot / kv / callout), light+dark theming, and STE
+controlled-writing lint. The page is self-contained HTML with a
+copy-source-Markdown button (the export channel).
+
+**Known gap, stated:** these pages carry no `data-ve-*` atoms — per-atom
+selection does not exist there. The draft is the editable source: user
+comments → edit the draft → re-render.
+
+Full component syntax, STE rules, and the video mode (opt-in only):
+[amwh-draft-format](references/amwh-draft-format.md).
 
 ## Instructions
 
