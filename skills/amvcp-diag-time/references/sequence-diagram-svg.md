@@ -141,6 +141,23 @@ An activation bar = a `process` node on the lifeline:
 The bar's `x` is the lifeline x minus 5 (half the bar's 10-wide).
 The `y` is the start time of the activation; `h` is the duration.
 
+## Phase (stage) dividers
+
+Long exchanges read better when separated into labeled phases — a
+horizontal divider spanning all lifelines, label centered on it
+(adapted from the answer-me-with-html `== stage ==` syntax). Draw as a
+full-width accent band between message groups:
+
+```json
+{ "id": "phase-handshake", "type": "process",
+  "label": "Handshake",
+  "x": 40, "y": 320, "w": 820, "h": 1,
+  "role": "accent" }
+```
+
+Keep the band 1px tall (the label carries the meaning); one per phase,
+at most 3–4 per diagram, and never across an activation bar mid-flight.
+
 ## Notes / annotations
 
 A note is a small text box placed alongside a lifeline. Draw as

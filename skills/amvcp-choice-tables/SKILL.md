@@ -40,6 +40,7 @@ Loads when the agent needs an enumerable answer as a table-form Q&A. Author a `<
 - Missing `data-ve-type="table-form"`: rows fall back to plain `data-ve-id` clicks; no Submit injected; form silently degrades to passive single-row click.
 - Hand-authoring radio/checkbox/Submit: collides with runtime injection — duplicate columns, dead Submit. Let the runtime own it.
 - Emoji status indicators forbidden — inconsistent across platforms and screen readers. Use styled `<span>` chips (see css-patterns).
+- Status vocabulary in comparison/audit tables: use the semantic three — `ok` (works / allowed / satisfied), `no` (fails / forbidden / missing), `warn` (partial / conditional / deprecated) — rendered as chips tinted off `--vc-color-success` / `--vc-color-danger` / `--vc-color-warning`. Never free-text adjectives ("maybe", "sort of") in a status column — they defeat scanning; pick the nearest of the three and put the nuance in the row's prose. (Vocabulary adopted from the answer-me-with-html badge states.)
 
 ## Examples
 

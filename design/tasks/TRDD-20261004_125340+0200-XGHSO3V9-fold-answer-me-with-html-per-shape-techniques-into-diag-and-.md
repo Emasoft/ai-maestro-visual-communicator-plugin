@@ -1,10 +1,10 @@
 ---
 trdd-id: XGHSO3V9
 title: Fold answer-me-with-html per-shape techniques into diag and choice skills
-column: backburner
+column: dev
 status: tasked
 created: 2026-10-04T12:53:40+0200
-updated: 2026-10-04T12:53:40+0200
+updated: 2026-10-04T14:44:59+0200
 current-owner: main-agent@autonomous
 created-by: main-agent@autonomous
 task-type: refactor
