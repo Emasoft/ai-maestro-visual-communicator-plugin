@@ -6,6 +6,16 @@ extended Markdown and renders it with the vendored CLI
 path — the CLI owns layout, theming (light + dark both shipped), and
 an STE controlled-writing lint.
 
+## Table of Contents
+
+- [Panel skeleton](#panel-skeleton) — frontmatter, `## Panel Title`, per-panel shape
+- [Component cheat sheet (pick by information shape)](#component-cheat-sheet-pick-by-information-shape) — flow / sequence / tree / timeline / limits / annot / kv / callout / tables
+- [STE controlled writing](#ste-controlled-writing) — style modes, one-idea-per-sentence, 2-round fix loop
+- [Workflow (one Bash call)](#workflow-one-bash-call) — heredoc render, error lines, project-local output
+- [Known gap — stated, not papered over](#known-gap--stated-not-papered-over) — no data-ve atoms; draft is the editable source
+- [Refresh procedure (vendor updates)](#refresh-procedure-vendor-updates) — patch in docs_dev, re-apply, re-hash, re-scan
+- [Video mode (opt-in only)](#video-mode-opt-in-only) — am video, narration lines, MP4/TTS requirements
+
 ## Panel skeleton
 
 - `---` frontmatter: `title:` (page title), optional `lang: en|zh`
