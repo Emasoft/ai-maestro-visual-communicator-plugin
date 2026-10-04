@@ -1,10 +1,10 @@
 ---
 trdd-id: VWZSUOJM
 title: Integrate answer-me-with-html fast path into amvcp-prose-pages
-column: dev
-status: tasked
+column: complete
+status: archived
 created: 2026-10-04T12:53:22+0200
-updated: 2026-10-04T14:34:54+0200
+updated: 2026-10-04T14:43:51+0200
 current-owner: main-agent@autonomous
 created-by: main-agent@autonomous
 task-type: feature
@@ -26,6 +26,15 @@ USER directive 2026-10-04 (complete all TRDDs and pending tasks) approves the ga
 ## Approval log
 
 - 2026-10-04T12:53:22+0200 — MANDATE issued by main-agent@autonomous (min-approval-requirement: none). Pre-approved: issuer authority >= required approver. No approval request was sent.
+- 2026-10-04T14:43:51+0200 — COMPLETE by main-agent@autonomous. Checklist ticked: vendor+patch dd06ef8, docs 80165a3, scan clean, screenshot gate both themes..
+
+## Acceptance checklist
+
+- [x] am.mjs vendored byte-verified (dd06ef8, pristine eb2490c0... + devitalize patch, patched hash 37007b3b...)
+- [x] CPV skillaudit 0 non-info findings on the shipped file (independent re-scan)
+- [x] Fast-path section in SKILL.md + references/amwh-draft-format.md (80165a3)
+- [x] Project-local output + no-data-ve gap stated in both files
+- [x] Screenshot gate passed light + dark (dev-browser headless)
 
 ## Notes and lessons learned
 
