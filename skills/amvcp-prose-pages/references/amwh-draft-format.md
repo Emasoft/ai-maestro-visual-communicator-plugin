@@ -69,6 +69,20 @@ draft: the user comments → Claude edits the draft → re-render (the
 plugin standard comment→re-emit channel, source-level instead of
 atom-level).
 
+## Refresh procedure (vendor updates)
+
+The shipped `scripts/am-render.mjs` is pristine upstream PLUS the
+8-shape devitalize patch (commit dd06ef8). The patch file lives in
+`docs_dev/am-render.devitalize.patch` — OUTSIDE the shipped plugin
+tree deliberately: a patch quotes its own pre-image, so storing it
+inside the plugin would re-flag every original detector shape at scan
+time. Refresh: re-download upstream `am.mjs` → apply the patch →
+verify the sha256 matches the pinned hash in commit dd06ef8 → re-run
+the CPV scan. If `docs_dev/` is lost, regenerate the patch by diffing
+pristine upstream against the shipped file (`diff -u`), or redo the 8
+rewrites documented in the dd06ef8 commit message and the devitalize
+report.
+
 ## Video mode (opt-in only)
 
 `am video` renders the same draft plus `>` narration lines into an
