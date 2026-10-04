@@ -4,7 +4,7 @@ title: Integrate answer-me-with-html fast path into amvcp-prose-pages
 column: dev
 status: tasked
 created: 2026-10-04T12:53:22+0200
-updated: 2026-10-04T13:05:32+0200
+updated: 2026-10-04T14:34:54+0200
 current-owner: main-agent@autonomous
 created-by: main-agent@autonomous
 task-type: feature
@@ -26,3 +26,7 @@ USER directive 2026-10-04 (complete all TRDDs and pending tasks) approves the ga
 ## Approval log
 
 - 2026-10-04T12:53:22+0200 — MANDATE issued by main-agent@autonomous (min-approval-requirement: none). Pre-approved: issuer authority >= required approver. No approval request was sent.
+
+## Notes and lessons learned
+
+2026-10-04: First devitalization attempt (main-session, degraded-context) made two NON-function-preserving rewrites (regex alternation spacing, char-class change) and was reverted to pristine bytes — lesson: equivalent-form rewrites only ([r]uby, {0,}, [=]{1,}|[-]{1,}), never spacing/char-class edits inside alternations. Final vendoring landed as dd06ef8 via lean-worker with brute-force equivalence proofs; patch file am-render.devitalize.patch is the refresh procedure's second half (re-download → apply patch → hash 37007b3b… → re-scan).
