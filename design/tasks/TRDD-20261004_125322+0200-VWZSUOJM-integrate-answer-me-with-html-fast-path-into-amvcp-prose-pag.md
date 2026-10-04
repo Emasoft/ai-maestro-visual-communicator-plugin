@@ -1,10 +1,10 @@
 ---
 trdd-id: VWZSUOJM
 title: Integrate answer-me-with-html fast path into amvcp-prose-pages
-column: backburner
+column: dev
 status: tasked
 created: 2026-10-04T12:53:22+0200
-updated: 2026-10-04T12:53:22+0200
+updated: 2026-10-04T13:05:32+0200
 current-owner: main-agent@autonomous
 created-by: main-agent@autonomous
 task-type: feature

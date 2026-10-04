@@ -1,9 +1,9 @@
 ---
 trdd-id: LSHTWMTU
 title: Resolver-tag backfill can never pass gate G1 because it runs after the release push
-column: todo
+column: complete
 created: 2026-08-16T16:20:38+0200
-updated: 2026-10-04T12:53:46+0200
+updated: 2026-10-04T13:05:31+0200
 current-owner: ai-maestro-visual-communicator-plugin
 task-type: infra
 priority: 6
@@ -175,3 +175,4 @@ up on it succeeding.
 ## Approval log
 
 - 2026-10-04T12:53:46+0200 — column → todo. USER directive 2026-10-04 complete-all-TRDDs; promoting per owner instruction
+- 2026-10-04T13:05:31+0200 — column → complete. Fix landed in eb1471d: backfill moved before _git_push, new twin excluded, 4-test suite green, no regression in test-publish-gates. Historical twins will land on the next publish run (task #6).
