@@ -1,9 +1,9 @@
 ---
 trdd-id: LSHTWMTU
 title: Resolver-tag backfill can never pass gate G1 because it runs after the release push
-column: backburner
+column: todo
 created: 2026-08-16T16:20:38+0200
-updated: 2026-08-29T23:45:00+0200
+updated: 2026-10-04T12:53:46+0200
 current-owner: ai-maestro-visual-communicator-plugin
 task-type: infra
 priority: 6
@@ -12,6 +12,7 @@ effort: S
 release-via: publish
 labels: [release, publish-pipeline, resolver-tags]
 implementation-commits: []
+status: tasked
 ---
 
 ## Symptom
@@ -170,3 +171,7 @@ someone reads the publish log closely — worth remembering next time a
 "non-fatal" step in a pipeline is dismissed without checking whether it is
 non-fatal because it is optional, or non-fatal because someone already gave
 up on it succeeding.
+
+## Approval log
+
+- 2026-10-04T12:53:46+0200 — column → todo. USER directive 2026-10-04 complete-all-TRDDs; promoting per owner instruction

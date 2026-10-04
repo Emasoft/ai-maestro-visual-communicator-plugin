@@ -784,7 +784,7 @@ def _git_tag(new_version: str) -> None:
         _run(["git", "tag", tag])
 
 
-def _push_resolver_backfill() -> None:
+def _push_resolver_backfill(new_version: str) -> None:
     """One-time self-heal: give every already-published `v*` tag its resolver twin.
 
     Six releases shipped before `_release_tags` existed, so `v1.0.0 … v1.4.0`
@@ -792,15 +792,31 @@ def _push_resolver_backfill() -> None:
     version-constrained dependency. A dependent asking for `^1.3.0` should be
     able to resolve 1.3.6; without the twin it resolves nothing at all.
 
-    Runs AFTER the release push has already succeeded, and never rolls anything
-    back: a backfill of historical refs must not be able to fail a release that
-    is otherwise complete. A failure here is logged and the publish continues —
-    the next publish retries it, because the check is "which twins are missing",
-    not a flag someone has to remember to clear.
+    Runs BEFORE the release push (TRDD-LSHTWMTU): the backfill push re-enters
+    the pre-push hook, whose G1 requires the local version STRICTLY GREATER
+    than the latest remote tag. In the old after-push position remote already
+    equaled local, so G1 failed structurally — the backfill could never pass
+    and the historical twins never shipped. Before the push the remote still
+    holds the old version, so G1 passes on its own terms; no gate weakened.
+
+    `new_version` is EXCLUDED: its own twin is minted by `_release_tags()`
+    and pushed atomically with the release in `_git_push`, so backfilling it
+    here would double-push it — and push a twin for a version whose release
+    commit is not yet on the remote.
+
+    A failure is logged and the publish continues (historical twins must not
+    fail a release that is otherwise complete); the next publish retries the
+    missing ones, because the check is "which twins are missing".
     """
     name = _plugin_name()
     local = _run(["git", "tag", "--list"], capture=True, check=False).stdout.split()
-    released = [t for t in local if t.startswith("v") and _SEMVER_RE.match(t[1:])]
+    released = [
+        t
+        for t in local
+        if t.startswith("v")
+        and _SEMVER_RE.match(t[1:])
+        and t != f"v{new_version}"
+    ]
     missing = [v for v in released if f"{name}--{v}" not in local]
     for version_tag in missing:
         _run(["git", "tag", f"{name}--{version_tag}", version_tag], check=False)
@@ -987,8 +1003,15 @@ def _stage_commit_tag_push(
     _git_commit(new_version, message)
     _git_tag(new_version)
     if push:
+        # Backfill BEFORE the release push (TRDD-LSHTWMTU): the backfill push
+        # re-enters the pre-push hook, whose G1 requires local version > latest
+        # remote tag. After the release push remote == local and G1 can never
+        # pass — the backfill was structurally doomed in that position. Before
+        # the push, remote still holds the old version, so G1 passes on its own
+        # terms. The new version's own twin is excluded (it rides _git_push
+        # atomically) so a backfill can never leak an unpublished version.
+        _push_resolver_backfill(new_version)
         _git_push(new_version)
-        _push_resolver_backfill()
     else:
         _log(
             f"  commit + tag v{new_version} created locally. "
